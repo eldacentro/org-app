@@ -16,6 +16,8 @@ import { schedulesSaveAssignment } from '@services/app/schedules';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import { personIsAway } from '@services/app/persons';
+import { outgoingTalkDate } from '@services/app/meeting_month';
 
 const useOutgoingSpeaker = ({
   week,
@@ -136,6 +138,39 @@ const useOutgoingSpeaker = ({
     return person || null;
   }, [week, schedule, options, schedule_id]);
 
+  /**
+   * «Está de ausencia el día que sale a hablar».
+   *
+   * La fecha de una salida NO es la de nuestra reunión: es la del día de
+   * reunión de la congregación a la que va. Preguntar por la nuestra —o peor,
+   * por el lunes de la semana— avisaría del día equivocado, que es justo el
+   * fallo que ya salió una vez en la tira de arriba.
+   *
+   * Sin congregación asignada todavía no hay fecha que mirar, así que no se
+   * dice nada: inventarse una sería peor que callar. El cálculo del día vive en
+   * `outgoingTalkDate`, que es el mismo que usa el historial de «Reparto de
+   * asignaciones» — si cada uno hiciera su cuenta volverían a discrepar.
+   */
+  const helperText = useMemo(() => {
+    if (!value || week.length === 0) return '';
+
+    const outgoingSchedule = schedule?.weekend_meeting?.outgoing_talks?.find(
+      (record) => record.id === schedule_id
+    );
+
+    const fecha = outgoingTalkDate(week, outgoingSchedule?.congregation?.weekday);
+
+    if (fecha.length === 0) return '';
+
+    const person = persons.find(
+      (record) => record.person_uid === value.person_uid
+    );
+
+    if (!person) return '';
+
+    return personIsAway(person, fecha) ?? '';
+  }, [value, week, schedule, schedule_id, persons]);
+
   const handleSaveAssignment = async (value: PersonOptionsType) => {
     try {
       await schedulesSaveAssignment(schedule, assignment, value, schedule_id);
@@ -159,6 +194,7 @@ const useOutgoingSpeaker = ({
     options,
     handleSaveAssignment,
     value,
+    helperText,
   };
 };
 

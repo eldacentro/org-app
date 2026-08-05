@@ -36,6 +36,7 @@ import MenuItem from '@components/menuitem';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
 import { schedulesState, selectedWeekState } from '@states/schedules';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
+import { outgoingTalkDate } from '@services/app/meeting_month';
 import { publicTalksState } from '@states/public_talks';
 import {
   JWLangState,
@@ -455,7 +456,11 @@ const OutgoingSpeakersPage = () => {
       // Por el día de la REUNIÓN, no por el lunes de la semana: preguntar por
       // el lunes daba avisos falsos —una ausencia que acaba el martes cubre el
       // lunes pero no el día de la reunión—. Ver `meetingDateOfWeek`.
-      const cuando = meetingDateOfWeek(assignee.weekOf, 'outgoing');
+      //
+      // Y en una salida el día no es el nuestro, es el de la congregación que
+      // le recibe: viene ya calculado en `fecha`.
+      const cuando =
+        assignee.fecha || meetingDateOfWeek(assignee.weekOf, 'outgoing');
 
       if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) continue;
 
@@ -531,7 +536,6 @@ const OutgoingSpeakersPage = () => {
         ) || [];
 
       const weekDate = new Date(schedule.weekOf);
-      const weekDay = weekDate.getDay() === 0 ? 7 : weekDate.getDay();
 
       outgoingTalks.forEach((record) => {
         const speakerUid = record.value;
@@ -540,10 +544,24 @@ const OutgoingSpeakersPage = () => {
             (talk) => talk.talk_number === +record.public_talk
           );
 
-          // Calculate assignment date
-          const dayDiff = record.congregation.weekday - weekDay;
-          const recordDate = new Date(weekDate);
-          recordDate.setDate(weekDate.getDate() + dayDiff);
+          // El día en que salió a hablar es el de la congregación que le
+          // recibe, no el nuestro. La cuenta que había aquí leía ese número en
+          // una escala que no es la que guarda el editor (donde 0 es lunes),
+          // así que a una congregación con la reunión el domingo le ponía el
+          // sábado; y si la salida no tenía día apuntado todavía, la fecha
+          // salía como «NaN de undefined de NaN».
+          const fechaSalida = outgoingTalkDate(
+            schedule.weekOf,
+            record.congregation.weekday
+          );
+
+          // Sin día de la otra congregación nos quedamos con nuestro fin de
+          // semana: es aproximado, pero la salida fue ese fin de semana y así
+          // el historial sigue ordenándose bien.
+          const recordDate = new Date(
+            fechaSalida || meetingDateOfWeek(schedule.weekOf, 'weekend') ||
+              weekDate
+          );
 
           // toLocaleDateString comparaba `lang` (código de idioma de
           // publicación JW, p.ej. 'S') contra 'es', que nunca coincide, así

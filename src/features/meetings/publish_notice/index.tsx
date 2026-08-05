@@ -30,6 +30,7 @@ import {
   meetingMonthResolver,
 } from '@services/app/meeting_month';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
+import { fmtDiaCorto } from '@utils/nombres_fecha';
 
 /**
  * La tira de aviso de publicación, arriba de la página del programa.
@@ -108,7 +109,10 @@ const MeetingPublishNotice = ({
 
       // Por el día de la REUNIÓN, no por el lunes de la semana: preguntar por
       // el lunes daba avisos falsos. Ver `meetingDateOfWeek`.
-      const cuando = meetingDateOfWeek(assignee.weekOf, type);
+      //
+      // Un discurso saliente trae su propio día —el de la congregación que le
+      // recibe—, y ese manda sobre el nuestro.
+      const cuando = assignee.fecha || meetingDateOfWeek(assignee.weekOf, type);
 
       if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) continue;
 
@@ -118,11 +122,16 @@ const MeetingPublishNotice = ({
 
       if (!name) continue;
 
-      const dia = schedulesGetMeetingDate({
-        week: assignee.weekOf,
-        meeting: type === 'midweek' ? 'midweek' : 'weekend',
-        short: true,
-      }).locale;
+      // El rótulo dice el día del que se está avisando. Para una salida ese día
+      // es el de la otra congregación, así que no vale el de nuestra reunión:
+      // diría un día y la ausencia sería de otro.
+      const dia = assignee.fecha
+        ? fmtDiaCorto(assignee.fecha)
+        : schedulesGetMeetingDate({
+            week: assignee.weekOf,
+            meeting: type === 'midweek' ? 'midweek' : 'weekend',
+            short: true,
+          }).locale;
 
       const linea = `${name} — ${dia || assignee.weekOf}, ${assignee.parte}`;
 

@@ -1,6 +1,7 @@
 import { PublishedCongregation, SchedWeekType } from '@definition/schedules';
 import { Week } from '@definition/week_type';
 import { monthNeedsPublishing, monthOfDate } from './month_publish';
+import { outgoingTalkDate } from './meeting_month';
 
 /**
  * Borrador / publicado en los programas de reunión.
@@ -874,6 +875,15 @@ export type MeetingMonthAssignee = {
    * ahorrar.
    */
   parte: string;
+  /**
+   * El día exacto, cuando no es el de nuestra reunión.
+   *
+   * Solo lo llevan los discursos SALIENTES: el hermano no habla aquí, habla en
+   * la congregación que le recibe, y esa puede tener la reunión el sábado
+   * cuando aquí es el domingo. Quien lee esto pregunta por esta fecha si la
+   * hay, y si no, por la de nuestra reunión.
+   */
+  fecha?: string;
 };
 
 /**
@@ -960,8 +970,12 @@ const collectAssigneesOfWeeks = (
     // Los discursos SALIENTES son la excepción: ahí el subárbol es una lista de
     // salidas, no partes con nombre, y recorrerlo igual daría «parte 0», «parte
     // 1». Todas son lo mismo y se llaman igual.
+    // Y cada salida se recorre por separado, aunque todas se llamen igual,
+    // porque cada una va a una congregación distinta y por tanto cae en un día
+    // distinto. Si se metieran todas en el mismo saco no habría forma de saber
+    // qué día preguntar por cada hermano.
     const partes: [string, unknown][] = Array.isArray(subtree)
-      ? [['outgoing_talks', subtree]]
+      ? subtree.map((salida) => ['outgoing_talks', salida] as [string, unknown])
       : Object.entries(subtree);
 
     for (const [campo, nodo] of partes) {
@@ -969,10 +983,19 @@ const collectAssigneesOfWeeks = (
         continue;
       }
 
+      const fecha =
+        campo === 'outgoing_talks'
+          ? outgoingTalkDate(
+              week.weekOf,
+              (nodo as { congregation?: { weekday?: number } })?.congregation
+                ?.weekday
+            )
+          : '';
+
       for (const found of collectAssignees(nodo, dataView)) {
         // Una persona puede salir dos veces en la misma parte (sala principal
         // y aula auxiliar); una vez por parte basta.
-        const fingerprint = `${week.weekOf}|${found.uid}|${campo}`;
+        const fingerprint = `${week.weekOf}|${found.uid}|${campo}|${fecha}`;
 
         if (seen.has(fingerprint)) continue;
 
@@ -982,6 +1005,7 @@ const collectAssigneesOfWeeks = (
           uid: found.uid,
           name: found.name,
           parte: PART_LABEL[campo] ?? campo,
+          ...(fecha.length > 0 && { fecha }),
         });
       }
     }

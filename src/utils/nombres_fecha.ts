@@ -89,6 +89,24 @@ export const fmtDiaConNumero = (date: Date): string => {
 };
 
 /**
+ * "9 noviembre" a partir de una fecha suelta en 'yyyy/MM/dd'.
+ *
+ * Es la forma corta, la misma que ya se usa en las tiras de aviso
+ * (`schedulesGetMeetingDate(...).locale` con `short`). Hace falta aparte porque
+ * aquella parte de una SEMANA y calcula el día de nuestra reunión, y hay días
+ * que no son el de nuestra reunión: el de un discurso saliente lo pone la
+ * congregación que le recibe.
+ */
+export const fmtDiaCorto = (fecha: string): string => {
+  const [year, month, day] = fecha.split(/[/-]/).map(Number);
+  const d = new Date(year, month - 1, day);
+
+  if (Number.isNaN(d.getTime())) return fecha;
+
+  return `${d.getDate()} ${MESES_ES[d.getMonth()]}`;
+};
+
+/**
  * "Semana del 27 de julio al 2 de agosto" a partir de un `weekOf`
  * ("2026/07/27", que siempre es el lunes).
  *

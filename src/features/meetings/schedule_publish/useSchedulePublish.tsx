@@ -330,7 +330,8 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
       if (!person) continue;
 
       // Por el día de la REUNIÓN, no por el lunes: ver `meetingDateOfWeek`.
-      const cuando = meetingDateOfWeek(assignee.weekOf, type);
+      // Una salida trae el día de la congregación que le recibe, y ese manda.
+      const cuando = assignee.fecha || meetingDateOfWeek(assignee.weekOf, type);
 
       if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) {
         continue;

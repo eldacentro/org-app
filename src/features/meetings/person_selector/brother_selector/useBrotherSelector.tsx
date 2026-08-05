@@ -478,15 +478,30 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     return deptHistoryForSlot(personHistory, props.dept, props.deptSlotKey);
   }, [personHistory, props.dept, props.deptSlotKey]);
 
-  const meetingDate = useMemo(() => {
-    const meeting = location.pathname.includes('midweek')
-      ? 'midweek'
-      : 'weekend';
+  /**
+   * Los días que hay que mirar para saber si esa persona está fuera.
+   *
+   * Casi siempre es uno: el día de la reunión que se está programando. Pero en
+   * Departamentos un puesto puede cubrir la SEMANA entera —esa persona sirve en
+   * las dos reuniones—, y entonces estar fuera cualquiera de los dos días ya es
+   * un choque.
+   *
+   * La reunión se deducía de la dirección de la página, y en Departamentos la
+   * dirección no dice ni una ni otra: caía siempre en fin de semana, así que a
+   * un acomodador del miércoles se le preguntaba por el domingo.
+   */
+  const meetingDates = useMemo(() => {
+    const fecha = (meeting: 'midweek' | 'weekend') =>
+      schedulesGetMeetingDate({ week, meeting }).date;
 
-    const date = schedulesGetMeetingDate({ week, meeting });
+    if (props.dept) {
+      return props.deptMeeting
+        ? [fecha(props.deptMeeting)]
+        : [fecha('midweek'), fecha('weekend')];
+    }
 
-    return date.date;
-  }, [location.pathname, week]);
+    return [fecha(location.pathname.includes('midweek') ? 'midweek' : 'weekend')];
+  }, [location.pathname, week, props.dept, props.deptMeeting]);
 
   const helperText = useMemo(() => {
     if (!value || week.length === 0) return '';
@@ -496,7 +511,9 @@ const useBrotherSelector = (props: PersonSelectorType) => {
       (record) => record.person_uid === value.person_uid
     );
 
-    const timeAwayNotice = personIsAway(person, meetingDate);
+    const timeAwayNotice = meetingDates
+      .map((fecha) => personIsAway(person, fecha))
+      .find(Boolean);
 
     if (timeAwayNotice) {
       return timeAwayNotice;
@@ -565,7 +582,7 @@ const useBrotherSelector = (props: PersonSelectorType) => {
     assignment,
     isLinkedPart,
     persons,
-    meetingDate,
+    meetingDates,
   ]);
 
   const defaultInputValue = useMemo(() => {

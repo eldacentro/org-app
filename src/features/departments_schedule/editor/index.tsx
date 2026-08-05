@@ -200,6 +200,10 @@ const DepartmentEditor = () => {
                         // reuniones no decía nada aquí, que es por lo que
                         // estaba apagado.
                         deptSlotKey={slot.key}
+                        // De qué reunión es este puesto. Sin esto, el aviso de
+                        // ausencias preguntaba siempre por el domingo, también
+                        // a los puestos del miércoles.
+                        deptMeeting={slot.meeting}
                         personValue={personsStateFind(
                           schedule?.[dept]?.[slot.key]?.value
                         )}

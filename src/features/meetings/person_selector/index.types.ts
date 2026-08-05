@@ -29,6 +29,17 @@ export type PersonSelectorType = {
    * usa el historial, para separar «este puesto» de «todos los departamentos».
    */
   deptSlotKey?: string;
+  /**
+   * De qué reunión es ese puesto de Departamentos, si es de una sola.
+   *
+   * Sin esto el aviso de ausencias miraba el día equivocado: se deducía la
+   * reunión de la DIRECCIÓN de la página, y en Departamentos la dirección no
+   * dice ni midweek ni weekend, así que caía siempre en fin de semana — y a un
+   * acomodador del miércoles se le preguntaba por el domingo.
+   *
+   * Vacío = el puesto cubre la semana entera, y entonces cuentan los dos días.
+   */
+  deptMeeting?: 'midweek' | 'weekend';
 };
 
 export type PersonOptionsType = PersonType & {

@@ -2,6 +2,7 @@ import { store } from '@states/index';
 import { meetingExactDateState } from '@states/settings';
 import { schedulesGetMeetingDate } from './schedules';
 import { monthOfDate } from './month_publish';
+import { addDays, formatDate } from '@utils/date';
 import type { MeetingPublishKey } from './meetings_publish';
 
 /**
@@ -94,4 +95,35 @@ export const meetingDateOfWeek = (weekOf: string, key: MeetingPublishKey) => {
   });
 
   return date || weekOf;
+};
+
+/**
+ * El día en que un hermano SALE a dar el discurso.
+ *
+ * No es el día de nuestra reunión: es el de la congregación a la que va, que
+ * bien puede tenerla el sábado cuando aquí es el domingo. Preguntarle a la
+ * nuestra avisa del día equivocado, que es justo el fallo que ya salió una vez.
+ *
+ * SOBRE EL NÚMERO. Es el mismo que usa el desplegable del editor: 0 = lunes,
+ * 1 = martes... 6 = domingo. Pero en los datos reales de la congregación hay
+ * registros con un 7, de cuando el dato entraba crudo desde la búsqueda de
+ * congregaciones (que lo da en escala 1-7). Hoy ese 7 sale EN BLANCO en el
+ * desplegable, porque no hay opción con ese valor. Un 7 solo pudo querer decir
+ * domingo, así que se lee como domingo en vez de tirarlo.
+ *
+ * El 0 se trata como «sin poner», no como lunes: ninguna congregación tiene la
+ * reunión del fin de semana un lunes, y 0 es el valor con el que nacen varios
+ * registros. Inventarse un lunes sería peor que callar.
+ */
+export const outgoingTalkDate = (
+  weekOf: string,
+  weekday: number | string | undefined | null
+): string => {
+  if (!weekOf) return '';
+
+  const dia = Number(weekday);
+
+  if (!Number.isInteger(dia) || dia < 1 || dia > 7) return '';
+
+  return formatDate(addDays(weekOf, Math.min(dia, 6)), 'yyyy/MM/dd');
 };

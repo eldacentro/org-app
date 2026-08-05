@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SchedWeekType } from '@definition/schedules';
 import { syncFromRemote } from '@services/worker/merge';
+import { outgoingTalkDate } from './meeting_month';
 import {
   buildOutgoingMonthGaps,
   collectMeetingMonthAssignees,
@@ -1079,5 +1080,55 @@ describe('lo que la congregación resuelve sin apuntarlo no «falta»', () => {
     );
 
     expect(despues).toEqual(antes);
+  });
+});
+
+/**
+ * El día en que un hermano sale a hablar fuera.
+ *
+ * Esta cuenta se hacía en dos sitios con dos escalas distintas y una de las dos
+ * estaba mal, así que a una congregación con la reunión el domingo el historial
+ * le ponía el sábado. Las pruebas fijan la escala: la del desplegable del
+ * editor, 0 = lunes.
+ */
+describe('outgoingTalkDate', () => {
+  // 2026/11/09 es lunes.
+  const lunes = '2026/11/09';
+
+  it('lee el número como lo escribe el desplegable: 6 es domingo', () => {
+    expect(outgoingTalkDate(lunes, 6)).toBe('2026/11/15');
+  });
+
+  it('5 es sábado', () => {
+    expect(outgoingTalkDate(lunes, 5)).toBe('2026/11/14');
+  });
+
+  it('el 7 heredado se lee como domingo, no como el lunes siguiente', () => {
+    // Los registros viejos guardaron el número crudo de la búsqueda de
+    // congregaciones, en escala 1-7. Un 7 solo pudo ser domingo; leerlo como
+    // 0-6 daría el lunes de la semana SIGUIENTE, que no es un día de reunión.
+    expect(outgoingTalkDate(lunes, 7)).toBe('2026/11/15');
+  });
+
+  it('sin día apuntado no se inventa ninguno', () => {
+    expect(outgoingTalkDate(lunes, undefined)).toBe('');
+    expect(outgoingTalkDate(lunes, null)).toBe('');
+    expect(outgoingTalkDate(lunes, '')).toBe('');
+  });
+
+  it('el 0 se trata como «sin poner», no como lunes', () => {
+    // Ninguna congregación tiene la reunión del fin de semana un lunes, y 0 es
+    // el valor con el que nacen varios registros.
+    expect(outgoingTalkDate(lunes, 0)).toBe('');
+  });
+
+  it('un número imposible tampoco inventa fecha', () => {
+    expect(outgoingTalkDate(lunes, 8)).toBe('');
+    expect(outgoingTalkDate(lunes, -1)).toBe('');
+    expect(outgoingTalkDate(lunes, 3.5)).toBe('');
+  });
+
+  it('sin semana no hay fecha', () => {
+    expect(outgoingTalkDate('', 6)).toBe('');
   });
 });
