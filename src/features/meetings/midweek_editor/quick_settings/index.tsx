@@ -7,6 +7,7 @@ import Divider from '@components/divider';
 import LinkedParts from '@features/congregation/settings/meeting_settings/midweek/linked_parts';
 import MidweekExactDate from '@features/congregation/settings/meeting_forms/midweek_exact_date';
 import QuickSettings from '@features/quick_settings';
+import SpecialParts from '@features/congregation/settings/meeting_settings/midweek/special_parts';
 import Typography from '@components/typography';
 
 const QuickSettingsMidweekMeeting = ({
@@ -30,6 +31,13 @@ const QuickSettingsMidweekMeeting = ({
 
         <Stack spacing="16px">
           <AuxiliaryClassroom />
+        </Stack>
+
+        {/* El mismo componente que en Ajustes de congregación, como el resto de
+            este engranaje: un ajuste, un sitio donde vive, dos puertas para
+            llegar. Aquí importa más, porque es donde se ve el hueco vacío. */}
+        <Stack spacing="16px">
+          <SpecialParts />
         </Stack>
 
         <Stack spacing="16px">

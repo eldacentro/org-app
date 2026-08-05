@@ -59,7 +59,12 @@ const Resumen = ({ reparto }: { reparto: RepartoAsignacionType }) => (
       } · entre ${reparto.menos} y ${reparto.mas} veces`}
     </Typography>
 
-    {reparto.desigual ? (
+    {/* El total no lleva señal, y es a propósito: «va equilibrado» o «míralo»
+        son juicios sobre una RUEDA, donde todos pueden llevar lo mismo. En el
+        total no — quien está aprobado para doce cosas lleva más que quien lo
+        está para dos, y eso no es un desequilibrio. Con semáforo, esta fila
+        saldría siempre en naranja y dejaría de decir nada. */}
+    {reparto.code === undefined ? null : reparto.desigual ? (
       <IconInfo width={16} height={16} color="var(--orange-dark)" />
     ) : (
       <IconCheckCircle width={16} height={16} color="var(--green-main)" />
@@ -102,57 +107,66 @@ const Reparto = () => {
           La tarjeta va FUERA del plegable y no dentro, para no anidar dos
           superficies con el mismo fondo y el mismo borde (ver DESIGN_SYSTEM,
           §8). El plegable pone el comportamiento; la tarjeta, el papel. */}
-      {asignaciones.map((reparto) => (
-        <Card key={reparto.code} sx={{ padding: '8px 16px', gap: '0px' }}>
-          <Accordion
-            key={reparto.code}
-            id={String(reparto.code)}
-            expanded={abierta === String(reparto.code)}
-            onChange={(value) => setAbierta(value)}
-            label={
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-              >
-                <Typography className="body-regular" color="var(--ink)">
-                  {reparto.titulo}
-                </Typography>
-                <Resumen reparto={reparto} />
-              </Box>
-            }
-          >
-            <Stack spacing="4px" sx={{ padding: '8px 0' }}>
-              {reparto.personas.map((persona, i) => (
-                <Box
-                  key={persona.person_uid}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    padding: '6px 0',
-                    borderBottom:
-                      i < reparto.personas.length - 1
-                        ? '1px solid var(--line)'
-                        : 'none',
-                  }}
-                >
-                  <Typography className="body-small-regular" color="var(--ink)">
-                    {`${i + 1}. ${nombreDe(persona.person_uid)}`}
-                  </Typography>
+      {asignaciones.map((reparto) => {
+        // El total no tiene código de asignación —no es una—, así que su
+        // identificador se pone a mano. Sin esto, `String(undefined)` haría de
+        // identificador y funcionaría de milagro.
+        const id = reparto.code === undefined ? 'total' : String(reparto.code);
 
-                  <Typography
-                    className="label-small-regular"
-                    color="var(--grey-400)"
-                    sx={{ textAlign: 'right', flexShrink: 0 }}
-                  >
-                    {`${haceCuanto(persona.ultima)} · ${vecesTexto(persona.veces)}`}
+        return (
+          <Card key={id} sx={{ padding: '8px 16px', gap: '0px' }}>
+            <Accordion
+              id={id}
+              expanded={abierta === id}
+              onChange={(value) => setAbierta(value)}
+              label={
+                <Box
+                  sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
+                >
+                  <Typography className="body-regular" color="var(--ink)">
+                    {reparto.titulo}
                   </Typography>
+                  <Resumen reparto={reparto} />
                 </Box>
-              ))}
-            </Stack>
-          </Accordion>
-        </Card>
-      ))}
+              }
+            >
+              <Stack spacing="4px" sx={{ padding: '8px 0' }}>
+                {reparto.personas.map((persona, i) => (
+                  <Box
+                    key={persona.person_uid}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      padding: '6px 0',
+                      borderBottom:
+                        i < reparto.personas.length - 1
+                          ? '1px solid var(--line)'
+                          : 'none',
+                    }}
+                  >
+                    <Typography
+                      className="body-small-regular"
+                      color="var(--ink)"
+                    >
+                      {`${i + 1}. ${nombreDe(persona.person_uid)}`}
+                    </Typography>
+
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--grey-400)"
+                      sx={{ textAlign: 'right', flexShrink: 0 }}
+                    >
+                      {`${haceCuanto(persona.ultima)} · ${vecesTexto(persona.veces)}`}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Accordion>
+          </Card>
+        );
+      })}
     </Stack>
   );
 };

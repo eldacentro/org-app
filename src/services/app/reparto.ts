@@ -131,6 +131,88 @@ export const construirReparto = ({
 };
 
 /**
+ * El TOTAL por hermano: cuántas asignaciones ha llevado, sumando todas.
+ *
+ * Hacía falta y no estaba, y el motivo es una trampa de la propia página: cada
+ * asignación tiene su rueda, así que una hermana que este año ha llevado cinco
+ * partes de estudiante las tiene repartidas entre «Empiece conversaciones»,
+ * «Haga revisitas», «Haga discípulos» y «Explique sus creencias» — y en cada una
+ * sale con una, o con ninguna. La página decía la verdad y aun así daba la
+ * impresión contraria: que a esa hermana no le tocaba nunca.
+ *
+ * Aquí se contesta la otra pregunta, la que se hace de verdad quien mira esto:
+ * «¿a esta hermana le está tocando algo, o no?».
+ *
+ * `elegibles` son los que pueden llevar ALGUNA de las asignaciones que se
+ * miran; si no, la lista se llenaría de gente que no entra en ningún reparto.
+ */
+export const construirTotal = ({
+  titulo,
+  elegibles,
+  history,
+  codigos,
+  hoy = new Date(),
+  meses = REPARTO_MESES,
+}: {
+  titulo: string;
+  elegibles: PersonType[];
+  history: AssignmentHistoryType[];
+  /** Las asignaciones que cuentan. Las de fuera (vídeos, etc.) no. */
+  codigos: Set<AssignmentCode>;
+  hoy?: Date;
+  meses?: number;
+}): RepartoAsignacionType => {
+  const desde = desdeMes(hoy, meses);
+
+  const cuentan = history.filter(
+    (record) =>
+      record.assignment.code !== undefined &&
+      codigos.has(record.assignment.code)
+  );
+
+  const personas: RepartoPersonaType[] = elegibles.map((person) => {
+    const suyas = cuentan.filter(
+      (record) => record.assignment.person === person.person_uid
+    );
+
+    const veces = suyas.filter((record) => record.weekOf >= desde).length;
+
+    const ultima = suyas
+      .map((record) => record.weekOf)
+      .sort((a, b) => b.localeCompare(a))
+      .at(0);
+
+    return { person_uid: person.person_uid, veces, ultima: ultima ?? '' };
+  });
+
+  // Aquí el orden es por CARGA y no por turno: la pregunta no es a quién le
+  // toca ahora —eso lo contesta cada rueda— sino a quién se le está yendo la
+  // mano y a quién no le llega nada. Los que menos llevan, arriba.
+  personas.sort((a, b) => {
+    if (a.veces !== b.veces) return a.veces - b.veces;
+
+    return a.ultima.localeCompare(b.ultima);
+  });
+
+  const cuentas = personas.map((p) => p.veces);
+  const menos = cuentas.length > 0 ? Math.min(...cuentas) : 0;
+  const mas = cuentas.length > 0 ? Math.max(...cuentas) : 0;
+
+  return {
+    code: undefined as unknown as AssignmentCode,
+    titulo,
+    personas,
+    menos,
+    mas,
+    // El total NUNCA avisa: quien está aprobado para diez cosas lleva más que
+    // quien lo está para dos, y eso no es un desequilibrio sino la lista de
+    // aprobados. Poner un semáforo aquí sería teñir de naranja una fila que
+    // siempre lo estaría.
+    desigual: false,
+  };
+};
+
+/**
  * Cómo se llama cada asignación en el resumen.
  *
  * Se saca del propio historial —el título que más se repite para ese código—

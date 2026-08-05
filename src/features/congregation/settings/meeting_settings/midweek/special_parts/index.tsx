@@ -6,10 +6,16 @@ import SwitchWithLabel from '@components/switch_with_label';
  * «Logros de la organización» y el «Informe del Cuerpo Gobernante».
  *
  * La aplicación reconoce esas dos partes por su título y no pide hermano,
- * porque en muchas congregaciones son un vídeo o un informe que presenta quien
- * preside. Pero no en todas: donde se llevan como análisis con el auditorio hay
- * que poner a alguien, y sin este interruptor no había manera — la casilla ni
- * siquiera salía.
+ * porque casi siempre son un vídeo o un informe que presenta quien preside.
+ *
+ * Pero no siempre: hay meses en que el material las trae con la indicación
+ * «Análisis con el auditorio», y entonces alguien tiene que dirigirlas. Sin este
+ * interruptor no había manera de asignarlo — la casilla ni siquiera salía en
+ * pantalla.
+ *
+ * El texto habla del MATERIAL y no de «si en tu congregación», que era lo que
+ * decía antes: no es una costumbre de la casa, es lo que pone el programa de esa
+ * semana.
  *
  * Apagado por defecto, que es como se ha comportado siempre.
  */
@@ -21,7 +27,7 @@ const SpecialParts = () => {
   return (
     <SwitchWithLabel
       label="Asignar a alguien en «Logros de la organización» y en el «Informe del Cuerpo Gobernante»"
-      helper="Normalmente son un vídeo y los presenta quien preside, así que la aplicación no pide hermano. Enciéndelo si en tu congregación se llevan como análisis con el auditorio."
+      helper="Suelen ser un vídeo, y por eso la aplicación no pide hermano. Pero hay meses en que el material las trae como «Análisis con el auditorio»: entonces alguien tiene que dirigirlas, y con esto aparece el campo para ponerlo."
       checked={assigned}
       onChange={handleToggle}
       readOnly={!isMidweekEditor}
