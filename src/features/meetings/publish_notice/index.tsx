@@ -25,7 +25,10 @@ import {
   isMeetingWeekPublished,
   meetingWeeksOfMonth,
 } from '@services/app/meetings_publish';
-import { meetingMonthResolver } from '@services/app/meeting_month';
+import {
+  meetingDateOfWeek,
+  meetingMonthResolver,
+} from '@services/app/meeting_month';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 /**
@@ -79,7 +82,15 @@ const MeetingPublishNotice = ({
     [schedules, month, type, dataView, monthOf]
   );
 
-  const awayNames = useMemo(() => {
+  /**
+   * Los choques concretos: quién, qué día y qué parte.
+   *
+   * Antes decía «Fulano tiene una ausencia apuntada en las fechas que tiene
+   * asignadas este mes» y ahí se acababa. Con eso no se puede hacer nada: hay
+   * que repasar el mes entero a mano buscando dónde está el problema, que es
+   * justo el trabajo que este aviso venía a ahorrar.
+   */
+  const awayClashes = useMemo(() => {
     const found: string[] = [];
 
     for (const assignee of collectMeetingMonthAssignees(
@@ -95,14 +106,27 @@ const MeetingPublishNotice = ({
 
       if (!person) continue;
 
-      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-')))
-        continue;
+      // Por el día de la REUNIÓN, no por el lunes de la semana: preguntar por
+      // el lunes daba avisos falsos. Ver `meetingDateOfWeek`.
+      const cuando = meetingDateOfWeek(assignee.weekOf, type);
+
+      if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) continue;
 
       const name =
         personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
         assignee.name;
 
-      if (name && !found.includes(name)) found.push(name);
+      if (!name) continue;
+
+      const dia = schedulesGetMeetingDate({
+        week: assignee.weekOf,
+        meeting: type === 'midweek' ? 'midweek' : 'weekend',
+        short: true,
+      }).locale;
+
+      const linea = `${name} — ${dia || assignee.weekOf}, ${assignee.parte}`;
+
+      if (!found.includes(linea)) found.push(linea);
     }
 
     return found;
@@ -174,7 +198,7 @@ const MeetingPublishNotice = ({
 
   const showDraft = needsPublishing && pendientes.length > 0;
   const showChanged = needsPublishing && isPublished && changes > 0;
-  const showAway = awayNames.length > 0;
+  const showAway = awayClashes.length > 0;
 
   if (!showDraft && !showChanged && !showAway) return null;
 
@@ -225,11 +249,35 @@ const MeetingPublishNotice = ({
       )}
 
       {showAway && (
-        <InfoTip
-          isBig={false}
-          color="warning"
-          text={`${awayNames.join(', ')} ${awayNames.length === 1 ? 'tiene una ausencia apuntada' : 'tienen una ausencia apuntada'} en las fechas que tiene asignadas este mes. Nadie se desasigna solo: mira si hay que cambiarlo.`}
-        />
+        <InfoTip isBig={false} color="warning">
+          <Box
+            component="span"
+            sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
+          >
+            <Typography
+              component="span"
+              className="body-regular"
+              sx={{ color: 'var(--orange-dark)' }}
+            >
+              {awayClashes.length === 1
+                ? 'Hay una asignación en un día que esa persona está fuera. Nadie se desasigna solo: mira si hay que cambiarlo.'
+                : `Hay ${awayClashes.length} asignaciones en días que esas personas están fuera. Nadie se desasigna solo: mira si hay que cambiarlo.`}
+            </Typography>
+
+            {/* Una línea por choque: quién, qué día y qué parte. Es lo que
+                permite ir directo a arreglarlo en vez de repasar el mes. */}
+            {awayClashes.map((linea) => (
+              <Typography
+                key={linea}
+                component="span"
+                className="label-small-regular"
+                sx={{ color: 'var(--orange-dark)' }}
+              >
+                {linea}
+              </Typography>
+            ))}
+          </Box>
+        </InfoTip>
       )}
     </Box>
   );

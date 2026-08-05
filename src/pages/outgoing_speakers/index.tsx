@@ -59,6 +59,7 @@ import {
   setMeetingMonthPublished,
 } from '@services/app/meetings_publish';
 import { monthOfDate } from '@services/app/month_publish';
+import { meetingDateOfWeek } from '@services/app/meeting_month';
 import { personIsAwayOn } from '@services/app/persons';
 import { personGetDisplayName } from '@utils/common';
 import { personsByViewState } from '@states/persons';
@@ -451,7 +452,12 @@ const OutgoingSpeakersPage = () => {
 
       if (!person) continue;
 
-      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) continue;
+      // Por el día de la REUNIÓN, no por el lunes de la semana: preguntar por
+      // el lunes daba avisos falsos —una ausencia que acaba el martes cubre el
+      // lunes pero no el día de la reunión—. Ver `meetingDateOfWeek`.
+      const cuando = meetingDateOfWeek(assignee.weekOf, 'outgoing');
+
+      if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) continue;
 
       const name =
         personGetDisplayName(person, displayNameEnabled, fullnameOption) ||
@@ -780,7 +786,9 @@ const OutgoingSpeakersPage = () => {
             />
             {!monthIsHistoric && (
               <NavBarButton
-                text={monthIsPublished ? 'Publicado' : t('tr_publish', 'Publicar')}
+                text={
+                  monthIsPublished ? 'Publicado' : t('tr_publish', 'Publicar')
+                }
                 main={!monthIsPublished}
                 onClick={() => setPublishDialog(true)}
                 icon={<IconPublish />}

@@ -49,7 +49,10 @@ import {
   meetingMonthNeedsPublishing,
   setMeetingWeeksPublished,
 } from '@services/app/meetings_publish';
-import { meetingMonthResolver } from '@services/app/meeting_month';
+import {
+  meetingDateOfWeek,
+  meetingMonthResolver,
+} from '@services/app/meeting_month';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
@@ -326,7 +329,10 @@ const useSchedulePublish = ({ type, onClose }: SchedulePublishProps) => {
 
       if (!person) continue;
 
-      if (!personIsAwayOn(person, assignee.weekOf.replace(/\//g, '-'))) {
+      // Por el día de la REUNIÓN, no por el lunes: ver `meetingDateOfWeek`.
+      const cuando = meetingDateOfWeek(assignee.weekOf, type);
+
+      if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) {
         continue;
       }
 

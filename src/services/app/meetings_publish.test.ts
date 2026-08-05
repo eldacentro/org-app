@@ -641,7 +641,7 @@ describe('qué le falta a un mes de discursos salientes', () => {
 });
 
 describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
-  it('recoge a los asignados, sin repetir persona y semana', () => {
+  it('recoge a los asignados, una vez por PARTE', () => {
     const semanas = [
       week('2026/10/05', {
         midweek: {
@@ -680,9 +680,30 @@ describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
       'main'
     );
 
+    // Ana sale DOS veces porque lleva dos partes esa semana, y eso es lo que
+    // hay que decir: el aviso de ausencias nombra la parte concreta, así que
+    // agrupar por persona escondería la mitad de los choques. Lo que no se
+    // repite es la misma persona en la misma parte (sala principal y aula
+    // auxiliar son la misma parte).
     expect(asignados).toStrictEqual([
-      { weekOf: '2026/10/05', uid: 'uid-1', name: 'Ana' },
-      { weekOf: '2026/10/05', uid: 'uid-2', name: 'Luis' },
+      {
+        weekOf: '2026/10/05',
+        uid: 'uid-1',
+        name: 'Ana',
+        parte: 'Oración de apertura',
+      },
+      {
+        weekOf: '2026/10/05',
+        uid: 'uid-1',
+        name: 'Ana',
+        parte: 'Oración de conclusión',
+      },
+      {
+        weekOf: '2026/10/05',
+        uid: 'uid-2',
+        name: 'Luis',
+        parte: 'Tesoros de la Biblia',
+      },
     ]);
   });
 
@@ -729,7 +750,14 @@ describe('a quién se ha puesto en el mes (para el aviso de ausencias)', () => {
 
     expect(
       collectMeetingMonthAssignees(semanas, FUTURO, 'outgoing', 'main')
-    ).toStrictEqual([{ weekOf: '2026/10/05', uid: 'uid-9', name: 'Pedro' }]);
+    ).toStrictEqual([
+      {
+        weekOf: '2026/10/05',
+        uid: 'uid-9',
+        name: 'Pedro',
+        parte: 'Discurso saliente',
+      },
+    ]);
 
     // Y no salen al mirar el fin de semana, que es otro programa.
     expect(

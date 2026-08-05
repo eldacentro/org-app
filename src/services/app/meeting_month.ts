@@ -71,3 +71,27 @@ export const meetingMonthOfWeek = (
 export const meetingMonthResolver =
   (key: MeetingPublishKey) => (weekOf: string) =>
     meetingMonthOfWeek(weekOf, key);
+
+/**
+ * El día en que se celebra esa reunión, para preguntar por ausencias.
+ *
+ * Preguntar por el LUNES de la semana —que es lo que se hacía— da falsos
+ * avisos, y salió uno real: una ausencia del 21 de julio al 4 de agosto, con la
+ * reunión el miércoles 5. El lunes 3 cae dentro, así que la tira decía «tiene
+ * una ausencia en las fechas que tiene asignadas»; pero el hermano ya había
+ * vuelto el día de la reunión, y el aviso de debajo del campo —que sí pregunta
+ * por el día de la reunión— no decía nada. Dos avisos de lo mismo diciendo
+ * cosas distintas, y el de arriba mintiendo.
+ *
+ * Los discursos salientes se celebran el día de la reunión de fin de semana.
+ */
+export const meetingDateOfWeek = (weekOf: string, key: MeetingPublishKey) => {
+  if (!weekOf) return '';
+
+  const { date } = schedulesGetMeetingDate({
+    week: weekOf,
+    meeting: key === 'midweek' ? 'midweek' : 'weekend',
+  });
+
+  return date || weekOf;
+};

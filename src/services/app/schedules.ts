@@ -1583,6 +1583,25 @@ const descartar = (
 };
 
 /**
+ * Las asignaciones que se celebran el día de la reunión de FIN DE SEMANA.
+ *
+ * Se escriben una a una en vez de deducirlas del número: en el enumerado los
+ * códigos de las dos reuniones van intercalados —el presidente del fin de semana
+ * es el 118 y cae entre dos de entre semana—, así que no hay ningún corte
+ * numérico del que fiarse. Lo que no esté aquí es de entre semana, que es la
+ * mayoría.
+ */
+const WEEKEND_CODES = new Set<AssignmentCode>([
+  AssignmentCode.WM_Chairman,
+  AssignmentCode.WM_Prayer,
+  AssignmentCode.WM_Speaker,
+  AssignmentCode.WM_SpeakerSymposium,
+  AssignmentCode.WM_WTStudyConductor,
+  AssignmentCode.WM_WTStudyReader,
+  AssignmentCode.WM_SpeakerOutgoing,
+]);
+
+/**
  * Un número estable a partir de un texto (FNV-1a).
  *
  * Ni aleatorio ni secreto: solo hace falta que salga SIEMPRE el mismo y que dos
@@ -1735,10 +1754,19 @@ export const schedulesSelectRandomPerson = (data: {
 
   let candidatos = personsElligible;
 
-  // 1. Quien esté de ausencia esa semana. Va el primero porque es el único
-  //    descarte que no es una preferencia: esa persona NO va a estar.
+  // 1. Quien esté de ausencia EL DÍA DE LA REUNIÓN. Va el primero porque es el
+  //    único descarte que no es una preferencia: esa persona NO va a estar.
+  //
+  //    Por el día de la reunión y no por el lunes de la semana, que es lo que
+  //    se preguntaba: una ausencia que termina el martes cubre el lunes pero no
+  //    el miércoles, y descartaba a alguien que sí iba a estar.
+  const diaDeLaReunion = schedulesGetMeetingDate({
+    week: data.week,
+    meeting: WEEKEND_CODES.has(data.type) ? 'weekend' : 'midweek',
+  }).date;
+
   candidatos = descartar(candidatos, (person) =>
-    personIsAwayOn(person, data.week.replace(/\//g, '-'))
+    personIsAwayOn(person, (diaDeLaReunion || data.week).replace(/\//g, '-'))
   );
 
   // 2. Quien ya lleva algo esa MISMA semana. Aquí sí vale mirar cualquier

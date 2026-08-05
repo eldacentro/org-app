@@ -33,6 +33,7 @@ import DeptPublishDialog from '@features/departments_schedule/publish_dialog';
 import DeptConfigDialog from '@features/departments_schedule/config_dialog';
 import { personsByViewState } from '@states/persons';
 import { personIsAwayOn } from '@services/app/persons';
+import { meetingDateOfWeek } from '@services/app/meeting_month';
 import { personGetDisplayName } from '@utils/common';
 import {
   displayNameMeetingsEnableState,
@@ -129,7 +130,25 @@ const DepartmentsSchedule = () => {
 
         if (!person) continue;
 
-        if (!personIsAwayOn(person, week.weekOf.replace(/\//g, '-'))) continue;
+        // Por el día de la REUNIÓN, no por el lunes de la semana: una ausencia
+        // que acaba el martes cubre el lunes pero no el miércoles, y avisaba de
+        // un choque que no existe.
+        //
+        // Un puesto puede ser de UNA reunión o de toda la semana. Si es de toda
+        // la semana, esa persona sirve en las dos, así que estar fuera
+        // cualquiera de los dos días ya es un choque.
+        const dias = slot.meeting
+          ? [meetingDateOfWeek(week.weekOf, slot.meeting)]
+          : [
+              meetingDateOfWeek(week.weekOf, 'midweek'),
+              meetingDateOfWeek(week.weekOf, 'weekend'),
+            ];
+
+        if (
+          !dias.some((dia) => personIsAwayOn(person, dia.replace(/\//g, '-')))
+        ) {
+          continue;
+        }
 
         const name = personGetDisplayName(
           person,

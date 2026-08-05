@@ -865,6 +865,43 @@ export type MeetingMonthAssignee = {
   uid: string;
   /** El nombre tal y como quedó guardado al asignarla, si lo hay. */
   name: string;
+  /**
+   * Cómo se llama la parte que lleva: «Lectura de la Biblia».
+   *
+   * Hace falta para que el aviso de ausencias sirva de algo. Decir «tiene una
+   * asignación un día que está ausente» sin decir cuál ni cuándo obliga a
+   * repasar el mes entero a mano, que es justo el trabajo que se venía a
+   * ahorrar.
+   */
+  parte: string;
+};
+
+/**
+ * El nombre de cada parte, por la clave con la que vive en la semana.
+ *
+ * Se queda en el primer nivel a propósito: a quien lee el aviso le da igual si
+ * fue en la sala principal o en el aula auxiliar — lo que necesita es saber a
+ * qué parte ir.
+ */
+const PART_LABEL: Record<string, string> = {
+  chairman: 'Presidente',
+  opening_prayer: 'Oración de apertura',
+  tgw_talk: 'Tesoros de la Biblia',
+  tgw_gems: 'Busquemos perlas escondidas',
+  tgw_bible_reading: 'Lectura de la Biblia',
+  ayf_part1: 'Seamos mejores maestros (parte 1)',
+  ayf_part2: 'Seamos mejores maestros (parte 2)',
+  ayf_part3: 'Seamos mejores maestros (parte 3)',
+  ayf_part4: 'Seamos mejores maestros (parte 4)',
+  lc_part1: 'Nuestra vida cristiana (parte 1)',
+  lc_part2: 'Nuestra vida cristiana (parte 2)',
+  lc_part3: 'Nuestra vida cristiana (parte 3)',
+  lc_cbs: 'Estudio bíblico de la congregación',
+  closing_prayer: 'Oración de conclusión',
+  circuit_overseer: 'Superintendente de circuito',
+  speaker: 'Discurso público',
+  wt_study: 'Estudio de La Atalaya',
+  outgoing_talks: 'Discurso saliente',
 };
 
 /**
@@ -912,13 +949,41 @@ const collectAssigneesOfWeeks = (
   const seen = new Set<string>();
 
   for (const week of weeks) {
-    for (const found of collectAssignees(subtreeOf(week, key), dataView)) {
-      const fingerprint = `${week.weekOf}|${found.uid}`;
+    const subtree = subtreeOf(week, key) as Record<string, unknown> | undefined;
 
-      if (seen.has(fingerprint)) continue;
+    if (!subtree) continue;
 
-      seen.add(fingerprint);
-      result.push({ weekOf: week.weekOf, uid: found.uid, name: found.name });
+    // Se recorre parte por parte y no el subárbol entero de una vez: así se
+    // sabe DE QUÉ parte sale cada persona, que es lo que el aviso necesita
+    // decir. La clave del primer nivel es la parte.
+    //
+    // Los discursos SALIENTES son la excepción: ahí el subárbol es una lista de
+    // salidas, no partes con nombre, y recorrerlo igual daría «parte 0», «parte
+    // 1». Todas son lo mismo y se llaman igual.
+    const partes: [string, unknown][] = Array.isArray(subtree)
+      ? [['outgoing_talks', subtree]]
+      : Object.entries(subtree);
+
+    for (const [campo, nodo] of partes) {
+      if (PUBLISH_KEYS.includes(campo) || NOT_A_PERSON_KEYS.includes(campo)) {
+        continue;
+      }
+
+      for (const found of collectAssignees(nodo, dataView)) {
+        // Una persona puede salir dos veces en la misma parte (sala principal
+        // y aula auxiliar); una vez por parte basta.
+        const fingerprint = `${week.weekOf}|${found.uid}|${campo}`;
+
+        if (seen.has(fingerprint)) continue;
+
+        seen.add(fingerprint);
+        result.push({
+          weekOf: week.weekOf,
+          uid: found.uid,
+          name: found.name,
+          parte: PART_LABEL[campo] ?? campo,
+        });
+      }
     }
   }
 
