@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SchedWeekType } from '@definition/schedules';
 import { syncFromRemote } from '@services/worker/merge';
-import { outgoingTalkDate } from './meeting_month';
+import { outgoingTalkDate, weekdayFromApi } from './meeting_month';
 import {
   buildOutgoingMonthGaps,
   collectMeetingMonthAssignees,
@@ -1130,5 +1130,42 @@ describe('outgoingTalkDate', () => {
 
   it('sin semana no hay fecha', () => {
     expect(outgoingTalkDate('', 6)).toBe('');
+  });
+});
+
+/**
+ * Las dos escalas de día de la semana que conviven en la aplicación.
+ *
+ * Esta conversión estaba escrita a mano en un sitio y OLVIDADA en otro, y de
+ * ahí salieron los registros con un 7 que el desplegable no sabe pintar.
+ */
+describe('weekdayFromApi', () => {
+  it('1 (lunes fuera) es 0 (lunes aquí)', () => {
+    expect(weekdayFromApi(1)).toBe(0);
+  });
+
+  it('7 (domingo fuera) es 6 (domingo aquí)', () => {
+    expect(weekdayFromApi(7)).toBe(6);
+  });
+
+  it('el domingo también llega como 0, y también es 6', () => {
+    expect(weekdayFromApi(0)).toBe(6);
+  });
+
+  it('6 (sábado fuera) es 5 (sábado aquí)', () => {
+    expect(weekdayFromApi(6)).toBe(5);
+  });
+
+  it('sin número no se inventa día', () => {
+    expect(weekdayFromApi(undefined)).toBeUndefined();
+    expect(weekdayFromApi(null)).toBeUndefined();
+    expect(weekdayFromApi(8)).toBeUndefined();
+    expect(weekdayFromApi(-1)).toBeUndefined();
+  });
+
+  it('lo convertido lo entiende el lector de fechas', () => {
+    // Las dos mitades de la misma historia: lo que se guarda y lo que se lee.
+    // 2026/11/09 es lunes; el domingo de esa semana es el 15.
+    expect(outgoingTalkDate('2026/11/09', weekdayFromApi(7))).toBe('2026/11/15');
   });
 });

@@ -9,6 +9,7 @@ import {
 import { removeSecondsFromTime } from '@utils/date';
 import { isTest } from '@constants/index';
 import { congNameState } from '@states/settings';
+import { weekdayFromApi } from '@services/app/meeting_month';
 
 const useOffline = (
   onCongregationChange: (value: IncomingCongregationResponseType) => void
@@ -24,12 +25,6 @@ const useOffline = (
 
   const showOnlineInput = !isTest && isOnline && !overrideOnline;
 
-  const handleWeekday = (value: number) => {
-    if (value === 0) return 6;
-
-    return value - 1;
-  };
-
   const handleSelectCongregation = (value: CongregationResponseType) => {
     if (value === null) {
       onCongregationChange(null);
@@ -43,11 +38,11 @@ const useOffline = (
       cong_id: '',
       country_code: country?.countryCode,
       midweek_meeting: {
-        weekday: { value: handleWeekday(value.midweekMeetingTime.weekday) },
+        weekday: { value: weekdayFromApi(value.midweekMeetingTime?.weekday) },
         time: { value: removeSecondsFromTime(value.midweekMeetingTime.time) },
       },
       weekend_meeting: {
-        weekday: { value: handleWeekday(value.weekendMeetingTime.weekday) },
+        weekday: { value: weekdayFromApi(value.weekendMeetingTime?.weekday) },
         time: { value: removeSecondsFromTime(value.weekendMeetingTime.time) },
       },
     };

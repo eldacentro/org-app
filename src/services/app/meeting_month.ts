@@ -98,6 +98,41 @@ export const meetingDateOfWeek = (weekOf: string, key: MeetingPublishKey) => {
 };
 
 /**
+ * El día de la semana que llega de la búsqueda de congregaciones, pasado a la
+ * escala de la aplicación.
+ *
+ * Hay DOS escalas en juego y confundirlas cambia el día:
+ *
+ * - La de la aplicación (la del desplegable, la de los ajustes de la
+ *   congregación): 0 = lunes ... 6 = domingo.
+ * - La de la búsqueda de congregaciones: 1 = lunes ... 7 = domingo. Algunas
+ *   respuestas traen un 0 en vez de un 7 para el domingo, así que se aceptan
+ *   los dos.
+ *
+ * Esta cuenta ya existía escrita a mano donde se añade una congregación al
+ * catálogo, pero NO donde se elige la congregación de un discurso saliente: por
+ * eso en los datos reales hay salidas con un 7 guardado, que en el desplegable
+ * salen en blanco porque no existe esa opción.
+ */
+export const weekdayFromApi = (
+  value: number | string | undefined | null
+): number | undefined => {
+  // Antes de convertir nada: «sin poner» no es el día 0. `Number(null)` y
+  // `Number('')` valen 0, y 0 aquí significa domingo, así que sin este filtro
+  // una congregación sin día apuntado se quedaría con el domingo puesto.
+  if (value === null || value === undefined || value === '') return undefined;
+
+  const dia = Number(value);
+
+  if (!Number.isInteger(dia) || dia < 0 || dia > 7) return undefined;
+
+  // El domingo llega de las dos maneras.
+  if (dia === 0 || dia === 7) return 6;
+
+  return dia - 1;
+};
+
+/**
  * El día en que un hermano SALE a dar el discurso.
  *
  * No es el día de nuestra reunión: es el de la congregación a la que va, que

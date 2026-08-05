@@ -6,6 +6,7 @@ import { formatDate, removeSecondsFromTime, generateDateFromTime } from '@utils/
 import { CongregationResponseType, CountryResponseType } from '@definition/api';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { ScheduleItemType } from './index.types';
+import { weekdayFromApi } from '@services/app/meeting_month';
 
 type UseScheduleItemMutationsProps = ScheduleItemType & {
   setCountry: React.Dispatch<React.SetStateAction<CountryResponseType>>;
@@ -200,7 +201,11 @@ export const useScheduleItemMutations = ({
               ...talk.congregation, 
               address: value?.address || '',
               name: value?.congName || '',
-              weekday: value?.weekendMeetingTime.weekday || undefined,
+              // El número que da la búsqueda de congregaciones NO está en la
+              // misma escala que el desplegable de aquí al lado. Se guardaba
+              // crudo, y por eso hay salidas apuntadas con un 7 que en ese
+              // desplegable salen en blanco. Ver `weekdayFromApi`.
+              weekday: weekdayFromApi(value?.weekendMeetingTime?.weekday),
               time: value ? removeSecondsFromTime(value.weekendMeetingTime.time) : '',
             } 
           }
