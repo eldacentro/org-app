@@ -8,9 +8,11 @@ import {
 import {
   dbClearExportState,
   dbExportDataBackup,
+  dbTablesFingerprint,
   dbGetMetadata,
   dbGetSettings,
 } from './backupUtils';
+import { payloadMetadataKeys } from './export_state';
 
 declare const self: MyWorkerGlobalScope;
 
@@ -59,6 +61,13 @@ const runBackup = async () => {
   isBackupRunning = true;
   let backup = '';
 
+  // Qué tablas llevaba el envío y cómo estaban al construirlo. Al terminar
+  // solo se dan por enviadas ESAS, y solo si no han cambiado por el camino —
+  // lo que se edita mientras se sube se quedaba marcado como enviado sin
+  // haber salido del móvil. Ver `dbClearExportState`.
+  let enviadas: string[] | undefined;
+  let huella: Record<string, string> | undefined;
+
   try {
     const { apiHost, userID, idToken } = self.setting;
 
@@ -89,6 +98,8 @@ const runBackup = async () => {
 
         const exportStart = performance.now();
         const reqPayload = await dbExportDataBackup(backupData);
+        enviadas = payloadMetadataKeys(reqPayload);
+        huella = await dbTablesFingerprint();
         console.log(`[backup] export/merge local en ${Math.round(performance.now() - exportStart)}ms`);
 
         // Nada local que subir (payload {}): este ciclo fue SOLO de descarga
@@ -178,6 +189,8 @@ const runBackup = async () => {
         });
 
         const reqPayload = await dbExportDataBackup(backupData);
+        enviadas = payloadMetadataKeys(reqPayload);
+        huella = await dbTablesFingerprint();
 
         // ciclo solo de descarga: nada que subir → sin POST (ver bucle VIP)
         if (Object.keys(reqPayload).length === 0) {
@@ -228,7 +241,7 @@ const runBackup = async () => {
     }
 
     if (backup === 'completed') {
-      await dbClearExportState();
+      await dbClearExportState(enviadas, huella);
 
       self.postMessage('Done');
       self.postMessage({ lastBackup: new Date().toISOString() });

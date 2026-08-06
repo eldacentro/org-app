@@ -45,6 +45,11 @@ import { BranchFieldServiceReportType } from '@definition/branch_field_service_r
 import { BranchCongAnalysisType } from '@definition/branch_cong_analysis';
 import { MeetingAttendanceType } from '@definition/meeting_attendance';
 import { MetadataRecordType } from '@definition/metadata';
+import {
+  nextExportState,
+  PAYLOAD_TO_METADATA_KEY,
+  PAYLOAD_KEYS_WITHOUT_FLAG,
+} from './export_state';
 import { DelegatedFieldServiceReportType } from '@definition/delegated_field_service_reports';
 import { UpcomingEventType } from '@definition/upcoming_events';
 import { formatDate } from '@utils/date';
@@ -2637,22 +2642,6 @@ const dbRestoreFromBackup = async (
   }
 };
 
-// La clave con la que viaja cada tabla no siempre se llama igual que su
-// entrada en metadata. Lo que no está aquí se busca por su propio nombre.
-const PAYLOAD_TO_METADATA_KEY: Record<string, string> = {
-  sched: 'schedules',
-};
-
-// Claves que NO son una tabla sincronizada y por tanto no llevan `send_local`:
-// datos derivados de la subida o cosas que solo viajan al arrancar.
-const PAYLOAD_KEYS_WITHOUT_FLAG = new Set([
-  'affected_uids',
-  'app_settings',
-  'cong_users',
-  'outgoing_speakers',
-  'speakers_key',
-]);
-
 /**
  * Red de seguridad contra bucles de sincronización.
  *
@@ -3737,17 +3726,86 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
   }
 };
 
-export const dbClearExportState = async () => {
-  const metadata = await appDb.metadata.get(1);
+/**
+ * Una huella por tabla, para saber si algo cambió mientras se subía.
+ *
+ * No hace falta que sea criptográfica: solo tiene que cambiar cuando cambia el
+ * contenido. Se usa para no dar por enviado lo que se editó por el camino.
+ *
+ * Se lee de las mismas tablas que alimentan el envío y ANTES de cifrar nada:
+ * el cifrado mete azar, así que dos cifrados del mismo dato no se parecen y no
+ * servirían para comparar.
+ */
+const fnv1a = (texto: string) => {
+  let hash = 0x811c9dc5;
 
-  const oldMetadata = metadata.metadata;
-  const newMetadata = {} as MetadataRecordType['metadata'];
-
-  for (const [key, values] of Object.entries(oldMetadata)) {
-    newMetadata[key] = { version: values.version, send_local: false };
+  for (let i = 0; i < texto.length; i++) {
+    hash ^= texto.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
   }
 
+  return `${texto.length}:${hash.toString(16)}`;
+};
+
+export const dbTablesFingerprint = async (): Promise<
+  Record<string, string>
+> => {
+  const data = (await dbGetTableData()) as unknown as Record<string, unknown>;
+
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (key === 'metadata' || key === 'settings') continue;
+
+    const metadataKey = PAYLOAD_TO_METADATA_KEY[key] ?? key;
+
+    result[metadataKey] = fnv1a(JSON.stringify(value ?? null));
+  }
+
+  return result;
+};
+
+export const payloadMetadataKeys = (payload: BackupDataType): string[] =>
+  Object.keys(payload)
+    .filter((key) => !PAYLOAD_KEYS_WITHOUT_FLAG.has(key))
+    .map((key) => PAYLOAD_TO_METADATA_KEY[key] ?? key);
+
+/**
+ * Da por enviado lo que se ha enviado. NADA MÁS.
+ *
+ * EL FALLO QUE ESTO ARREGLA, y es de los que no se ven. Esto ponía
+ * `send_local: false` en TODAS las tablas al terminar un ciclo, sin mirar si
+ * habían viajado. Dos maneras de perder datos con eso, las dos silenciosas:
+ *
+ * 1. Lo que se edita MIENTRAS se sube. El envío se construye, la subida tarda
+ *    sus segundos —y contra este servidor han sido hasta diez—, y lo que se
+ *    toque en ese rato se marca como pendiente... y acto seguido se da por
+ *    enviado sin haber salido del móvil. Se queda en el dispositivo para
+ *    siempre, y el resto de la congregación no lo ve nunca. Encaja con el
+ *    «puse un crédito y al secretario no le llegó» del 2026-08-06.
+ * 2. Lo que el rol no deja subir. Si algo marca una tabla que esta cuenta no
+ *    puede enviar, no viaja y se limpia igual.
+ *
+ * Ahora se limpia solo lo que iba en el envío Y sigue igual que cuando se
+ * construyó: si cambió por el camino, la marca se queda puesta y va en el
+ * ciclo siguiente. Comparar el contenido es la única forma fiable, porque
+ * `send_local` es un sí/no y no sabe decir «me han vuelto a tocar».
+ */
+export const dbClearExportState = async (
+  uploaded?: string[],
+  snapshot?: Record<string, string>
+) => {
+  const metadata = await appDb.metadata.get(1);
+
+  // Solo se vuelve a leer el contenido si hay huella con la que comparar.
+  const actual = snapshot ? await dbTablesFingerprint() : undefined;
+
   await appDb.metadata.update(metadata.id, {
-    metadata: newMetadata,
+    metadata: nextExportState({
+      current: metadata.metadata,
+      uploaded,
+      snapshot,
+      actual,
+    }),
   });
 };
