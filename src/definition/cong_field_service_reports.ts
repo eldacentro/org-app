@@ -63,5 +63,24 @@ export type CongFieldServiceReportType = {
      * tocó el último y no sabe decirlo.
      */
     by?: string;
+    /**
+     * Copia EN CLARO de `updatedAt`, para que el servidor pueda comparar.
+     *
+     * `updatedAt` viaja cifrado (está en el mapa de esta tabla), y el cifrado
+     * lleva sal aleatoria: dos cifrados de la misma fecha no se parecen en
+     * nada. El servidor, al fusionar informe a informe, comparaba esas cadenas
+     * creyendo comparar fechas — o sea, echándolo a suertes. Con ~30
+     * dispositivos y dos personas tocando informes, eso perdía ediciones.
+     *
+     * El nombre NO puede ser `updatedAt`: el mapa de cifrado casa por NOMBRE a
+     * cualquier profundidad, así que un `updatedAt` en otro sitio se cifraría
+     * igual. `rev` no está en ningún mapa, así que viaja tal cual — y un
+     * dispositivo con la app vieja lo pasa de largo sin romperse, porque
+     * `decryptObject` ignora lo que no reconoce.
+     *
+     * Opcional: los informes anteriores a esto no lo llevan, y el servidor
+     * trata su ausencia como «no sé», sin inventarse un ganador.
+     */
+    rev?: string;
   };
 };

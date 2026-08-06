@@ -37,6 +37,10 @@ export const dbFieldServiceReportsSave = async (
 
   record.report_data.by = options?.by ?? store.get(userLocalUIDState) ?? '';
 
+  // Copia en claro de la fecha, para que el servidor pueda fusionar. La de
+  // verdad viaja cifrada y allí no se puede comparar. Ver `rev` en el tipo.
+  record.report_data.rev = record.report_data.updatedAt;
+
   await appDb.cong_field_service_reports.put(record);
   await dbUpdateCongFieldReportMetadata();
 };

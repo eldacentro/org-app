@@ -54,6 +54,7 @@ const Sheet = ({
   subtitle,
   documentName,
   updatedAt,
+  updatedVerb = 'Actualizado el',
   landscape = false,
   dense = false,
   children,
@@ -68,6 +69,13 @@ const Sheet = ({
   documentName?: string;
   /** Para el pie: "Actualizado el 1 ago 2026". */
   updatedAt?: string;
+  /**
+   * El verbo del pie. Casi todos los documentos dicen "Actualizado el", porque
+   * son una foto de lo que hay hoy. El plan de evacuación dice **"Aprobado
+   * el"**: no es una foto, es un protocolo que alguien firmó en una fecha, y
+   * esa fecha es la que da fe. Lo pide la especificación del documento 13.
+   */
+  updatedVerb?: string;
   landscape?: boolean;
   /** Modo compacto: solo aprieta el contenido, nunca la cabecera ni el pie. */
   dense?: boolean;
@@ -198,7 +206,7 @@ const Sheet = ({
           render={({ pageNumber, totalPages }) =>
             [
               `Hoja ${pageNumber} de ${totalPages}`,
-              updatedAt ? `Actualizado el ${updatedAt}` : '',
+              updatedAt ? `${updatedVerb} ${updatedAt}` : '',
             ]
               .filter(Boolean)
               .join(' · ')

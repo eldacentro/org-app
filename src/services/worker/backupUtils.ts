@@ -2984,22 +2984,13 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
         // include person data
         //
-        // También quien lleva un grupo, para que su atajo de «nombrar precursor
-        // auxiliar» (Informes de predicación) llegue a algún sitio: sin esto lo
-        // guardaba en su móvil, la app le decía que estaba hecho y no salía
-        // NUNCA de ahí — el mismo fallo silencioso que tuvo el responsable de
-        // departamentos.
-        //
-        // Que aquí se mande la tabla entera no le da permiso sobre ella: el
-        // servidor, cuando quien sube es solo responsable de grupo, se queda
-        // ÚNICAMENTE con los nombramientos de precursor auxiliar de la gente de
-        // su grupo y descarta todo lo demás. Ver `saveGroupEnrollments` en el
-        // backend. La comprobación de verdad vive allí, porque es el único sitio
-        // que un cliente modificado no puede saltarse.
-        if (
-          (personEditor || groupOverseerRole) &&
-          metadata.metadata.persons.send_local
-        ) {
+        // RETIRADO: aquí se añadió `groupOverseerRole` para que quien lleva un
+        // grupo pudiera nombrar precursores auxiliares. No podía funcionar: el
+        // servidor tenía que quedarse solo con los nombramientos de SU grupo, y
+        // para saber quién está en qué grupo hay que leer `field_service_groups`
+        // — que viaja CIFRADA y allí es una cadena opaca. Se vuelve a lo de
+        // antes hasta que el servidor pueda saberlo.
+        if (personEditor && metadata.metadata.persons.send_local) {
           const backupPersons = persons.map((person) => {
             encryptObject({
               data: person,

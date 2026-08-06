@@ -13,6 +13,9 @@ import { PLAN_EVACUACION } from '@features/evacuacion/data';
 import { dbEvacuacionGetConfig } from '@services/dexie/evacuacion';
 import { PlanEvacuacion } from '@definition/evacuacion';
 import EvacuacionConfigDialog from '@features/evacuacion/EvacuacionConfigDialog';
+import useEvacuacionExport from '@features/evacuacion/useEvacuacionExport';
+import NavBarButton from '@components/nav_bar_button';
+import { IconPrint } from '@components/icons';
 
 const EvacuacionPage = () => {
   const { isElder, isAdmin } = useCurrentUser();
@@ -22,6 +25,8 @@ const EvacuacionPage = () => {
   const [seleccion, setSeleccion] = useState<Seleccion>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
+
+  const { handleExportPDF, exportando } = useEvacuacionExport(plan);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -54,6 +59,14 @@ const EvacuacionPage = () => {
         title="Plan de evacuación"
         quickSettings={isManager ? () => setIsConfigOpen(true) : undefined}
         quickSettingsLabel="Configuración del plan de evacuación"
+        buttons={
+          <NavBarButton
+            text={exportando ? 'Creando…' : 'Exportar'}
+            onClick={handleExportPDF}
+            disabled={exportando}
+            icon={<IconPrint />}
+          />
+        }
       />
 
       <PlanHeader tiempoMaximo={plan.tiempoMaximo} />
