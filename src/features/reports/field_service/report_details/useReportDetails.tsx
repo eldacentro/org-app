@@ -15,6 +15,13 @@ import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { formatDate } from '@utils/date';
 import usePerson from '@features/persons/hooks/usePerson';
 import { openPeriod } from '@utils/spiritual_status';
+import { reportAuthorRole } from '@services/app/report_author';
+import { personGetDisplayName } from '@utils/common';
+import { fieldGroupsState } from '@states/field_service_groups';
+import {
+  displayNameMeetingsEnableState,
+  fullnameOptionState,
+} from '@states/settings';
 
 const useReportDetails = () => {
   const { t } = useAppTranslation();
@@ -31,6 +38,9 @@ const useReportDetails = () => {
   const currentMonth = useAtomValue(selectedMonthFieldServiceReportState);
   const reports = useAtomValue(congFieldServiceReportsState);
   const branchReports = useAtomValue(branchFieldReportsState);
+  const groups = useAtomValue(fieldGroupsState);
+  const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
+  const fullnameOption = useAtomValue(fullnameOptionState);
 
   const person = useMemo(() => {
     return persons.find((record) => record.person_uid === publisher);
@@ -45,6 +55,32 @@ const useReportDetails = () => {
         record.report_data.report_date === currentMonth
     );
   }, [reports, currentMonth, person]);
+
+  /**
+   * Quién metió este informe, con su cargo. `null` si no consta — los informes
+   * anteriores a que esto existiera no lo llevan, y ahí no se inventa un autor.
+   */
+  const addedBy = useMemo(() => {
+    const authorUid = report?.report_data.by;
+
+    if (!authorUid || !person) return null;
+
+    const role = reportAuthorRole({
+      authorUid,
+      publisherUid: person.person_uid,
+      groups,
+    });
+
+    const author = persons.find(
+      (record) => record.person_uid === authorUid
+    );
+
+    const name = author
+      ? personGetDisplayName(author, displayNameEnabled, fullnameOption)
+      : '';
+
+    return { name, role };
+  }, [report, person, persons, groups, displayNameEnabled, fullnameOption]);
 
   const isAP = useMemo(() => {
     if (!person) return false;
@@ -247,6 +283,7 @@ const useReportDetails = () => {
   };
 
   return {
+    addedBy,
     person,
     handleBack,
     enable_quick_AP,

@@ -19,6 +19,14 @@ import LateReport from './late_report';
 import PersonDetails from '@features/persons/person_details';
 import Typography from '@components/typography';
 
+/** El cargo con el que se metió el informe, en palabras. */
+const ROL_AUTOR = {
+  publisher: 'tr_publisher',
+  group_overseer: 'tr_groupOverseer',
+  group_assistant: 'tr_groupAssistant',
+  secretary: 'tr_secretary',
+} as const;
+
 const ReportDetails = () => {
   const { t } = useAppTranslation();
 
@@ -27,6 +35,7 @@ const ReportDetails = () => {
   const { isSecretary, isGroup, isGroupOverseer } = useCurrentUser();
 
   const {
+    addedBy,
     person,
     handleBack,
     enable_quick_AP,
@@ -91,7 +100,24 @@ const ReportDetails = () => {
               }}
             >
               <PersonDetails person={person} month={currentMonth} />
-              <LateReport person={person} />
+
+              <Stack spacing="2px" alignItems="flex-end">
+                <LateReport person={person} />
+
+                {/* Quién metió el informe. Va arriba a la derecha porque es
+                    contexto, no un dato del informe: sirve para saber a quién
+                    preguntar si algo no cuadra. */}
+                {addedBy && (
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--grey-350)"
+                  >
+                    {t('tr_reportAddedBy')}:{' '}
+                    {addedBy.name ? `${addedBy.name} · ` : ''}
+                    {t(ROL_AUTOR[addedBy.role])}
+                  </Typography>
+                )}
+              </Stack>
             </Box>
           </Stack>
 

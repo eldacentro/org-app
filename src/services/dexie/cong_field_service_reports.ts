@@ -1,6 +1,8 @@
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import { IncomingReport } from '@definition/ministry';
 import appDb from '@db/appDb';
+import { store } from '@states/index';
+import { userLocalUIDState } from '@states/settings';
 import { congFieldServiceReportSchema } from './schema';
 
 const dbUpdateCongFieldReportMetadata = async () => {
@@ -16,10 +18,26 @@ const dbUpdateCongFieldReportMetadata = async () => {
   await appDb.metadata.put(metadata);
 };
 
+/**
+ * Guarda un informe dejando anotado QUIÉN lo ha metido.
+ *
+ * Todas las ediciones pasan por aquí, así que es el único sitio donde hay que
+ * acordarse — y por eso se pone aquí y no en cada pantalla, que es como se
+ * olvida en la mitad.
+ *
+ * `by` se puede pasar a mano para el caso en que el autor NO es quien guarda:
+ * el informe que manda un publicador se escribe en el dispositivo de quien lo
+ * recibe, pero el autor es el publicador.
+ */
 export const dbFieldServiceReportsSave = async (
-  report: CongFieldServiceReportType
+  report: CongFieldServiceReportType,
+  options?: { by?: string }
 ) => {
-  await appDb.cong_field_service_reports.put(report);
+  const record = structuredClone(report);
+
+  record.report_data.by = options?.by ?? store.get(userLocalUIDState) ?? '';
+
+  await appDb.cong_field_service_reports.put(record);
   await dbUpdateCongFieldReportMetadata();
 };
 
@@ -84,7 +102,8 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
       report.report_data._deleted = true;
       report.report_data.updatedAt = record.updatedAt;
 
-      await dbFieldServiceReportsSave(report);
+      // El autor es el PUBLICADOR que lo mandó, no quien lo recibe.
+      await dbFieldServiceReportsSave(report, { by: record.person_uid });
     }
 
     // add new report
@@ -130,7 +149,8 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
         };
       }
 
-      await dbFieldServiceReportsSave(report);
+      // El autor es el PUBLICADOR que lo mandó, no quien lo recibe.
+      await dbFieldServiceReportsSave(report, { by: record.person_uid });
     }
   }
 };

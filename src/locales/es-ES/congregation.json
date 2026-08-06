@@ -486,7 +486,7 @@
   "tr_myGroup": "Mi grupo",
   "tr_publishers": "Publicadores",
   "tr_activePublisher": "Es publicador actualmente",
-  "tr_activePublisherTooltip": "Abre o cierra el periodo de publicador en el historial: al marcarla se pone la fecha de inicio y al desmarcarla la de fin. Puedes editarlas en el historial detallado. Que est\u00e9 activo o inactivo NO se decide aqu\u00ed: es autom\u00e1tico, seg\u00fan haya informado predicaci\u00f3n en los \u00faltimos 6 meses.",
+  "tr_activePublisherTooltip": "Abre o cierra el periodo de publicador en el historial: al marcarla se pone la fecha de inicio y al desmarcarla la de fin. Puedes editarlas en el historial detallado. Que esté activo o inactivo NO se decide aquí: es automático, según haya informado predicación en los últimos 6 meses.",
   "tr_enableCongregationDataSync": "Activar sincronización de datos de congregación",
   "tr_enableCongregationDataSyncDesc": "Esta función permite sincronizar datos como programas con otros usuarios en tu congregación y usar la aplicación en múltiples dispositivos al mismo tiempo.",
   "tr_applicationRejected": "Solicitud de precursor rechazada",
@@ -594,5 +594,7 @@
   "tr_publisherDetailsDesc": "Ver y gestionar la condición espiritual y la fecha del primer informe de este publicador.",
   "tr_branchOfficeReportDesc": "Gestionar y enviar informes de la congregación a la sucursal.",
   "tr_serviceYearHistory": "Historial de informes de servicio para el año de servicio.",
-  "tr_personAwayOpenNotice": "Ausente desde el {{ date }} y sin fecha de vuelta puesta"
+  "tr_personAwayOpenNotice": "Ausente desde el {{ date }} y sin fecha de vuelta puesta",
+  "tr_reportAddedBy": "Añadido por",
+  "tr_groupAssistant": "Auxiliar de grupo"
 }
