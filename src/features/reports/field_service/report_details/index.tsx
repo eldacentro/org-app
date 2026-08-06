@@ -24,7 +24,7 @@ const ReportDetails = () => {
 
   const { desktopUp } = useBreakpoints();
 
-  const { isSecretary, isGroup } = useCurrentUser();
+  const { isSecretary, isGroup, isGroupOverseer } = useCurrentUser();
 
   const {
     person,
@@ -97,7 +97,17 @@ const ReportDetails = () => {
 
           <FormS4 month={currentMonth} person_uid={person.person_uid} />
 
-          {!isGroup && isSecretary && (
+          {/* Nombrar precursor auxiliar lo puede hacer también quien lleva el
+              grupo —superintendente o auxiliar—, que es quien está encima de los
+              informes de su gente. El resto de acciones de aquí abajo siguen
+              siendo del secretario: verificar un informe, borrarlo o reactivar a
+              un publicador son decisiones suyas.
+
+              Y no hace falta acotar aquí a quién se lo pone: esta pantalla solo
+              se abre desde la lista, y a quien lleva un grupo esa lista ya le
+              enseña únicamente a los suyos (ver `usePersonsList`). El acotado de
+              verdad está en el servidor, que es lo que cuenta. */}
+          {!isGroup && (isSecretary || isGroupOverseer) && (
             <Stack spacing="8px">
               {enable_quick_AP && (
                 <Button
@@ -109,7 +119,7 @@ const ReportDetails = () => {
                 </Button>
               )}
 
-              {unverified && (
+              {isSecretary && unverified && (
                 <Button
                   variant="main"
                   startIcon={<IconCheck />}
@@ -119,7 +129,7 @@ const ReportDetails = () => {
                 </Button>
               )}
 
-              {deletable && (
+              {isSecretary && deletable && (
                 <Button
                   variant="main"
                   color="red"
@@ -130,7 +140,7 @@ const ReportDetails = () => {
                 </Button>
               )}
 
-              {isInactive && (
+              {isSecretary && isInactive && (
                 <Button
                   variant="main"
                   onClick={handleMarkAsActive}
