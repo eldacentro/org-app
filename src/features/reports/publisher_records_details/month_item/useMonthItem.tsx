@@ -6,21 +6,14 @@ import { MonthItemProps, MonthStatusType } from './index.types';
 import { monthNamesState } from '@states/app';
 import { currentMonthServiceYear, formatDate } from '@utils/date';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
-import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
-import useCurrentUser from '@hooks/useCurrentUser';
+import useReportEditScope from '@hooks/useReportEditScope';
 import usePerson from '@features/persons/hooks/usePerson';
 
 const useMonthItem = ({ month, person }: MonthItemProps) => {
   const { laptopDown } = useBreakpoints();
 
-  const {
-    isAdmin,
-    isElder,
-    my_group,
-    isGroupOverseer,
-    isLanguageGroupOverseer,
-  } = useCurrentUser();
+  const { canEditReportOf } = useReportEditScope();
 
   const {
     personIsEnrollmentActive,
@@ -32,7 +25,6 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
 
   const reports = useAtomValue(congFieldServiceReportsState);
   const branchReports = useAtomValue(branchFieldReportsState);
-  const groups = useAtomValue(fieldWithLanguageGroupsState);
 
   const [showEdit, setShowEdit] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -120,36 +112,20 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
     return status;
   }, [report, not_publisher]);
 
+  // Ver y editar no son lo mismo. Un anciano que no sea secretario ve los
+  // informes de toda la congregación pero solo edita los de SU grupo; el
+  // auxiliar de grupo, igual. El secretario los edita todos.
+  //
+  // Antes aquí había un `if (isElder) return true` —cualquier anciano editaba
+  // el de cualquiera— y una comprobación de grupo aparte que miraba a qué grupo
+  // PERTENECE uno, no cuál lleva. Ahora sale del mismo criterio que usa el
+  // servidor para decidir qué acepta (`useReportEditScope`); si fueran dos
+  // criterios distintos, uno de los dos mentiría.
   const isRoleEditor = useMemo(() => {
-    if (isAdmin) return true;
-
-    // Los ancianos pueden editar el informe de cualquier hermano (acceso a
-    // toda la congregación). El auxiliar de grupo (no anciano) solo el de su
-    // grupo — de ahí la comprobación de grupo que sigue.
-    if (isElder) return true;
-
-    if (!isGroupOverseer && !isLanguageGroupOverseer) return false;
-
     if (!person) return false;
 
-    const publisherGroup = groups.find((group) =>
-      group.group_data.members.some(
-        (member) => member.person_uid === person.person_uid
-      )
-    );
-
-    if (!my_group || !publisherGroup) return false;
-
-    return my_group.group_id === publisherGroup.group_id;
-  }, [
-    isAdmin,
-    isElder,
-    groups,
-    person,
-    my_group,
-    isGroupOverseer,
-    isLanguageGroupOverseer,
-  ]);
+    return canEditReportOf(person.person_uid);
+  }, [person, canEditReportOf]);
 
   const isAP = useMemo(() => {
     return personIsEnrollmentActive(person, 'AP', month);

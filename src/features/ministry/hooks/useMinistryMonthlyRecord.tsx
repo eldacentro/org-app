@@ -10,6 +10,7 @@ import { delegatedFieldServiceReportsState } from '@states/delegated_field_servi
 import { userBibleStudiesState } from '@states/user_bible_studies';
 import { personsActiveState } from '@states/persons';
 import { AssignmentCode } from '@definition/assignment';
+import useReportEditScope from '@hooks/useReportEditScope';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { currentReportMonth } from '@utils/date';
 import { personWasPublisherBy } from '@services/app/publisher_status';
@@ -20,6 +21,8 @@ const useMinistryMonthlyRecord = ({
   publisher,
 }: MinistryMonthlyRecord) => {
   const userReports = useAtomValue(userFieldServiceMonthlyReportsState);
+
+  const { canEditReportOf } = useReportEditScope();
   const delegatedReports = useAtomValue(delegatedFieldServiceReportsState);
   const congReports = useAtomValue(congFieldServiceReportsState);
   const userUID = useAtomValue(userLocalUIDState);
@@ -200,6 +203,15 @@ const useMinistryMonthlyRecord = ({
   const read_only = useMemo(() => {
     if (isInactive) return true;
 
+    // Sin permiso para editar el informe de ESTA persona, todo el formulario
+    // queda de solo lectura. `publisher` es la vista personal —cada uno con su
+    // propio informe— y esa no se toca aquí.
+    //
+    // Un anciano que no sea secretario ve los informes de toda la congregación
+    // pero solo edita los de su grupo. Ver `useReportEditScope`, y el acotado
+    // de verdad en el servidor.
+    if (!publisher && !canEditReportOf(person_uid)) return true;
+
     if (publisher) {
       const congReport = congReports.find(
         (record) =>
@@ -229,6 +241,7 @@ const useMinistryMonthlyRecord = ({
     month,
     person_uid,
     congReport,
+    canEditReportOf,
   ]);
 
   const hours_fields = useMemo(() => {
