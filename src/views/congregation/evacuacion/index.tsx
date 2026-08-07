@@ -52,10 +52,10 @@ import {
  * en una cara, y el modo compacto del sistema aprieta la escala, no el aire
  * entre bloques — así que el aire se ajusta aquí.
  */
-const GAP = 4;
+const GAP = 5;
 
 /** Lo que mide el plano en la hoja. Ver la nota donde se pinta. */
-const ANCHO_PLANO = 350;
+const ANCHO_PLANO = 532;
 
 /** Un rótulo de los pequeños: 7/700 versalitas en gris claro. */
 const Rotulo = ({ children }: { children: string }) => (
@@ -69,13 +69,13 @@ const Punto = ({ children }: { children: string }) => (
       display: 'flex',
       flexDirection: 'row',
       gap: 5,
-      paddingVertical: 0.4,
+      paddingVertical: 0.6,
     }}
   >
     <View style={{ marginTop: 3.2 }}>
       <PdfBullet />
     </View>
-    <Text style={{ ...text.body, fontSize: 7.8, flex: 1, lineHeight: 1.32 }}>
+    <Text style={{ ...text.body, fontSize: 8.2, flex: 1, lineHeight: 1.35 }}>
       {children}
     </Text>
   </View>
@@ -373,7 +373,7 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
               {casos.map((caso) => (
                 <View key={caso} style={{ marginBottom: 3 }}>
                   <Text
-                    style={{ ...text.body, fontSize: 7.8, lineHeight: 1.32 }}
+                    style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
                   >
                     {caso}
                   </Text>

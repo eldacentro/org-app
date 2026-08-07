@@ -14,5 +14,9 @@ export type MetadataRecordType = {
   // Lo mismo para la restauración de snapshots de oradores (ver
   // dbRestoreVisitingSpeakers / dbRestoreSpeakersCongregations).
   visiting_speakers_reset_applied?: string;
+  // Si este dispositivo ya rellenó la copia en claro de la fecha (`rev`) en los
+  // informes que venían de antes de que ese campo existiera. Campo suelto por lo
+  // mismo que los de arriba. Ver dbBackfillReportsRev.
+  reports_rev_backfilled?: boolean;
   speakers_congregations_reset_applied?: string;
 };

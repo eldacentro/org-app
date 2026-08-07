@@ -31,7 +31,7 @@ const useEvacuacionExport = (plan: PlanEvacuacion) => {
         import('@views/congregation/evacuacion'),
       ]);
 
-      const plano = await planoComoPng(350);
+      const plano = await planoComoPng(532);
 
       const blob = await pdf(
         <EvacuacionPDF plan={plan} cong_name={congName} plano={plano} />

@@ -2676,6 +2676,72 @@ const warnAboutUnrequestedTables = (
   );
 };
 
+/**
+ * Rellena una vez la copia en claro de la fecha en los informes de antes.
+ *
+ * POR QUÉ HACE FALTA. El servidor fusiona los informes comparando `rev`, una
+ * copia EN CLARO de `updatedAt` — la de verdad viaja cifrada y allí no se puede
+ * comparar. Pero `rev` solo se escribe al GUARDAR un informe, así que los que
+ * ya existían no lo tienen, y el servidor no puede decidir entre dos versiones
+ * de ellos: acepta lo que llegue, que es justo el fallo que se venía a
+ * arreglar. Y no converge solo: un informe que nadie vuelva a tocar se quedaría
+ * sin `rev` para siempre.
+ *
+ * Así que se sellan todos de una vez, con su propia fecha (no con la de hoy:
+ * inventarles una fecha nueva los haría ganar a todos y pisaría ediciones
+ * buenas de otros dispositivos). Y se marca la tabla para que suba, porque el
+ * servidor necesita esas fechas en SU copia para poder comparar.
+ *
+ * Corre antes de construir el envío, así que lo sellado viaja en esa misma
+ * subida. Una sola vez por dispositivo.
+ *
+ * Exportada para poder comprobarla contra la base de datos de verdad, no
+ * contra una copia del razonamiento.
+ */
+export const dbBackfillReportsRev = async () => {
+  const metadata = await appDb.metadata.get(1);
+
+  if (!metadata || metadata.reports_rev_backfilled) return;
+
+  const reports = await appDb.cong_field_service_reports.toArray();
+
+  const pending = reports.filter(
+    (record) => !record.report_data.rev && record.report_data.updatedAt
+  );
+
+  if (pending.length > 0) {
+    const stamped = pending.map((record) => {
+      const copy = structuredClone(record);
+      copy.report_data.rev = copy.report_data.updatedAt;
+
+      return copy;
+    });
+
+    await appDb.cong_field_service_reports.bulkPut(stamped);
+  }
+
+  await appDb.metadata.update(metadata.id, {
+    reports_rev_backfilled: true,
+    // Solo se pide subir si de verdad se ha sellado algo: marcar la tabla sin
+    // cambios haría un POST que no aporta nada y despertaría a toda la
+    // congregación con la señal de sync.
+    metadata:
+      pending.length > 0
+        ? {
+            ...metadata.metadata,
+            cong_field_service_reports: {
+              ...metadata.metadata.cong_field_service_reports,
+              send_local: true,
+            },
+          }
+        : metadata.metadata,
+  });
+
+  console.log(
+    `[backup] rev rellenada en ${pending.length} informe(s) de antes de que existiera`
+  );
+};
+
 export const dbExportDataBackup = async (backupData: BackupDataType) => {
   try {
     const obj: BackupDataType = {};
@@ -2736,6 +2802,10 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
     );
 
     await dbRestoreFromBackup(backupData, accessCode, masterKey);
+
+    // Antes de leer las tablas para el envío: lo que selle viaja en esta misma
+    // subida en vez de esperar al ciclo siguiente.
+    await dbBackfillReportsRev();
 
     const {
       persons,
