@@ -180,6 +180,91 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
    */
   const anio = new Date(plan.updatedAt || Date.now()).getFullYear();
 
+  /**
+   * CUÁNTO MIDE EL PLANO. La cuenta que sustituye al número escrito a mano.
+   *
+   * El problema real: la hoja cabía o no cabía según cuánto texto tuviera el
+   * plan de cada congregación. Con los datos de prueba entraba; con los de
+   * Elda, que llevan responsabilidades y normas editadas, no. Un ancho fijo no
+   * puede acertar con las dos.
+   *
+   * Así que se estima lo que ocupa el TEXTO y el plano se queda con el resto.
+   * La estimación es de brocha gorda —cuántos renglones da cada frase en su
+   * columna, a 8,2 pt— y por eso va con holgura y con topes: no hace falta
+   * clavarla, hace falta no pasarse. Si sobra, el plano sale un poco menor que
+   * el máximo; si falta, se queda en su mínimo legible y la hoja sigue siendo
+   * una.
+   */
+  const ANCHO_UTIL = 535; // A4 vertical menos los márgenes del modo compacto
+
+  /**
+   * El alto que queda para el contenido, CALIBRADO contra una hoja real.
+   *
+   * La cuenta de servilleta daba 700 (842 de A4, menos 30 de margen, menos 44
+   * de pie, menos unos 75 de cabecera y regla). Con ese número el plano salía
+   * de 238 pt y la hoja se iba a dos. Midiendo la última hoja que SÍ cupo, el
+   * plano medía unos 150, así que la estimación se pasaba en más de 100: lo que
+   * no cuentan los rellenos y los bordes de cada tarjeta, que son muchos.
+   *
+   * En vez de afinar el modelo —que tendría que saber lo que react-pdf hace
+   * por dentro— se corrige el total. La cuenta de abajo solo tiene que
+   * repartir bien, no acertar al punto.
+   */
+  const ALTO_UTIL = 592;
+
+  /** Renglones que da un texto en una columna de `ancho` puntos. */
+  const renglones = (texto: string, ancho: number) =>
+    Math.max(1, Math.ceil((texto.length * 4.05) / ancho));
+
+  const altoLista = (textos: string[], ancho: number) =>
+    textos.reduce(
+      (total, t) => total + renglones(t, ancho - 8) * 10.9 + 1.2,
+      0
+    );
+
+  // Banda + relleno de una tarjeta, y el hueco entre filas.
+  const TARJETA = 22;
+
+  const anchoMitad = (ANCHO_UTIL - GAP) / 2;
+  const anchoTercio = (ANCHO_UTIL - GAP * 2) / 3;
+
+  const filaEquipos =
+    TARJETA +
+    12 + // la línea de los tres nombres
+    5 + // el hairline
+    Math.max(
+      altoLista(equipoA?.procedimiento ?? [], anchoMitad),
+      altoLista(equipoB?.procedimiento ?? [], anchoMitad)
+    );
+
+  const filaApoyo =
+    TARJETA +
+    2 * 12 + // jefe y auxiliar
+    5 +
+    Math.max(
+      altoLista(
+        [
+          ...(jefeEmergencias?.responsabilidades ?? []),
+          ...(auxEmergencias?.responsabilidades ?? []),
+        ],
+        anchoTercio
+      ),
+      altoLista(plan.procedimientoIntervencion.pasos, anchoTercio),
+      altoLista(sanitario?.procedimiento ?? [], anchoTercio)
+    );
+
+  const filaFinal = Math.max(
+    TARJETA + altoLista(casos, anchoMitad),
+    TARJETA + altoLista(normas, anchoMitad)
+  );
+
+  const relacion = plano ? plano.ancho / plano.alto : 2.4;
+  const hueco =
+    ALTO_UTIL - filaEquipos - filaApoyo - filaFinal - GAP * 3 - TARJETA;
+
+  const altoPlano = Math.max(105, Math.min(hueco, ANCHO_UTIL / relacion));
+  const anchoPlano = altoPlano * relacion;
+
   const equipoCard = (equipo: typeof equipoA) => {
     if (!equipo) return null;
 
@@ -251,26 +336,7 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
       >
         {/* ① EL PLANO, lo que se mira desde lejos, con su leyenda debajo. */}
         {plano ? (
-          <PdfCard
-            title="Plano del Salón"
-            flush
-            dense
-            /* EL PLANO SE QUEDA CON LO QUE SOBRE, y no con un ancho escrito a
-               mano. Es la regla R16 del sistema ("la cuadrícula ocupa la hoja
-               con flexGrow: 1"), aplicada aquí.
-
-               Antes el plano medía un número fijo y la hoja cabía o no cabía
-               según cuánto texto tuviera el plan. Con los datos de prueba
-               entraba; con los de la congregación —que llevan responsabilidades
-               y normas editadas desde el engranaje— se iba a dos páginas. Ese
-               número no se puede acertar: cada vez que alguien añada una norma
-               habría que volver a bajarlo.
-
-               Ahora manda el contenido. Lo demás ocupa lo que necesita y el
-               plano se lleva el resto, así que sale lo más grande que quepa —y
-               cabe siempre. */
-            style={{ flexGrow: 1 }}
-          >
+          <PdfCard title="Plano del Salón" flush dense>
             {/* Ancho y alto EXPLÍCITOS, y centrado.
                 Con `width: '100%'` el plano se estiraba siempre al ancho de la
                 tarjeta —532— pasara lo que pasara: cambiar su tamaño solo
@@ -278,21 +344,16 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
                 Estuvo un buen rato pareciendo que encogerlo no servía de nada.
                 El alto viene medido del propio dibujo, así que si algún día
                 cambia el plano la caja se ajusta sola. */}
-            <View
-              style={{
-                flexGrow: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 120,
-              }}
-            >
-              {/* `objectFit: 'contain'` para que el dibujo NO se deforme al
-                  ajustarse: se queda con el lado que le limite y centra el
-                  otro. Sin esto, una hoja con poco texto lo estiraba a lo
-                  ancho y el Salón salía achatado. */}
+            {/* Medidas EXPLÍCITAS, nunca `flexGrow` ni `height: '100%'`.
+                Se probó a que el plano se quedara con lo que sobrara, que es
+                lo que hace la cuadrícula del calendario (R16). Aquí no vale:
+                con un padre que crece y un hijo al 100 %, react-pdf pierde la
+                cuenta y no solo hincha el plano — los renglones de las
+                tarjetas de abajo se dibujan UNOS ENCIMA DE OTROS. */}
+            <View style={{ alignItems: 'center' }}>
               <Image
                 src={plano.src}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                style={{ width: anchoPlano, height: altoPlano }}
               />
             </View>
           </PdfCard>
