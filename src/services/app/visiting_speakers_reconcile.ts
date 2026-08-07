@@ -426,6 +426,12 @@ export const remapOutgoingTalkAssignments = (
       changed.push({
         ...schedule,
         weekend_meeting: { ...schedule.weekend_meeting, outgoing_talks: newTalks },
+        // SIN ESTA FECHA, el arreglo no sale del móvil. Quien llama a esto pide
+        // subir la tabla, y desde que el servidor fusiona semana a semana
+        // comparando la fecha del registro, una semana con la fecha de siempre
+        // se descarta: aquí quedaría perfecto y al resto de la congregación sus
+        // discursos salientes les seguirían apuntando al identificador huérfano.
+        updatedAt: new Date().toISOString(),
       });
     }
   }

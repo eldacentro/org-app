@@ -163,7 +163,22 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
     if (data.cong_field_service_reports) await appDb.cong_field_service_reports.bulkAdd(data.cong_field_service_reports);
     if (data.field_service_groups) await appDb.field_service_groups.bulkAdd(data.field_service_groups);
     if (data.meeting_attendance) await appDb.meeting_attendance.bulkAdd(data.meeting_attendance);
-    if (data.sched) await appDb.sched.bulkAdd(data.sched);
+    // LA FECHA DEL REGISTRO SE RENUEVA AL RESTAURAR. Restaurar es decir «esto
+    // es lo bueno», y desde que el servidor fusiona semana a semana comparando
+    // esa fecha, una copia con las fechas del día que se hizo perdería contra lo
+    // que hay ahora — que es justo lo que se quiere sustituir. Sin esto, el
+    // botón de pánico deja de reponer nada: se restaura en el móvil y no sale.
+    //
+    // Solo la de la RAÍZ. Las de cada campo se dejan como venían: son las que
+    // usa la fusión fina del cliente, y reescribirlas sería decidir por el resto
+    // de dispositivos en cosas que la copia no tiene por qué saber.
+    if (data.sched) {
+      const ahora = new Date().toISOString();
+
+      await appDb.sched.bulkAdd(
+        data.sched.map((record) => ({ ...record, updatedAt: ahora }))
+      );
+    }
     if (data.sources) await appDb.sources.bulkAdd(data.sources);
     if (data.speakers_congregations) await appDb.speakers_congregations.bulkAdd(data.speakers_congregations);
     if (data.visiting_speakers) await appDb.visiting_speakers.bulkAdd(data.visiting_speakers);

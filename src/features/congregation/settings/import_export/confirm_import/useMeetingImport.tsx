@@ -46,6 +46,14 @@ const useMeetingImport = () => {
 
       updatedAtOverride(record);
 
+      // Y la fecha del REGISTRO, aparte. `updatedAtOverride` solo refresca las
+      // claves `updatedAt` que ya existen y nunca las crea, y hay semanas que
+      // no la tienen —24 de las 125 de la congregación real, las que nacieron
+      // como semanas en blanco—. Sin ella, desde que el servidor fusiona semana
+      // a semana, esas 24 se descartaban al subir: el que importaba veía el
+      // programa corregido y los demás seguían con el viejo, para siempre.
+      record.updatedAt = new Date().toISOString();
+
       return record;
     });
   };
