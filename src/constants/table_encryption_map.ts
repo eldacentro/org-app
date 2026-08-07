@@ -470,7 +470,24 @@ export const TABLE_ENCRYPTION_MAP = {
  * claro exactamente igual que lleva haciéndolo desde siempre. Adelantar la
  * fase 2 sin comprobar sí cuesta, y lo paga la congregación entera.
  */
-const PENDIENTES_DE_CIFRAR = {
+export const PENDIENTES_DE_CIFRAR = {
+  persons: {
+    // EL NOMBRE COMPLETO. Se cifran `person_firstname` y `person_lastname`,
+    // pero al lado viajaba `person_fullname` en claro con las dos cosas juntas
+    // — «Rogelio Beltrán», legible en el servidor—, así que cifrar las partes
+    // no servía de nada. Comprobado sobre la copia real de la congregación.
+    person_fullname: 'shared',
+    // Situaciones personales que no tienen por qué salir del dispositivo.
+    // Hoy son `false` en toda la congregación, pero un `true` sería legible.
+    deaf: 'shared',
+    blind: 'shared',
+    incarcerated: 'shared',
+    // Organización interna: a qué grupo y a qué departamentos pertenece cada
+    // uno. Menos delicado que lo de arriba, pero no hay motivo para que se vea.
+    grupo_asignado: 'shared',
+    grupo_visible_inactivo: 'shared',
+    departments: 'shared',
+  },
   service_outings: {
     // Los horarios y las suspensiones de cada mes, qué turnos están
     // inhabilitados y —lo más delicado— los NOMBRES DE LAS OTRAS

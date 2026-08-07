@@ -8,6 +8,7 @@ import {
 } from './index';
 import {
   TABLE_DECRYPTION_MAP,
+  PENDIENTES_DE_CIFRAR,
   TABLE_ENCRYPTION_MAP,
 } from '@constants/table_encryption_map';
 
@@ -320,9 +321,16 @@ describe('el mapa de bajada no puede perder nada del de subida', () => {
         (k) => !(k in TABLE_ENCRYPTION_MAP[tabla])
       );
 
-      if (tabla !== 'service_outings') {
-        expect(extra, `${tabla} tiene campos de más sin querer`).toEqual([]);
-      }
+      // Lo de más tiene que ser EXACTAMENTE lo que está en fase 1, ni un campo
+      // más. Antes aquí había escrito a mano el nombre de la única tabla que
+      // tenía pendientes, así que encolar un campo en otra rompía la prueba sin
+      // que nada estuviera mal — y peor: un campo colado por error en el mapa de
+      // bajada de esa tabla no lo habría cazado nadie.
+      const pendientes = Object.keys(PENDIENTES_DE_CIFRAR[tabla] ?? {});
+
+      expect(extra.sort(), `${tabla} tiene campos de más sin querer`).toEqual(
+        pendientes.sort()
+      );
     }
   });
 });
@@ -440,5 +448,78 @@ describe('service_outings — despliegue por fases de los campos en claro', () =
     decryptObject({ data, table: 'service_outings', accessCode: ACCESS_CODE });
 
     expect(data.isCircuitOverseerWeek).toBe(false);
+  });
+});
+
+/**
+ * Los campos de PERSONAS que hoy viajan en claro.
+ *
+ * Se cifran el nombre y el apellido por separado, pero al lado iba
+ * `person_fullname` con los dos juntos y sin cifrar: legible en el servidor, y
+ * cifrar las partes no servía de nada. Comprobado sobre la copia real de la
+ * congregación el 2026-08-07.
+ *
+ * Fase 1: se sabe descifrar, se sigue subiendo en claro. En el cable no cambia
+ * nada, así que desplegarlo no rompe ningún dispositivo. Ver la explicación
+ * larga en `table_encryption_map.ts`.
+ */
+describe('persons — despliegue por fases del nombre completo y lo sensible', () => {
+  const CAMPOS = [
+    'person_fullname',
+    'deaf',
+    'blind',
+    'incarcerated',
+    'grupo_asignado',
+    'grupo_visible_inactivo',
+    'departments',
+  ];
+
+  it('todavía NO se cifran al subir', () => {
+    for (const campo of CAMPOS) {
+      expect(
+        TABLE_ENCRYPTION_MAP.persons[campo],
+        `${campo} ya se cifra: eso es la fase 2, y antes hay que comprobar que no queda ningún dispositivo viejo`
+      ).toBeUndefined();
+    }
+  });
+
+  it('pero este build YA sabe descifrarlos si llegaran cifrados', () => {
+    for (const campo of CAMPOS) {
+      expect(
+        TABLE_DECRYPTION_MAP.persons[campo],
+        `${campo} no se sabría leer el día que empiece a llegar cifrado`
+      ).toBe('shared');
+    }
+  });
+
+  it('lo que hay hoy en claro se deja intacto al bajar', () => {
+    // Son objetos `{value, updatedAt}`, y el descifrado solo actúa sobre
+    // cadenas: sobre los datos de hoy no llega a hacer nada.
+    const persona = {
+      person_fullname: { value: 'Rogelio Beltrán', updatedAt: '2026-07-27T19:14:43.158Z' },
+      deaf: { value: false, updatedAt: '2026-07-27T19:14:43.158Z' },
+      departments: { value: ['multimedia'], updatedAt: '2026-07-27T19:14:43.158Z' },
+    };
+
+    const copia = structuredClone(persona);
+
+    decryptObject({ data: copia, table: 'persons', accessCode: 'una-clave' });
+
+    expect(copia).toEqual(persona);
+  });
+
+  it('LISTO PARA LA FASE 2: un nombre cifrado vuelve como el objeto de siempre', () => {
+    const original = {
+      value: 'Rogelio Beltrán',
+      updatedAt: '2026-07-27T19:14:43.158Z',
+    };
+
+    const persona = {
+      person_fullname: encryptData(JSON.stringify(original), 'una-clave'),
+    };
+
+    decryptObject({ data: persona, table: 'persons', accessCode: 'una-clave' });
+
+    expect(persona.person_fullname).toEqual(original);
   });
 });
