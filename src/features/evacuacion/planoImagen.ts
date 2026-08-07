@@ -1,137 +1,125 @@
 /**
- * El plano del Salón, convertido en una imagen que react-pdf sí sepa poner.
+ * El plano del Salón para el PDF, convertido en imagen.
  *
- * ── Por qué hace falta esto ──────────────────────────────────────────────
+ * ── El plano del PAPEL no es el de la pantalla ───────────────────────────
  *
- * `react-pdf` NO pinta SVG en crudo: trae sus propias piezas (`Svg`, `Path`,
- * `Rect`) y no entiende una cadena de marcado. Y el plano del salón ES una
- * cadena de marcado —`PLANO_BASE_SVG`, sesenta y tantos `rect` y `path`
- * sacados del CAD— sobre la que la app dibuja después las zonas, los puestos,
- * las salidas y los extintores.
+ * Son dos dibujos a propósito. El de la pantalla (`Plano2D`) es interactivo:
+ * se toca, se amplía, resalta lo elegido, y por eso va en tintes suaves. El del
+ * papel es un plano de evacuación de los de colgar en un tablón: trazo negro,
+ * flechas rojas y nada que distraiga. Este fichero solo alimenta el PDF; tocar
+ * aquí no cambia la pantalla, y al revés tampoco.
  *
- * Había dos caminos: volver a dibujarlo con las piezas de react-pdf, o pasar
- * por una imagen. Redibujarlo significa tener el plano escrito DOS veces, y a
- * la segunda vez que alguien mueva un extintor las dos copias dejan de
- * coincidir sin que nadie se entere. Así que se rasteriza: el dibujo sigue
- * viviendo en un solo sitio, `Plano2D`, y el PDF enseña exactamente lo que
- * enseña la pantalla.
+ * El SVG viene del CAD del Salón —`plano_documento.svg`— y trae la
+ * arquitectura, las flechas de evacuación, los extintores y los rótulos de los
+ * puestos A1–B3, todo en vectores. La leyenda la pone el documento.
  *
- * ── Cómo ────────────────────────────────────────────────────────────────
+ * ── Por qué una imagen y no piezas de react-pdf ──────────────────────────
  *
- * El plano se monta en un contenedor SUELTO —fuera de la página, sin pintarse—
- * con el mismo React que usa la app, se coge su `<svg>`, se serializa y se pasa
- * por un `<img>` y un `<canvas>`.
- *
- * El primer intento fue `renderToStaticMarkup` de `react-dom/server`, que
- * parecía lo natural. No vale: Vite lo sirve como dependencia optimizada
- * aparte y arrastra SU copia de React, así que en cuanto el componente usa un
- * hook salta «Invalid hook call» — dos Reacts en la misma página no comparten
- * el dispatcher. Con `createRoot` es el React de siempre y el problema no
- * existe.
- *
- * `flushSync` es imprescindible: `render` es asíncrono por defecto y sin él se
- * lee el contenedor todavía vacío.
- *
- * El SVG se sirve como data URI en base64 y no como texto plano: con acentos
- * ("SALA B" no, pero sí los rótulos que vengan del plan) el `<img>` se queda
- * en blanco sin decir por qué.
+ * `react-pdf` no pinta SVG en crudo: trae sus propias piezas (`Svg`, `Path`,
+ * `Rect`) y no entiende una cadena de marcado. El plano son dos mil líneas de
+ * CAD, así que se rasteriza.
  */
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
-import { flushSync } from 'react-dom';
-import Plano2D from './Plano2D';
+import planoSvgCrudo from './plano_documento.svg?raw';
 
 /**
- * Cuántos píxeles por punto de PDF. A 1× el plano sale de 532 pt de ancho y se
- * ve pastoso al ampliar en pantalla; a 3× pesa poco más y aguanta el zoom y la
- * impresora.
+ * Cuántos píxeles por punto de PDF. A 1× el plano se ve pastoso al ampliar en
+ * pantalla; a 3× pesa poco más y aguanta el zoom y la impresora.
  */
 const ESCALA = 3;
 
-/** El plano es apaisado 2,3:1 — la razón por la que la hoja va en vertical. */
-export const PLANO_RATIO = 180 / 78.65;
-
 /**
- * Devuelve el plano como PNG en un data URI, listo para `<Image src=…>`.
+ * Devuelve el plano como PNG en un data URI, listo para `<Image src=…>`, y el
+ * alto que le toca para el ancho que se le pida.
+ *
+ * El alto sale del dibujo y no de una proporción escrita a mano: así, si algún
+ * día cambia el plano, la caja del PDF se ajusta sola en vez de recortarlo o
+ * dejarle una franja en blanco debajo.
  *
  * Solo funciona en el navegador (necesita `Image` y `canvas`), que es donde se
  * generan todos los PDF de la app.
  */
-export const planoComoPng = async (anchoPt = 532): Promise<string> => {
+export const planoComoPng = async (
+  anchoPt: number
+): Promise<{ src: string; ancho: number; alto: number }> => {
   const contenedor = document.createElement('div');
-  // Fuera de la vista pero CON tamaño: un contenedor de 0×0 hace que el SVG,
-  // que se dimensiona al 100% de su caja, salga de 0×0 y el lienzo en blanco.
   contenedor.style.cssText =
-    'position:fixed;left:-10000px;top:0;width:1200px;height:600px;';
+    'position:fixed;left:-10000px;top:0;width:1200px;height:700px;';
+  contenedor.innerHTML = planoSvgCrudo;
   document.body.appendChild(contenedor);
 
-  const raiz = createRoot(contenedor);
-  let svg: string;
-
   try {
-    flushSync(() => {
-      raiz.render(
-        createElement(Plano2D, { seleccion: null, onSelect: () => {} })
+    const svg = contenedor.querySelector('svg');
+    if (!svg) throw new Error('No se ha podido leer el plano del Salón');
+
+    // NADA de dibujar aquí los puestos A1–B3: el SVG del documento YA los
+    // trae, en vectores, junto con las flechas y los extintores. Se dibujaron
+    // una vez encima y salían DOS veces, la mía ligeramente descolocada
+    // respecto a la suya. El plano del papel viene hecho; aquí solo se
+    // encuadra y se rasteriza.
+
+    /**
+     * El encuadre lo decide el CONTENIDO, no el `viewBox` que traía el
+     * fichero: el CAD viene en un lienzo de 3840 × 2160 con aire de sobra
+     * alrededor, y A3 y B3 caen FUERA de él —esos dos puestos están en la
+     * calle, recibiendo a la gente, y la calle no está dibujada—. Con el
+     * viewBox original, A3 se quedaba fuera de la hoja.
+     */
+    const caja = (svg as unknown as SVGSVGElement).getBBox();
+    const margen = 40;
+    const vw = caja.width + margen * 2;
+    const vh = caja.height + margen * 2;
+
+    const alto = (anchoPt * vh) / vw;
+    const ancho = Math.round(anchoPt * ESCALA);
+    const altoPx = Math.round(alto * ESCALA);
+
+    svg.setAttribute(
+      'viewBox',
+      `${caja.x - margen} ${caja.y - margen} ${vw} ${vh}`
+    );
+    svg.setAttribute('width', String(ancho));
+    svg.setAttribute('height', String(altoPx));
+
+    let marcado = new XMLSerializer().serializeToString(svg);
+
+    // NADA de añadir `xmlns` a mano si ya está: `XMLSerializer` suele ponerlo,
+    // y un segundo atributo igual deja el XML mal formado. Un `<img>` con un
+    // SVG inválido no avisa — solo dispara `onerror` sin decir por qué.
+    if (!/\sxmlns=/.test(marcado)) {
+      marcado = marcado.replace(
+        /<svg\b/,
+        '<svg xmlns="http://www.w3.org/2000/svg"'
       );
+    }
+
+    const fuente = `data:image/svg+xml;base64,${btoa(
+      new TextEncoder()
+        .encode(marcado)
+        .reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+    )}`;
+
+    const imagen = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('No se ha podido dibujar el plano'));
+      img.src = fuente;
     });
 
-    const nodo = contenedor.querySelector('svg');
-    if (!nodo) throw new Error('No se ha podido extraer el plano del Salón');
+    const lienzo = document.createElement('canvas');
+    lienzo.width = ancho;
+    lienzo.height = altoPx;
 
-    svg = new XMLSerializer().serializeToString(nodo);
+    const ctx = lienzo.getContext('2d');
+    if (!ctx) throw new Error('No se ha podido dibujar el plano');
+
+    // Fondo blanco explícito: un PNG con transparencia se ve igual sobre el
+    // papel, pero si alguien lo pega en otro sitio aparece a cuadros.
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, ancho, altoPx);
+    ctx.drawImage(imagen, 0, 0, ancho, altoPx);
+
+    return { src: lienzo.toDataURL('image/png'), ancho: anchoPt, alto };
   } finally {
-    // Desmontar en un tick aparte: React se queja si se hace durante el render.
-    setTimeout(() => {
-      raiz.unmount();
-      contenedor.remove();
-    }, 0);
+    contenedor.remove();
   }
-
-  const ancho = Math.round(anchoPt * ESCALA);
-  const alto = Math.round((anchoPt / PLANO_RATIO) * ESCALA);
-
-  // Un solo retoque de la etiqueta de apertura, y NADA de añadir `xmlns`:
-  // `XMLSerializer` ya lo pone, y un segundo atributo igual deja el XML mal
-  // formado. Un `<img>` con un SVG inválido no avisa de nada — solo dispara
-  // `onerror` sin decir por qué, que es donde se fue un buen rato.
-  //
-  // Del tamaño: el componente se dimensiona al 100 % de su caja, y dentro de
-  // un `<img>` no hay caja. Se le da el suyo; el `viewBox` ya viene puesto.
-  //
-  // De la letra: los rótulos del plano ("SALA B", "PLATAFORMA", los números de
-  // extintor) heredaban la fuente de la página. Sin esto el navegador cae a su
-  // serif por defecto y el plano del PDF sale con otra letra que el de la
-  // pantalla.
-  svg = svg.replace(
-    /<svg\b/,
-    `<svg width="${ancho}" height="${alto}" font-family="Helvetica, Arial, sans-serif"`
-  );
-
-  const fuente = `data:image/svg+xml;base64,${btoa(
-    new TextEncoder()
-      .encode(svg)
-      .reduce((acc, byte) => acc + String.fromCharCode(byte), '')
-  )}`;
-
-  const imagen = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('No se ha podido dibujar el plano'));
-    img.src = fuente;
-  });
-
-  const lienzo = document.createElement('canvas');
-  lienzo.width = ancho;
-  lienzo.height = alto;
-
-  const ctx = lienzo.getContext('2d');
-  if (!ctx) throw new Error('No se ha podido dibujar el plano');
-
-  // Fondo blanco explícito: un PNG con transparencia sobre el papel se ve
-  // igual, pero si alguien lo pega en otro sitio aparece a cuadros.
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, lienzo.width, lienzo.height);
-  ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
-
-  return lienzo.toDataURL('image/png');
 };

@@ -8,6 +8,15 @@ import { nombreArchivo } from '@utils/nombre_pdf';
 import { displaySnackNotification } from '@services/states/app';
 
 /**
+ * Lo que mide el plano en la hoja, en puntos.
+ *
+ * 532 es el ancho útil de un A4 vertical con el margen del modo compacto: el
+ * plano va a sangre de margen a margen, que es lo que pide la maqueta y lo que
+ * hace que se lea desde lejos en el tablón.
+ */
+const ANCHO_PLANO = 390;
+
+/**
  * Exportar el plan de evacuación a PDF.
  *
  * El plano se rasteriza ANTES de montar el documento y se le pasa ya hecho:
@@ -31,7 +40,7 @@ const useEvacuacionExport = (plan: PlanEvacuacion) => {
         import('@views/congregation/evacuacion'),
       ]);
 
-      const plano = await planoComoPng(355);
+      const plano = await planoComoPng(ANCHO_PLANO);
 
       const blob = await pdf(
         <EvacuacionPDF plan={plan} cong_name={congName} plano={plano} />

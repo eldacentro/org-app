@@ -1,16 +1,17 @@
 import { ReactNode } from 'react';
-import { Image, Text, View } from '@react-pdf/renderer';
+import { Image, Svg, Polygon, Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
-import { PlanEvacuacion } from '@definition/evacuacion';
+import { PlanEvacuacion, RolEmergencia } from '@definition/evacuacion';
 import {
   PdfBullet,
   PdfCard,
   PdfHairline,
+  PdfNote,
   Sheet,
   color,
+  nombreEntero,
   radius,
   stroke,
-  nombreEntero,
   text,
 } from '@views/design';
 
@@ -19,12 +20,11 @@ import {
  *
  * ── Por qué vertical ─────────────────────────────────────────────────────
  *
- * Porque el plano del Salón es apaisado 2,3:1. A ancho completo de un A4
- * VERTICAL mide 532 pt, que es el mayor tamaño que puede tener en una cara, y
- * deja debajo sitio para cuatro bandas. En un A4 apaisado tendría que
- * compartir fila con las tarjetas de equipo y bajaría a unos 385 pt —un 28 %
- * más pequeño— para ganar un espacio que aquí no hace falta. El plano es lo
- * que se mira desde lejos en el tablón, así que manda él.
+ * Porque el plano del Salón es apaisado: a ancho completo de un A4 VERTICAL es
+ * donde más grande cabe, y debajo queda sitio para las bandas. En apaisado
+ * tendría que compartir fila y saldría más pequeño, para ganar un espacio que
+ * aquí no hace falta. El plano es lo que se mira desde lejos en el tablón, así
+ * que manda él.
  *
  * ── Qué es dinámico ──────────────────────────────────────────────────────
  *
@@ -32,35 +32,14 @@ import {
  * `PlanEvacuacion` que hay en Dexie, el mismo que edita el engranaje de la
  * página. Cambiar quién ocupa el puesto A2 cambia el PDF.
  *
- * ── Los textos son los del protocolo, LITERALES ──────────────────────────
- *
- * La maqueta del sistema de documentos los enseña abreviados ("Desaloja
- * empezando por la sala B…") porque es una maqueta y necesita que quepan. Aquí
- * NO se abrevian: `@definition/evacuacion` lo dice y tiene razón — esto es un
- * protocolo de emergencia y lo que ponga es lo que alguien va a leer y hacer.
- * Por eso el modo compacto aprieta la escala y no el texto.
- *
  * ── Viñetas ──────────────────────────────────────────────────────────────
  *
  * Puntos, nunca números. Los pasos de un protocolo parecen una secuencia
- * obligatoria cuando van numerados, y la mayoría de estas listas no lo son
- * —son cosas que hay que hacer, no un orden—. Es además lo que pidió Carlos.
+ * obligatoria cuando van numerados, y la mayoría de estas listas no lo son:
+ * son cosas que hay que hacer, no un orden.
  */
 
-/**
- * El hueco entre las bandas. Cinco y no ocho: este documento TIENE que caber
- * en una cara, y el modo compacto del sistema aprieta la escala, no el aire
- * entre bloques — así que el aire se ajusta aquí.
- */
-const GAP = 5;
-
-/** Lo que mide el plano en la hoja. Ver la nota donde se pinta. */
-const ANCHO_PLANO = 355;
-
-/** Un rótulo de los pequeños: 7/700 versalitas en gris claro. */
-const Rotulo = ({ children }: { children: string }) => (
-  <Text style={{ ...text.label, fontSize: 7 }}>{children}</Text>
-);
+const GAP = 4;
 
 /** Una línea de lista con su punto. */
 const Punto = ({ children }: { children: string }) => (
@@ -75,7 +54,7 @@ const Punto = ({ children }: { children: string }) => (
     <View style={{ marginTop: 3.2 }}>
       <PdfBullet />
     </View>
-    <Text style={{ ...text.body, fontSize: 8.2, flex: 1, lineHeight: 1.35 }}>
+    <Text style={{ ...text.body, fontSize: 8.2, flex: 1, lineHeight: 1.32 }}>
       {children}
     </Text>
   </View>
@@ -98,61 +77,47 @@ const Puesto = ({ children }: { children: string }) => (
   </Text>
 );
 
+/** Rótulo a la izquierda y nombre a la derecha, como en la maqueta. */
+const Persona = ({ rol, nombre }: { rol: string; nombre: string }) => (
+  <View
+    style={{
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      gap: 6,
+      marginTop: 1.5,
+    }}
+  >
+    <Text style={{ ...text.label, fontSize: 7 }}>{rol}</Text>
+    <Text style={{ ...text.bodyStrong, fontSize: 8.4 }}>
+      {nombreEntero(nombre)}
+    </Text>
+  </View>
+);
+
 /**
- * Una de las tres columnas de apoyo: quién lo lleva y qué hace.
+ * Una de las tres tarjetas de apoyo: quién lo lleva y qué hace.
  *
- * La separación es un hairline VERTICAL entre columnas, nunca un borde contra
- * el canto redondeado de la tarjeta (R7): por eso la última no lo lleva y las
- * demás lo llevan a la derecha, con su hueco.
+ * Son TRES tarjetas y no una a tres columnas. Con una sola, el rótulo de
+ * arriba tenía que nombrar a los tres equipos —"Jefe de emergencias,
+ * intervención y equipo sanitario"— y luego repetir cada nombre otra vez en
+ * gris dentro de su columna. Cada equipo con su banda dice lo mismo una vez.
  */
-const Columna = ({
+const TarjetaApoyo = ({
   titulo,
   nota,
   gente,
   pasos,
-  ultima,
 }: {
   titulo: string;
   nota?: string;
-  gente: ({ rol: string; nombre: string } | undefined)[];
+  gente: { rol: string; nombre: string }[];
   pasos: string[];
-  ultima?: boolean;
 }) => (
-  <View
-    style={{
-      flex: 1,
-      paddingRight: ultima ? 0 : 9,
-      marginRight: ultima ? 0 : 9,
-      borderRight: ultima
-        ? undefined
-        : `${stroke.hairline}px solid ${color.hairline}`,
-    }}
-  >
-    <Rotulo>{titulo}</Rotulo>
-    {/* El renglón de la nota se reserva en las TRES columnas aunque solo una
-        lo use: si no, esa columna empieza un escalón más abajo que sus
-        vecinas y las tres dejan de alinearse arriba. */}
-    <Text style={{ ...text.meta, fontSize: 7, marginTop: 0.5 }}>
-      {nota ?? ' '}
-    </Text>
-
-    {gente.filter(Boolean).map((persona) => (
-      <View
-        key={persona!.nombre}
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          gap: 6,
-          marginTop: 1.5,
-        }}
-      >
-        <Text style={{ ...text.label, fontSize: 7 }}>{persona!.rol}</Text>
-        <Text style={{ ...text.bodyStrong, fontSize: 8.4 }}>
-          {nombreEntero(persona!.nombre)}
-        </Text>
-      </View>
+  <PdfCard title={titulo} meta={nota} dense style={{ flex: 1 }}>
+    {gente.map((persona) => (
+      <Persona key={persona.nombre} rol={persona.rol} nombre={persona.nombre} />
     ))}
 
     {pasos.length > 0 ? (
@@ -163,6 +128,34 @@ const Columna = ({
         ))}
       </>
     ) : null}
+  </PdfCard>
+);
+
+/** La flecha roja de la leyenda. Se DIBUJA, no se escribe (R13). */
+const Flecha = () => (
+  <Svg width={7} height={7} viewBox="0 0 10 10">
+    <Polygon points="10,5 2,10 2,0" fill={color.danger} />
+  </Svg>
+);
+
+/** Una entrada de la leyenda del plano: una marca y lo que significa. */
+const Leyenda = ({
+  marca,
+  children,
+}: {
+  marca: ReactNode;
+  children: string;
+}) => (
+  <View
+    style={{
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    }}
+  >
+    {marca}
+    <Text style={{ ...text.body, fontSize: 7.5 }}>{children}</Text>
   </View>
 );
 
@@ -170,7 +163,7 @@ type Props = {
   plan: PlanEvacuacion;
   cong_name: string;
   /** El plano ya rasterizado (ver `features/evacuacion/planoImagen`). */
-  plano?: string;
+  plano?: { src: string; ancho: number; alto: number };
 };
 
 const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
@@ -183,14 +176,10 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
       r.rol.toLowerCase().includes(parte.toLowerCase())
     );
 
-  // "Jefe" y "Auxiliar" a secas: el rótulo de la columna ya dice de qué son,
-  // y repetirlo ("Jefe de emergencias / Auxiliar de emergencias") no cabe en
-  // un tercio de hoja.
-  const corto = (
-    rol: ReturnType<typeof buscaRol>,
-    etiqueta: string
-  ): { rol: string; nombre: string } | undefined =>
-    rol ? { rol: etiqueta, nombre: rol.nombre } : undefined;
+  // "Jefe" y "Auxiliar" a secas: la banda de la tarjeta ya dice de qué son, y
+  // repetirlo dentro no cabe en un tercio de hoja.
+  const corto = (rol: RolEmergencia | undefined, etiqueta: string) =>
+    rol ? [{ rol: etiqueta, nombre: rol.nombre }] : [];
 
   const jefeEmergencias = buscaRol('jefe de emergencias');
   const auxEmergencias = buscaRol('auxiliar de emergencias');
@@ -199,33 +188,29 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
 
   /**
    * Las reglas del plan vienen todas en la misma lista, pero no todas son lo
-   * mismo: las dos primeras son CASOS ("en caso de que la puerta principal
-   * esté bloqueada…") y el resto son normas que valen siempre.
+   * mismo: unas son CASOS ("puerta principal bloqueada: …") y el resto son
+   * normas que valen siempre.
    *
-   * Se separan por cómo empiezan y no por su posición, que se rompería en
+   * Se separan por lo que dicen y no por su posición, que se rompería en
    * cuanto alguien reordene la lista desde el engranaje. Y si ninguna encaja
-   * —porque se hayan reescrito—, la tarjeta de casos no se pinta y todo cae en
+   * —porque se hayan reescrito—, el bloque de casos no se pinta y todo cae en
    * las normas: se pierde el matiz, no el contenido.
    */
   const esCaso = (regla: string) => /bloquead/i.test(regla);
-
-  /**
-   * El subtítulo de la hoja ya dice "tiempo máximo de evacuación: 4 minutos",
-   * así que la norma que repite ese mismo número sobra en el papel. Se detecta
-   * por el número —sale de `tiempoMaximo`—, no por la frase, para que siga
-   * valiendo si alguien la reescribe o cambia los minutos.
-   */
-  const repiteElTiempo = (regla: string) =>
-    /tiempo\s+m[áa]ximo/i.test(regla) &&
-    new RegExp(`\\b${plan.tiempoMaximo}\\b`).test(regla);
-
   const casos = plan.reglasEspeciales.filter(esCaso);
   const normas = [
     ...plan.normasEquipos,
     ...plan.reglasEspeciales.filter((r) => !esCaso(r)),
-  ].filter((r) => !repiteElTiempo(r));
+  ];
 
-  const equipoCard = (equipo: typeof equipoA, titulo: string): ReactNode => {
+  /**
+   * El año de la cápsula sale de CUÁNDO se actualizó, no de un campo escrito a
+   * mano: `anio` se quedó en "2025" mientras el plan se seguía tocando, y una
+   * hoja que dice un año que no es el suyo se lee como caducada.
+   */
+  const anio = new Date(plan.updatedAt || Date.now()).getFullYear();
+
+  const equipoCard = (equipo: typeof equipoA) => {
     if (!equipo) return null;
 
     const responsable = equipo.miembros.find((m) => m.esResponsable);
@@ -239,12 +224,9 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
         dense
         style={{ flex: 1 }}
       >
-        {/* Los tres nombres en UNA línea, no en tres filas.
-            Lo pide la especificación de la variante de una hoja ("los seis
-            nombres pasan a una línea por equipo") y ahorra cuatro renglones
-            entre los dos equipos sin tocar una sola palabra. La cápsula del
-            puesto va pegada a su nombre, así que se sigue leyendo quién es A1
-            de un vistazo. */}
+        {/* Los tres nombres en UNA línea, no en tres filas: lo pide la
+            especificación de la variante de una hoja y ahorra cuatro
+            renglones entre los dos equipos sin tocar una palabra. */}
         <View
           style={{
             display: 'flex',
@@ -272,12 +254,12 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
           ))}
         </View>
 
+        {/* Sin rótulo "ORDEN DE DESALOJO": debajo del nombre de un equipo de
+            evacuación, una lista de pasos no puede ser otra cosa. Una línea
+            menos por equipo. */}
         {equipo.procedimiento.length > 0 ? (
           <>
-            <PdfHairline style={{ marginVertical: 5 }} />
-            <View style={{ marginBottom: 3 }}>
-              <Rotulo>{titulo}</Rotulo>
-            </View>
+            <PdfHairline style={{ marginVertical: 4 }} />
             {equipo.procedimiento.map((paso) => (
               <Punto key={paso}>{paso}</Punto>
             ))}
@@ -291,37 +273,71 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
     <Document title="Plan de evacuación" lang="es-ES">
       <Sheet
         congregation={cong_name}
-        period={plan.anio}
+        period={String(anio)}
         title="Plan de evacuación"
-        subtitle={`Salón del Reino · tiempo máximo de evacuación: ${plan.tiempoMaximo} minutos`}
         documentName="Plan de evacuación"
         updatedAt={plan.fechaDocumento}
-        updatedVerb="Aprobado el"
         dense
       >
-        {/* ① EL PLANO, a ancho completo — lo que se mira desde lejos. */}
+        {/* ① EL PLANO, lo que se mira desde lejos, con su leyenda debajo. */}
         {plano ? (
           <PdfCard title="Plano del Salón" flush dense>
-            {/* Ancho EXPLÍCITO y centrado, no `width: '100%'`.
-
-                El plano es apaisado 2,3:1, así que su alto sale de su ancho.
-                Los 532 de la especificación son el máximo POSIBLE en una
-                cara, y esa cuenta la hizo la maqueta con los textos
-                abreviados hasta el hueso; aquí van los del protocolo, que
-                aunque se han acortado siguen siendo más largos.
-
-                Medido a base de renderizar, con el cuerpo a 8,2 que pide la
-                especificación: a 532, 460, 420 y 390 la hoja se va a dos.
-                355 es el mayor que cabe. Si algún día se recortan más los
-                textos, sube este número y vuelve a mirarlo — el sistema lo
-                dice claro: esto se comprueba renderizando y mirando. */}
+            {/* Ancho y alto EXPLÍCITOS, y centrado.
+                Con `width: '100%'` el plano se estiraba siempre al ancho de la
+                tarjeta —532— pasara lo que pasara: cambiar su tamaño solo
+                cambiaba la resolución del PNG, no lo que ocupaba en la hoja.
+                Estuvo un buen rato pareciendo que encogerlo no servía de nada.
+                El alto viene medido del propio dibujo, así que si algún día
+                cambia el plano la caja se ajusta sola. */}
             <View style={{ alignItems: 'center' }}>
-              <Image src={plano} style={{ width: ANCHO_PLANO }} />
+              <Image
+                src={plano.src}
+                style={{ width: plano.ancho, height: plano.alto }}
+              />
+            </View>
+
+            <View
+              style={{
+                borderTop: `${stroke.hairline}px solid ${color.hairline}`,
+                paddingVertical: 4,
+                paddingHorizontal: 9,
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <Leyenda marca={<Flecha />}>Sentido de evacuación</Leyenda>
+              <Leyenda
+                marca={
+                  <View
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: color.danger,
+                    }}
+                  />
+                }
+              >
+                Extintores
+              </Leyenda>
+              {equipoA ? (
+                <Leyenda marca={<Puesto>A1–A3</Puesto>}>
+                  {equipoA.nombre}
+                </Leyenda>
+              ) : null}
+              {equipoB ? (
+                <Leyenda marca={<Puesto>B1–B3</Puesto>}>
+                  {equipoB.nombre}
+                </Leyenda>
+              ) : null}
             </View>
           </PdfCard>
         ) : null}
 
-        {/* ② Los dos equipos de evacuación, a dos columnas. */}
+        {/* ② Los dos equipos de evacuación. */}
         <View
           style={{
             display: 'flex',
@@ -330,63 +346,62 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
             marginTop: GAP,
           }}
         >
-          {equipoCard(equipoA, 'Orden de desalojo')}
-          {equipoCard(equipoB, 'Orden de desalojo')}
+          {equipoCard(equipoA)}
+          {equipoCard(equipoB)}
         </View>
 
-        {/* ③ Los tres equipos de apoyo, fundidos en UNA tarjeta a TRES
-            COLUMNAS. Apilados —nombres arriba y luego cada procedimiento en su
-            franja— la hoja se iba a dos, que es justo lo que este documento no
-            puede hacer: es el del tablón. A tres columnas cada equipo se lee
-            entero de una pasada y cabe. Lo pide así la especificación. */}
-        <PdfCard
-          title="Jefe de emergencias, intervención y equipo sanitario"
-          dense
-          style={{ marginTop: GAP }}
+        {/* ③ Los tres equipos de apoyo, cada uno en su tarjeta. */}
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: GAP,
+            marginTop: GAP,
+          }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row' }}>
-            <Columna
-              titulo="Jefe de emergencias"
-              gente={[
-                corto(jefeEmergencias, 'Jefe'),
-                corto(auxEmergencias, 'Auxiliar'),
-              ]}
-              pasos={[
-                ...(jefeEmergencias?.responsabilidades ?? []),
-                ...(auxEmergencias?.responsabilidades ?? []),
-              ]}
+          <TarjetaApoyo
+            titulo="Jefe de emergencias"
+            gente={[
+              ...corto(jefeEmergencias, 'Jefe'),
+              ...corto(auxEmergencias, 'Auxiliar'),
+            ]}
+            pasos={[
+              ...(jefeEmergencias?.responsabilidades ?? []),
+              ...(auxEmergencias?.responsabilidades ?? []),
+            ]}
+          />
+          <TarjetaApoyo
+            titulo="Equipo de intervención"
+            // En la BANDA y no como una línea dentro: es una condición de
+            // todo el equipo, no un paso más, y ahí no gasta renglón.
+            //
+            // Corta a propósito. El aviso entero —"Este protocolo sólo se
+            // activará en casos necesarios"— no cabe al lado del título en un
+            // tercio de hoja: se montaba encima de él.
+            nota="solo si es necesario"
+            gente={[
+              ...corto(jefeIntervencion, 'Jefe'),
+              ...corto(auxIntervencion, 'Auxiliar'),
+            ]}
+            pasos={plan.procedimientoIntervencion.pasos}
+          />
+          {sanitario ? (
+            <TarjetaApoyo
+              titulo={sanitario.nombre}
+              gente={sanitario.miembros.map((m, i) => ({
+                rol: i === 0 ? 'Jefe' : 'Auxiliar',
+                nombre: m.nombre,
+              }))}
+              pasos={sanitario.procedimiento}
             />
-            <Columna
-              titulo="Equipo de intervención"
-              nota={plan.procedimientoIntervencion.aviso}
-              gente={[
-                corto(jefeIntervencion, 'Jefe'),
-                corto(auxIntervencion, 'Auxiliar'),
-              ]}
-              pasos={plan.procedimientoIntervencion.pasos}
-            />
-            {sanitario ? (
-              <Columna
-                titulo={sanitario.nombre}
-                gente={sanitario.miembros.map((m, i) => ({
-                  rol: i === 0 ? 'Jefe' : 'Auxiliar',
-                  nombre: m.nombre,
-                }))}
-                pasos={sanitario.procedimiento}
-                ultima
-              />
-            ) : null}
-          </View>
-        </PdfCard>
+          ) : null}
+        </View>
 
         {/* ④ y ⑤ Los casos de salida bloqueada y las normas, A LA PAR.
-            La especificación los pone uno debajo del otro, y con sus textos
-            abreviados caben así. Aquí NO se abrevian —es un protocolo de
-            emergencia, ver la nota de arriba—, y apilados se llevaban la hoja
-            a dos. Antes que encoger el plano, que es lo que se mira desde
-            lejos y por lo que esta hoja va en vertical, se ponen a la par:
-            siguen leyéndose de arriba abajo por importancia y son las dos
-            bandas más pequeñas. */}
+            Son las dos bandas más pequeñas y las dos de leer con calma, no de
+            mirar de reojo. Apiladas se llevaban la hoja a dos; a la par caben
+            y además se acaba la página con un bloque de dos columnas, que es
+            como empieza —los dos equipos—. */}
         <View
           wrap={false}
           style={{
@@ -397,28 +412,27 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
           }}
         >
           {casos.length > 0 ? (
-            <PdfCard
-              title="Si una salida está bloqueada"
-              dense
-              style={{ flex: 1 }}
-            >
+            <PdfNote style={{ flex: 1 }}>
+              <View style={{ marginBottom: 3 }}>
+                <Text style={{ ...text.label, color: color.accentDark }}>
+                  Si una salida está bloqueada
+                </Text>
+              </View>
               {casos.map((caso) => {
                 // "Puerta principal bloqueada: verificar los aseos…" → la
                 // entradilla en negrita, EN LÍNEA con el resto.
                 //
                 // Dos <Text> anidados dentro de uno, y ni una cadena suelta
-                // entre ellos: es lo que permite R17 y es lo que hace que la
-                // negrita no se lleve su propio renglón. Puestos como
-                // hermanos —que fue el primer intento— cada caso ocupaba una
-                // línea más y la hoja se iba a dos por eso.
+                // entre ellos: es lo que permite R17 y lo que hace que la
+                // negrita no se lleve su propio renglón.
                 const corte = caso.indexOf(':');
                 const entradilla = corte > 0 ? caso.slice(0, corte) : null;
                 const resto = corte > 0 ? caso.slice(corte + 1).trim() : caso;
 
                 return (
-                  <View key={caso} style={{ marginBottom: 3 }}>
+                  <View key={caso} style={{ marginBottom: 2 }}>
                     <Text
-                      style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
+                      style={{ ...text.body, fontSize: 8.2, lineHeight: 1.32 }}
                     >
                       {entradilla ? (
                         <Text style={{ fontWeight: 600 }}>{entradilla}: </Text>
@@ -428,7 +442,7 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
                   </View>
                 );
               })}
-            </PdfCard>
+            </PdfNote>
           ) : null}
 
           {normas.length > 0 ? (
