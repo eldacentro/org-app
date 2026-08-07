@@ -19,8 +19,22 @@ export const COLORES = {
 /**
  * Plan de Evacuación del Salón del Reino — Congregación Elda Centro.
  *
- * TEXTO LITERAL del documento oficial (PDF de 27-3-2025). No se resume ni se
- * reescribe: ver el aviso en @definition/evacuacion.
+ * Texto del documento oficial (PDF de 27-3-2025). No se resume ni se reescribe
+ * por cuenta propia: ver el aviso en @definition/evacuacion.
+ *
+ * Tres frases SÍ se han acortado, con el visto bueno de Carlos (7-8-2026), para
+ * que el plan entre en una sola cara impresa —que es como se cuelga en el
+ * tablón—. En las tres se dice exactamente lo mismo con menos palabras; no se
+ * ha quitado ni una instrucción:
+ *
+ *   · Las tres responsabilidades del Auxiliar de Emergencias eran tres formas
+ *     de "sustituye y hace el informe". Ahora es una.
+ *   · Los dos casos de salida bloqueada empezaban por "En caso de que… esté
+ *     bloqueada", que ya lo dice el título de su tarjeta. Ahora llevan
+ *     entradilla, y de paso se encuentran antes en una urgencia.
+ *
+ * Quien tenga el plan guardado de antes se actualiza solo: ver
+ * `migrarPlanEvacuacion`, más abajo.
  */
 export const PLAN_EVACUACION: PlanEvacuacion = {
   updatedAt: '2026-07-27T00:00:00.000Z',
@@ -42,9 +56,7 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
       rol: 'Auxiliar de Emergencias',
       nombre: 'César Amorós',
       responsabilidades: [
-        'Sustitución del Jefe de Emergencias en caso de ausencia.',
-        'Sustitución, en caso de ausencia, de uno de los Jefes de Evacuación.',
-        'Redactar informe de los simulacros y cada vez que actúe el equipo.',
+        'Sustituye al Jefe de Emergencias o a uno de los Jefes de Evacuación en caso de ausencia, y redacta el informe de los simulacros y de cada actuación del equipo.',
       ],
     },
     {
@@ -116,8 +128,8 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
     'Cada miembro deberá de llevar y utilizar una pequeña linterna.',
   ],
   reglasEspeciales: [
-    'En caso de que la puerta principal esté bloqueada, se verificarán los aseos, se cerrará la puerta de acceso al auditorio y se procederá al desalojo de la zona B en primer lugar. A continuación el equipo A hará el desalojo de su zona sin intervenir los encargados de las puertas y con la salvedad del encargado de la sala B, que sólo evacua dicha sala.',
-    'En caso de que la salida de emergencia esté bloqueada, se hará el desalojo de la zona A primero y luego el equipo B desalojará su zona sin intervenir tráfico ni puerta y el orden será: 1º rincón 2ª plataforma hacia atrás.',
+    'Puerta principal bloqueada: verificar los aseos, cerrar la puerta del auditorio y desalojar primero la zona B. Después el equipo A desaloja la suya sin intervenir los encargados de las puertas, salvo el de la sala B, que solo evacua esa sala.',
+    'Salida de emergencia bloqueada: desalojar primero la zona A. Después el equipo B desaloja la suya sin intervenir tráfico ni puerta, en este orden: 1.º el rincón, 2.º desde la plataforma hacia atrás.',
     'Se ha de impedir la entrada en el Salón de nuevo (responsables de evacuación).',
     'A medida de que cada uno acaba su cometido, debe abandonar el Salón.',
     'Todos los responsables han de asegurarse de que cada miembro está en su puesto.',
@@ -156,7 +168,13 @@ export type ExtintorGeo = {
   esCO2: boolean;
 };
 
-export type PilarGeo = { id: string; x: number; y: number; w: number; h: number };
+export type PilarGeo = {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
 
 export const SALON = {
   width: 180,
@@ -164,37 +182,37 @@ export const SALON = {
 };
 
 export const SALON_OUTLINE = [
-  [0.00, 0.00],
-  [94.46, 0.00],
+  [0.0, 0.0],
+  [94.46, 0.0],
   [94.46, 1.62],
   [100.46, 1.62],
-  [100.46, 0.00],
-  [180.00, 0.00],
-  [180.00, 78.65],
+  [100.46, 0.0],
+  [180.0, 0.0],
+  [180.0, 78.65],
   [92.17, 78.65],
   [92.17, 65.27],
   [71.33, 65.27],
-  [71.33, 63.20],
-  [0.00, 63.20],
-  [0.00, 0.00],
+  [71.33, 63.2],
+  [0.0, 63.2],
+  [0.0, 0.0],
 ];
 
 export const PILARES: PilarGeo[] = [
-  { id: 'p1', x: 94.46, y: 35.18, w: 6.00, h: 5.38 },
-  { id: 'p2', x: 143.30, y: 35.18, w: 6.00, h: 5.38 },
-  { id: 'p3', x: 50.29, y: 34.40, w: 6.00, h: 6.34 },
-  { id: 'p4', x: 15.92, y: 34.40, w: 6.00, h: 6.34 },
+  { id: 'p1', x: 94.46, y: 35.18, w: 6.0, h: 5.38 },
+  { id: 'p2', x: 143.3, y: 35.18, w: 6.0, h: 5.38 },
+  { id: 'p3', x: 50.29, y: 34.4, w: 6.0, h: 6.34 },
+  { id: 'p4', x: 15.92, y: 34.4, w: 6.0, h: 6.34 },
 ];
 
 export const PAREDES_INTERNAS = [
-  { x: 24.55, y: 11.73, w: 8.40, h: 9.72 },
-  { x: 0.07, y: 34.40, w: 15.73, h: 6.34 },
+  { x: 24.55, y: 11.73, w: 8.4, h: 9.72 },
+  { x: 0.07, y: 34.4, w: 15.73, h: 6.34 },
   { x: 15.92, y: -0.01, w: 17.28, h: 21.71 },
-  { x: 0.00, y: 0.00, w: 15.92, h: 40.74 },
+  { x: 0.0, y: 0.0, w: 15.92, h: 40.74 },
   { x: 71.46, y: 61.27, w: 15.26, h: 3.86 },
   { x: 92.76, y: 65.13, w: 3.86, h: 12.77 },
   { x: 33.46, y: 34.17, w: 15.57, h: 6.79 },
-  { x: 138.34, y: 0.10, w: 4.96, h: 5.38 },
+  { x: 138.34, y: 0.1, w: 4.96, h: 5.38 },
   { x: 17.74, y: 40.88, w: 1.98, h: 11.05 },
   { x: 19.72, y: 40.88, w: 1.98, h: 11.05 },
 ];
@@ -202,8 +220,8 @@ export const PAREDES_INTERNAS = [
 export const SALA_B_WALL = [
   [49.11, 0.12],
   [49.11, 34.07],
-  [56.50, 34.07],
-  [56.50, 40.74],
+  [56.5, 34.07],
+  [56.5, 40.74],
   [60.68, 40.74],
   [60.68, 41.33],
 ];
@@ -237,7 +255,7 @@ export const EXTINTORES_GEO: ExtintorGeo[] = [
   { id: 3, x: 62.26, y: 61.86, esCO2: false },
   { id: 4, x: 69.35, y: 34.63, esCO2: false },
   { id: 5, x: 177.99, y: 52.41, esCO2: false },
-  { id: 6, x: 9.40, y: 36.44, esCO2: true },
+  { id: 6, x: 9.4, y: 36.44, esCO2: true },
 ];
 
 export const PUERTAS = [
@@ -246,8 +264,8 @@ export const PUERTAS = [
 ];
 
 export const ASIENTOS = [
-  { x: 51.14, y: 4.10 },
-  { x: 57.95, y: 4.10 },
+  { x: 51.14, y: 4.1 },
+  { x: 57.95, y: 4.1 },
   { x: 73.15, y: 6.86 },
   { x: 81.28, y: 6.86 },
   { x: 89.41, y: 6.86 },
@@ -311,7 +329,7 @@ export const ASIENTOS = [
   { x: 121.94, y: 26.77 },
   { x: 130.07, y: 26.77 },
   { x: 138.21, y: 26.77 },
-  { x: 51.14, y: 28.00 },
+  { x: 51.14, y: 28.0 },
   { x: 73.15, y: 30.76 },
   { x: 81.28, y: 30.76 },
   { x: 89.41, y: 30.76 },
@@ -340,7 +358,7 @@ export const ASIENTOS = [
   { x: 155.25, y: 60.43 },
   { x: 159.24, y: 60.43 },
   { x: 163.22, y: 60.43 },
-  { x: 167.20, y: 60.43 },
+  { x: 167.2, y: 60.43 },
   { x: 171.18, y: 60.43 },
   { x: 175.17, y: 60.43 },
   { x: 179.15, y: 60.43 },
@@ -350,7 +368,7 @@ export const ASIENTOS = [
   { x: 155.25, y: 68.18 },
   { x: 159.24, y: 68.18 },
   { x: 163.22, y: 68.18 },
-  { x: 167.20, y: 68.18 },
+  { x: 167.2, y: 68.18 },
   { x: 171.18, y: 68.18 },
   { x: 175.17, y: 68.18 },
   { x: 179.15, y: 68.18 },
@@ -361,7 +379,7 @@ export const ASIENTOS = [
   { x: 155.25, y: 75.92 },
   { x: 159.24, y: 75.92 },
   { x: 163.22, y: 75.92 },
-  { x: 167.20, y: 75.92 },
+  { x: 167.2, y: 75.92 },
   { x: 171.18, y: 75.92 },
   { x: 175.17, y: 75.92 },
   { x: 179.15, y: 75.92 },
@@ -440,3 +458,66 @@ export const PUESTOS: PuestoGeo[] = [
   { posicion: 'A3', equipoId: 'evacuacion-a', x: -10, y: 47 },
   { posicion: 'B3', equipoId: 'evacuacion-b', x: 191, y: 49 },
 ];
+
+/**
+ * Actualiza un plan GUARDADO a los textos acortados de arriba.
+ *
+ * Hace falta porque el plan vive en la base de datos de cada dispositivo desde
+ * la primera vez que alguien abre el engranaje: cambiar el plan por defecto no
+ * cambia nada a quien ya lo tiene guardado, y ese es justo el caso de Elda
+ * Centro. Sin esto, el PDF les seguiría saliendo en dos hojas.
+ *
+ * **Solo sustituye lo que es palabra por palabra el texto viejo.** Si alguien
+ * ha reescrito esa frase por su cuenta, se queda la suya: una migración que
+ * pisa lo que otro escribió es peor que no migrar. Por eso la comparación es
+ * exacta y no "se parece".
+ */
+const TEXTOS_ACORTADOS: Record<string, string> = {
+  'Sustitución del Jefe de Emergencias en caso de ausencia.':
+    'Sustituye al Jefe de Emergencias o a uno de los Jefes de Evacuación en caso de ausencia, y redacta el informe de los simulacros y de cada actuación del equipo.',
+  'En caso de que la puerta principal esté bloqueada, se verificarán los aseos, se cerrará la puerta de acceso al auditorio y se procederá al desalojo de la zona B en primer lugar. A continuación el equipo A hará el desalojo de su zona sin intervenir los encargados de las puertas y con la salvedad del encargado de la sala B, que sólo evacua dicha sala.':
+    'Puerta principal bloqueada: verificar los aseos, cerrar la puerta del auditorio y desalojar primero la zona B. Después el equipo A desaloja la suya sin intervenir los encargados de las puertas, salvo el de la sala B, que solo evacua esa sala.',
+  'En caso de que la salida de emergencia esté bloqueada, se hará el desalojo de la zona A primero y luego el equipo B desalojará su zona sin intervenir tráfico ni puerta y el orden será: 1º rincón 2ª plataforma hacia atrás.':
+    'Salida de emergencia bloqueada: desalojar primero la zona A. Después el equipo B desaloja la suya sin intervenir tráfico ni puerta, en este orden: 1.º el rincón, 2.º desde la plataforma hacia atrás.',
+};
+
+/** Las dos frases del auxiliar que la nueva absorbe y que hay que retirar. */
+const TEXTOS_ABSORBIDOS = [
+  'Sustitución, en caso de ausencia, de uno de los Jefes de Evacuación.',
+  'Redactar informe de los simulacros y cada vez que actúe el equipo.',
+];
+
+/**
+ * Devuelve el plan con los textos al día, o el MISMO objeto si no había nada
+ * que cambiar — así quien llama puede comparar por identidad y no guardar (ni
+ * disparar una sincronización) cuando no toca.
+ */
+export const migrarPlanEvacuacion = (plan: PlanEvacuacion): PlanEvacuacion => {
+  let tocado = false;
+
+  const arregla = (lista: string[]) => {
+    const nueva = lista
+      .filter((t) => {
+        const fuera = TEXTOS_ABSORBIDOS.includes(t.trim());
+        if (fuera) tocado = true;
+        return !fuera;
+      })
+      .map((t) => {
+        const nuevo = TEXTOS_ACORTADOS[t.trim()];
+        if (nuevo) tocado = true;
+        return nuevo ?? t;
+      });
+    return nueva;
+  };
+
+  const migrado: PlanEvacuacion = {
+    ...plan,
+    estructuraMando: plan.estructuraMando.map((rol) => ({
+      ...rol,
+      responsabilidades: arregla(rol.responsabilidades),
+    })),
+    reglasEspeciales: arregla(plan.reglasEspeciales),
+  };
+
+  return tocado ? migrado : plan;
+};

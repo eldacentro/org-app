@@ -722,3 +722,68 @@ describe('marca de hojita entregada (confirmed)', () => {
     );
   });
 });
+
+/**
+ * La fecha del registro (`updatedAt` en la raíz de una semana de programa, de
+ * departamentos, de salidas o de exhibidores).
+ *
+ * Desde que el servidor fusiona por registro comparando esa fecha, dejarla
+ * retroceder al fusionar significa que la siguiente subida se descarte —y la
+ * edición se queda solo en el dispositivo que la hizo, que es lo que la hace
+ * invisible—. Un registro fusionado es tan nuevo como el más nuevo de los dos.
+ */
+describe('la fecha del registro no retrocede al fusionar', () => {
+  it('se queda la del servidor cuando es más nueva', () => {
+    const local = { weekOf: '2026/08/03', updatedAt: '2026-08-01T00:00:00Z' };
+    const remote = { weekOf: '2026/08/03', updatedAt: '2026-08-05T00:00:00Z' };
+
+    expect(syncFromRemote(local, remote).updatedAt).toBe(
+      '2026-08-05T00:00:00Z'
+    );
+  });
+
+  it('se queda la de aquí cuando la del servidor es más vieja', () => {
+    // El caso que perdía datos: edito una semana, me llega una copia anterior
+    // de otro dispositivo, y mi fecha retrocedía. Al subir, el servidor veía
+    // una fecha que ya no era mayor que la suya y descartaba mi edición.
+    const local = { weekOf: '2026/08/03', updatedAt: '2026-08-05T00:00:00Z' };
+    const remote = { weekOf: '2026/08/03', updatedAt: '2026-08-01T00:00:00Z' };
+
+    expect(syncFromRemote(local, remote).updatedAt).toBe(
+      '2026-08-05T00:00:00Z'
+    );
+  });
+
+  it('si aquí no hay fecha, entra la del servidor', () => {
+    const local = { weekOf: '2026/08/03' } as { updatedAt?: string };
+    const remote = { weekOf: '2026/08/03', updatedAt: '2026-08-01T00:00:00Z' };
+
+    expect(syncFromRemote(local, remote).updatedAt).toBe(
+      '2026-08-01T00:00:00Z'
+    );
+  });
+
+  it('el resto de campos sueltos siguen ganándolos el servidor', () => {
+    // La regla es SOLO para la fecha: cambiarla para todo rompería la fusión.
+    const local = { weekOf: '2026/08/03', lastModifiedBy: 'yo' };
+    const remote = { weekOf: '2026/08/03', lastModifiedBy: 'otro' };
+
+    expect(syncFromRemote(local, remote).lastModifiedBy).toBe('otro');
+  });
+
+  it('no toca los `updatedAt` de cada campo, que se resuelven por objeto', () => {
+    const local = {
+      name: { value: 'aquí', updatedAt: '2026-08-05T00:00:00Z' },
+    };
+    const remote = {
+      name: { value: 'servidor', updatedAt: '2026-08-01T00:00:00Z' },
+    };
+
+    // El objeto entero se queda como está por ser más nuevo: ni se mezcla ni se
+    // toca su fecha.
+    expect(syncFromRemote(local, remote).name).toEqual({
+      value: 'aquí',
+      updatedAt: '2026-08-05T00:00:00Z',
+    });
+  });
+});

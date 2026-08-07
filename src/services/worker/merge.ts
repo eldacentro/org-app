@@ -118,6 +118,25 @@ export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
     // y sí se comparan.
     if (remote[key] === undefined) continue;
 
+    // LA FECHA DEL REGISTRO NUNCA VA HACIA ATRÁS. Un registro fusionado es tan
+    // nuevo como el más nuevo de los dos, así que se queda la mayor de las dos
+    // fechas — copiar la del servidor a secas la hacía retroceder.
+    //
+    // Importa porque el servidor decide con ella qué acepta: si al fusionar una
+    // copia más VIEJA se adoptara su fecha, la siguiente subida llevaría una
+    // fecha que ya no es mayor que la guardada, el servidor la descartaría y esa
+    // edición no llegaría NUNCA — quedándose además bien puesta en el
+    // dispositivo que la hizo, que es lo que la vuelve invisible.
+    //
+    // Solo aplica al `updatedAt` del propio registro (`sched`, departamentos,
+    // salidas, exhibidores). Los `{value, updatedAt}` de cada campo se resuelven
+    // más arriba, reemplazando el objeto entero por el más nuevo.
+    if (key === 'updatedAt' && typeof remote[key] === 'string') {
+      const actual = typeof local[key] === 'string' ? (local[key] as string) : '';
+
+      if (actual > (remote[key] as string)) continue;
+    }
+
     local[key] = remote[key];
   }
 

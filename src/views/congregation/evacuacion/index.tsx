@@ -207,12 +207,23 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
    * —porque se hayan reescrito—, la tarjeta de casos no se pinta y todo cae en
    * las normas: se pierde el matiz, no el contenido.
    */
-  const esCaso = (regla: string) => /^en caso de que/i.test(regla.trim());
+  const esCaso = (regla: string) => /bloquead/i.test(regla);
+
+  /**
+   * El subtítulo de la hoja ya dice "tiempo máximo de evacuación: 4 minutos",
+   * así que la norma que repite ese mismo número sobra en el papel. Se detecta
+   * por el número —sale de `tiempoMaximo`—, no por la frase, para que siga
+   * valiendo si alguien la reescribe o cambia los minutos.
+   */
+  const repiteElTiempo = (regla: string) =>
+    /tiempo\s+m[áa]ximo/i.test(regla) &&
+    new RegExp(`\\b${plan.tiempoMaximo}\\b`).test(regla);
+
   const casos = plan.reglasEspeciales.filter(esCaso);
   const normas = [
     ...plan.normasEquipos,
     ...plan.reglasEspeciales.filter((r) => !esCaso(r)),
-  ];
+  ].filter((r) => !repiteElTiempo(r));
 
   const equipoCard = (equipo: typeof equipoA, titulo: string): ReactNode => {
     if (!equipo) return null;
@@ -228,7 +239,21 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
         dense
         style={{ flex: 1 }}
       >
-        <View style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Los tres nombres en UNA línea, no en tres filas.
+            Lo pide la especificación de la variante de una hoja ("los seis
+            nombres pasan a una línea por equipo") y ahorra cuatro renglones
+            entre los dos equipos sin tocar una sola palabra. La cápsula del
+            puesto va pegada a su nombre, así que se sigue leyendo quién es A1
+            de un vistazo. */}
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
           {equipo.miembros.map((miembro) => (
             <View
               key={`${equipo.id}-${miembro.nombre}`}
@@ -236,11 +261,11 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 6,
+                gap: 4,
               }}
             >
               {miembro.posicion ? <Puesto>{miembro.posicion}</Puesto> : null}
-              <Text style={{ ...text.bodyStrong, fontSize: 8.6, flex: 1 }}>
+              <Text style={{ ...text.bodyStrong, fontSize: 8.2 }}>
                 {nombreEntero(miembro.nombre)}
               </Text>
             </View>
@@ -370,15 +395,29 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
               dense
               style={{ flex: 1 }}
             >
-              {casos.map((caso) => (
-                <View key={caso} style={{ marginBottom: 3 }}>
-                  <Text
-                    style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
-                  >
-                    {caso}
-                  </Text>
-                </View>
-              ))}
+              {casos.map((caso) => {
+                // "Puerta principal bloqueada: verificar los aseos…" → la
+                // entradilla en negrita y el resto normal. Dos <Text>
+                // hermanos y no uno con hijos mezclados: R17.
+                const corte = caso.indexOf(':');
+                const entradilla = corte > 0 ? caso.slice(0, corte) : null;
+                const resto = corte > 0 ? caso.slice(corte + 1).trim() : caso;
+
+                return (
+                  <View key={caso} style={{ marginBottom: 3 }}>
+                    {entradilla ? (
+                      <Text style={{ ...text.bodyStrong, fontSize: 8.2 }}>
+                        {entradilla}
+                      </Text>
+                    ) : null}
+                    <Text
+                      style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
+                    >
+                      {resto}
+                    </Text>
+                  </View>
+                );
+              })}
             </PdfCard>
           ) : null}
 
