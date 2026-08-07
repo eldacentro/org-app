@@ -47,7 +47,15 @@ import {
  * —son cosas que hay que hacer, no un orden—. Es además lo que pidió Carlos.
  */
 
-const GAP = 7;
+/**
+ * El hueco entre las bandas. Cinco y no ocho: este documento TIENE que caber
+ * en una cara, y el modo compacto del sistema aprieta la escala, no el aire
+ * entre bloques — así que el aire se ajusta aquí.
+ */
+const GAP = 5;
+
+/** Lo que mide el plano en la hoja. Ver la nota donde se pinta. */
+const ANCHO_PLANO = 470;
 
 /** Un rótulo de los pequeños: 7/700 versalitas en gris claro. */
 const Rotulo = ({ children }: { children: string }) => (
@@ -61,7 +69,7 @@ const Punto = ({ children }: { children: string }) => (
       display: 'flex',
       flexDirection: 'row',
       gap: 5,
-      paddingVertical: 1,
+      paddingVertical: 0.6,
     }}
   >
     <View style={{ marginTop: 3.2 }}>
@@ -90,29 +98,68 @@ const Puesto = ({ children }: { children: string }) => (
   </Text>
 );
 
-/** Rótulo arriba y nombre debajo. La columna de las franjas de mando. */
-const Mando = ({
-  rol,
-  nombre,
-  ultimo,
+/**
+ * Una de las tres columnas de apoyo: quién lo lleva y qué hace.
+ *
+ * La separación es un hairline VERTICAL entre columnas, nunca un borde contra
+ * el canto redondeado de la tarjeta (R7): por eso la última no lo lleva y las
+ * demás lo llevan a la derecha, con su hueco.
+ */
+const Columna = ({
+  titulo,
+  nota,
+  gente,
+  pasos,
+  ultima,
 }: {
-  rol: string;
-  nombre: string;
-  ultimo?: boolean;
+  titulo: string;
+  nota?: string;
+  gente: ({ rol: string; nombre: string } | undefined)[];
+  pasos: string[];
+  ultima?: boolean;
 }) => (
   <View
     style={{
       flex: 1,
-      paddingRight: ultimo ? 0 : 9,
-      borderRight: ultimo
+      paddingRight: ultima ? 0 : 9,
+      marginRight: ultima ? 0 : 9,
+      borderRight: ultima
         ? undefined
         : `${stroke.hairline}px solid ${color.hairline}`,
     }}
   >
-    <Rotulo>{rol}</Rotulo>
-    <Text style={{ ...text.bodyStrong, fontSize: 8.6, marginTop: 1.5 }}>
-      {nombreEntero(nombre)}
-    </Text>
+    <Rotulo>{titulo}</Rotulo>
+    {nota ? (
+      <Text style={{ ...text.meta, fontSize: 7, marginTop: 0.5 }}>{nota}</Text>
+    ) : null}
+
+    {gente.filter(Boolean).map((persona) => (
+      <View
+        key={persona!.nombre}
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          gap: 6,
+          marginTop: 1.5,
+        }}
+      >
+        <Text style={{ ...text.label, fontSize: 7 }}>{persona!.rol}</Text>
+        <Text style={{ ...text.bodyStrong, fontSize: 8.4 }}>
+          {nombreEntero(persona!.nombre)}
+        </Text>
+      </View>
+    ))}
+
+    {pasos.length > 0 ? (
+      <>
+        <PdfHairline style={{ marginVertical: 4 }} />
+        {pasos.map((paso) => (
+          <Punto key={paso}>{paso}</Punto>
+        ))}
+      </>
+    ) : null}
   </View>
 );
 
@@ -132,6 +179,15 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
     plan.estructuraMando.find((r) =>
       r.rol.toLowerCase().includes(parte.toLowerCase())
     );
+
+  // "Jefe" y "Auxiliar" a secas: el rótulo de la columna ya dice de qué son,
+  // y repetirlo ("Jefe de emergencias / Auxiliar de emergencias") no cabe en
+  // un tercio de hoja.
+  const corto = (
+    rol: ReturnType<typeof buscaRol>,
+    etiqueta: string
+  ): { rol: string; nombre: string } | undefined =>
+    rol ? { rol: etiqueta, nombre: rol.nombre } : undefined;
 
   const jefeEmergencias = buscaRol('jefe de emergencias');
   const auxEmergencias = buscaRol('auxiliar de emergencias');
@@ -218,7 +274,15 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
         {/* ① EL PLANO, a ancho completo — lo que se mira desde lejos. */}
         {plano ? (
           <PdfCard title="Plano del Salón" flush dense>
-            <Image src={plano} style={{ width: '100%' }} />
+            {/* Ancho EXPLÍCITO y centrado, no `width: '100%'`.
+                El plano es apaisado 2,3:1, así que su alto sale de su ancho:
+                a los 532 pt de la caja se comía 232 de alto y la hoja se iba a
+                dos. A 470 baja a 205 y cabe, que es lo que este documento
+                tiene que hacer. Los 532 de la especificación son el máximo
+                posible en una cara, no una obligación. */}
+            <View style={{ alignItems: 'center' }}>
+              <Image src={plano} style={{ width: ANCHO_PLANO }} />
+            </View>
           </PdfCard>
         ) : null}
 
@@ -235,113 +299,49 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
           {equipoCard(equipoB, 'Orden de desalojo')}
         </View>
 
-        {/* ③ Mando, intervención y sanitario, fundidos en UNA tarjeta. */}
+        {/* ③ Los tres equipos de apoyo, fundidos en UNA tarjeta a TRES
+            COLUMNAS. Apilados —nombres arriba y luego cada procedimiento en su
+            franja— la hoja se iba a dos, que es justo lo que este documento no
+            puede hacer: es el del tablón. A tres columnas cada equipo se lee
+            entero de una pasada y cabe. Lo pide así la especificación. */}
         <PdfCard
           title="Jefe de emergencias, intervención y equipo sanitario"
           dense
           style={{ marginTop: GAP }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row', gap: 9 }}>
-            {jefeEmergencias ? (
-              <Mando
-                rol={jefeEmergencias.rol}
-                nombre={jefeEmergencias.nombre}
-              />
-            ) : null}
-            {auxEmergencias ? (
-              <Mando rol={auxEmergencias.rol} nombre={auxEmergencias.nombre} />
-            ) : null}
-            {jefeIntervencion ? (
-              <Mando
-                rol={jefeIntervencion.rol}
-                nombre={jefeIntervencion.nombre}
-              />
-            ) : null}
-            {auxIntervencion ? (
-              <Mando
-                rol={auxIntervencion.rol}
-                nombre={auxIntervencion.nombre}
-              />
-            ) : null}
+          <View style={{ display: 'flex', flexDirection: 'row' }}>
+            <Columna
+              titulo="Jefe de emergencias"
+              gente={[
+                corto(jefeEmergencias, 'Jefe'),
+                corto(auxEmergencias, 'Auxiliar'),
+              ]}
+              pasos={[
+                ...(jefeEmergencias?.responsabilidades ?? []),
+                ...(auxEmergencias?.responsabilidades ?? []),
+              ]}
+            />
+            <Columna
+              titulo="Equipo de intervención"
+              nota={plan.procedimientoIntervencion.aviso}
+              gente={[
+                corto(jefeIntervencion, 'Jefe'),
+                corto(auxIntervencion, 'Auxiliar'),
+              ]}
+              pasos={plan.procedimientoIntervencion.pasos}
+            />
             {sanitario ? (
-              <View style={{ flex: 1.15 }}>
-                <Rotulo>{sanitario.nombre}</Rotulo>
-                {sanitario.miembros.map((m) => (
-                  <Text
-                    key={m.nombre}
-                    style={{
-                      ...text.bodyStrong,
-                      fontSize: 8.6,
-                      marginTop: 1.5,
-                    }}
-                  >
-                    {nombreEntero(m.nombre)}
-                  </Text>
-                ))}
-              </View>
+              <Columna
+                titulo={sanitario.nombre}
+                gente={sanitario.miembros.map((m, i) => ({
+                  rol: i === 0 ? 'Jefe' : 'Auxiliar',
+                  nombre: m.nombre,
+                }))}
+                pasos={sanitario.procedimiento}
+                ultima
+              />
             ) : null}
           </View>
-
-          {sanitario && sanitario.procedimiento.length > 0 ? (
-            <>
-              <PdfHairline style={{ marginVertical: 5 }} />
-              <View style={{ marginBottom: 3 }}>
-                <Rotulo>{sanitario.nombre}</Rotulo>
-              </View>
-              <View
-                style={{ display: 'flex', flexDirection: 'row', gap: GAP + 4 }}
-              >
-                <View style={{ flex: 1 }}>
-                  {sanitario.procedimiento
-                    .slice(0, Math.ceil(sanitario.procedimiento.length / 2))
-                    .map((p) => (
-                      <Punto key={p}>{p}</Punto>
-                    ))}
-                </View>
-                <View style={{ flex: 1 }}>
-                  {sanitario.procedimiento
-                    .slice(Math.ceil(sanitario.procedimiento.length / 2))
-                    .map((p) => (
-                      <Punto key={p}>{p}</Punto>
-                    ))}
-                </View>
-              </View>
-            </>
-          ) : null}
-
-          {plan.procedimientoIntervencion.pasos.length > 0 ? (
-            <>
-              <PdfHairline style={{ marginVertical: 5 }} />
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'baseline',
-                  gap: 6,
-                  marginBottom: 3,
-                }}
-              >
-                <Rotulo>Procedimiento de intervención</Rotulo>
-                <Text style={{ ...text.meta, fontSize: 7.5 }}>
-                  {plan.procedimientoIntervencion.aviso}
-                </Text>
-              </View>
-              <View
-                style={{ display: 'flex', flexDirection: 'row', gap: GAP + 4 }}
-              >
-                <View style={{ flex: 1 }}>
-                  {plan.procedimientoIntervencion.pasos.slice(0, 2).map((p) => (
-                    <Punto key={p}>{p}</Punto>
-                  ))}
-                </View>
-                <View style={{ flex: 1 }}>
-                  {plan.procedimientoIntervencion.pasos.slice(2).map((p) => (
-                    <Punto key={p}>{p}</Punto>
-                  ))}
-                </View>
-              </View>
-            </>
-          ) : null}
         </PdfCard>
 
         {/* ④ Los dos casos de salida bloqueada, a dos columnas. */}

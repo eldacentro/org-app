@@ -18,17 +18,27 @@
  *
  * ── Cómo ────────────────────────────────────────────────────────────────
  *
- * `renderToStaticMarkup` monta el componente sin eventos ni refs y devuelve su
- * marcado. De ahí se recorta el `<svg>` —el componente trae además sus
- * controles de zoom, que en papel no pintan nada— y se pasa por un `<img>` y
- * un `<canvas>`.
+ * El plano se monta en un contenedor SUELTO —fuera de la página, sin pintarse—
+ * con el mismo React que usa la app, se coge su `<svg>`, se serializa y se pasa
+ * por un `<img>` y un `<canvas>`.
+ *
+ * El primer intento fue `renderToStaticMarkup` de `react-dom/server`, que
+ * parecía lo natural. No vale: Vite lo sirve como dependencia optimizada
+ * aparte y arrastra SU copia de React, así que en cuanto el componente usa un
+ * hook salta «Invalid hook call» — dos Reacts en la misma página no comparten
+ * el dispatcher. Con `createRoot` es el React de siempre y el problema no
+ * existe.
+ *
+ * `flushSync` es imprescindible: `render` es asíncrono por defecto y sin él se
+ * lee el contenedor todavía vacío.
  *
  * El SVG se sirve como data URI en base64 y no como texto plano: con acentos
  * ("SALA B" no, pero sí los rótulos que vengan del plan) el `<img>` se queda
  * en blanco sin decir por qué.
  */
-import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import Plano2D from './Plano2D';
 
 /**
@@ -48,34 +58,53 @@ export const PLANO_RATIO = 180 / 78.65;
  * generan todos los PDF de la app.
  */
 export const planoComoPng = async (anchoPt = 532): Promise<string> => {
-  const marcado = renderToStaticMarkup(
-    createElement(Plano2D, { seleccion: null, onSelect: () => {} })
-  );
+  const contenedor = document.createElement('div');
+  // Fuera de la vista pero CON tamaño: un contenedor de 0×0 hace que el SVG,
+  // que se dimensiona al 100% de su caja, salga de 0×0 y el lienzo en blanco.
+  contenedor.style.cssText =
+    'position:fixed;left:-10000px;top:0;width:1200px;height:600px;';
+  document.body.appendChild(contenedor);
 
-  const inicio = marcado.indexOf('<svg');
-  const fin = marcado.lastIndexOf('</svg>');
-  if (inicio === -1 || fin === -1) {
-    throw new Error('No se ha podido extraer el plano del Salón');
+  const raiz = createRoot(contenedor);
+  let svg: string;
+
+  try {
+    flushSync(() => {
+      raiz.render(
+        createElement(Plano2D, { seleccion: null, onSelect: () => {} })
+      );
+    });
+
+    const nodo = contenedor.querySelector('svg');
+    if (!nodo) throw new Error('No se ha podido extraer el plano del Salón');
+
+    svg = new XMLSerializer().serializeToString(nodo);
+  } finally {
+    // Desmontar en un tick aparte: React se queja si se hace durante el render.
+    setTimeout(() => {
+      raiz.unmount();
+      contenedor.remove();
+    }, 0);
   }
 
-  let svg = marcado.slice(inicio, fin + '</svg>'.length);
+  const ancho = Math.round(anchoPt * ESCALA);
+  const alto = Math.round((anchoPt / PLANO_RATIO) * ESCALA);
 
-  // El componente lo dimensiona con CSS al 100% de su caja; aquí no hay caja,
-  // así que se le da su tamaño real. El viewBox ya viene puesto.
+  // Un solo retoque de la etiqueta de apertura, y NADA de añadir `xmlns`:
+  // `XMLSerializer` ya lo pone, y un segundo atributo igual deja el XML mal
+  // formado. Un `<img>` con un SVG inválido no avisa de nada — solo dispara
+  // `onerror` sin decir por qué, que es donde se fue un buen rato.
+  //
+  // Del tamaño: el componente se dimensiona al 100 % de su caja, y dentro de
+  // un `<img>` no hay caja. Se le da el suyo; el `viewBox` ya viene puesto.
+  //
+  // De la letra: los rótulos del plano ("SALA B", "PLATAFORMA", los números de
+  // extintor) heredaban la fuente de la página. Sin esto el navegador cae a su
+  // serif por defecto y el plano del PDF sale con otra letra que el de la
+  // pantalla.
   svg = svg.replace(
-    /<svg /,
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${anchoPt * ESCALA}" height="${
-      (anchoPt / PLANO_RATIO) * ESCALA
-    }" `
-  );
-
-  // Los rótulos del plano ("SALA B", "PLATAFORMA", los números de extintor)
-  // heredaban la fuente de la página. Dentro de un `<img>` no hay página, así
-  // que sin esto el navegador cae a su serif por defecto y el plano del PDF
-  // sale con otra letra que el de la pantalla.
-  svg = svg.replace(
-    /<svg /,
-    '<svg font-family="Helvetica, Arial, sans-serif" '
+    /<svg\b/,
+    `<svg width="${ancho}" height="${alto}" font-family="Helvetica, Arial, sans-serif"`
   );
 
   const fuente = `data:image/svg+xml;base64,${btoa(
@@ -92,8 +121,8 @@ export const planoComoPng = async (anchoPt = 532): Promise<string> => {
   });
 
   const lienzo = document.createElement('canvas');
-  lienzo.width = anchoPt * ESCALA;
-  lienzo.height = Math.round((anchoPt / PLANO_RATIO) * ESCALA);
+  lienzo.width = ancho;
+  lienzo.height = alto;
 
   const ctx = lienzo.getContext('2d');
   if (!ctx) throw new Error('No se ha podido dibujar el plano');

@@ -17,7 +17,7 @@ import usePerson from '@features/persons/hooks/usePerson';
 import { openPeriod } from '@utils/spiritual_status';
 import { reportAuthorRole } from '@services/app/report_author';
 import { personGetDisplayName } from '@utils/common';
-import { fieldGroupsState } from '@states/field_service_groups';
+import { fieldServiceGroupsState } from '@states/field_service_groups';
 import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
@@ -38,7 +38,10 @@ const useReportDetails = () => {
   const currentMonth = useAtomValue(selectedMonthFieldServiceReportState);
   const reports = useAtomValue(congFieldServiceReportsState);
   const branchReports = useAtomValue(branchFieldReportsState);
-  const groups = useAtomValue(fieldGroupsState);
+  // Cruda, por lo mismo que en `useReportEditScope`: la lista de pantalla
+  // esconde a los inactivos, y entonces al autor de su informe se le
+  // etiquetaría como secretaría en vez de como su responsable de grupo.
+  const groups = useAtomValue(fieldServiceGroupsState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
@@ -217,7 +220,7 @@ const useReportDetails = () => {
       foundReport.report_data.status = 'confirmed';
       foundReport.report_data.updatedAt = new Date().toISOString();
 
-      await dbFieldServiceReportsSave(foundReport);
+      await dbFieldServiceReportsSave(foundReport, { keepAuthor: true });
     } catch (error) {
       console.error(error);
 
@@ -270,7 +273,7 @@ const useReportDetails = () => {
       foundReport.report_data._deleted = true;
       foundReport.report_data.updatedAt = new Date().toISOString();
 
-      await dbFieldServiceReportsSave(foundReport);
+      await dbFieldServiceReportsSave(foundReport, { keepAuthor: true });
     } catch (error) {
       console.error(error);
 

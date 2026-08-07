@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
+import { fieldServiceGroupsState } from '@states/field_service_groups';
 import { userLocalUIDState } from '@states/settings';
 import useCurrentUser from './useCurrentUser';
 
@@ -35,7 +35,12 @@ const useReportEditScope = () => {
   // por grupo de predicación le dejaría sin poder editar nada.
   const fullEditor = isSecretary || isLanguageGroupOverseer;
 
-  const groups = useAtomValue(fieldWithLanguageGroupsState);
+  // La lista CRUDA, no la de pantalla. `fieldWithLanguageGroupsState` quita a
+  // los publicadores inactivos y archivados cuando quien mira no es anciano —
+  // y entonces un auxiliar de grupo no podría editar el informe de alguien de
+  // su grupo que lleva meses sin informar, que es justo cuando hace falta.
+  // Peor: si él mismo cayera de ese filtro, se quedaría sin poder editar nada.
+  const groups = useAtomValue(fieldServiceGroupsState);
   const userUID = useAtomValue(userLocalUIDState);
 
   const myGroupUids = useMemo(() => {
@@ -44,6 +49,8 @@ const useReportEditScope = () => {
     if (!userUID) return result;
 
     for (const group of groups) {
+      if (group.group_data._deleted) continue;
+
       const members = group.group_data.members ?? [];
 
       const leads = members.some(

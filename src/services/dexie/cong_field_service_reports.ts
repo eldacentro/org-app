@@ -31,11 +31,18 @@ const dbUpdateCongFieldReportMetadata = async () => {
  */
 export const dbFieldServiceReportsSave = async (
   report: CongFieldServiceReportType,
-  options?: { by?: string }
+  options?: { by?: string; keepAuthor?: boolean }
 ) => {
   const record = structuredClone(report);
 
-  record.report_data.by = options?.by ?? store.get(userLocalUIDState) ?? '';
+  // `keepAuthor` para lo que NO es meter el informe: verificarlo, borrarlo o
+  // reactivar al publicador. La etiqueta dice «Añadido por», y verificar es la
+  // acción más rutinaria que hay sobre los informes del mes — sin esto, en
+  // cuanto el secretario pasaba por ellos el publicador dejaba de figurar como
+  // autor de su propio informe.
+  if (!options?.keepAuthor) {
+    record.report_data.by = options?.by ?? store.get(userLocalUIDState) ?? '';
+  }
 
   // Copia en claro de la fecha, para que el servidor pueda fusionar. La de
   // verdad viaja cifrada y allí no se puede comparar. Ver `rev` en el tipo.
@@ -48,7 +55,19 @@ export const dbFieldServiceReportsSave = async (
 export const dbFieldServiceReportsBulkSave = async (
   reports: CongFieldServiceReportType[]
 ) => {
-  await appDb.cong_field_service_reports.bulkPut(reports);
+  // La copia en claro de la fecha también aquí. Sin ella, el servidor compara
+  // la `rev` VIEJA contra la suya y descarta el cambio: el limpiador de
+  // duplicados marcaba el borrado, el servidor lo rechazaba, y el duplicado
+  // volvía a bajar a todos los dispositivos en el ciclo siguiente. Para
+  // siempre.
+  const records = reports.map((report) => {
+    const record = structuredClone(report);
+    record.report_data.rev = record.report_data.updatedAt;
+
+    return record;
+  });
+
+  await appDb.cong_field_service_reports.bulkPut(records);
   await dbUpdateCongFieldReportMetadata();
 };
 
