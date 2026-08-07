@@ -58,6 +58,30 @@ export const planoComoPng = async (
     // encuadra y se rasteriza.
 
     /**
+     * La única leyenda que queda, y va DENTRO del dibujo.
+     *
+     * Debajo del plano había una fila con cinco entradas —flechas, zonas,
+     * extintores y los dos equipos— y gastaba un renglón entero para explicar
+     * cosas que el propio plano ya dice: las flechas se entienden solas y los
+     * puestos llevan su rótulo al lado. El punto rojo no: sin decirlo, un
+     * círculo rojo numerado no tiene por qué ser un extintor.
+     *
+     * Se dibuja en el hueco de abajo a la izquierda, que en este plano está
+     * vacío, y en coordenadas de CAD como el resto.
+     */
+    const caja0 = (svg as unknown as SVGSVGElement).getBBox();
+    const lx = caja0.x + 60;
+    const ly = caja0.y + caja0.height - 60;
+
+    svg.insertAdjacentHTML(
+      'beforeend',
+      `<g><circle cx="${lx}" cy="${ly}" r="26" fill="#E2001A"/>` +
+        `<text x="${lx + 48}" y="${ly}" dominant-baseline="central" ` +
+        `font-family="Helvetica, Arial, sans-serif" font-size="62" ` +
+        `fill="#1A1A2E">Extintores</text></g>`
+    );
+
+    /**
      * El encuadre lo decide el CONTENIDO, no el `viewBox` que traía el
      * fichero: el CAD viene en un lienzo de 3840 × 2160 con aire de sobra
      * alrededor, y A3 y B3 caen FUERA de él —esos dos puestos están en la

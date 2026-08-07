@@ -1,5 +1,4 @@
-import { ReactNode } from 'react';
-import { Image, Svg, Polygon, Text, View } from '@react-pdf/renderer';
+import { Image, Text, View } from '@react-pdf/renderer';
 import { Document } from '@views/components';
 import { PlanEvacuacion, RolEmergencia } from '@definition/evacuacion';
 import {
@@ -11,7 +10,6 @@ import {
   color,
   nombreEntero,
   radius,
-  stroke,
   text,
 } from '@views/design';
 
@@ -129,34 +127,6 @@ const TarjetaApoyo = ({
       </>
     ) : null}
   </PdfCard>
-);
-
-/** La flecha roja de la leyenda. Se DIBUJA, no se escribe (R13). */
-const Flecha = () => (
-  <Svg width={7} height={7} viewBox="0 0 10 10">
-    <Polygon points="10,5 2,10 2,0" fill={color.danger} />
-  </Svg>
-);
-
-/** Una entrada de la leyenda del plano: una marca y lo que significa. */
-const Leyenda = ({
-  marca,
-  children,
-}: {
-  marca: ReactNode;
-  children: string;
-}) => (
-  <View
-    style={{
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    }}
-  >
-    {marca}
-    <Text style={{ ...text.body, fontSize: 7.5 }}>{children}</Text>
-  </View>
 );
 
 type Props = {
@@ -281,7 +251,26 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
       >
         {/* ① EL PLANO, lo que se mira desde lejos, con su leyenda debajo. */}
         {plano ? (
-          <PdfCard title="Plano del Salón" flush dense>
+          <PdfCard
+            title="Plano del Salón"
+            flush
+            dense
+            /* EL PLANO SE QUEDA CON LO QUE SOBRE, y no con un ancho escrito a
+               mano. Es la regla R16 del sistema ("la cuadrícula ocupa la hoja
+               con flexGrow: 1"), aplicada aquí.
+
+               Antes el plano medía un número fijo y la hoja cabía o no cabía
+               según cuánto texto tuviera el plan. Con los datos de prueba
+               entraba; con los de la congregación —que llevan responsabilidades
+               y normas editadas desde el engranaje— se iba a dos páginas. Ese
+               número no se puede acertar: cada vez que alguien añada una norma
+               habría que volver a bajarlo.
+
+               Ahora manda el contenido. Lo demás ocupa lo que necesita y el
+               plano se lleva el resto, así que sale lo más grande que quepa —y
+               cabe siempre. */
+            style={{ flexGrow: 1 }}
+          >
             {/* Ancho y alto EXPLÍCITOS, y centrado.
                 Con `width: '100%'` el plano se estiraba siempre al ancho de la
                 tarjeta —532— pasara lo que pasara: cambiar su tamaño solo
@@ -289,50 +278,22 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
                 Estuvo un buen rato pareciendo que encogerlo no servía de nada.
                 El alto viene medido del propio dibujo, así que si algún día
                 cambia el plano la caja se ajusta sola. */}
-            <View style={{ alignItems: 'center' }}>
-              <Image
-                src={plano.src}
-                style={{ width: plano.ancho, height: plano.alto }}
-              />
-            </View>
-
             <View
               style={{
-                borderTop: `${stroke.hairline}px solid ${color.hairline}`,
-                paddingVertical: 4,
-                paddingHorizontal: 9,
-                display: 'flex',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
+                flexGrow: 1,
                 alignItems: 'center',
-                gap: 14,
+                justifyContent: 'center',
+                minHeight: 120,
               }}
             >
-              <Leyenda marca={<Flecha />}>Sentido de evacuación</Leyenda>
-              <Leyenda
-                marca={
-                  <View
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: color.danger,
-                    }}
-                  />
-                }
-              >
-                Extintores
-              </Leyenda>
-              {equipoA ? (
-                <Leyenda marca={<Puesto>A1–A3</Puesto>}>
-                  {equipoA.nombre}
-                </Leyenda>
-              ) : null}
-              {equipoB ? (
-                <Leyenda marca={<Puesto>B1–B3</Puesto>}>
-                  {equipoB.nombre}
-                </Leyenda>
-              ) : null}
+              {/* `objectFit: 'contain'` para que el dibujo NO se deforme al
+                  ajustarse: se queda con el lado que le limite y centra el
+                  otro. Sin esto, una hoja con poco texto lo estiraba a lo
+                  ancho y el Salón salía achatado. */}
+              <Image
+                src={plano.src}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </View>
           </PdfCard>
         ) : null}

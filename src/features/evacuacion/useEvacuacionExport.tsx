@@ -8,13 +8,15 @@ import { nombreArchivo } from '@utils/nombre_pdf';
 import { displaySnackNotification } from '@services/states/app';
 
 /**
- * Lo que mide el plano en la hoja, en puntos.
+ * A qué RESOLUCIÓN se rasteriza el plano, en puntos de ancho.
  *
- * 532 es el ancho útil de un A4 vertical con el margen del modo compacto: el
- * plano va a sangre de margen a margen, que es lo que pide la maqueta y lo que
- * hace que se lea desde lejos en el tablón.
+ * Ya no decide lo que ocupa en la hoja —de eso se encarga el `flexGrow` de la
+ * tarjeta, que le da lo que sobre—, solo cuántos píxeles tiene el PNG. 532 es
+ * el ancho útil de un A4 vertical con el margen del modo compacto: se genera a
+ * su tamaño máximo posible y luego la hoja lo encoge si hace falta, que es el
+ * orden correcto. Al revés se vería pastoso.
  */
-const ANCHO_PLANO = 390;
+const ANCHO_PLANO = 532;
 
 /**
  * Exportar el plan de evacuación a PDF.
