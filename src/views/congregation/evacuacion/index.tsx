@@ -52,10 +52,10 @@ import {
  * en una cara, y el modo compacto del sistema aprieta la escala, no el aire
  * entre bloques — así que el aire se ajusta aquí.
  */
-const GAP = 5;
+const GAP = 4;
 
 /** Lo que mide el plano en la hoja. Ver la nota donde se pinta. */
-const ANCHO_PLANO = 470;
+const ANCHO_PLANO = 350;
 
 /** Un rótulo de los pequeños: 7/700 versalitas en gris claro. */
 const Rotulo = ({ children }: { children: string }) => (
@@ -69,13 +69,13 @@ const Punto = ({ children }: { children: string }) => (
       display: 'flex',
       flexDirection: 'row',
       gap: 5,
-      paddingVertical: 0.6,
+      paddingVertical: 0.4,
     }}
   >
     <View style={{ marginTop: 3.2 }}>
       <PdfBullet />
     </View>
-    <Text style={{ ...text.body, fontSize: 8.2, flex: 1, lineHeight: 1.35 }}>
+    <Text style={{ ...text.body, fontSize: 7.8, flex: 1, lineHeight: 1.32 }}>
       {children}
     </Text>
   </View>
@@ -129,9 +129,12 @@ const Columna = ({
     }}
   >
     <Rotulo>{titulo}</Rotulo>
-    {nota ? (
-      <Text style={{ ...text.meta, fontSize: 7, marginTop: 0.5 }}>{nota}</Text>
-    ) : null}
+    {/* El renglón de la nota se reserva en las TRES columnas aunque solo una
+        lo use: si no, esa columna empieza un escalón más abajo que sus
+        vecinas y las tres dejan de alinearse arriba. */}
+    <Text style={{ ...text.meta, fontSize: 7, marginTop: 0.5 }}>
+      {nota ?? ' '}
+    </Text>
 
     {gente.filter(Boolean).map((persona) => (
       <View
@@ -277,7 +280,7 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
             {/* Ancho EXPLÍCITO y centrado, no `width: '100%'`.
                 El plano es apaisado 2,3:1, así que su alto sale de su ancho:
                 a los 532 pt de la caja se comía 232 de alto y la hoja se iba a
-                dos. A 470 baja a 205 y cabe, que es lo que este documento
+                dos. A 350 baja a 153 y todo cabe con holgura, que es lo que este documento
                 tiene que hacer. Los 532 de la especificación son el máximo
                 posible en una cara, no una obligación. */}
             <View style={{ alignItems: 'center' }}>
@@ -344,48 +347,49 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
           </View>
         </PdfCard>
 
-        {/* ④ Los dos casos de salida bloqueada, a dos columnas. */}
-        {casos.length > 0 ? (
-          <PdfCard
-            title="Si una salida está bloqueada"
-            dense
-            style={{ marginTop: GAP }}
-          >
-            <View
-              style={{ display: 'flex', flexDirection: 'row', gap: GAP + 4 }}
+        {/* ④ y ⑤ Los casos de salida bloqueada y las normas, A LA PAR.
+            La especificación los pone uno debajo del otro, y con sus textos
+            abreviados caben así. Aquí NO se abrevian —es un protocolo de
+            emergencia, ver la nota de arriba—, y apilados se llevaban la hoja
+            a dos. Antes que encoger el plano, que es lo que se mira desde
+            lejos y por lo que esta hoja va en vertical, se ponen a la par:
+            siguen leyéndose de arriba abajo por importancia y son las dos
+            bandas más pequeñas. */}
+        <View
+          wrap={false}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: GAP,
+            marginTop: GAP,
+          }}
+        >
+          {casos.length > 0 ? (
+            <PdfCard
+              title="Si una salida está bloqueada"
+              dense
+              style={{ flex: 1 }}
             >
               {casos.map((caso) => (
-                <View key={caso} style={{ flex: 1 }}>
+                <View key={caso} style={{ marginBottom: 3 }}>
                   <Text
-                    style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
+                    style={{ ...text.body, fontSize: 7.8, lineHeight: 1.32 }}
                   >
                     {caso}
                   </Text>
                 </View>
               ))}
-            </View>
-          </PdfCard>
-        ) : null}
+            </PdfCard>
+          ) : null}
 
-        {/* ⑤ Normas generales, a dos columnas. */}
-        {normas.length > 0 ? (
-          <PdfCard title="Normas generales" dense style={{ marginTop: GAP }}>
-            <View
-              style={{ display: 'flex', flexDirection: 'row', gap: GAP + 4 }}
-            >
-              <View style={{ flex: 1 }}>
-                {normas.slice(0, Math.ceil(normas.length / 2)).map((norma) => (
-                  <Punto key={norma}>{norma}</Punto>
-                ))}
-              </View>
-              <View style={{ flex: 1 }}>
-                {normas.slice(Math.ceil(normas.length / 2)).map((norma) => (
-                  <Punto key={norma}>{norma}</Punto>
-                ))}
-              </View>
-            </View>
-          </PdfCard>
-        ) : null}
+          {normas.length > 0 ? (
+            <PdfCard title="Normas generales" dense style={{ flex: 1 }}>
+              {normas.map((norma) => (
+                <Punto key={norma}>{norma}</Punto>
+              ))}
+            </PdfCard>
+          ) : null}
+        </View>
       </Sheet>
     </Document>
   );
