@@ -48,7 +48,7 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
       nombre: 'Fermín Amorós',
       responsabilidades: [
         'Supervisión y análisis del protocolo y del equipo físico-humano',
-        'Aviso por micrófono para la evacuación (de acuerdo con el coordinador del Cuerpo de Ancianos)',
+        'Aviso de evacuación por micrófono, de acuerdo con el coordinador del Cuerpo de Ancianos.',
         'Aviso a los servicios de emergencias',
       ],
     },
@@ -118,7 +118,7 @@ export const PLAN_EVACUACION: PlanEvacuacion = {
       procedimiento: [
         'Atención y evacuación de heridos.',
         'Comunicar al Jefe de Emergencias la necesidad de avisar a servicios sanitarios.',
-        'Solicitar a los Jefes de Evacuación si uno de los evacuados necesita asistencia especial.',
+        'Preguntar a los Jefes de Evacuación quién necesita ayuda.',
         'Custodia del botiquín de emergencias.',
       ],
     },
@@ -479,6 +479,10 @@ const TEXTOS_ACORTADOS: Record<string, string> = {
     'Puerta principal bloqueada: verificar los aseos, cerrar la puerta del auditorio y desalojar primero la zona B. Después el equipo A desaloja la suya sin intervenir los encargados de las puertas, salvo el de la sala B, que solo evacua esa sala.',
   'En caso de que la salida de emergencia esté bloqueada, se hará el desalojo de la zona A primero y luego el equipo B desalojará su zona sin intervenir tráfico ni puerta y el orden será: 1º rincón 2ª plataforma hacia atrás.':
     'Salida de emergencia bloqueada: desalojar primero la zona A. Después el equipo B desaloja la suya sin intervenir tráfico ni puerta, en este orden: 1.º el rincón, 2.º desde la plataforma hacia atrás.',
+  'Aviso por micrófono para la evacuación (de acuerdo con el coordinador del Cuerpo de Ancianos)':
+    'Aviso de evacuación por micrófono, de acuerdo con el coordinador del Cuerpo de Ancianos.',
+  'Solicitar a los Jefes de Evacuación si uno de los evacuados necesita asistencia especial.':
+    'Preguntar a los Jefes de Evacuación quién necesita ayuda.',
 };
 
 /** Las dos frases del auxiliar que la nueva absorbe y que hay que retirar. */
@@ -517,6 +521,11 @@ export const migrarPlanEvacuacion = (plan: PlanEvacuacion): PlanEvacuacion => {
       responsabilidades: arregla(rol.responsabilidades),
     })),
     reglasEspeciales: arregla(plan.reglasEspeciales),
+    normasEquipos: arregla(plan.normasEquipos),
+    equipos: plan.equipos.map((equipo) => ({
+      ...equipo,
+      procedimiento: arregla(equipo.procedimiento),
+    })),
   };
 
   return tocado ? migrado : plan;

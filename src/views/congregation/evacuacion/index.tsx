@@ -55,7 +55,7 @@ import {
 const GAP = 5;
 
 /** Lo que mide el plano en la hoja. Ver la nota donde se pinta. */
-const ANCHO_PLANO = 532;
+const ANCHO_PLANO = 355;
 
 /** Un rótulo de los pequeños: 7/700 versalitas en gris claro. */
 const Rotulo = ({ children }: { children: string }) => (
@@ -303,11 +303,18 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
         {plano ? (
           <PdfCard title="Plano del Salón" flush dense>
             {/* Ancho EXPLÍCITO y centrado, no `width: '100%'`.
-                El plano es apaisado 2,3:1, así que su alto sale de su ancho:
-                a los 532 pt de la caja se comía 232 de alto y la hoja se iba a
-                dos. A 350 baja a 153 y todo cabe con holgura, que es lo que este documento
-                tiene que hacer. Los 532 de la especificación son el máximo
-                posible en una cara, no una obligación. */}
+
+                El plano es apaisado 2,3:1, así que su alto sale de su ancho.
+                Los 532 de la especificación son el máximo POSIBLE en una
+                cara, y esa cuenta la hizo la maqueta con los textos
+                abreviados hasta el hueso; aquí van los del protocolo, que
+                aunque se han acortado siguen siendo más largos.
+
+                Medido a base de renderizar, con el cuerpo a 8,2 que pide la
+                especificación: a 532, 460, 420 y 390 la hoja se va a dos.
+                355 es el mayor que cabe. Si algún día se recortan más los
+                textos, sube este número y vuelve a mirarlo — el sistema lo
+                dice claro: esto se comprueba renderizando y mirando. */}
             <View style={{ alignItems: 'center' }}>
               <Image src={plano} style={{ width: ANCHO_PLANO }} />
             </View>
@@ -397,23 +404,26 @@ const EvacuacionPDF = ({ plan, cong_name, plano }: Props) => {
             >
               {casos.map((caso) => {
                 // "Puerta principal bloqueada: verificar los aseos…" → la
-                // entradilla en negrita y el resto normal. Dos <Text>
-                // hermanos y no uno con hijos mezclados: R17.
+                // entradilla en negrita, EN LÍNEA con el resto.
+                //
+                // Dos <Text> anidados dentro de uno, y ni una cadena suelta
+                // entre ellos: es lo que permite R17 y es lo que hace que la
+                // negrita no se lleve su propio renglón. Puestos como
+                // hermanos —que fue el primer intento— cada caso ocupaba una
+                // línea más y la hoja se iba a dos por eso.
                 const corte = caso.indexOf(':');
                 const entradilla = corte > 0 ? caso.slice(0, corte) : null;
                 const resto = corte > 0 ? caso.slice(corte + 1).trim() : caso;
 
                 return (
                   <View key={caso} style={{ marginBottom: 3 }}>
-                    {entradilla ? (
-                      <Text style={{ ...text.bodyStrong, fontSize: 8.2 }}>
-                        {entradilla}
-                      </Text>
-                    ) : null}
                     <Text
                       style={{ ...text.body, fontSize: 8.2, lineHeight: 1.35 }}
                     >
-                      {resto}
+                      {entradilla ? (
+                        <Text style={{ fontWeight: 600 }}>{entradilla}: </Text>
+                      ) : null}
+                      <Text>{resto}</Text>
                     </Text>
                   </View>
                 );
