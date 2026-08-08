@@ -43,17 +43,21 @@ describe('payloadMetadataKeys', () => {
   });
 });
 
-describe('nextExportState — lo que NO viajó sigue pendiente', () => {
-  it('una tabla que no iba en el envío conserva su marca', () => {
-    // Pasa cuando el rol no deja subir esa tabla: no viaja, y antes se
-    // limpiaba igual.
+describe('nextExportState — lo que no viaja con su nombre igual se limpia', () => {
+  it('una clave que nunca es clave de envío NO se queda pendiente', () => {
+    // EL FALLO DEL 2026-08-07: 13 claves de metadata no aparecen nunca con su
+    // nombre en un envío —los ajustes viajan dentro de `app_settings`, los
+    // programas como `sched`, y las de territorios van por Firestore—. Si se
+    // filtrara por «¿viajó?», se quedaban marcadas PARA SIEMPRE y la app decía
+    // «cambios pendientes de enviar» eternamente, con el aro amarillo puesto.
     const result = nextExportState({
-      current: meta({ persons: true, sched: true }),
-      uploaded: ['sched'],
+      current: meta({ user_settings: true, cong_settings: true, territories: true }),
+      uploaded: ['persons'],
     });
 
-    expect(result.persons.send_local).toBe(true);
-    expect(result.sched.send_local).toBe(false);
+    expect(result.user_settings.send_local).toBe(false);
+    expect(result.cong_settings.send_local).toBe(false);
+    expect(result.territories.send_local).toBe(false);
   });
 
   it('sin lista de enviadas se limpia todo, como siempre', () => {
@@ -73,6 +77,19 @@ describe('nextExportState — lo que NO viajó sigue pendiente', () => {
 });
 
 describe('nextExportState — lo editado MIENTRAS se subía', () => {
+  it('solo se mira el cambio de las tablas que SÍ iban en el envío', () => {
+    // De una tabla que no viajó no hay nada que esperar, así que su huella no
+    // decide nada: se limpia igual.
+    const result = nextExportState({
+      current: meta({ persons: true }),
+      uploaded: ['sched'],
+      snapshot: { persons: 'a' },
+      actual: { persons: 'b' },
+    });
+
+    expect(result.persons.send_local).toBe(false);
+  });
+
   it('si la tabla cambió por el camino, la marca se queda puesta', () => {
     // EL CASO DEL 2026-08-06: alguien apunta un crédito mientras su móvil está
     // subiendo. El cambio no iba en ese envío, pero se daba por enviado.

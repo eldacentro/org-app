@@ -58,7 +58,10 @@ export const nextExportState = ({
   actual,
 }: {
   current: MetadataRecordType['metadata'];
-  /** Claves que viajaron. Sin lista se limpia todo (comportamiento de antes). */
+  /**
+   * Claves que viajaron. NO decide qué se limpia —eso es todo—: acota de qué
+   * tablas tiene sentido preguntarse si cambiaron mientras se subían.
+   */
   uploaded?: string[];
   /** Huella por tabla al construir el envío. */
   snapshot?: Record<string, string>;
@@ -68,14 +71,24 @@ export const nextExportState = ({
   const result = {} as MetadataRecordType['metadata'];
 
   for (const [key, values] of Object.entries(current)) {
-    const viajo = !uploaded || uploaded.includes(key);
+    // OJO CON EL SENTIDO DE `uploaded`, que ya me costó un fallo. NO sirve para
+    // decidir qué se limpia: hay 13 claves de metadata que nunca aparecen con su
+    // nombre en un envío —los ajustes viajan dentro de `app_settings`, los
+    // programas como `sched`, y las de territorios ni siquiera van por aquí,
+    // que sincronizan por Firestore—. Filtrar por ella dejaba esas marcas
+    // puestas PARA SIEMPRE: «cambios pendientes de enviar» eterno y el aro
+    // amarillo clavado en todos los dispositivos.
+    //
+    // Se limpia todo, como siempre, MENOS lo que haya cambiado mientras se
+    // subía. Y para eso sí se usa `uploaded`: solo tiene sentido preguntarse
+    // «¿cambió por el camino?» de una tabla que de verdad iba en el envío. De
+    // las demás no hay nada que esperar.
+    const iba = !uploaded || uploaded.includes(key);
 
-    // Solo se concluye «cambió» cuando hay con qué compararlo. Sin huella no se
-    // inventa nada: se hace lo de siempre.
     const cambioPorElCamino =
-      !!snapshot && key in snapshot && snapshot[key] !== actual?.[key];
+      iba && !!snapshot && key in snapshot && snapshot[key] !== actual?.[key];
 
-    const seLimpia = viajo && !cambioPorElCamino;
+    const seLimpia = !cambioPorElCamino;
 
     result[key] = {
       ...values,
