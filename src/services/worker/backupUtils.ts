@@ -2751,12 +2751,26 @@ const warnAboutUnrequestedTables = (
  *    es exactamente el fallo que se le mandó sin querer a los publicadores.
  * 3. Solo se pide subir si de verdad se ha sellado algo.
  *
- * Y solo RELLENA lo que falta: nunca pisa una congregación ya escrita.
+ * Y solo RELLENA lo que falta: nunca pisa lo que ya está escrito.
+ *
+ * CORRE EN CADA CICLO, A PROPÓSITO, Y NO UNA SOLA VEZ. Al principio llevaba una
+ * marca de «ya hecho» en la metadata, como el sellado de los informes, y fue un
+ * error: si la pasada única no llegaba a hacer nada —porque el catálogo todavía
+ * no había bajado, porque el ciclo falló a mitad, o simplemente porque el código
+ * mejoró después—, la marca quedaba puesta y NO SE VOLVÍA A INTENTAR JAMÁS. No
+ * había forma de recuperarse salvo tocando la base a mano, y el resultado era
+ * una congregación entera sin ver de dónde viene el orador sin que nada fallara
+ * a la vista.
+ *
+ * Repetirlo no cuesta nada porque solo escribe cuando encuentra un hueco: en
+ * cuanto está todo sellado, esta función lee, no encuentra nada, y sale sin
+ * tocar ni la base ni la metadata. Y se cura sola — si mañana entra una
+ * asignación sin nombre por cualquier otro camino, el ciclo siguiente la sella.
  */
 export const dbBackfillSpeakerCongregation = async () => {
   const metadata = await appDb.metadata.get(1);
 
-  if (!metadata || metadata.speaker_cong_backfilled) return;
+  if (!metadata) return;
 
   const speakers = await appDb.visiting_speakers.toArray();
   const congregations = await appDb.speakers_congregations.toArray();
@@ -2815,19 +2829,20 @@ export const dbBackfillSpeakerCongregation = async () => {
     await appDb.sched.bulkPut(toSave);
   }
 
+  // Nada que sellar: no se escribe NI la metadata. Este es el caso normal en
+  // cuanto todo está sellado, y es lo que hace que repetirlo en cada ciclo no
+  // cueste nada.
+  if (toSave.length === 0) return;
+
   await appDb.metadata.update(metadata.id, {
-    speaker_cong_backfilled: true,
-    metadata:
-      toSave.length > 0
-        ? {
-            ...metadata.metadata,
-            schedules: { ...metadata.metadata.schedules, send_local: true },
-          }
-        : metadata.metadata,
+    metadata: {
+      ...metadata.metadata,
+      schedules: { ...metadata.metadata.schedules, send_local: true },
+    },
   });
 
   console.log(
-    `[backup] congregación del orador rellenada en ${toSave.length} semana(s)`
+    `[backup] orador sellado (nombre y congregación) en ${toSave.length} semana(s)`
   );
 };
 

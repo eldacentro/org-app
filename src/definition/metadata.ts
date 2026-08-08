@@ -18,10 +18,5 @@ export type MetadataRecordType = {
   // informes que venían de antes de que ese campo existiera. Campo suelto por lo
   // mismo que los de arriba. Ver dbBackfillReportsRev.
   reports_rev_backfilled?: boolean;
-  /**
-   * La congregación de los oradores visitantes ya se ha copiado dentro de las
-   * asignaciones que venían de antes. Ver `dbBackfillSpeakerCongregation`.
-   */
-  speaker_cong_backfilled?: boolean;
   speakers_congregations_reset_applied?: string;
 };
