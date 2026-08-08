@@ -383,6 +383,66 @@ export const countMeetingChangesSincePublish = (
 };
 
 /**
+ * QUÉ se ha cambiado desde que se publicó, no solo cuántas cosas.
+ *
+ * El aviso decía «has hecho 3 cambios» y ahí se acababa: para verificarlos había
+ * que repasar el mes entero a mano buscando qué se había tocado, que es justo el
+ * trabajo que el aviso venía a ahorrar. Mismo criterio que ya se siguió con los
+ * choques de ausencias, que también pasaron de un número a una lista.
+ *
+ * Sale de la MISMA función que la cuenta, así que el número del aviso y las
+ * líneas que se despliegan no pueden discrepar.
+ */
+export const collectMeetingChangesSincePublish = (
+  schedules: SchedWeekType[],
+  month: string,
+  key: MeetingPublishKey,
+  dataView: string,
+  monthOf: MeetingWeekMonth = monthOfDate
+): MeetingChange[] => {
+  const weeks = meetingWeeksOfMonth(schedules ?? [], month, monthOf);
+
+  const result: MeetingChange[] = [];
+
+  for (const week of weeks) {
+    const publishedAt = getMeetingPublishedEntry(week, key, dataView);
+
+    if (publishedAt?.value !== true || !publishedAt.updatedAt) continue;
+
+    const subtree = subtreeOf(week, key) as Record<string, unknown> | undefined;
+
+    if (!subtree) continue;
+
+    // Parte por parte, y no el subárbol de una vez, para saber DE QUÉ parte sale
+    // cada cambio — igual que en `collectAssigneesOfWeeks`, y por lo mismo: sin
+    // el nombre de la parte, la línea no sirve para ir a comprobarlo.
+    const partes: [string, unknown][] = Array.isArray(subtree)
+      ? subtree.map((salida) => ['outgoing_talks', salida] as [string, unknown])
+      : Object.entries(subtree);
+
+    for (const [campo, nodo] of partes) {
+      if (PUBLISH_KEYS.includes(campo)) continue;
+
+      for (const found of collectUpdatedAfter(
+        nodo,
+        publishedAt.updatedAt,
+        dataView
+      )) {
+        result.push({
+          weekOf: week.weekOf,
+          parte: PART_LABEL[campo] ?? campo,
+          ...found,
+        });
+      }
+    }
+  }
+
+  // Lo más reciente primero: lo que se acaba de tocar es lo que se quiere
+  // comprobar.
+  return result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+};
+
+/**
  * La parte de la semana que le toca a cada programa.
  *
  * Los discursos salientes viven DENTRO de la reunión de fin de semana pero son
@@ -427,27 +487,43 @@ const NOT_A_PERSON_KEYS = [
  * cuentan las asignaciones y no los contenedores que las agrupan. Si lleva
  * `type`, tiene que ser el de esta vista.
  */
-const countUpdatedAfter = (
+/** Un dato del programa tocado después de publicarlo. */
+export type MeetingChange = {
+  weekOf: string;
+  /** El nombre de la parte, ya legible. */
+  parte: string;
+  /** A quién ha quedado asignada, si la parte lleva persona. */
+  name: string;
+  /** Quién hizo el cambio. */
+  by: string;
+  updatedAt: string;
+};
+
+/**
+ * Los datos del programa tocados después de publicarlo.
+ *
+ * La cuenta se saca de AQUÍ (`countUpdatedAfter` es su `length`) para que el
+ * número y la lista no puedan discrepar nunca: el aviso dice «3 cambios» y al
+ * desplegarlo tienen que salir esos tres y no otros. Duplicar la regla en dos
+ * sitios es exactamente cómo empiezan a separarse.
+ */
+const collectUpdatedAfter = (
   node: unknown,
   reference: string,
   dataView: string
-): number => {
-  if (!node || typeof node !== 'object') return 0;
+): { name: string; by: string; updatedAt: string }[] => {
+  if (!node || typeof node !== 'object') return [];
 
   if (Array.isArray(node)) {
-    let total = 0;
-
-    for (const item of node) {
-      total += countUpdatedAfter(item, reference, dataView);
-    }
-
-    return total;
+    return node.flatMap((item) =>
+      collectUpdatedAfter(item, reference, dataView)
+    );
   }
 
   const record = node as Record<string, unknown>;
 
   if (typeof record.updatedAt === 'string' && 'value' in record) {
-    if (typeof record.type === 'string' && record.type !== dataView) return 0;
+    if (typeof record.type === 'string' && record.type !== dataView) return [];
 
     // LA HOJITA NO ES UN CAMBIO DEL PROGRAMA. Marcar que un hermano ha
     // confirmado su S-89 sella `updatedAt` como cualquier otra edición —tiene
@@ -467,22 +543,37 @@ const countUpdatedAfter = (
       typeof record.confirmedAt === 'string' &&
       record.confirmedAt === record.updatedAt
     ) {
-      return 0;
+      return [];
     }
 
-    return record.updatedAt > reference ? 1 : 0;
+    if (record.updatedAt <= reference) return [];
+
+    return [
+      {
+        name: typeof record.name === 'string' ? record.name : '',
+        by: typeof record.by === 'string' ? record.by : '',
+        updatedAt: record.updatedAt,
+      },
+    ];
   }
 
-  let total = 0;
+  const total: { name: string; by: string; updatedAt: string }[] = [];
 
   for (const [field, value] of Object.entries(record)) {
     if (PUBLISH_KEYS.includes(field)) continue;
 
-    total += countUpdatedAfter(value, reference, dataView);
+    total.push(...collectUpdatedAfter(value, reference, dataView));
   }
 
   return total;
 };
+
+/** La cuenta es la longitud de la lista, a propósito: ver `collectUpdatedAfter`. */
+const countUpdatedAfter = (
+  node: unknown,
+  reference: string,
+  dataView: string
+): number => collectUpdatedAfter(node, reference, dataView).length;
 
 /**
  * Las partes que en una semana normal SIEMPRE tienen que llevar a alguien.

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -17,6 +17,7 @@ import {
 import { dbSchedBulkUpdate } from '@services/dexie/schedules';
 import {
   collectMeetingMonthAssignees,
+  collectMeetingChangesSincePublish,
   countMeetingChangesSincePublish,
   isMeetingMonthPublished,
   MeetingPublishKey,
@@ -82,6 +83,42 @@ const MeetingPublishNotice = ({
       ),
     [schedules, month, type, dataView, monthOf]
   );
+
+  const [verCambios, setVerCambios] = useState(false);
+
+  /**
+   * Qué se ha cambiado, en una línea por cambio: qué día, qué parte, a quién y
+   * quién lo hizo.
+   *
+   * Se calcula solo cuando se despliega. Un mes tocado muchas veces recorre
+   * todas sus semanas parte por parte, y no hay por qué pagarlo mientras el
+   * aviso está cerrado, que es casi siempre.
+   */
+  const cambios = useMemo(() => {
+    if (!verCambios) return [];
+
+    return collectMeetingChangesSincePublish(
+      schedules,
+      month,
+      type,
+      dataView,
+      monthOf
+    ).map((cambio) => {
+      const dia =
+        schedulesGetMeetingDate({
+          week: cambio.weekOf,
+          meeting: type === 'midweek' ? 'midweek' : 'weekend',
+          short: true,
+        }).locale || cambio.weekOf;
+
+      // El nombre solo si la parte lleva persona: un tipo de semana o una
+      // cancelación no la llevan, y un guion suelto ahí no dice nada.
+      const quien = cambio.name ? ` — ${cambio.name}` : '';
+      const porQuien = cambio.by ? ` (por ${cambio.by})` : '';
+
+      return `${dia}, ${cambio.parte}${quien}${porQuien}`;
+    });
+  }, [verCambios, schedules, month, type, dataView, monthOf]);
 
   /**
    * Los choques concretos: quién, qué día y qué parte.
@@ -233,26 +270,65 @@ const MeetingPublishNotice = ({
               maqueta igual. */}
           <Box
             component="span"
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              width: '100%',
-            }}
+            sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
           >
-            <Typography
+            <Box
               component="span"
-              className="body-regular"
-              sx={{ color: 'var(--orange-dark)' }}
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                width: '100%',
+              }}
             >
-              {`Este mes está publicado. Has hecho ${changes} ${changes === 1 ? 'cambio' : 'cambios'} desde entonces.`}
-            </Typography>
+              <Typography
+                component="span"
+                className="body-regular"
+                sx={{ color: 'var(--orange-dark)' }}
+              >
+                {`Este mes está publicado. Has hecho ${changes} ${changes === 1 ? 'cambio' : 'cambios'} desde entonces.`}
+              </Typography>
 
-            <Button variant="small" onClick={handleRepublish}>
-              Volver a publicar
-            </Button>
+              <Box
+                component="span"
+                sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                {/* Primero comprobar, después publicar: se lee en el orden en
+                    que se decide. Volver a publicar sin mirar qué cambió es
+                    justo lo que este botón viene a evitar. */}
+                {/* En naranja, el color del propio aviso: es la acción de
+                    comprobar, no la de decidir. `color` aquí es un prefijo de
+                    token (`var(--orange-secondary)`), no un nombre de variante. */}
+                <Button
+                  variant="small"
+                  color="orange"
+                  onClick={() => setVerCambios((valor) => !valor)}
+                >
+                  {verCambios ? 'Ocultar cambios' : 'Ver cambios'}
+                </Button>
+
+                <Button variant="small" onClick={handleRepublish}>
+                  Volver a publicar
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Una línea por cambio: qué día, qué parte, a quién y quién lo
+                hizo. Es lo que permite ir a comprobarlo en vez de repasar el mes
+                entero, igual que en el aviso de ausencias de abajo. */}
+            {verCambios &&
+              cambios.map((linea, index) => (
+                <Typography
+                  key={`${linea}-${index}`}
+                  component="span"
+                  className="label-small-regular"
+                  sx={{ color: 'var(--orange-dark)' }}
+                >
+                  {linea}
+                </Typography>
+              ))}
           </Box>
         </InfoTip>
       )}

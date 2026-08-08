@@ -5,6 +5,7 @@ import { outgoingTalkDate, weekdayFromApi } from './meeting_month';
 import {
   buildOutgoingMonthGaps,
   collectMeetingMonthAssignees,
+  collectMeetingChangesSincePublish,
   countMeetingChangesSincePublish,
   countMeetingMissingParts,
   getMeetingPublishedEntry,
@@ -433,6 +434,55 @@ describe('avisar de lo que se ha cambiado desde que se publicó', () => {
     expect(
       countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
     ).toBe(1);
+  });
+
+  it('la lista dice QUÉ cambió, y coincide con la cuenta', () => {
+    // El aviso dice «has hecho N cambios» y al desplegarlo tienen que salir
+    // esos N y no otros. Por eso la cuenta es la longitud de esta misma lista:
+    // duplicar la regla en dos sitios es como empiezan a separarse.
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              by: 'Carlos',
+              updatedAt: '2026-10-03T10:00:00Z',
+            },
+          ],
+          // Una confirmación de hojita en la misma semana NO debe aparecer.
+          chairman_A: [
+            {
+              type: 'main',
+              value: 'uid-2',
+              name: 'Luis',
+              updatedAt: '2026-10-04T10:00:00Z',
+              confirmed: true,
+              confirmedAt: '2026-10-04T10:00:00Z',
+            },
+          ],
+        },
+      }),
+    ];
+
+    const lista = collectMeetingChangesSincePublish(
+      semanas,
+      FUTURO,
+      'midweek',
+      'main'
+    );
+
+    expect(lista).toHaveLength(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    );
+    expect(lista).toHaveLength(1);
+    expect(lista[0].name).toBe('Ana');
+    expect(lista[0].by).toBe('Carlos');
+    expect(lista[0].weekOf).toBe('2026/10/05');
+    expect(lista[0].parte.length).toBeGreaterThan(0);
   });
 
   it('lo anterior a la publicación no es un cambio', () => {
