@@ -194,6 +194,14 @@ const usePersonComponent = ({
         result.name = assigned.name;
         result.female = false;
         result.active = assigned.value === userUID;
+
+        // Y su congregación, copiada al lado del nombre. Antes esto rellenaba
+        // solo el nombre y ahí se paraba: al publicador le salía el orador «de
+        // ninguna parte», porque la congregación hay que buscarla en un catálogo
+        // cifrado con la llave maestra, que él no tiene ni debe tener.
+        if (showCongregation && assigned.congregation) {
+          result.congregation = assigned.congregation;
+        }
       }
 
       // get default values for some field if blank

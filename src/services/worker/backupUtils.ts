@@ -9,6 +9,10 @@ import {
 } from './merge';
 import { BackupDataType, CongUserType } from './backupType';
 import {
+  buildSpeakerCongregationMap,
+  stampSpeakerCongregation,
+} from '@services/app/speaker_congregation';
+import {
   decryptData,
   decryptObject,
   encryptData,
@@ -2726,6 +2730,90 @@ const warnAboutUnrequestedTables = (
  * Exportada para poder comprobarla contra la base de datos de verdad, no
  * contra una copia del razonamiento.
  */
+/**
+ * Copia la congregación del orador dentro de las asignaciones que ya existían.
+ *
+ * Sin esto, el arreglo solo valdría para lo que se asigne a partir de hoy y las
+ * semanas ya publicadas seguirían saliéndole al publicador con el orador «de
+ * ninguna parte». Con esto, la primera sincronización de quien tenga la llave
+ * maestra las sella y a partir de ahí lo ven todos.
+ *
+ * TRES CANDADOS, porque un relleno mal hecho reenvía programas enteros en cada
+ * ciclo y despierta a la congregación entera para nada:
+ *
+ * 1. Se hace UNA vez por dispositivo (marca en metadata), como el de los
+ *    informes.
+ * 2. Solo lo hace quien PUEDE resolver la congregación, es decir quien tiene la
+ *    llave maestra descifrando el catálogo. Un dispositivo sin ella no ve nada
+ *    que copiar, y si lo intentara escribiría basura dentro del programa — que
+ *    es exactamente el fallo que se le mandó sin querer a los publicadores.
+ * 3. Solo se pide subir si de verdad se ha sellado algo.
+ *
+ * Y solo RELLENA lo que falta: nunca pisa una congregación ya escrita.
+ */
+export const dbBackfillSpeakerCongregation = async () => {
+  const metadata = await appDb.metadata.get(1);
+
+  if (!metadata || metadata.speaker_cong_backfilled) return;
+
+  const speakers = await appDb.visiting_speakers.toArray();
+  const congregations = await appDb.speakers_congregations.toArray();
+
+  // Sin catálogo legible no hay nada que copiar, y tampoco se da por hecho el
+  // relleno: este dispositivo no tiene la llave maestra, pero otro sí y lo hará.
+  if (speakers.length === 0 || congregations.length === 0) return;
+
+  const nombrePorOrador = buildSpeakerCongregationMap(
+    speakers,
+    congregations
+  );
+
+  if (nombrePorOrador.size === 0) return;
+
+  const schedules = await appDb.sched.toArray();
+  const toSave: SchedWeekType[] = [];
+
+  for (const week of schedules) {
+    const copia = structuredClone(week);
+
+    if (!stampSpeakerCongregation(copia, nombrePorOrador)) continue;
+
+    // SE SELLA LA FECHA DE LA SEMANA, y solo esa.
+    //
+    // El servidor fusiona los programas semana a semana comparando justo este
+    // campo: sin tocarlo, la semana rellenada perdería la comparación contra la
+    // que ya está guardada y el relleno no saldría nunca de este dispositivo —
+    // con lo cual no serviría de nada, porque a quien tiene que llegarle es al
+    // publicador.
+    //
+    // Y NO se tocan las fechas de cada asignación, que son otra cosa: el aviso
+    // de «has hecho N cambios desde que publicaste» cuenta ESAS, no esta. Así el
+    // relleno llega a todos sin empujar a republicar meses que nadie ha tocado.
+    copia.updatedAt = new Date().toISOString();
+
+    toSave.push(copia);
+  }
+
+  if (toSave.length > 0) {
+    await appDb.sched.bulkPut(toSave);
+  }
+
+  await appDb.metadata.update(metadata.id, {
+    speaker_cong_backfilled: true,
+    metadata:
+      toSave.length > 0
+        ? {
+            ...metadata.metadata,
+            schedules: { ...metadata.metadata.schedules, send_local: true },
+          }
+        : metadata.metadata,
+  });
+
+  console.log(
+    `[backup] congregación del orador rellenada en ${toSave.length} semana(s)`
+  );
+};
+
 export const dbBackfillReportsRev = async () => {
   const metadata = await appDb.metadata.get(1);
 
@@ -2838,6 +2926,11 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
     // Antes de leer las tablas para el envío: lo que selle viaja en esta misma
     // subida en vez de esperar al ciclo siguiente.
     await dbBackfillReportsRev();
+
+    // Aquí y no antes, por lo mismo: lo que selle viaja en ESTA subida en vez de
+    // esperar al ciclo siguiente. Y después de la fusión, para sellar también lo
+    // que acaba de llegar del servidor.
+    await dbBackfillSpeakerCongregation();
 
     const {
       persons,

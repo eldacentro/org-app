@@ -114,6 +114,7 @@ import {
 } from '@states/visiting_speakers';
 import { FullnameOption } from '@definition/settings';
 import { speakersCongregationsState } from '@states/speakers_congregations';
+import { buildSpeakerCongregationMap } from './speaker_congregation';
 import { publicTalksState } from '@states/public_talks';
 import { PublicTalkType } from '@definition/public_talks';
 import { dbAppSettingsGet } from '@services/dexie/settings';
@@ -1362,6 +1363,36 @@ export const schedulesToggleAssignmentConfirmed = async (
   } as unknown as UpdateSpec<SchedWeekType>);
 };
 
+/**
+ * El nombre de la congregación de un orador visitante.
+ *
+ * En un solo sitio a propósito: lo usan tanto el guardado de una asignación
+ * como el relleno de las semanas antiguas, y si cada uno lo resolviera a su
+ * manera acabarían escribiendo cosas distintas en el mismo campo.
+ *
+ * Devuelve cadena vacía si no se puede resolver —un dispositivo sin la llave
+ * maestra ve el catálogo sin descifrar—, y quien llama NO debe escribir nada en
+ * ese caso: es mejor quedarse sin congregación que grabar basura cifrada dentro
+ * del programa, que es justo lo que se le mandó sin querer a los publicadores.
+ */
+export const speakerCongregationName = (
+  speaker: VisitingSpeakerType | undefined
+): string => {
+  if (!speaker?.person_uid) return '';
+
+  // Se delega en la MISMA función que usa el relleno de las semanas antiguas.
+  // Tenerlo escrito dos veces —una aquí y otra allí— es como acaban guardando
+  // cosas distintas en el mismo campo, y entonces media congregación ve una
+  // congregación y la otra media ve otra.
+  const congregations = store.get(speakersCongregationsState);
+
+  return (
+    buildSpeakerCongregationMap([speaker], congregations).get(
+      speaker.person_uid
+    ) ?? ''
+  );
+};
+
 export const schedulesSaveAssignment = async (
   schedule: SchedWeekType,
   assignment: AssignmentFieldType,
@@ -1381,6 +1412,12 @@ export const schedulesSaveAssignment = async (
     // don't sync the visiting_speakers / persons tables (e.g. plain publishers)
     // can still render the name from the schedule itself.
     let nameToSave = '';
+    // La congregación del orador, para copiarla junto al nombre. Ver
+    // `congregation` en la definición: sin esto, a un publicador le sale el
+    // orador «de ninguna parte», porque el catálogo va cifrado con la llave
+    // maestra y él no la tiene.
+    let congToSave = '';
+
     if (value && typeof value !== 'string') {
       const useDisplayName = store.get(displayNameMeetingsEnableState);
       const fullnameOption = store.get(fullnameOptionState);
@@ -1391,6 +1428,8 @@ export const schedulesSaveAssignment = async (
           useDisplayName,
           fullnameOption
         );
+
+        congToSave = speakerCongregationName(value as VisitingSpeakerType);
       } else {
         nameToSave = personGetDisplayName(
           value as PersonType,
@@ -1420,6 +1459,15 @@ export const schedulesSaveAssignment = async (
 
         assigned.value = toSave;
         assigned.name = nameToSave;
+        // La congregación viaja junto al nombre. Se BORRA cuando no hay ninguna
+        // que resolver —una persona de la propia congregación, o un dispositivo
+        // sin la llave maestra que no puede leer el catálogo— en vez de dejar la
+        // del orador anterior, que sería peor que no poner nada.
+        if (congToSave) {
+          assigned.congregation = congToSave;
+        } else {
+          delete assigned.congregation;
+        }
         assigned.updatedAt = new Date().toISOString();
         // Quién lo puso, pegado al campo. El `lastModifiedBy` del registro es
         // el del último que guardó CUALQUIER cosa de esa semana, y con él el
@@ -1434,6 +1482,7 @@ export const schedulesSaveAssignment = async (
           by: store.get(fullnameState),
           value: toSave,
           solo: typeof value === 'string',
+          ...(congToSave.length > 0 && { congregation: congToSave }),
         });
       }
     } else {
@@ -1445,6 +1494,12 @@ export const schedulesSaveAssignment = async (
 
       fieldUpdate.value = toSave;
       fieldUpdate.name = nameToSave;
+      // Mismo criterio que arriba.
+      if (congToSave) {
+        fieldUpdate.congregation = congToSave;
+      } else {
+        delete fieldUpdate.congregation;
+      }
       fieldUpdate.updatedAt = new Date().toISOString();
       fieldUpdate.by = store.get(fullnameState);
       fieldUpdate.solo = typeof value === 'string';

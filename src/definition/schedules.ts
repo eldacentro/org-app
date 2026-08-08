@@ -23,6 +23,24 @@ export type AssignmentCongregation = {
    *
    * Solo se usa en las asignaciones que llevan hojita: ver `S89_ASSIGNMENTS`.
    */
+  /**
+   * La congregación del orador visitante, copiada aquí dentro.
+   *
+   * Igual que `name`, y por el mismo motivo. El catálogo de oradores y sus
+   * congregaciones (`visiting_speakers`, `speakers_congregations`) va cifrado
+   * con la LLAVE MAESTRA, y un publicador no la tiene ni debe tenerla: aunque se
+   * le mandaran esas tablas no podría leerlas. Se intentó, y lo que consiguió
+   * fue un error en su pantalla — el campo llegaba sin descifrar.
+   *
+   * El programa, en cambio, va cifrado con el código de acceso, que tienen
+   * todos. Así que lo que tiene que ver todo el mundo se copia AQUÍ: el nombre
+   * ya se hacía así, y la congregación es la otra mitad de la misma línea del
+   * programa. Sin ella, al publicador le salía el orador «de ninguna parte».
+   *
+   * Se rellena al asignar, y `dbBackfillSpeakerCongregation` la pone una sola
+   * vez en las semanas que ya estaban guardadas.
+   */
+  congregation?: string;
   confirmed?: boolean;
   /**
    * Cuándo se puso o se quitó la marca de la hojita.
