@@ -79,6 +79,19 @@ const useWebWorker = () => {
 
   const lastTokenRetryRef = useRef(0);
 
+  // Reconstrucción de tablas derivadas en marcha, si hay alguna.
+  //
+  // `dataReady` y `Done` pueden llegar casi a la vez: en un ciclo sin nada que
+  // subir, el trabajador anuncia la bajada y acto seguido termina. Las dos ramas
+  // rehacen las tablas derivadas, y a la vez las dos compararían contra el mismo
+  // estado viejo y escribirían las dos — despertando `useLiveQuery` dos veces,
+  // que es el parpadeo de pantalla que avisa CLAUDE.md. Así la segunda espera a
+  // la primera en vez de duplicarla.
+  const rebuildRef = useRef<Promise<void> | null>(null);
+
+  // ...y si mientras corría llegaron datos nuevos, una pasada más al terminar.
+  const haceFaltaOtraRef = useRef(false);
+
   const { isMeetingEditor } = useCurrentUser();
 
   const isSyncing = useAtomValue(isAppDataSyncingState);
@@ -140,18 +153,40 @@ const useWebWorker = () => {
       // servidor, se reconstruyen desde las traducciones. Todas comparan
       // contenido antes de escribir (`dbReplaceTableIfChanged`), así que
       // llamarlas dos veces no cuesta escrituras ni provoca parpadeo.
-      const rehacerTablasDerivadas = async () => {
-        await refreshLocalesResources();
-        await dbWeekTypeUpdate();
-        await dbAssignmentUpdate();
-        await dbPublicTalkUpdate();
-        await dbSongUpdate();
+      const rehacerTablasDerivadas = (): Promise<void> => {
+        // Si ya hay una en marcha no se lanza otra en paralelo, pero TAMPOCO se
+        // descarta: se apunta que hace falta otra pasada al terminar. Descartarla
+        // sin más sería peor que el parpadeo — si la que está corriendo empezó
+        // antes de que llegaran estos datos, las tablas derivadas se quedarían
+        // con lo viejo hasta la sincronización siguiente.
+        if (rebuildRef.current) {
+          haceFaltaOtraRef.current = true;
+          return rebuildRef.current;
+        }
 
-        // load assignment history
-        const history = schedulesBuildHistoryList();
-        setAssignmentsHistory(history);
+        rebuildRef.current = (async () => {
+          try {
+            do {
+              haceFaltaOtraRef.current = false;
 
-        await dbSpeakersCongregationsSetName();
+              await refreshLocalesResources();
+              await dbWeekTypeUpdate();
+              await dbAssignmentUpdate();
+              await dbPublicTalkUpdate();
+              await dbSongUpdate();
+
+              // load assignment history
+              const history = schedulesBuildHistoryList();
+              setAssignmentsHistory(history);
+
+              await dbSpeakersCongregationsSetName();
+            } while (haceFaltaOtraRef.current);
+          } finally {
+            rebuildRef.current = null;
+          }
+        })();
+
+        return rebuildRef.current;
       };
 
       worker.onmessage = async function (event) {
