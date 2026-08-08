@@ -1,4 +1,7 @@
 import { SchedWeekType } from '@definition/schedules';
+import { VisitingSpeakerType } from '@definition/visiting_speakers';
+import { FullnameOption } from '@definition/settings';
+import { speakerGetDisplayName } from '@utils/common';
 
 /**
  * Copiar la congregación del orador dentro de la asignación.
@@ -18,9 +21,10 @@ import { SchedWeekType } from '@definition/schedules';
  *
  * MUTA la semana que recibe: quien llama le pasa una copia.
  */
-export const stampSpeakerCongregation = (
+export const stampSpeakerInfo = (
   week: SchedWeekType,
-  nombrePorOrador: Map<string, string>
+  congregacionPorOrador: Map<string, string>,
+  nombrePorOrador?: Map<string, string>
 ): boolean => {
   const partes = week?.weekend_meeting?.speaker;
 
@@ -36,24 +40,82 @@ export const stampSpeakerCongregation = (
 
       const record = registro as Record<string, unknown>;
 
-      // Ya la tiene: NO se pisa. El relleno solo completa lo que falta; lo que
-      // alguien haya escrito manda sobre lo que deduzca esto.
-      if (typeof record.congregation === 'string') continue;
-
       const uid = record.value;
 
       if (typeof uid !== 'string' || uid.length === 0) continue;
 
-      const nombre = nombrePorOrador.get(uid);
+      // LA CONGREGACIÓN. Si ya la tiene NO se pisa: el relleno solo completa lo
+      // que falta, y lo que alguien haya escrito manda sobre lo que deduzca
+      // esto.
+      if (typeof record.congregation !== 'string') {
+        const cong = congregacionPorOrador.get(uid);
 
-      if (!nombre) continue;
+        if (cong) {
+          record.congregation = cong;
+          tocado = true;
+        }
+      }
 
-      record.congregation = nombre;
-      tocado = true;
+      // EL NOMBRE, por el mismo motivo y con el mismo criterio. En los datos
+      // reales de la congregación la mayoría de los oradores del catálogo se
+      // guardaron con `name: ''`, y ese campo es el ÚNICO por el que un
+      // publicador puede saber quién da el discurso: el catálogo va cifrado con
+      // la llave maestra y él no la tiene. Sin esto, a él la línea le sale
+      // vacía aunque el orador esté puesto.
+      //
+      // Vacío cuenta como ausente, que es justo el caso a reparar; una cadena
+      // con algo escrito se respeta.
+      if (typeof record.name !== 'string' || record.name.length === 0) {
+        const nombre = nombrePorOrador?.get(uid);
+
+        if (nombre) {
+          record.name = nombre;
+          tocado = true;
+        }
+      }
     }
   }
 
   return tocado;
+};
+
+/**
+ * El nombre con el que hay que escribir a cada orador dentro del programa.
+ *
+ * Se compone igual que al asignarlo a mano (`speakerGetDisplayName`), para que
+ * el relleno no escriba un nombre con otra forma que el resto. Y se descarta lo
+ * que salga vacío, por lo mismo que en el mapa de congregaciones: un catálogo
+ * sin descifrar no tiene nombres legibles, y meter basura dentro del programa es
+ * peor que dejar el hueco.
+ */
+export const buildSpeakerNameMap = (
+  speakers: VisitingSpeakerType[],
+  fullnameOption: FullnameOption
+): Map<string, string> => {
+  const result = new Map<string, string>();
+
+  for (const speaker of speakers ?? []) {
+    const uid = speaker?.person_uid;
+
+    if (typeof uid !== 'string' || uid.length === 0) continue;
+
+    let nombre = '';
+
+    try {
+      // `displayNameEnabled` va en falso a propósito: en esta aplicación ese
+      // ajuste está fijo en falso, y el nombre sale siempre del nombre completo.
+      nombre = speakerGetDisplayName(speaker, false, fullnameOption);
+    } catch {
+      // Un registro sin descifrar no tiene los campos donde se los busca.
+      continue;
+    }
+
+    if (typeof nombre !== 'string' || nombre.trim().length === 0) continue;
+
+    result.set(uid, nombre);
+  }
+
+  return result;
 };
 
 /**

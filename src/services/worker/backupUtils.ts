@@ -1,6 +1,7 @@
 // to minimize the size of the worker file, we recreate all its needed functions in this file
 
 import appDb from '@db/appDb';
+import { FullnameOption } from '@definition/settings';
 import {
   syncFromRemote,
   getObjectLatestUpdate,
@@ -10,7 +11,8 @@ import {
 import { BackupDataType, CongUserType } from './backupType';
 import {
   buildSpeakerCongregationMap,
-  stampSpeakerCongregation,
+  buildSpeakerNameMap,
+  stampSpeakerInfo,
 } from '@services/app/speaker_congregation';
 import {
   decryptData,
@@ -2763,12 +2765,26 @@ export const dbBackfillSpeakerCongregation = async () => {
   // relleno: este dispositivo no tiene la llave maestra, pero otro sí y lo hará.
   if (speakers.length === 0 || congregations.length === 0) return;
 
-  const nombrePorOrador = buildSpeakerCongregationMap(
+  const congregacionPorOrador = buildSpeakerCongregationMap(
     speakers,
     congregations
   );
 
-  if (nombrePorOrador.size === 0) return;
+  // El nombre con el que hay que escribirlos, compuesto igual que al asignarlos
+  // a mano. En los datos reales la mayoría de los oradores del catálogo se
+  // guardaron con `name: ''`, y ese campo es el ÚNICO por el que un publicador
+  // puede saber quién da el discurso.
+  const ajustes = await dbGetSettings();
+  const dataView = ajustes?.user_settings?.data_view?.value ?? 'main';
+
+  const fullnameOption =
+    ajustes?.cong_settings?.fullname_option?.find(
+      (record) => record.type === dataView
+    )?.value ?? FullnameOption.FIRST_BEFORE_LAST;
+
+  const nombrePorOrador = buildSpeakerNameMap(speakers, fullnameOption);
+
+  if (congregacionPorOrador.size === 0 && nombrePorOrador.size === 0) return;
 
   const schedules = await appDb.sched.toArray();
   const toSave: SchedWeekType[] = [];
@@ -2776,7 +2792,8 @@ export const dbBackfillSpeakerCongregation = async () => {
   for (const week of schedules) {
     const copia = structuredClone(week);
 
-    if (!stampSpeakerCongregation(copia, nombrePorOrador)) continue;
+    if (!stampSpeakerInfo(copia, congregacionPorOrador, nombrePorOrador))
+      continue;
 
     // SE SELLA LA FECHA DE LA SEMANA, y solo esa.
     //
