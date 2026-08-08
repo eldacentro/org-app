@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
+import { recoverVipSession } from '@services/app/session_recovery';
 import { userSignOut } from '@services/firebase/auth';
 import { decryptData } from '@services/encryption/index';
 import { apiValidateMe } from '@services/api/user';
@@ -78,11 +79,35 @@ const useCongregationAccessCode = () => {
     const getAccessCode = async () => {
       setIsLoading(true);
 
-      const { status, result } = await apiValidateMe();
+      let { status, result } = await apiValidateMe();
 
       if (status === 403) {
-        await userSignOut();
-        return;
+        // ANTES SE CERRABA LA SESIÓN AQUÍ, y sin decir absolutamente nada: el
+        // hermano estaba metiendo el código de acceso y de golpe se encontraba
+        // en la pantalla de entrada, sin ningún mensaje.
+        //
+        // De los cuatro motivos de un 403, dos se arreglan solos y en silencio
+        // —un token que el servidor no pudo verificar porque acaba de
+        // reiniciarse, o la cookie de sesión que Safari purga por su cuenta cada
+        // pocos días—. Cerrar sesión ahí destruye la sesión de Firebase y ya no
+        // queda nada que refrescar. Ver `session_recovery`.
+        const verdict = await recoverVipSession(result?.message ?? '403');
+
+        if (verdict === 'recovered') {
+          ({ status, result } = await apiValidateMe());
+        }
+
+        if (verdict !== 'terminal' && status !== 200) {
+          // Ahora no se puede. No se cierra nada: se deja la pantalla como está
+          // para que pueda reintentar, en vez de echarlo.
+          setIsLoading(false);
+          return;
+        }
+
+        if (verdict === 'terminal') {
+          await userSignOut();
+          return;
+        }
       }
 
       // congregation not found -> user not authorized and delete local data

@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase } from '@services/app';
 import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
+import { recoverVipSession } from '@services/app/session_recovery';
 import { userSignOut } from '@services/firebase/auth';
 import { decryptData } from '@services/encryption/index';
 import { apiValidateMe } from '@services/api/user';
@@ -57,11 +58,28 @@ const useCongregationMasterKey = () => {
     const getMasterKey = async () => {
       setIsLoading(true);
 
-      const { status, result } = await apiValidateMe();
+      let { status, result } = await apiValidateMe();
 
       if (status === 403) {
-        await userSignOut();
-        return;
+        // Igual que en la pantalla del código de acceso: un 403 no es motivo
+        // para cerrar la sesión sin decir nada. Dos de sus cuatro motivos se
+        // reponen solos, y cerrarla destruye la sesión de Firebase, con lo que
+        // ya no queda nada que refrescar. Ver `session_recovery`.
+        const verdict = await recoverVipSession(result?.message ?? '403');
+
+        if (verdict === 'recovered') {
+          ({ status, result } = await apiValidateMe());
+        }
+
+        if (verdict !== 'terminal' && status !== 200) {
+          setIsLoading(false);
+          return;
+        }
+
+        if (verdict === 'terminal') {
+          await userSignOut();
+          return;
+        }
       }
 
       // congregation not found -> user not authorized and delete local data

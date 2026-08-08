@@ -69,9 +69,32 @@ const useCongregationEncryption = () => {
         return;
       }
 
-      try {
-        const { status, result } = await apiValidateMe();
+      // LA CONSULTA AL SERVIDOR VA FUERA DEL `try` QUE BORRA LAS LLAVES.
+      //
+      // EL FALLO QUE ESTO ARREGLA. `apiValidateMe` lanza ante cualquier
+      // tropiezo de red: un timeout de 20 s, la conexión caída, o un 502 de la
+      // plataforma que devuelve HTML donde se esperaba JSON. Eso caía en el
+      // `catch` de abajo, que concluía «las llaves guardadas ya no valen» y las
+      // BORRABA. O sea: al hermano que había marcado «recordar mis claves» le
+      // bastaba un rato sin cobertura para tener que volver a teclear el código
+      // de acceso y la llave maestra a mano — justo lo que ese almacén existe
+      // para evitar, y justo cuando menos puede resolverlo.
+      //
+      // Un fallo de red no dice NADA sobre si una llave es válida. Solo se
+      // borran cuando el servidor ha contestado y el descifrado ha fallado de
+      // verdad, que es la única señal fiable.
+      let status: number;
+      let result: Awaited<ReturnType<typeof apiValidateMe>>['result'];
 
+      try {
+        ({ status, result } = await apiValidateMe());
+      } catch (error) {
+        console.error('No se pudo comprobar las llaves guardadas:', error);
+        if (!cancelled) setCheckingSavedKeys(false);
+        return;
+      }
+
+      try {
         // Let the normal per-screen flow handle 403 / 404 / sync mismatch.
         if (status !== 200) {
           if (!cancelled) setCheckingSavedKeys(false);
@@ -97,8 +120,9 @@ const useCongregationEncryption = () => {
         setAutoEntering(true);
         await dbAppSettingsUpdate(updates);
       } catch (error) {
-        // Saved keys no longer valid (e.g. congregation rotated its keys).
-        // Drop them and fall back to manual entry.
+        // Aquí ya se sabe que el servidor contestó 200: si el descifrado ha
+        // fallado, las llaves guardadas de verdad no valen (la congregación
+        // rotó sus claves). Solo entonces se borran.
         console.error('Auto-entry with saved keys failed:', error);
         await clearKeysSecurely(userId);
         if (!cancelled) {

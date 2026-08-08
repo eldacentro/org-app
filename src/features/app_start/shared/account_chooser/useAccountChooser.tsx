@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { authErrorMessage } from '@services/firebase/auth_errors';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   authProvider,
@@ -50,9 +51,7 @@ const useAccountChooser = () => {
         console.error(error);
         displayOnboardingFeedback({
           title: getMessageByCode('error_app_generic-title'),
-          message: getMessageByCode(
-            error.code || error.message || t('error_app_generic-desc')
-          ),
+          message: authErrorMessage(error),
         });
         showMessage();
       } finally {
@@ -78,18 +77,28 @@ const useAccountChooser = () => {
     try {
       hideMessage();
 
-      // Already signed in: this screen is being shown as the post-login
-      // fallback, not as a fresh login. Re-running sign-in here would just
-      // re-enter the same flow. Instead re-mark the account so VipStartup
-      // re-runs its startup check.
+      // Ya hay sesión: esta pantalla se está enseñando como RESPALDO de un
+      // arranque que falló, no como un inicio de sesión nuevo.
+      //
+      // EL FALLO QUE ESTO ARREGLA, y es el peor de todos los de entrar. Aquí se
+      // volvía a marcar la cuenta «para que VipStartup repita su comprobación de
+      // arranque». Eso NO ocurría: `runStartupCheck` está detrás de un candado
+      // de una sola vez (`startupCompletedRef`) que se echa en su `finally` y no
+      // se suelta nunca, y de un `isStart` que solo va a falso. Así que el
+      // hermano pulsaba «Continuar con Google» y no pasaba absolutamente nada:
+      // ni rueda, ni error, ni avance. Podía pulsarlo veinte veces. La única
+      // salida era cerrar la app y volver a abrirla — que es exactamente lo que
+      // describe «no puedo entrar» y «a veces entra si insisto mucho».
+      //
+      // Se recarga, que es lo único que de verdad repite el arranque: refs
+      // nuevos, estado nuevo y otra consulta al servidor. Es lo que el hermano
+      // acababa haciendo a mano, y el mismo camino que ya usa el botón de
+      // «Actualizar» de la pantalla de solicitud de acceso.
       if (isAuthenticated) {
         await dbAppSettingsUpdate({ 'user_settings.account_type': 'vip' });
-        setSettings((prev) => {
-          const next = structuredClone(prev);
-          next.user_settings.account_type = 'vip';
-          return next;
-        });
         setIsAccountChoose(false);
+
+        window.location.reload();
         return;
       }
 
@@ -140,9 +149,10 @@ const useAccountChooser = () => {
       console.error(error);
       displayOnboardingFeedback({
         title: getMessageByCode('error_app_generic-title'),
-        message: getMessageByCode(
-          error.code || error.message || t('error_app_generic-desc')
-        ),
+        // `getMessageByCode(error.code)` enseñaba el código crudo de Google
+        // —«auth/network-request-failed»— porque no hay traducción para ninguno.
+        // Ver `authErrorMessage`.
+        message: authErrorMessage(error),
       });
       showMessage();
     } finally {

@@ -5,6 +5,33 @@ import { BackupDataType } from './backupType';
 const FETCH_TIMEOUT_MS = 60_000;
 
 /** Returns an AbortSignal that fires after FETCH_TIMEOUT_MS. */
+/**
+ * El código de error que de verdad manda el servidor, o uno que se entienda.
+ *
+ * El cuerpo de una respuesta de error no siempre es JSON: cuando la plataforma
+ * responde por su cuenta (el servidor arrancando, un 502 de su proxy) es una
+ * página HTML. Parsearla a ciegas producía el «Unexpected token '<'» que veía el
+ * hermano. Aquí se intenta leer el código del servidor y, si no hay ninguno, se
+ * devuelve uno propio según la familia del estado — que sí tiene traducción y sí
+ * dice qué está pasando.
+ */
+const mensajeDeError = (text: string, status: number): string => {
+  try {
+    const data = JSON.parse(text);
+
+    if (typeof data?.message === 'string' && data.message.length > 0) {
+      return data.message;
+    }
+  } catch {
+    // No era JSON: es la página de la plataforma, no del servidor.
+  }
+
+  if (status >= 500) return 'SERVER_UNAVAILABLE';
+  if (status === 429) return 'TOO_MANY_REQUESTS';
+
+  return 'error_api_internal-error';
+};
+
 const fetchSignal = () => {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -160,11 +187,24 @@ export const apiGetCongregationBackup = async ({
     `[backup] GET en ${Math.round(performance.now() - start)}ms — ${text.length} bytes recibidos (descomprimido)`
   );
 
-  const data = JSON.parse(text);
-
+  // SE MIRA EL ESTADO ANTES DE PARSEAR, y no al revés.
+  //
+  // EL FALLO QUE ESTO ARREGLA. El `JSON.parse` iba primero, y cuando la
+  // plataforma contesta con su propia página de error —Render hiberna en el plan
+  // gratuito, y mientras arranca el puerto está cerrado y responde el borde con
+  // HTML— el parseo reventaba antes de llegar a comprobar el estado. El hermano
+  // se encontraba en un aviso rojo, literalmente:
+  //
+  //     Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+  //
+  // Y además ese error NO es ninguno de los códigos que la app sabe recuperar,
+  // así que tampoco se intentaba renovar el token: se quedaba en un error
+  // incomprensible que no llevaba a ninguna parte.
   if (res.status !== 200) {
-    throw new Error(data.message);
+    throw new Error(mensajeDeError(text, res.status));
   }
+
+  const data = JSON.parse(text);
 
   return data as BackupDataType;
 };

@@ -223,6 +223,31 @@ const useUserAutoLogin = () => {
           );
 
           if (!approvedRole) {
+            // «Ningún rol que yo conozca» NO es lo mismo que «esta persona ya no
+            // pertenece a la congregación», y aquí se borraba la base local
+            // entera sin preguntar ni avisar por lo primero.
+            //
+            // El riesgo es concreto: el servidor ya define roles que este
+            // cliente no tiene en su lista (`duties_schedule`,
+            // `field_service_group_overseer`). Hoy no hay pantalla que los
+            // asigne, así que no se puede provocar desde la app — pero la regla
+            // «rol desconocido, borro todo» significa que cualquier rol nuevo
+            // desplegado en el servidor antes de que este cliente lo conozca
+            // arrasaría dispositivos. Con la app instalada, el cliente va por
+            // detrás del servidor por definición.
+            //
+            // Se confirma con el guardián antes de destruir nada.
+            const confirmed = await shouldResetLocalData({
+              accountType: 'vip',
+              reason: 'vip roles not recognised by this client',
+              message: dataVip?.result?.message,
+            });
+
+            if (!confirmed) {
+              setOfflineOverride(true);
+              return;
+            }
+
             await handleDeleteDatabase();
             return;
           }
@@ -267,6 +292,40 @@ const useUserAutoLogin = () => {
             }
 
             if (prevNeedMasterKey && !newNeedMasterKey) {
+              // AQUÍ SE BORRABA LA BASE LOCAL ENTERA SIN DECIR NADA, y es el
+              // único de los borrados de este fichero que no pasaba por el
+              // guardián ni avisaba.
+              //
+              // Pasa de verdad y sin que nadie toque su móvil: a un encargado de
+              // grupo se le releva del puesto, un dispositivo administrador
+              // recalcula sus roles y sube la lista nueva sin `group_overseers`.
+              // En el siguiente ciclo, este hermano se encuentra la app vacía,
+              // la sesión cerrada y la pantalla del código de acceso — sin un
+              // solo mensaje que le explique por qué. Y con ello se va lo que
+              // aún no hubiera subido: un informe escrito sin cobertura, por
+              // ejemplo.
+              //
+              // Ahora se confirma antes de destruir nada (misma segunda consulta
+              // que protege los 404, ver `account_guard`) y se le dice qué ha
+              // pasado. Si la respuesta no se confirma, no se borra: se marca
+              // como sin conexión y se reintenta más tarde.
+              const confirmed = await shouldResetLocalData({
+                accountType: 'vip',
+                reason: 'vip role no longer needs master key',
+                message: dataVip?.result?.message,
+              });
+
+              if (!confirmed) {
+                setOfflineOverride(true);
+                return;
+              }
+
+              displaySnackNotification({
+                header: t('tr_userRoleChanged'),
+                message: t('tr_userRoleChangedDesc'),
+                icon: <IconInfo color="var(--white)" />,
+              });
+
               await handleDeleteDatabase();
 
               return;
@@ -418,6 +477,31 @@ const useUserAutoLogin = () => {
           );
 
           if (!approvedRole) {
+            // «Ningún rol que yo conozca» NO es lo mismo que «esta persona ya no
+            // pertenece a la congregación», y aquí se borraba la base local
+            // entera sin preguntar ni avisar por lo primero.
+            //
+            // El riesgo es concreto: el servidor ya define roles que este
+            // cliente no tiene en su lista (`duties_schedule`,
+            // `field_service_group_overseer`). Hoy no hay pantalla que los
+            // asigne, así que no se puede provocar desde la app — pero la regla
+            // «rol desconocido, borro todo» significa que cualquier rol nuevo
+            // desplegado en el servidor antes de que este cliente lo conozca
+            // arrasaría dispositivos. Con la app instalada, el cliente va por
+            // detrás del servidor por definición.
+            //
+            // Se confirma con el guardián antes de destruir nada.
+            const confirmed = await shouldResetLocalData({
+              accountType: 'pocket',
+              reason: 'pocket roles not recognised by this client',
+              message: dataPocket?.result?.message,
+            });
+
+            if (!confirmed) {
+              setOfflineOverride(true);
+              return;
+            }
+
             await handleDeleteDatabase();
             return;
           }

@@ -22,6 +22,7 @@ import { congIDState } from '@states/settings';
 import { APP_ROLES, VIP_ROLES } from '@constants/index';
 import { handleDeleteDatabase, loadApp, runUpdater } from '@services/app';
 import { apiValidateMe } from '@services/api/user';
+import { recoverVipSession } from '@services/app/session_recovery';
 import { userSignOut } from '@services/firebase/auth';
 import useFirebaseAuth from '@hooks/useFirebaseAuth';
 import useAuth from '../hooks/useAuth';
@@ -163,7 +164,7 @@ const useStartup = () => {
         return;
       }
 
-      const { status, result } = await apiValidateMe();
+      let { status, result } = await apiValidateMe();
 
       if (step === 'request_access') {
         setIsLoading(false);
@@ -171,10 +172,64 @@ const useStartup = () => {
       }
 
       if (status === 403 || status === 400) {
-        // Mismo criterio que en la revalidación de fondo: aquí ya no hay nada
-        // que reintentar (el token caducado se renueva solo en apiFetch), así
-        // que toca volver a entrar — pero diciéndolo, en vez de plantar la
-        // pantalla de acceso sin explicación. No se borra nada.
+        // ANTES SE CERRABA LA SESIÓN AQUÍ MISMO, y este es el peor sitio
+        // posible: el arranque es lo que corre cuando el hermano ABRE la app,
+        // o sea justo el momento en el que se queja de que «se le desconecta la
+        // cuenta al entrar».
+        //
+        // Cerrar sesión destruye la sesión de Firebase, y sin ella el botón de
+        // «Reconectar» ya no tiene nada que refrescar: solo queda volver a
+        // entrar desde cero, que es lo que un hermano mayor no va a hacer.
+        //
+        // El decir que «ya no hay nada que reintentar porque apiFetch renueva
+        // el token» era verdad solo para UN motivo de los cuatro. `apiFetch`
+        // reintenta con token nuevo ante 401 y ante 403 LOGIN_FIRST; si ese
+        // reintento vuelve a fallar porque el SERVIDOR no puede verificar nada
+        // —se acaba de reiniciar y no tiene todavía las claves públicas de
+        // Google—, esto cerraba la sesión de la congregación entera a la vez.
+        // Es exactamente el incidente del 2026-08-05. Y un `DEVICE_REVOKED`
+        // (Safari purga la cookie de sesión cada pocos días por su cuenta) se
+        // repone solo, sin que nadie tenga que hacer nada.
+        //
+        // El 400 tampoco es terminal: `INPUT_INVALID` es de hecho uno de los
+        // códigos que el propio sincronizador trata como token recuperable, y
+        // aquí cerraba la sesión SIN decir ni una palabra.
+        //
+        // Mismo criterio que la revalidación de fondo, ahora también aquí. Ver
+        // `session_recovery`.
+        const motivo = result?.message ?? String(status);
+
+        const verdict = await recoverVipSession(motivo);
+
+        if (verdict === 'recovered') {
+          // Sesión repuesta sin que nadie note nada: se vuelve a preguntar UNA
+          // vez, ya con la cookie puesta. No se re-llama a `runStartupCheck`
+          // porque tiene un candado contra llamadas concurrentes que dejaría la
+          // segunda sin efecto.
+          ({ status, result } = await apiValidateMe());
+        }
+
+        if (verdict !== 'terminal' && status !== 200) {
+          // No se ha podido AHORA. No se toca NADA: ni la sesión, ni los datos,
+          // ni se manda a nadie a la pantalla de acceso. `useAutoReconnect`
+          // sigue intentándolo por su cuenta y el hermano puede seguir
+          // trabajando con lo que ya tiene en el dispositivo.
+          //
+          // Se es DELIBERADAMENTE conservador: cualquier cosa que no sea un
+          // veredicto terminal se trata como «ahora no se puede», nunca como
+          // «vuelve a entrar». Los dos errores no cuestan lo mismo — dejar la
+          // sesión puesta de más significa ver datos de hace un rato y un aviso;
+          // cerrarla de menos significa un hermano mayor fuera de la app hasta
+          // que alguien se siente con él a volver a entrar.
+          setOfflineOverride(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (status === 403 || status === 400) {
+        // Terminal de verdad: la cuenta ya no existe, o alguien revocó este
+        // dispositivo a propósito. Aquí sí toca volver a entrar, diciéndolo.
         if (status === 403) {
           displaySnackNotification({
             header: getTranslation({ key: 'tr_eldaSessionExpiredTitle' }),

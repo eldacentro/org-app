@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { authErrorMessage } from '@services/firebase/auth_errors';
 import { User } from 'firebase/auth';
 import { useSetAtom } from 'jotai';
 import { UserLoginResponseType } from '@definition/api';
@@ -445,11 +446,22 @@ const useAuth = () => {
             data.app_settings.cong_settings.cong_access_code_plain =
               decryptedCode;
 
-            // Lo guardamos silenciosamente en Secure Storage de inmediato
-            if (data.id) {
-              const existingKeys = await loadKeysSecurely(data.id);
+            // Lo guardamos silenciosamente en Secure Storage de inmediato,
+            // BAJO EL UID DE FIREBASE.
+            //
+            // Antes se guardaba con `data.id`, el identificador del servidor.
+            // Todo el resto de la app lee con `user.uid` —la entrada automática
+            // con llaves guardadas, la pantalla del código, el cierre de
+            // sesión—, y la clave de cifrado del propio almacén se deriva de esa
+            // misma cadena. O sea que lo que se guardaba aquí NO SE PODÍA LEER
+            // NUNCA: el hermano que entraba por invitación se encontraba la
+            // pantalla del código de acceso de todas formas, con el código ya
+            // descifrado y guardado en un cajón que nadie abre.
+            if (user?.uid) {
+              const existingKeys = await loadKeysSecurely(user.uid);
+
               await saveKeysSecurely(
-                data.id,
+                user.uid,
                 existingKeys?.masterKey || '',
                 decryptedCode
               );
@@ -478,9 +490,16 @@ const useAuth = () => {
         return true;
       } catch (error) {
         console.error(error);
-        await handleAuthorizationError(
-          error.code || error.message || 'error_app_generic-desc'
-        );
+        // `error.code` era el código crudo de Google, y no hay traducción para
+        // ninguno: el hermano veía «auth/network-request-failed» en un aviso
+        // rojo. Ver `authErrorMessage`. Los códigos que vienen del SERVIDOR
+        // siguen pasando por `handleAuthorizationError`, que sí los traduce.
+        displaySnackNotification({
+          header: getTranslation({ key: 'tr_errorTitle' }),
+          message: authErrorMessage(error),
+          severity: 'error',
+        });
+        setIsAuthProcessing(false);
         return false;
       } finally {
         setIsAuthProcessing(false);
