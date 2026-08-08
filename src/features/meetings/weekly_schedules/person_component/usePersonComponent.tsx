@@ -194,14 +194,23 @@ const usePersonComponent = ({
         result.name = assigned.name;
         result.female = false;
         result.active = assigned.value === userUID;
+      }
 
-        // Y su congregación, copiada al lado del nombre. Antes esto rellenaba
-        // solo el nombre y ahí se paraba: al publicador le salía el orador «de
-        // ninguna parte», porque la congregación hay que buscarla en un catálogo
-        // cifrado con la llave maestra, que él no tiene ni debe tener.
-        if (showCongregation && assigned.congregation) {
-          result.congregation = assigned.congregation;
-        }
+      // La congregación copiada dentro de la asignación, POR SU CUENTA.
+      //
+      // Al principio esto colgaba de la rama de arriba, y por eso no salía: esa
+      // rama exige que la asignación lleve el nombre copiado, y resulta que en
+      // la mayoría de las semanas ese campo está VACÍO —se ve en los datos
+      // reales: los oradores del catálogo se guardaron con `name: ""`—. Así que
+      // la congregación no llegaba a evaluarse nunca.
+      //
+      // Son dos datos independientes: el nombre puede resolverse por cualquiera
+      // de los caminos de arriba (o por ninguno) y la congregación tiene que
+      // salir igual, que es justo lo que el publicador no puede deducir por su
+      // cuenta. Solo se respeta la que ya se haya resuelto desde el catálogo,
+      // que es más fresca.
+      if (showCongregation && !result.congregation && assigned?.congregation) {
+        result.congregation = assigned.congregation;
       }
 
       // get default values for some field if blank
