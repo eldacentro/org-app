@@ -150,9 +150,12 @@ const useWebWorker = () => {
     if (!isTest && window.Worker) {
       // Lo que hay que rehacer cuando llegan datos nuevos: las tablas derivadas
       // —tipos de semana, asignaciones, discursos y canciones— no vienen del
-      // servidor, se reconstruyen desde las traducciones. Todas comparan
-      // contenido antes de escribir (`dbReplaceTableIfChanged`), así que
-      // llamarlas dos veces no cuesta escrituras ni provoca parpadeo.
+      // servidor, se reconstruyen desde las traducciones.
+      //
+      // Comparan contenido antes de escribir (`dbReplaceTableIfChanged`), pero
+      // eso NO basta para poder lanzarlas dos veces a la vez: las dos leerían el
+      // mismo estado viejo, las dos concluirían que hay que escribir y las dos
+      // escribirían. De ahí la serialización de abajo.
       const rehacerTablasDerivadas = (): Promise<void> => {
         // Si ya hay una en marcha no se lanza otra en paralelo, pero TAMPOCO se
         // descarta: se apunta que hace falta otra pasada al terminar. Descartarla

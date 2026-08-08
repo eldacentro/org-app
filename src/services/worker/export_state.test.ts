@@ -95,6 +95,40 @@ describe('nextExportState — lo que no viaja con su nombre igual se limpia', ()
     expect(result.public_schedules.send_local).toBe(false);
   });
 
+  it('una tabla VACÍA se limpia aunque no viaje — el aro amarillo eterno', () => {
+    // EL FALLO: las ocho tablas de territorios nacen marcadas, pero solo viajan
+    // si tienen registros (`item.data.length > 0`) Y solo para ancianos y
+    // administradores. A una publicadora no le viajan JAMÁS, y a un anciano se
+    // le quedan colgadas todas las que tenga vacías —avisos, campañas,
+    // peticiones—. Exigirles que hubieran viajado las dejaba marcadas para
+    // siempre: «cambios pendientes de enviar» y el aro amarillo, para siempre,
+    // en todos los dispositivos.
+    //
+    // Y limpiarlas no pierde nada: una tabla vacía en un envío no borra nada en
+    // el servidor, o sea que enviarla no haría absolutamente nada.
+    const result = nextExportState({
+      current: meta({ territory_notices: true, territories: true }),
+      uploaded: ['territories'],
+      vacias: ['territory_notices'],
+    });
+
+    expect(result.territory_notices.send_local).toBe(false);
+    expect(result.territories.send_local).toBe(false);
+  });
+
+  it('pero una tabla CON contenido que no viajó sigue pendiente', () => {
+    // El otro lado de la moneda, y es el que pierde datos: si tiene registros,
+    // hay algo que enviar. Limpiarla dejaría ese cambio en el móvil para
+    // siempre.
+    const result = nextExportState({
+      current: meta({ visiting_speakers: true }),
+      uploaded: ['persons'],
+      vacias: ['territory_notices'],
+    });
+
+    expect(result.visiting_speakers.send_local).toBe(true);
+  });
+
   it('sin lista de enviadas se limpia todo, como siempre', () => {
     const result = nextExportState({ current: meta({ persons: true }) });
 

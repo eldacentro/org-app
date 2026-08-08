@@ -77,6 +77,7 @@ export const nextExportState = ({
   uploaded,
   snapshot,
   actual,
+  vacias,
 }: {
   current: MetadataRecordType['metadata'];
   /**
@@ -88,6 +89,22 @@ export const nextExportState = ({
   snapshot?: Record<string, string>;
   /** Huella por tabla ahora. */
   actual?: Record<string, string>;
+  /**
+   * Tablas SIN NI UN REGISTRO en este dispositivo.
+   *
+   * Una tabla vacía no tiene nada que enviar, así que su marca se limpia
+   * aunque no haya viajado. Sin esto se quedaban marcadas PARA SIEMPRE, y con
+   * ellas el aro amarillo y el «cambios pendientes de enviar» eternos. Las ocho
+   * de territorios son el caso vivo: solo viajan si su tabla tiene registros
+   * (`item.data.length > 0`) y solo para ancianos y administradores, así que a
+   * una publicadora no le viajan JAMÁS, y a un anciano se le quedan colgadas
+   * todas las que tenga vacías —avisos, campañas, peticiones—.
+   *
+   * Y no se pierde nada al limpiarlas: una tabla vacía en un envío nunca borra
+   * nada en el servidor, o sea que enviarla no haría absolutamente nada. Lo que
+   * sí tiene contenido y no viajó sigue protegido, que es lo que importa.
+   */
+  vacias?: string[];
 }): MetadataRecordType['metadata'] => {
   const result = {} as MetadataRecordType['metadata'];
 
@@ -118,7 +135,10 @@ export const nextExportState = ({
     //
     // Con la excepción de las que no pueden viajar nunca, que si se exigiera
     // que hubieran viajado se quedarían marcadas para siempre.
-    const seLimpia = NUNCA_VIAJAN.has(key) || (iba && !cambioPorElCamino);
+    const seLimpia =
+      NUNCA_VIAJAN.has(key) ||
+      vacias?.includes(key) ||
+      (iba && !cambioPorElCamino);
 
     result[key] = {
       ...values,

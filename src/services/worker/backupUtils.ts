@@ -3836,11 +3836,30 @@ const fnv1a = (texto: string) => {
   return `${texto.length}:${hash.toString(16)}`;
 };
 
-export const dbTablesFingerprint = async (): Promise<
-  Record<string, string>
-> => {
-  const data = (await dbGetTableData()) as unknown as Record<string, unknown>;
+/**
+ * Las tablas que no tienen NI UN REGISTRO en este dispositivo.
+ *
+ * Se devuelven con su nombre de metadata, para poder limpiar su marca de
+ * pendiente: una tabla vacía no tiene nada que enviar. Ver `vacias` en
+ * `nextExportState` — sin esto, las marcas de las tablas que no viajan se
+ * quedaban puestas para siempre y el aro amarillo no se iba nunca.
+ *
+ * Solo listas. Los ajustes son un objeto y siempre existen, así que ahí "vacío"
+ * no significa nada.
+ */
+const tablasVacias = (data: Record<string, unknown>): string[] => {
+  const result: string[] = [];
 
+  for (const [key, value] of Object.entries(data)) {
+    if (!Array.isArray(value) || value.length > 0) continue;
+
+    result.push(PAYLOAD_TO_METADATA_KEY[key] ?? key);
+  }
+
+  return result;
+};
+
+const huellaDe = (data: Record<string, unknown>): Record<string, string> => {
   const result: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(data)) {
@@ -3867,10 +3886,8 @@ export const dbTablesFingerprint = async (): Promise<
   return result;
 };
 
-export const payloadMetadataKeys = (payload: BackupDataType): string[] =>
-  Object.keys(payload)
-    .filter((key) => !PAYLOAD_KEYS_WITHOUT_FLAG.has(key))
-    .map((key) => PAYLOAD_TO_METADATA_KEY[key] ?? key);
+export const dbTablesFingerprint = async (): Promise<Record<string, string>> =>
+  huellaDe((await dbGetTableData()) as unknown as Record<string, unknown>);
 
 /**
  * Da por enviado lo que se ha enviado. NADA MÁS.
@@ -3899,15 +3916,19 @@ export const dbClearExportState = async (
 ) => {
   const metadata = await appDb.metadata.get(1);
 
-  // Solo se vuelve a leer el contenido si hay huella con la que comparar.
-  const actual = snapshot ? await dbTablesFingerprint() : undefined;
+  // Una sola lectura para las dos cosas: la huella de ahora (para ver qué cambió
+  // mientras se subía) y qué tablas están vacías (para no dejar su marca puesta
+  // eternamente). Leer todas las tablas dos veces sería el doble de trabajo por
+  // ciclo sin ninguna ganancia.
+  const data = (await dbGetTableData()) as unknown as Record<string, unknown>;
 
   await appDb.metadata.update(metadata.id, {
     metadata: nextExportState({
       current: metadata.metadata,
       uploaded,
       snapshot,
-      actual,
+      actual: snapshot ? huellaDe(data) : undefined,
+      vacias: tablasVacias(data),
     }),
   });
 };
