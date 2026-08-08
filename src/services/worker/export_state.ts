@@ -8,11 +8,30 @@ import { MetadataRecordType } from '@definition/metadata';
  * poder comprobarse solo, sin Dexie ni worker de por medio.
  */
 
-// La clave con la que viaja cada tabla no siempre se llama igual que su
-// entrada en metadata. Lo que no está aquí se busca por su propio nombre.
+// La clave con la que viaja cada tabla no siempre se llama igual que su entrada
+// en metadata, y a veces UNA clave de envío lleva DOS marcas dentro: los ajustes
+// viajan juntos bajo `app_settings` pero se marcan por separado. Lo que no está
+// aquí se busca por su propio nombre.
+export const PAYLOAD_TO_METADATA_KEYS: Record<string, string[]> = {
+  sched: ['schedules'],
+  app_settings: ['user_settings', 'cong_settings'],
+};
+
+// Compatibilidad con `warnAboutUnrequestedTables`, que solo necesita el nombre.
 export const PAYLOAD_TO_METADATA_KEY: Record<string, string> = {
   sched: 'schedules',
 };
+
+/**
+ * Marcas que NUNCA pueden viajar, porque su tabla solo se recibe.
+ *
+ * `public_sources` y `public_schedules` las genera el servidor: el dispositivo
+ * las baja y no las sube jamás. Nacen marcadas como pendientes
+ * (`dexie/metadata.ts`), así que si se exigiera que hubieran viajado para
+ * limpiarlas se quedarían puestas para siempre — que es exactamente el aro
+ * amarillo eterno del 2026-08-07.
+ */
+const NUNCA_VIAJAN = new Set(['public_sources', 'public_schedules']);
 
 // Claves que NO son una tabla sincronizada y por tanto no llevan `send_local`:
 // datos derivados de la subida o cosas que solo viajan al arrancar.
@@ -27,8 +46,10 @@ export const PAYLOAD_KEYS_WITHOUT_FLAG = new Set([
 /** Las claves de metadata de las tablas que de verdad han viajado en un envío. */
 export const payloadMetadataKeys = (payload: object): string[] =>
   Object.keys(payload)
-    .filter((key) => !PAYLOAD_KEYS_WITHOUT_FLAG.has(key))
-    .map((key) => PAYLOAD_TO_METADATA_KEY[key] ?? key);
+    // `app_settings` sí lleva marcas dentro, así que no se filtra aquí aunque
+    // esté en la lista de «no es una tabla»: esa lista es para otro uso.
+    .filter((key) => key === 'app_settings' || !PAYLOAD_KEYS_WITHOUT_FLAG.has(key))
+    .flatMap((key) => PAYLOAD_TO_METADATA_KEYS[key] ?? [key]);
 
 /**
  * El nuevo estado de las marcas de «pendiente de subir».
@@ -88,7 +109,16 @@ export const nextExportState = ({
     const cambioPorElCamino =
       iba && !!snapshot && key in snapshot && snapshot[key] !== actual?.[key];
 
-    const seLimpia = !cambioPorElCamino;
+    // Se limpia lo que VIAJÓ y no cambió por el camino. Lo que no viajó sigue
+    // pendiente: si no, un ciclo que no sube nada —porque lo único marcado es
+    // una tabla que este rol no puede subir— daba por enviadas TODAS las
+    // marcas, y ese cambio no salía del móvil jamás. Pasa de verdad: el
+    // limpiador de duplicados de oradores marca esas tablas en todos los
+    // dispositivos, pero solo las sube quien lleva los discursos públicos.
+    //
+    // Con la excepción de las que no pueden viajar nunca, que si se exigiera
+    // que hubieran viajado se quedarían marcadas para siempre.
+    const seLimpia = NUNCA_VIAJAN.has(key) || (iba && !cambioPorElCamino);
 
     result[key] = {
       ...values,

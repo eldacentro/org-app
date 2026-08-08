@@ -3395,9 +3395,17 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         }
 
         // include territories data
+        // `(rol) && send_local`, NUNCA con `||`. Con el `||` de antes, cualquier
+        // anciano o administrador cifraba y subía los OCHO ficheros de
+        // territorios —las 97 de Elda, más zonas, asignaciones, campañas y
+        // avisos— en CADA ciclo, tuviera o no algo que enviar. Y el servidor no
+        // hace nada con ellos: se cifran, se trocean, se suben, se toma el
+        // candado de la congregación, se reensamblan y se tiran. Además dejaba
+        // el envío nunca vacío, que es el patrón de bucle que documenta
+        // CLAUDE.md y que ya costó un disgusto con las visitas del
+        // superintendente de circuito.
         if (
-          adminRole ||
-          elderRole ||
+          (adminRole || elderRole) &&
           metadata.metadata.territories?.send_local
         ) {
           const toAdd = [
@@ -3816,7 +3824,20 @@ export const dbTablesFingerprint = async (): Promise<
   const result: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(data)) {
-    if (key === 'metadata' || key === 'settings') continue;
+    if (key === 'metadata') continue;
+
+    // LOS AJUSTES TAMBIÉN, y por separado. Se saltaban enteros, así que sus dos
+    // marcas quedaban fuera de la red: cambiar la hora de la reunión mientras el
+    // móvil subía se daba por enviado y no salía nunca. Son justo las marcas de
+    // más valor, y eran las únicas sin protección.
+    if (key === 'settings') {
+      const ajustes = (value ?? {}) as Record<string, unknown>;
+
+      result.user_settings = fnv1a(JSON.stringify(ajustes.user_settings ?? null));
+      result.cong_settings = fnv1a(JSON.stringify(ajustes.cong_settings ?? null));
+
+      continue;
+    }
 
     const metadataKey = PAYLOAD_TO_METADATA_KEY[key] ?? key;
 

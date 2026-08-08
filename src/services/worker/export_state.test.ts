@@ -21,6 +21,13 @@ const meta = (
   ) as MetadataRecordType['metadata'];
 
 describe('payloadMetadataKeys', () => {
+  it('una clave de envío puede llevar DOS marcas dentro', () => {
+    expect(payloadMetadataKeys({ app_settings: {} }).sort()).toEqual([
+      'cong_settings',
+      'user_settings',
+    ]);
+  });
+
   it('traduce el nombre con el que viaja cada tabla al de su marca', () => {
     // `sched` viaja así pero su marca se llama `schedules`. Sin traducirlo, esa
     // tabla no se limpiaría nunca y subiría en cada ciclo.
@@ -31,7 +38,6 @@ describe('payloadMetadataKeys', () => {
     const keys = payloadMetadataKeys({
       persons: [],
       affected_uids: [],
-      app_settings: {},
       speakers_key: '',
     });
 
@@ -44,20 +50,49 @@ describe('payloadMetadataKeys', () => {
 });
 
 describe('nextExportState — lo que no viaja con su nombre igual se limpia', () => {
-  it('una clave que nunca es clave de envío NO se queda pendiente', () => {
+  it('un ciclo que no sube nada NO da por enviado nada', () => {
+    // EL FALLO: si lo único marcado es una tabla que este rol no puede subir, el
+    // envío sale vacío. Dar por enviadas todas las marcas ahí dejaba ese cambio
+    // en el móvil para siempre. Pasa de verdad: el limpiador de duplicados de
+    // oradores marca esas tablas en TODOS los dispositivos, pero solo las sube
+    // quien lleva los discursos públicos.
+    const result = nextExportState({
+      current: meta({ visiting_speakers: true, persons: true }),
+      uploaded: [],
+    });
+
+    expect(result.visiting_speakers.send_local).toBe(true);
+    expect(result.persons.send_local).toBe(true);
+  });
+
+  it('los ajustes se limpian cuando viaja `app_settings`', () => {
+    // Viajan los dos juntos bajo una sola clave de envío, pero se marcan por
+    // separado. Sin traducir esa clave a las DOS marcas, se quedaban puestas.
+    const result = nextExportState({
+      current: meta({ user_settings: true, cong_settings: true }),
+      uploaded: payloadMetadataKeys({ app_settings: {} }),
+    });
+
+    expect(result.user_settings.send_local).toBe(false);
+    expect(result.cong_settings.send_local).toBe(false);
+  });
+
+  it('lo que solo se recibe se limpia aunque no viaje nunca', () => {
     // EL FALLO DEL 2026-08-07: 13 claves de metadata no aparecen nunca con su
     // nombre en un envío —los ajustes viajan dentro de `app_settings`, los
     // programas como `sched`, y las de territorios van por Firestore—. Si se
     // filtrara por «¿viajó?», se quedaban marcadas PARA SIEMPRE y la app decía
     // «cambios pendientes de enviar» eternamente, con el aro amarillo puesto.
+    // `public_sources` y `public_schedules` las genera el servidor: el móvil las
+    // baja y no las sube jamás, pero nacen marcadas. Exigirles que hubieran
+    // viajado las dejaba puestas para siempre — el aro amarillo eterno.
     const result = nextExportState({
-      current: meta({ user_settings: true, cong_settings: true, territories: true }),
+      current: meta({ public_sources: true, public_schedules: true }),
       uploaded: ['persons'],
     });
 
-    expect(result.user_settings.send_local).toBe(false);
-    expect(result.cong_settings.send_local).toBe(false);
-    expect(result.territories.send_local).toBe(false);
+    expect(result.public_sources.send_local).toBe(false);
+    expect(result.public_schedules.send_local).toBe(false);
   });
 
   it('sin lista de enviadas se limpia todo, como siempre', () => {
@@ -77,9 +112,7 @@ describe('nextExportState — lo que no viaja con su nombre igual se limpia', ()
 });
 
 describe('nextExportState — lo editado MIENTRAS se subía', () => {
-  it('solo se mira el cambio de las tablas que SÍ iban en el envío', () => {
-    // De una tabla que no viajó no hay nada que esperar, así que su huella no
-    // decide nada: se limpia igual.
+  it('una tabla que no viajó sigue pendiente, cambiara o no', () => {
     const result = nextExportState({
       current: meta({ persons: true }),
       uploaded: ['sched'],
@@ -87,7 +120,7 @@ describe('nextExportState — lo editado MIENTRAS se subía', () => {
       actual: { persons: 'b' },
     });
 
-    expect(result.persons.send_local).toBe(false);
+    expect(result.persons.send_local).toBe(true);
   });
 
   it('si la tabla cambió por el camino, la marca se queda puesta', () => {
