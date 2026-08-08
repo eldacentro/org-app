@@ -135,27 +135,63 @@ const useWebWorker = () => {
 
   useEffect(() => {
     if (!isTest && window.Worker) {
+      // Lo que hay que rehacer cuando llegan datos nuevos: las tablas derivadas
+      // —tipos de semana, asignaciones, discursos y canciones— no vienen del
+      // servidor, se reconstruyen desde las traducciones. Todas comparan
+      // contenido antes de escribir (`dbReplaceTableIfChanged`), así que
+      // llamarlas dos veces no cuesta escrituras ni provoca parpadeo.
+      const rehacerTablasDerivadas = async () => {
+        await refreshLocalesResources();
+        await dbWeekTypeUpdate();
+        await dbAssignmentUpdate();
+        await dbPublicTalkUpdate();
+        await dbSongUpdate();
+
+        // load assignment history
+        const history = schedulesBuildHistoryList();
+        setAssignmentsHistory(history);
+
+        await dbSpeakersCongregationsSetName();
+      };
+
       worker.onmessage = async function (event) {
         if (event.data === 'Syncing') {
           setIsAppDataSyncing(true);
+        }
+
+        // LA BAJADA YA ESTÁ DENTRO, aunque el ciclo no haya acabado.
+        //
+        // Solo se atiende en un dispositivo que NUNCA ha completado una
+        // sincronización: es la misma condición con la que nace
+        // `firstSyncDoneState`, así que en un móvil de uso diario esto no hace
+        // absolutamente nada y el ciclo normal se queda igual.
+        //
+        // Hay que rehacer las tablas derivadas ANTES de quitar el aviso. Si no,
+        // se cambiaría «no sé todavía» por un 0 grande y falso —las
+        // asignaciones se leen de esas tablas, no de lo que acaba de bajar—, que
+        // es justo el hermano cerrando la app creyendo que no le toca nada.
+        if (event.data.dataReady) {
+          let yaSincronizoAlgunaVez = true;
+
+          try {
+            yaSincronizoAlgunaVez =
+              (localStorage.getItem(LAST_SYNC_STORAGE_KEY) ?? '').length > 0;
+          } catch {
+            // Almacenamiento bloqueado: `firstSyncDoneState` ya arranca en
+            // `true` en ese caso, o sea que no hay ningún aviso que quitar.
+          }
+
+          if (!yaSincronizoAlgunaVez) {
+            await rehacerTablasDerivadas();
+            setFirstSyncDone();
+          }
         }
 
         if (event.data === 'Done') {
           setIsAppDataSyncing(false);
 
           // sync complete -> refresh app data
-
-          await refreshLocalesResources();
-          await dbWeekTypeUpdate();
-          await dbAssignmentUpdate();
-          await dbPublicTalkUpdate();
-          await dbSongUpdate();
-
-          // load assignment history
-          const history = schedulesBuildHistoryList();
-          setAssignmentsHistory(history);
-
-          await dbSpeakersCongregationsSetName();
+          await rehacerTablasDerivadas();
 
           // check for new/changed assignments and queue push notification
           runAssignmentPushDiffs().catch(() => {});

@@ -102,6 +102,22 @@ const runBackup = async () => {
         huella = await dbTablesFingerprint();
         console.log(`[backup] export/merge local en ${Math.round(performance.now() - exportStart)}ms`);
 
+        // LA BAJADA YA ESTÁ GUARDADA. Se avisa AQUÍ, no al final del ciclo.
+        //
+        // El GET de arriba ya trajo el programa y las asignaciones, y
+        // `dbExportDataBackup` acaba de fusionarlos en Dexie. A partir de este
+        // punto el dispositivo YA sabe lo que hay, y lo que queda del ciclo es
+        // subir lo suyo, que es otra cosa.
+        //
+        // Antes el aviso de «Estamos descargando el programa y tus
+        // asignaciones» solo se apagaba al terminar el ciclo COMPLETO, subida
+        // incluida. Si la subida chocaba con otro dispositivo, cinco reintentos
+        // de 2-4 s y luego BACKUP_FAILED: el móvil se quedaba diciendo
+        // «descargando» PARA SIEMPRE con los datos ya dentro. Es lo que le pasó
+        // a quien entró por primera vez mientras la congregación estaba
+        // ocupada.
+        self.postMessage({ dataReady: true });
+
         // Nada local que subir (payload {}): este ciclo fue SOLO de descarga
         // — lo disparó la señal de otro dispositivo. El GET de arriba ya trajo
         // y fusionó lo nuevo, así que el POST sobra. Evitarlo es lo correcto y
@@ -191,6 +207,11 @@ const runBackup = async () => {
         const reqPayload = await dbExportDataBackup(backupData);
         enviadas = payloadMetadataKeys(reqPayload);
         huella = await dbTablesFingerprint();
+
+        // La bajada ya está guardada; igual que en el bucle VIP, se avisa aquí y
+        // no al final, para que un tropiezo al subir no deje el aviso de
+        // «descargando» puesto con los datos ya dentro.
+        self.postMessage({ dataReady: true });
 
         // ciclo solo de descarga: nada que subir → sin POST (ver bucle VIP)
         if (Object.keys(reqPayload).length === 0) {
