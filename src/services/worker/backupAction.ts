@@ -11,6 +11,7 @@ import {
   dbTablesFingerprint,
   dbGetMetadata,
   dbGetSettings,
+  lastRestoreFailedCategories,
 } from './backupUtils';
 import { payloadMetadataKeys } from './export_state';
 
@@ -116,7 +117,24 @@ const runBackup = async () => {
         // «descargando» PARA SIEMPRE con los datos ya dentro. Es lo que le pasó
         // a quien entró por primera vez mientras la congregación estaba
         // ocupada.
-        self.postMessage({ dataReady: true });
+        //
+        // Solo si entró TODO. La restauración confirma la transacción aunque una
+        // categoría falle —bloquear el ciclo por una tabla dejaría a la
+        // congregación chocando con 409— y devuelve con normalidad. Si justo
+        // falló la de programas, anunciarlo aquí enseñaría un 0 grande y falso
+        // en vez del aviso: exactamente el fallo que este aviso viene a evitar.
+        // Su versión no se ha dado por buena, así que el ciclo siguiente la
+        // vuelve a pedir y el anuncio llega entonces.
+        const categoriasFallidas = lastRestoreFailedCategories();
+
+        if (categoriasFallidas.length === 0) {
+          self.postMessage({ dataReady: true });
+        } else {
+          console.warn(
+            '[backup] bajada incompleta, no se anuncia todavía — falló:',
+            categoriasFallidas.join(', ')
+          );
+        }
 
         // Nada local que subir (payload {}): este ciclo fue SOLO de descarga
         // — lo disparó la señal de otro dispositivo. El GET de arriba ya trajo
@@ -210,8 +228,11 @@ const runBackup = async () => {
 
         // La bajada ya está guardada; igual que en el bucle VIP, se avisa aquí y
         // no al final, para que un tropiezo al subir no deje el aviso de
-        // «descargando» puesto con los datos ya dentro.
-        self.postMessage({ dataReady: true });
+        // «descargando» puesto con los datos ya dentro. Y solo si entró todo, por
+        // lo mismo: una bajada a medias enseñaría un 0 falso.
+        if (lastRestoreFailedCategories().length === 0) {
+          self.postMessage({ dataReady: true });
+        }
 
         // ciclo solo de descarga: nada que subir → sin POST (ver bucle VIP)
         if (Object.keys(reqPayload).length === 0) {

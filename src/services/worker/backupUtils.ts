@@ -2419,13 +2419,27 @@ const restoreCategorySafely = async (
   }
 };
 
+/**
+ * Categorías que fallaron en la última bajada, o vacío si entró todo limpio.
+ *
+ * La restauración confirma la transacción A PROPÓSITO aunque una categoría
+ * falle: bloquear el ciclo entero por una tabla dejaría a la congregación
+ * chocando con 409. Pero entonces `dbExportDataBackup` devuelve con toda
+ * normalidad y quien lo llama no tiene forma de saber que falta algo — y hay
+ * una decisión que depende justo de eso: anunciar la primera bajada como hecha.
+ * Hacerlo sin programas cambiaría «no sé todavía» por un 0 grande y falso.
+ */
+let categoriasFallidasUltimaBajada: string[] = [];
+
+export const lastRestoreFailedCategories = () => categoriasFallidasUltimaBajada;
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
   masterKey?: string
-) => {
+): Promise<string[]> => {
   try {
-    await appDb.transaction('rw', appDb.tables, async () => {
+    return await appDb.transaction('rw', appDb.tables, async () => {
       await dbRestoreSettings(backupData, accessCode, masterKey);
 
       await dbRestorePersons(backupData, accessCode, masterKey);
@@ -2636,6 +2650,8 @@ const dbRestoreFromBackup = async (
       }
 
       await dbInsertMetadata(metadataToInsert);
+
+      return [...failedCategories];
     });
   } catch (error) {
     throw new Error(`Restore failed: ${error.message}`);
@@ -2801,7 +2817,11 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       decryptObject({ data: r, table: 'exhibitors', accessCode })
     );
 
-    await dbRestoreFromBackup(backupData, accessCode, masterKey);
+    categoriasFallidasUltimaBajada = await dbRestoreFromBackup(
+      backupData,
+      accessCode,
+      masterKey
+    );
 
     // Antes de leer las tablas para el envío: lo que selle viaja en esta misma
     // subida en vez de esperar al ciclo siguiente.
