@@ -1346,11 +1346,15 @@ export const schedulesToggleAssignmentConfirmed = async (
 
     assigned.confirmed = confirmed;
     assigned.updatedAt = updatedAt;
+    // La MISMA fecha en los dos: así se sabe que el último toque de esta
+    // asignación fue la hojita y no una edición del programa. Ver `confirmedAt`.
+    assigned.confirmedAt = updatedAt;
   } else {
     if (!fieldUpdate?.value) return;
 
     fieldUpdate.confirmed = confirmed;
     fieldUpdate.updatedAt = updatedAt;
+    fieldUpdate.confirmedAt = updatedAt;
   }
 
   await dbSchedUpdate(schedule.weekOf, {
@@ -1407,7 +1411,12 @@ export const schedulesSaveAssignment = async (
         // el anterior, no el nuevo. Si no se borrara aquí, la parte quedaría
         // marcada como entregada a alguien que ni sabe que la tiene — que es
         // justo lo que la marca existe para evitar.
-        if (assigned.value !== toSave) delete assigned.confirmed;
+        if (assigned.value !== toSave) {
+          delete assigned.confirmed;
+          // Y su fecha con ella: si se quedara, la asignación nueva parecería
+          // «tocada solo por la hojita» y su cambio no se contaría.
+          delete assigned.confirmedAt;
+        }
 
         assigned.value = toSave;
         assigned.name = nameToSave;
@@ -1429,7 +1438,10 @@ export const schedulesSaveAssignment = async (
       }
     } else {
       // Mismo motivo que arriba.
-      if (fieldUpdate.value !== toSave) delete fieldUpdate.confirmed;
+      if (fieldUpdate.value !== toSave) {
+        delete fieldUpdate.confirmed;
+        delete fieldUpdate.confirmedAt;
+      }
 
       fieldUpdate.value = toSave;
       fieldUpdate.name = nameToSave;

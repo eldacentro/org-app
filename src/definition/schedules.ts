@@ -25,6 +25,23 @@ export type AssignmentCongregation = {
    */
   confirmed?: boolean;
   /**
+   * Cuándo se puso o se quitó la marca de la hojita.
+   *
+   * Existe SOLO para poder distinguir «lo último que le pasó a esta asignación
+   * fue confirmar la hojita» de «alguien cambió el programa». Confirmar tiene
+   * que sellar `updatedAt` como cualquier otra edición —si no, la marca no
+   * ganaría la fusión y no llegaría a los demás dispositivos—, pero entonces la
+   * cuenta de «cambios desde que se publicó» la contaba como un cambio del
+   * programa, y no lo es: a quién se le ha entregado la hojita no le cambia
+   * nada al resto de la congregación, solo lo miramos quienes lo repartimos.
+   *
+   * Cuando las dos fechas coinciden, el último toque fue la confirmación. En
+   * cuanto se edite cualquier otra cosa, `updatedAt` avanza y dejan de
+   * coincidir, así que ese cambio sí se cuenta. Se borra junto con `confirmed`
+   * al reasignar la parte a otra persona.
+   */
+  confirmedAt?: string;
+  /**
    * Quién puso este valor, por su nombre.
    *
    * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del

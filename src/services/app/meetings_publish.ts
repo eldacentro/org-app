@@ -449,6 +449,27 @@ const countUpdatedAfter = (
   if (typeof record.updatedAt === 'string' && 'value' in record) {
     if (typeof record.type === 'string' && record.type !== dataView) return 0;
 
+    // LA HOJITA NO ES UN CAMBIO DEL PROGRAMA. Marcar que un hermano ha
+    // confirmado su S-89 sella `updatedAt` como cualquier otra edición —tiene
+    // que hacerlo, o la marca no ganaría la fusión y no llegaría a los demás
+    // dispositivos—, y por eso salía «has hecho 3 cambios desde entonces» solo
+    // por ir poniendo tics.
+    //
+    // Pero eso no cambia nada de lo que el resto de la congregación tiene
+    // delante: a quién se le ha entregado la hojita solo nos importa a quienes
+    // repartimos las asignaciones. Contarlo empujaba a volver a publicar un mes
+    // que en realidad no había cambiado.
+    //
+    // Si las dos fechas coinciden, el último toque de esta asignación fue la
+    // confirmación. En cuanto se edite cualquier otra cosa, `updatedAt` avanza,
+    // dejan de coincidir y ese cambio sí se cuenta.
+    if (
+      typeof record.confirmedAt === 'string' &&
+      record.confirmedAt === record.updatedAt
+    ) {
+      return 0;
+    }
+
     return record.updatedAt > reference ? 1 : 0;
   }
 

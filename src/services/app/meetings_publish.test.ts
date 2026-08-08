@@ -377,6 +377,64 @@ describe('avisar de lo que se ha cambiado desde que se publicó', () => {
     ).toBe(1);
   });
 
+  it('confirmar la hojita NO es un cambio del programa', () => {
+    // Marcar que un hermano ha confirmado su S-89 sella `updatedAt` como
+    // cualquier otra edición —tiene que hacerlo, o la marca no ganaría la fusión
+    // y no llegaría a los demás dispositivos—, así que salía «has hecho 3
+    // cambios desde entonces» solo por ir poniendo tics. Pero eso no cambia nada
+    // de lo que el resto de la congregación tiene delante: solo nos importa a
+    // quienes repartimos las asignaciones.
+    const cuandoSeConfirmo = '2026-10-03T10:00:00Z';
+
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              updatedAt: cuandoSeConfirmo,
+              confirmed: true,
+              confirmedAt: cuandoSeConfirmo,
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(0);
+  });
+
+  it('pero editar DESPUÉS de confirmar sí cuenta', () => {
+    // En cuanto se toca cualquier otra cosa, `updatedAt` avanza y deja de
+    // coincidir con la fecha de la hojita: ese cambio sí hay que publicarlo.
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              updatedAt: '2026-10-04T09:00:00Z',
+              confirmed: true,
+              confirmedAt: '2026-10-03T10:00:00Z',
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(1);
+  });
+
   it('lo anterior a la publicación no es un cambio', () => {
     const semanas = [
       week('2026/10/05', {
