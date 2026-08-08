@@ -3265,7 +3265,17 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         // porque tiene su propio rol. Dentro, quien solo fuera responsable de
         // departamentos no lo subía nunca: editaba, la app decía que había
         // guardado, y el trabajo se quedaba en su dispositivo.
-        if (departmentsEditor && metadata.metadata.schedules.send_local) {
+        //
+        // Y con SU PROPIA marca, no la de los programas de las reuniones. Con
+        // `schedules` aquí, la red que protege lo que se edita mientras se sube
+        // no lo cubría: compara el contenido de la tabla que lleva la marca, y
+        // esa era `sched`, no esta. Publicar durante una subida no registraba
+        // ningún cambio, la marca se daba por enviada y el trabajo se quedaba en
+        // el dispositivo para siempre. Ver `dbMarkDepartmentsPending`.
+        if (
+          departmentsEditor &&
+          metadata.metadata.departments_schedule?.send_local
+        ) {
           obj.departments_schedule = departments_schedule.map((record) => {
             const dept = structuredClone(record);
 

@@ -170,6 +170,28 @@ describe('nextExportState — lo editado MIENTRAS se subía', () => {
     expect(result.cong_field_service_reports.send_local).toBe(true);
   });
 
+  it('publicar departamentos mientras se subía NO se da por enviado', () => {
+    // EL CASO DEL HERMANO QUE NO VEÍA DEPARTAMENTOS. La tabla de departamentos
+    // se subía con la marca `schedules`, la de los programas de las reuniones.
+    // Esta red compara el CONTENIDO de la tabla que lleva la marca, así que
+    // miraba `sched` —que no había cambiado— y daba la marca por enviada:
+    // publicar durante una subida se quedaba en el dispositivo para siempre. Sin
+    // el sello de publicado, quien no lleva departamentos no ve nada.
+    //
+    // Cada marca tiene que seguir a SU tabla. Aquí los programas de las
+    // reuniones no cambiaron y departamentos sí, y solo departamentos sigue
+    // pendiente.
+    const result = nextExportState({
+      current: meta({ schedules: true, departments_schedule: true }),
+      uploaded: ['schedules', 'departments_schedule'],
+      snapshot: { schedules: 'x', departments_schedule: 'a' },
+      actual: { schedules: 'x', departments_schedule: 'b' },
+    });
+
+    expect(result.schedules.send_local).toBe(false);
+    expect(result.departments_schedule.send_local).toBe(true);
+  });
+
   it('si no cambió, se da por enviada', () => {
     const result = nextExportState({
       current: meta({ cong_field_service_reports: true }),
