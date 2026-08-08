@@ -77,7 +77,7 @@ export const nextExportState = ({
   uploaded,
   snapshot,
   actual,
-  vacias,
+  sinNadaQueEnviar,
 }: {
   current: MetadataRecordType['metadata'];
   /**
@@ -90,21 +90,25 @@ export const nextExportState = ({
   /** Huella por tabla ahora. */
   actual?: Record<string, string>;
   /**
-   * Tablas SIN NI UN REGISTRO en este dispositivo.
+   * Tablas de las que este dispositivo no tiene NADA que enviar. Nunca. Su marca
+   * se limpia aunque no hayan viajado, porque esperar a que viajen es esperar a
+   * algo que no va a pasar. Dos motivos, los dos definitivos:
    *
-   * Una tabla vacía no tiene nada que enviar, así que su marca se limpia
-   * aunque no haya viajado. Sin esto se quedaban marcadas PARA SIEMPRE, y con
-   * ellas el aro amarillo y el «cambios pendientes de enviar» eternos. Las ocho
-   * de territorios son el caso vivo: solo viajan si su tabla tiene registros
-   * (`item.data.length > 0`) y solo para ancianos y administradores, así que a
-   * una publicadora no le viajan JAMÁS, y a un anciano se le quedan colgadas
-   * todas las que tenga vacías —avisos, campañas, peticiones—.
+   * 1. LA TABLA ESTÁ VACÍA. Sin un solo registro no hay nada que mandar, y una
+   *    tabla vacía en un envío tampoco borra nada en el servidor: mandarla no
+   *    haría absolutamente nada. Es el caso de las ocho de territorios, que solo
+   *    viajan si tienen contenido.
+   * 2. EL ROL NO LA DEJA SUBIR. Una publicadora recibe 113 semanas de material y
+   *    125 programas y no puede enviarlos JAMÁS —van dentro de
+   *    `if (scheduleEditor)`—. Su marca nace puesta, la primera bajada le llena
+   *    la tabla, y a partir de ahí ni viaja ni está vacía: se quedaba puesta para
+   *    siempre. Eso era el aro amarillo eterno que se veía en su móvil y no en el
+   *    de un administrador, a quien esas tablas sí le viajan.
    *
-   * Y no se pierde nada al limpiarlas: una tabla vacía en un envío nunca borra
-   * nada en el servidor, o sea que enviarla no haría absolutamente nada. Lo que
-   * sí tiene contenido y no viajó sigue protegido, que es lo que importa.
+   * Lo que sí tiene contenido y sí podría viajar sigue protegido si no viajó,
+   * que es la mitad que evita perder cambios en silencio.
    */
-  vacias?: string[];
+  sinNadaQueEnviar?: string[];
 }): MetadataRecordType['metadata'] => {
   const result = {} as MetadataRecordType['metadata'];
 
@@ -137,7 +141,7 @@ export const nextExportState = ({
     // que hubieran viajado se quedarían marcadas para siempre.
     const seLimpia =
       NUNCA_VIAJAN.has(key) ||
-      vacias?.includes(key) ||
+      sinNadaQueEnviar?.includes(key) ||
       (iba && !cambioPorElCamino);
 
     result[key] = {

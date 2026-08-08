@@ -2433,6 +2433,18 @@ let categoriasFallidasUltimaBajada: string[] = [];
 
 export const lastRestoreFailedCategories = () => categoriasFallidasUltimaBajada;
 
+/**
+ * Tablas que esta cuenta NO puede subir por su rol, sea cual sea su estado.
+ *
+ * Se calcula al construir el envío, con los mismos booleanos que usan las
+ * puertas de rol, y sirve para poder limpiar su marca de pendiente: una tabla
+ * que este dispositivo no va a enviar jamás no puede quedarse esperando a
+ * enviarse. Ver `puedeSubirTabla` en `dbExportDataBackup`.
+ */
+let tablasBloqueadasPorRol: string[] = [];
+
+export const lastRoleBlockedTables = () => tablasBloqueadasPorRol;
+
 const dbRestoreFromBackup = async (
   backupData: BackupDataType,
   accessCode: string,
@@ -2998,6 +3010,52 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       adminRole ||
       languageGroupOverseerRole ||
       userRole.includes('attendance_tracking');
+
+    // QUÉ TABLAS PUEDE SUBIR ESTA CUENTA, con independencia de si hoy tiene algo
+    // pendiente. Son las MISMAS condiciones de rol que usan las puertas de más
+    // abajo, escritas con los mismos booleanos para que no puedan separarse.
+    //
+    // EL FALLO QUE ESTO ARREGLA — el aro amarillo que no se iba en el móvil de
+    // una publicadora aunque en el de un administrador sí. Todas las marcas
+    // NACEN puestas (`dexie/metadata.ts`). En el primer ciclo, la bajada llena
+    // las tablas y solo DESPUÉS se decide qué se da por enviado; así que la
+    // regla de «una tabla vacía no tiene nada que enviar» ya no las alcanza:
+    // para entonces están llenas.
+    //
+    // A un administrador eso no se le nota, porque sus tablas SÍ viajan y la
+    // marca se limpia al subirlas. Pero una publicadora recibe 113 semanas de
+    // material y 125 programas que NO puede subir jamás —van dentro de
+    // `if (scheduleEditor)`—, así que esas dos marcas se le quedaban puestas
+    // para siempre, y con ellas «cambios pendientes de enviar» y el aro
+    // amarillo. Eterno, y sin nada roto por detrás.
+    //
+    // EQUIVOCARSE AQUÍ SOLO ES GRAVE EN UNA DIRECCIÓN. Decir «sí puede» de más
+    // deja la marca puesta: es lo de ahora, molesta pero no pierde nada. Decir
+    // «no puede» de menos limpiaría una marca de algo que sí tenía que viajar, y
+    // ESO sí perdería el cambio en silencio. Por eso solo se enumeran las tablas
+    // cuya puerta se ha leído una a una, y lo que no está aquí se comporta como
+    // siempre.
+    const puedeSubirTabla: Record<string, boolean> = {
+      schedules: scheduleEditor,
+      sources: scheduleEditor,
+      departments_schedule: departmentsEditor,
+      field_service_groups: serviceCommitteeRole,
+      service_outings: serviceCommitteeRole,
+      exhibitors: serviceCommitteeRole,
+      meeting_attendance: attendanceTracker,
+      speakers_congregations: publicTalkEditor,
+      visiting_speakers: publicTalkEditor,
+      cong_field_service_reports:
+        adminRole ||
+        elderRole ||
+        groupOverseerRole ||
+        languageGroupOverseerRole,
+      persons: personEditor || isPublisher,
+    };
+
+    tablasBloqueadasPorRol = Object.entries(puedeSubirTabla)
+      .filter(([, puede]) => !puede)
+      .map(([tabla]) => tabla);
 
     const userBaseSettings = {
       firstname: user_settings.firstname,
@@ -3938,7 +3996,7 @@ export const dbClearExportState = async (
       uploaded,
       snapshot,
       actual: snapshot ? huellaDe(data) : undefined,
-      vacias: tablasVacias(data),
+      sinNadaQueEnviar: tablasVacias(data).concat(tablasBloqueadasPorRol),
     }),
   });
 };

@@ -109,7 +109,7 @@ describe('nextExportState — lo que no viaja con su nombre igual se limpia', ()
     const result = nextExportState({
       current: meta({ territory_notices: true, territories: true }),
       uploaded: ['territories'],
-      vacias: ['territory_notices'],
+      sinNadaQueEnviar: ['territory_notices'],
     });
 
     expect(result.territory_notices.send_local).toBe(false);
@@ -123,10 +123,29 @@ describe('nextExportState — lo que no viaja con su nombre igual se limpia', ()
     const result = nextExportState({
       current: meta({ visiting_speakers: true }),
       uploaded: ['persons'],
-      vacias: ['territory_notices'],
+      sinNadaQueEnviar: ['territory_notices'],
     });
 
     expect(result.visiting_speakers.send_local).toBe(true);
+  });
+
+  it('lo que el rol no deja subir se limpia aunque la tabla esté llena', () => {
+    // EL CASO DE LA PUBLICADORA, 2026-08-08. Todas las marcas nacen puestas. En
+    // el primer ciclo la bajada LLENA las tablas y solo después se decide qué se
+    // da por enviado, así que la regla de «vacía = nada que enviar» ya no las
+    // alcanza. A un administrador no se le nota, porque sus tablas sí viajan y
+    // la marca se limpia al subirlas; a ella no le viajan nunca —113 semanas de
+    // material y 125 programas que no puede enviar— y el aro amarillo se le
+    // quedaba puesto para siempre sin que hubiera nada roto.
+    const result = nextExportState({
+      current: meta({ sources: true, schedules: true, persons: true }),
+      uploaded: ['persons'],
+      sinNadaQueEnviar: ['sources', 'schedules'],
+    });
+
+    expect(result.sources.send_local).toBe(false);
+    expect(result.schedules.send_local).toBe(false);
+    expect(result.persons.send_local).toBe(false);
   });
 
   it('sin lista de enviadas se limpia todo, como siempre', () => {
