@@ -168,6 +168,16 @@ const Dashboard = () => {
   // el panel no puede enseñar cifras: un 0 se lee como "no te toca nada".
   const primeraDescarga = useFirstSyncPending();
 
+  // La primera descarga termina cuando ha bajado TODO, pero el programa —y con
+  // él las asignaciones— llega mucho antes. Hasta ahora la tarjeta seguía
+  // diciendo «descargando tus asignaciones» con las asignaciones ya visibles en
+  // su propia página: confundía, y hacía pensar que se había colgado.
+  //
+  // En cuanto hay una sola semana de programa ya se sabe la respuesta, así que
+  // se dice. La tira de arriba se queda, porque el resto sí sigue viniendo,
+  // pero pasa a decir la verdad de lo que falta.
+  const hayProgramaYa = schedules.length > 0;
+
   const {
     firstName,
     handleOpenMyAssignments,
@@ -1015,7 +1025,9 @@ const Dashboard = () => {
           <Typography className="body-small-regular" color="var(--ink-2)">
             {primeraDescarga.offline
               ? 'Sin conexión. El programa y tus asignaciones se descargarán en cuanto vuelvas a tener internet.'
-              : 'Estamos descargando el programa y tus asignaciones. Tardará unos segundos.'}
+              : hayProgramaYa
+                ? 'Tus asignaciones ya están. Seguimos trayendo el resto de los datos; puedes usar la aplicación mientras tanto.'
+                : 'Estamos descargando el programa y tus asignaciones. Tardará unos segundos.'}
           </Typography>
         </Box>
       )}
@@ -1041,7 +1053,7 @@ const Dashboard = () => {
         <div className="txt">
           <div className="lab">{t('tr_myAssignments', 'Mis asignaciones')}</div>
           <div className="big">
-            {primeraDescarga.pending
+            {primeraDescarga.pending && !hayProgramaYa
               ? primeraDescarga.offline
                 ? 'Sin conexión. Se descargarán al volver'
                 : 'Descargando tus asignaciones…'
@@ -1055,7 +1067,7 @@ const Dashboard = () => {
         </div>
         {/* Sin número mientras no se sepa: un 0 aquí no significa "ninguna",
             significa "todavía no lo sé", y se leen igual. */}
-        {!primeraDescarga.pending && (
+        {(!primeraDescarga.pending || hayProgramaYa) && (
           <div className="count-val">{countFutureAssignments}</div>
         )}
         <svg
