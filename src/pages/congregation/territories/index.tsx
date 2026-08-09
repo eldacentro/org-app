@@ -11,7 +11,9 @@ import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManag
 import DialogZonas from '@features/territories/responsables/DialogZonas';
 import DialogEtiquetas from '@features/territories/responsables/DialogEtiquetas';
 import DialogImportarKml from '@features/territories/responsables/DialogImportarKml';
-import ResponsablesPanel from '@features/territories/responsables/ResponsablesPanel';
+import ResponsablesPanel, {
+  TAB_SOLICITUDES,
+} from '@features/territories/responsables/ResponsablesPanel';
 import DialogVerTerritorio from '@features/territories/DialogVerTerritorio';
 import DialogEditarTerritorio from '@features/territories/dialogs/DialogEditarTerritorio';
 import DialogEntregar from '@features/territories/dialogs/DialogEntregar';
@@ -118,7 +120,7 @@ const TerritoriesPage = () => {
 
       {showingResponsables ? (
         <ResponsablesPanel
-          initialTab={pendingRequestsCount > 0 ? 2 : 0}
+          initialTab={pendingRequestsCount > 0 ? TAB_SOLICITUDES : 0}
           onView={(t) => setViewing(t)}
           onAsignar={(t) => setAsignar({ open: true, territory: t })}
           onEntregar={(a) => setEntregando(a)}

@@ -32,6 +32,16 @@ import ImportExportTab from './ImportExportTab';
 import TerritoriesOverviewMap from '../map/TerritoriesOverviewMap';
 import TerritoriosTab from './TerritoriosTab';
 
+/**
+ * Posición de la pestaña "Solicitudes" dentro de `tabs`.
+ *
+ * Vive aquí, y no como un 2 escrito en la página, porque el orden de las
+ * pestañas se cambia de vez en cuando: la primera vez que se movió una, el
+ * engranaje con la insignia roja siguió abriendo "la tercera", que ya era
+ * otra cosa. Si vuelves a reordenar, cambia este número.
+ */
+export const TAB_SOLICITUDES = 3;
+
 type Props = {
   onView: (t: Territory) => void;
   onAsignar: (t: Territory) => void;
@@ -43,7 +53,7 @@ type Props = {
    *  asignar uno a uno durante una campaña grande. */
   onAsignarBulk: (territories: Territory[]) => void;
   /** Pestaña inicial. Se usa para abrir en "Solicitudes" cuando se entra
-   *  desde la insignia roja del engranaje. */
+   *  desde la insignia roja del engranaje — ver `TAB_SOLICITUDES`. */
   initialTab?: number;
   onOpenZonas: () => void;
   onOpenEtiquetas: () => void;
@@ -74,8 +84,8 @@ const ResponsablesPanel = ({
   const settings = useAtomValue(territorySettingsState);
   const pending = useAtomValue(territoryPendingRequestsState);
   // Si se entra con solicitudes pendientes, abrir directamente en
-  // "Solicitudes" (pestaña 2). La insignia roja del engranaje solo se
-  // enciende por eso, y antes te dejaba en "Estadísticas": había que
+  // "Solicitudes" (ver `TAB_SOLICITUDES`). La insignia roja del engranaje
+  // solo se enciende por eso, y antes te dejaba en "Estadísticas": había que
   // descubrir y deslizar hasta la tercera pestaña de nueve cada vez.
   const [tab, setTab] = useState(() => initialTab ?? 0);
 
@@ -222,6 +232,31 @@ const ResponsablesPanel = ({
             ),
           },
           {
+            label: 'Territorios',
+            Component: (
+              <TerritoriosTab
+                zones={zones}
+                territories={territories}
+                tags={tags}
+                assignedIds={assignedIds}
+                daysUntilReassignable={settings.daysUntilReassignable}
+                loading={loading}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                deleting={deleting}
+                onToggleSelect={handleToggleSelect}
+                onToggleSelectionMode={handleToggleSelectionMode}
+                onBulkAsignar={handleBulkAsignar}
+                onBulkDelete={handleBulkDelete}
+                onView={onView}
+                onOpenZonas={onOpenZonas}
+                onOpenEtiquetas={onOpenEtiquetas}
+                onOpenImport={onOpenImport}
+                onOpenCrear={onOpenCrear}
+              />
+            ),
+          },
+          {
             label: 'Asignaciones',
             Component: (
               <AsignacionesTab
@@ -250,31 +285,6 @@ const ResponsablesPanel = ({
           {
             label: 'Historial',
             Component: <HistorialTab />,
-          },
-          {
-            label: 'Territorios',
-            Component: (
-              <TerritoriosTab
-                zones={zones}
-                territories={territories}
-                tags={tags}
-                assignedIds={assignedIds}
-                daysUntilReassignable={settings.daysUntilReassignable}
-                loading={loading}
-                selectionMode={selectionMode}
-                selectedIds={selectedIds}
-                deleting={deleting}
-                onToggleSelect={handleToggleSelect}
-                onToggleSelectionMode={handleToggleSelectionMode}
-                onBulkAsignar={handleBulkAsignar}
-                onBulkDelete={handleBulkDelete}
-                onView={onView}
-                onOpenZonas={onOpenZonas}
-                onOpenEtiquetas={onOpenEtiquetas}
-                onOpenImport={onOpenImport}
-                onOpenCrear={onOpenCrear}
-              />
-            ),
           },
           {
             label: 'Mapa',
