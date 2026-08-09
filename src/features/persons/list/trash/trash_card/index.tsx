@@ -33,7 +33,7 @@ const TrashPersonCard = ({
 }) => {
   const { t } = useAppTranslation();
 
-  const { isRestoring, handleOpen, handleClose, handleConfirm, reportsAtRisk } =
+  const { isRestoring, handleOpen, handleClose, handleConfirm, atRisk } =
     useTrashCard(entry);
 
   const totalReports = entry.reportsAlive + entry.reportsDeleted;
@@ -44,7 +44,7 @@ const TrashPersonCard = ({
         open={isRestoring}
         name={name}
         entry={entry}
-        reportsAtRisk={reportsAtRisk}
+        atRisk={atRisk}
         onClose={handleClose}
         onConfirm={handleConfirm}
       />
@@ -96,6 +96,10 @@ const TrashPersonCard = ({
             startIcon={<IconUndo color="var(--accent-main)" />}
             onClick={handleOpen}
             disableAutoStretch
+            // Con el nombre dentro, por lo mismo que el de eliminar de la
+            // lista de personas: hay uno de estos por fila, y «Restaurar»
+            // repetido no dice a quién se devuelve.
+            ariaLabel={t('tr_restorePersonAria', { name })}
           >
             {t('tr_restore')}
           </Button>

@@ -128,7 +128,7 @@ export const planRestore = (
 };
 
 /**
- * Qué informes se llevaría la norma de conservación EN CUANTO se restaure.
+ * Qué se llevaría la norma de conservación EN CUANTO se restaure.
  *
  * No es una hipótesis: mientras la persona está en la papelera, `retention.ts`
  * se la salta (no está entre las vivas) y sus informes quedan congelados. Al
@@ -137,10 +137,14 @@ export const planRestore = (
  * restaurar a alguien que se fue hace años puede devolverle los informes y
  * quitárselos en la comprobación diaria del día siguiente.
  *
+ * Cuenta también los NOMBRAMIENTOS cerrados (precursorados), que la misma
+ * norma retira con el mismo criterio: son parte del registro del publicador y
+ * dejarlos fuera del aviso sería prometer de más.
+ *
  * Se calcula ANTES de restaurar y se dice en pantalla. Una papelera que
  * devuelve unos datos y se los come sin avisar es peor que no tenerla.
  */
-export const reportsPurgedOnRestore = (
+export const purgedOnRestore = (
   person: PersonType,
   reports: CongFieldServiceReportType[],
   today = new Date()
@@ -162,16 +166,17 @@ export const reportsPurgedOnRestore = (
     )
     .filter((report) => !report.report_data._deleted);
 
-  if (personReports.length === 0) return [];
+  // Sin un solo informe vivo, `computeRetentionPlan` sale antes de mirar nada
+  // —incluidos los nombramientos, que recorre dentro del bucle de informes—,
+  // así que aquí tampoco hay nada que avisar.
+  if (personReports.length === 0) return { reports: 0, enrollments: 0 };
 
-  const plan = computeRetentionPlan(
-    [restored],
-    personReports,
-    [],
-    today
-  );
+  const plan = computeRetentionPlan([restored], personReports, [], today);
 
-  return plan.reportsToDelete.map((record) => record.report);
+  return {
+    reports: plan.reportsToDelete.length,
+    enrollments: plan.enrollmentsToDelete.length,
+  };
 };
 
 /**

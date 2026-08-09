@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import { TrashEntry } from '@services/app/persons_trash';
 import {
-  reportsPurgedOnRestore,
+  purgedOnRestore,
   restorePersonFromTrash,
+  TrashEntry,
 } from '@services/app/persons_trash';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -19,18 +19,21 @@ const useTrashCard = (entry: TrashEntry) => {
   const [isRestoring, setIsRestoring] = useState(false);
 
   /**
-   * Los informes que la norma de conservación se llevaría EN CUANTO vuelva.
+   * Lo que la norma de conservación se llevaría EN CUANTO vuelva.
    *
    * Mientras está en la papelera, `retention.ts` se salta a esta persona y sus
    * informes quedan congelados. Al devolverla vuelve a caer bajo la norma, y a
    * un publicador inactivo la norma solo le conserva el año de servicio de sus
    * últimos informes: la comprobación diaria del día siguiente se llevaría el
    * resto. Se calcula antes para poder decirlo, no después para lamentarlo.
+   *
+   * Solo cuando el diálogo está abierto: recorrer todos los informes por cada
+   * ficha de la papelera, y en cada cambio de la tabla, no lo paga nadie.
    */
-  const reportsAtRisk = useMemo(() => {
-    if (!isRestoring) return 0;
+  const atRisk = useMemo(() => {
+    if (!isRestoring) return { reports: 0, enrollments: 0 };
 
-    return reportsPurgedOnRestore(entry.person, reports).length;
+    return purgedOnRestore(entry.person, reports);
   }, [isRestoring, entry.person, reports]);
 
   const handleOpen = () => setIsRestoring(true);
@@ -78,7 +81,7 @@ const useTrashCard = (entry: TrashEntry) => {
     handleOpen,
     handleClose,
     handleConfirm,
-    reportsAtRisk,
+    atRisk,
   };
 };
 

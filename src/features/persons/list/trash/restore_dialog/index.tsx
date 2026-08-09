@@ -20,20 +20,36 @@ const RestorePersonDialog = ({
   open,
   name,
   entry,
-  reportsAtRisk,
+  atRisk,
   onClose,
   onConfirm,
 }: {
   open: boolean;
   name: string;
   entry: TrashEntry;
-  reportsAtRisk: number;
+  atRisk: { reports: number; enrollments: number };
   onClose: VoidFunction;
   onConfirm: VoidFunction;
 }) => {
   const { t } = useAppTranslation();
 
   const totalReports = entry.reportsAlive + entry.reportsDeleted;
+
+  // Las dos frases del aviso se escriben sueltas y se juntan aquí, para que
+  // cada una se sostenga sola: puede haber nombramientos en riesgo sin ningún
+  // informe en riesgo, y al revés.
+  const aviso = [
+    atRisk.reports === 1 && t('tr_restorePersonRetentionWarningOne'),
+    atRisk.reports > 1 &&
+      t('tr_restorePersonRetentionWarning', { count: atRisk.reports }),
+    atRisk.enrollments === 1 && t('tr_restorePersonRetentionEnrollmentsOne'),
+    atRisk.enrollments > 1 &&
+      t('tr_restorePersonRetentionEnrollments', {
+        count: atRisk.enrollments,
+      }),
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Dialog onClose={onClose} open={open} sx={{ padding: '24px' }}>
@@ -54,18 +70,8 @@ const RestorePersonDialog = ({
             })}
         </Typography>
 
-        {reportsAtRisk > 0 && (
-          <InfoTip
-            isBig={false}
-            color="warning"
-            text={
-              reportsAtRisk === 1
-                ? t('tr_restorePersonRetentionWarningOne')
-                : t('tr_restorePersonRetentionWarning', {
-                    count: reportsAtRisk,
-                  })
-            }
-          />
+        {aviso.length > 0 && (
+          <InfoTip isBig={false} color="warning" text={aviso} />
         )}
       </Box>
 

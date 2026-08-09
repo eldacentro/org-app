@@ -44,10 +44,36 @@ export const personsActiveState = atom((get) => {
  * Sale de `personsState` en crudo —no de `personsAllState`, que ya viene
  * ordenado por nombre— porque aquí el orden que importa es el de cuándo se
  * borró. Los informes entran para poder decir en cada tarjeta qué se recupera.
+ *
+ * Y respeta la VISTA igual que el resto de la lista: estando en un grupo de
+ * idioma se ve la papelera de ese grupo, no la de toda la congregación. Sin
+ * esto, un superintendente de grupo —que puede borrar dentro del suyo— veía en
+ * la papelera a los borrados de todos, con su fecha y quién los borró: gente
+ * que no sale por ninguna otra pantalla suya. Es el mismo filtro de
+ * `personsByViewState`, que no se puede reutilizar porque aquél parte de los
+ * VIVOS.
  */
-export const personsTrashState = atom((get) =>
-  buildTrashEntries(get(personsState), get(fieldServiceReportsState))
-);
+export const personsTrashState = atom((get) => {
+  const dataView = get(userDataViewState);
+  const groups = get(fieldServiceGroupsState);
+
+  const entries = buildTrashEntries(
+    get(personsState),
+    get(fieldServiceReportsState)
+  );
+
+  if (dataView === 'main') return entries;
+
+  const group = groups.find((record) => record.group_id === dataView);
+
+  if (!group) return entries;
+
+  return entries.filter((entry) =>
+    group.group_data.members.some(
+      (member) => member.person_uid === entry.person.person_uid
+    )
+  );
+});
 
 /**
  * El grupo de predicación que se acaba de elegir en la ficha de una persona.

@@ -4,7 +4,7 @@ import { CongFieldServiceReportType } from '@definition/cong_field_service_repor
 import {
   buildTrashEntries,
   planRestore,
-  reportsPurgedOnRestore,
+  purgedOnRestore,
 } from './persons_trash';
 
 /**
@@ -231,7 +231,7 @@ describe('planRestore', () => {
   });
 });
 
-describe('reportsPurgedOnRestore', () => {
+describe('purgedOnRestore', () => {
   const HOY = new Date('2026-08-09T00:00:00Z');
 
   it('avisa de los informes que la norma de conservación se llevaría al volver', () => {
@@ -258,7 +258,7 @@ describe('reportsPurgedOnRestore', () => {
       } as unknown as Partial<PersonType['person_data']>
     );
 
-    const enPeligro = reportsPurgedOnRestore(
+    const enPeligro = purgedOnRestore(
       inactivo,
       [
         buildReport('viejo', 'A', '2023/01'),
@@ -267,7 +267,73 @@ describe('reportsPurgedOnRestore', () => {
       HOY
     );
 
-    expect(enPeligro.map((r) => r.report_id)).toEqual(['viejo']);
+    expect(enPeligro).toEqual({ reports: 1, enrollments: 0 });
+  });
+
+  it('cuenta también los nombramientos cerrados que se llevaría', () => {
+    // La misma norma retira los precursorados CERRADOS fuera de la ventana de
+    // conservación de la persona. Son parte de su registro, y dejarlos fuera
+    // del aviso sería prometer más de lo que se devuelve.
+    //
+    // Las fechas van con BARRAS porque es como las escribe la app
+    // (`useEnrollments`: formatDate(value, 'yyyy/MM/dd')) y como las compara
+    // la norma. Con guiones el cotejo del mismo año se decide por el código
+    // del separador, no por el mes.
+    const inactivo = buildPerson(
+      'A',
+      { value: true, updatedAt: BORRADO },
+      {
+        publisher_baptized: {
+          active: { value: false, updatedAt: BORRADO },
+          history: [
+            {
+              id: 'h1',
+              _deleted: false,
+              updatedAt: BORRADO,
+              start_date: '2020/09/01',
+              end_date: '2025/06/30',
+            },
+          ],
+        },
+        enrollments: [
+          // cerrado y fuera del año conservado (2024/09–2025/08)
+          {
+            id: 'e-viejo',
+            _deleted: false,
+            updatedAt: BORRADO,
+            enrollment: 'AP',
+            start_date: '2022/09/01',
+            end_date: '2022/10/31',
+          },
+          // cerrado DENTRO del año conservado: no se toca
+          {
+            id: 'e-dentro',
+            _deleted: false,
+            updatedAt: BORRADO,
+            enrollment: 'AP',
+            start_date: '2025/03/01',
+            end_date: '2025/03/31',
+          },
+          // abierto: no se toca nunca
+          {
+            id: 'e-abierto',
+            _deleted: false,
+            updatedAt: BORRADO,
+            enrollment: 'FR',
+            start_date: '2024/09/01',
+            end_date: null,
+          },
+        ],
+      } as unknown as Partial<PersonType['person_data']>
+    );
+
+    const enPeligro = purgedOnRestore(
+      inactivo,
+      [buildReport('ultimo', 'A', '2025/05')],
+      HOY
+    );
+
+    expect(enPeligro).toEqual({ reports: 0, enrollments: 1 });
   });
 
   it('un publicador activo con informes recientes no pierde nada', () => {
@@ -290,18 +356,21 @@ describe('reportsPurgedOnRestore', () => {
       } as unknown as Partial<PersonType['person_data']>
     );
 
-    const enPeligro = reportsPurgedOnRestore(
+    const enPeligro = purgedOnRestore(
       activo,
       [buildReport('r1', 'A', '2026/05')],
       HOY
     );
 
-    expect(enPeligro).toHaveLength(0);
+    expect(enPeligro).toEqual({ reports: 0, enrollments: 0 });
   });
 
   it('sin informes no hay nada que avisar', () => {
     const persona = buildPerson('A', { value: true, updatedAt: BORRADO });
 
-    expect(reportsPurgedOnRestore(persona, [], HOY)).toHaveLength(0);
+    expect(purgedOnRestore(persona, [], HOY)).toEqual({
+      reports: 0,
+      enrollments: 0,
+    });
   });
 });
