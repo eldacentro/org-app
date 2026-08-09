@@ -3176,6 +3176,13 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
         groupOverseerRole ||
         languageGroupOverseerRole,
       persons: personEditor || isPublisher,
+      // Los avisos los RECIBE todo el mundo pero solo los sube un administrador
+      // (su bloque está anidado dentro de `if (adminRole)`). Esa asimetría es la
+      // que dejaba el aro amarillo puesto para siempre en el móvil de una
+      // publicadora: la tabla le llega con contenido, así que la regla de «vacía
+      // = nada que enviar» no la alcanza, y como no puede subirla nunca, su
+      // marca no se limpiaba jamás.
+      upcoming_events: adminRole,
     };
 
     tablasBloqueadasPorRol = Object.entries(puedeSubirTabla)
