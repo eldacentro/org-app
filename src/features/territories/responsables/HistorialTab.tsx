@@ -6,7 +6,7 @@ import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Badge from '@components/badge';
-import { TerritoryCard, TagChip } from '@features/territories/ui';
+import { TerritoryCard } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -75,10 +75,14 @@ const HistorialTab = () => {
     return lista.filter(({ asignacion: a }) => {
       const persona = resolveName(a.personUid).toLowerCase();
       const t = territories.find((x) => x.id === a.territoryId);
-      const etiqueta = t ? territoryLabel(t).toLowerCase() : '';
+      // Se busca por lo mismo que se lee: ahora cada línea empieza por la
+      // zona, así que escribir "Salinas" tiene que traer los de Salinas.
+      const etiqueta = t
+        ? `${getZoneName(t.zoneId, zones)} ${territoryLabel(t)}`.toLowerCase()
+        : '';
       return persona.includes(lower) || etiqueta.includes(lower);
     });
-  }, [movimientos, filtro, search, resolveName, territories]);
+  }, [movimientos, filtro, search, resolveName, territories, zones]);
 
   const enCurso = useMemo(
     () => movimientos.filter((m) => m.enCurso).length,
@@ -132,13 +136,16 @@ const HistorialTab = () => {
         <Stack spacing={1.5}>
           {visible.map(({ asignacion: a, enCurso: abierta }) => {
             const t = territories.find((x) => x.id === a.territoryId);
-            const tName = t ? territoryLabel(t) : 'Territorio desconocido';
             const color = t ? getZoneColor(t.zoneId, zones) : 'var(--ink-2)';
-            // El color de la zona ya estaba (la cápsula lateral), pero el
-            // color solo dice de qué zona es a quien se sabe el código. El
-            // nombre va escrito al lado, en ese mismo color: así el número
-            // "19" deja de ser ambiguo entre las tres zonas.
-            const zoneName = t ? getZoneName(t.zoneId, zones) : null;
+            // La zona va DENTRO del nombre del territorio, no en una pastilla
+            // aparte: se lee "le asignó el Elda - Urbano 19", que es como se
+            // dice en voz alta. El color de la zona sigue en la cápsula
+            // lateral de la tarjeta; el nombre está para quien no se sepa el
+            // código de colores, porque un "19" suelto vale para las tres
+            // zonas.
+            const tName = t
+              ? `${getZoneName(t.zoneId, zones)} ${territoryLabel(t)}`
+              : 'Territorio desconocido';
             const trabajado = a.status === 'trabajado';
             // Quién lo asignó. Todos los registros lo llevan, pero si algún
             // día llega uno importado sin el dato, se cae con elegancia a la
@@ -206,7 +213,6 @@ const HistorialTab = () => {
                           </>
                         )}
                       </Typography>
-                      {zoneName && <TagChip label={zoneName} color={color} />}
                       {marcaCampana}
                     </Stack>
                     <Typography
