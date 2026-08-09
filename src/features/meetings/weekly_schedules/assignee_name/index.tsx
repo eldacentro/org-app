@@ -60,6 +60,25 @@ const AssigneeName = ({
   singleLine,
   bullet,
 }: AssigneeNameProps) => {
+  // SIN NOMBRE PERO CON CONGREGACIÓN sigue habiendo algo que decir.
+  //
+  // Esta salida temprana se llevaba por delante la congregación: si el nombre
+  // venía vacío, pintaba el texto de «sin asignar» y no miraba nada más. Y el
+  // nombre viene vacío MUY a menudo — en los datos reales de la congregación la
+  // mayoría de los oradores del catálogo se guardaron con `name: ''`—, así que
+  // a un publicador la línea del orador visitante le salía en blanco por
+  // completo, aunque el orador estuviera puesto y su congregación sellada.
+  //
+  // Enseñar «— Petrer Centro» es peor que enseñar el nombre, pero es MUCHO mejor
+  // que enseñar «sin asignar» sobre un discurso que sí tiene orador.
+  if (!name && congregation) {
+    return (
+      <Typography className="body-regular" color="var(--grey-400)">
+        {congregation}
+      </Typography>
+    );
+  }
+
   if (!name) {
     return (
       <Typography className="body-regular" color="var(--grey-350)">
