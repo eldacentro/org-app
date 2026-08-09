@@ -64,10 +64,21 @@ const useStart = () => {
       await dbPersonsAssignFamilyHeads();
 
       if (isNavigatorOnline) {
-        const { data, status } = await apiFetchSources();
-        if (status === 200 && data?.length) {
-          await sourcesImportJW(data);
-          await dbSchedulesAutoFill();
+        // El modo de prueba no puede quedarse colgado en «Preparando todo»
+        // porque los materiales no se hayan podido bajar. `apiFetchSources`
+        // devuelve `undefined` cuando la llamada no sale (sin red, o con el
+        // navegador aislado), y desestructurarlo reventaba el sembrado ENTERO
+        // en su último paso: los datos ya estaban puestos, pero la pantalla no
+        // llegaba a abrirse nunca.
+        try {
+          const respuesta = await apiFetchSources();
+
+          if (respuesta?.status === 200 && respuesta.data?.length) {
+            await sourcesImportJW(respuesta.data);
+            await dbSchedulesAutoFill();
+          }
+        } catch (error) {
+          console.warn('[demo] no se pudieron traer los materiales:', error);
         }
       }
 
