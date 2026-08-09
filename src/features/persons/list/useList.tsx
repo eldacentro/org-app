@@ -4,6 +4,7 @@ import {
   personsActiveState,
   personsFilteredState,
   personsTabState,
+  personsTrashState,
 } from '@states/persons';
 import { userDataViewState } from '@states/settings';
 import { languageGroupsState } from '@states/field_service_groups';
@@ -15,6 +16,7 @@ const useList = () => {
   const persons = useAtomValue(personsFilteredState);
   const personsAll = useAtomValue(personsActiveState);
   const languageGroups = useAtomValue(languageGroupsState);
+  const trash = useAtomValue(personsTrashState);
 
   const personsByView = useMemo(() => {
     const persons = personsAll.filter((record) => {
@@ -36,7 +38,13 @@ const useList = () => {
     setActiveTab(active);
   };
 
-  return { persons, activeTab, handleTabChange, personsByView };
+  return {
+    persons,
+    activeTab,
+    handleTabChange,
+    personsByView,
+    trashCount: trash.length,
+  };
 };
 
 export default useList;

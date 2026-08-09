@@ -10,10 +10,14 @@ import {
   personsSortByName,
 } from '@services/app/persons';
 import { localStorageGetItem } from '@utils/common';
+import { buildTrashEntries } from '@services/app/persons_trash';
 import { userDataViewState } from './settings';
 import { APRecordType } from '@definition/ministry';
 import { fieldServiceGroupsState } from './field_service_groups';
-import { ministryMonthsState } from './field_service_reports';
+import {
+  fieldServiceReportsState,
+  ministryMonthsState,
+} from './field_service_reports';
 
 export const personsState = atom<PersonType[]>([]);
 
@@ -33,6 +37,17 @@ export const personsActiveState = atom((get) => {
     return !archived;
   });
 });
+
+/**
+ * La papelera: quien tiene la lápida puesta, lo más reciente primero.
+ *
+ * Sale de `personsState` en crudo —no de `personsAllState`, que ya viene
+ * ordenado por nombre— porque aquí el orden que importa es el de cuándo se
+ * borró. Los informes entran para poder decir en cada tarjeta qué se recupera.
+ */
+export const personsTrashState = atom((get) =>
+  buildTrashEntries(get(personsState), get(fieldServiceReportsState))
+);
 
 /**
  * El grupo de predicación que se acaba de elegir en la ficha de una persona.

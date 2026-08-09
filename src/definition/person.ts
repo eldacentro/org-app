@@ -72,7 +72,20 @@ type EmergencyContactsType = {
 };
 
 export type PersonType = {
-  _deleted: { value: boolean; updatedAt: string };
+  /**
+   * La lápida. Borrar a una persona NO retira su registro: lo marca aquí y lo
+   * deja entero, y de ahí sale la papelera (`services/app/persons_trash.ts`).
+   *
+   * `by` es el `person_uid` de quien la puso — el mismo criterio que el `by`
+   * de los informes: se guarda el identificador y el nombre lo resuelve cada
+   * dispositivo, así no hace falta un campo nuevo que diga nada que
+   * `person_uid` no diga ya. Opcional: los borrados anteriores a esto no lo
+   * llevan, y ahí no se inventa un culpable.
+   *
+   * La fusión reemplaza este objeto ENTERO por el de fecha mayor, así que la
+   * clave nueva viaja con él sin tocar nada de la sincronización.
+   */
+  _deleted: { value: boolean; updatedAt: string; by?: string };
   person_uid: string;
   person_data: {
     person_firstname: { value: string; updatedAt: string };
@@ -158,4 +171,5 @@ export type VisitingSpeakerPersonType = {
 export enum PersonsTab {
   ALL = 0,
   RECENT = 1,
+  TRASH = 2,
 }

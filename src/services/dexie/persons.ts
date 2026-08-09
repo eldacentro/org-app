@@ -1,5 +1,7 @@
 import appDb from '@db/appDb';
 import { PersonType } from '@definition/person';
+import { store } from '@states/index';
+import { userLocalUIDState } from '@states/settings';
 import { personsUpdateAssignments } from '@services/app/persons';
 import { getTranslation } from '@services/i18n/translation';
 import { getRandomArrayItem, getRandomNumber } from '@utils/common';
@@ -110,7 +112,16 @@ export const dbPersonsSave = async (person: PersonType, isNew?: boolean) => {
 export const dbPersonsDelete = async (person_uid: string) => {
   try {
     const person = await appDb.persons.get(person_uid);
-    person._deleted = { value: true, updatedAt: new Date().toISOString() };
+
+    // Con QUIÉN lo hizo. No retira el registro —lo deja con lápida, y de ahí
+    // sale la papelera—, así que la pregunta «¿quién borró a este hermano?»
+    // tiene respuesta desde aquí en adelante. Como en los informes: se guarda
+    // el identificador, el nombre lo pone quien lo enseña.
+    person._deleted = {
+      value: true,
+      updatedAt: new Date().toISOString(),
+      by: store.get(userLocalUIDState) ?? '',
+    };
 
     await appDb.persons.put(person);
     await dbUpdatePersonMetadata();

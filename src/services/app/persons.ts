@@ -413,8 +413,12 @@ export const applyNameFilters = ({
   const dataPersons: PersonType[] = [];
 
   if (archived) {
+    // Los BORRADOS no vuelven por aquí. `allPersons` es la tabla entera, con
+    // las lápidas dentro, así que a quien se archivó y luego se eliminó lo
+    // seguía enseñando este filtro — el único sitio de la app donde reaparecía
+    // alguien que ya no está. Su sitio es la papelera.
     const archivedPersons = allPersons.filter(
-      (record) => record.person_data.archived.value
+      (record) => !record._deleted.value && record.person_data.archived.value
     );
     dataPersons.push(...archivedPersons);
   } else {
