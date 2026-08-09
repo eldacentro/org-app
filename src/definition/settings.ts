@@ -173,7 +173,6 @@ export type SettingsType = {
         updatedAt: string;
       };
     }[];
-    territories_enabled_publishers?: { value: boolean; updatedAt: string };
     /**
      * Cómo se organiza cada departamento: por semana o por reunión, y cuántos
      * turnos. Sin definir = lo de siempre (por semana, un turno). Ver
