@@ -526,15 +526,21 @@ const TerritoriosTab = ({
             // En el móvil la palabra le comía la mitad al buscador, que es lo
             // que de verdad se usa. El icono se queda; el nombre lo pone el
             // lector de pantalla.
+            //
+            // Relleno, no un anillo: el buscador de al lado es una píldora
+            // rellena y sin canto, así que un aro alrededor del icono lo
+            // convertía en una pieza de otra familia. Mismo fondo y mismo
+            // alto que él — se leen como una pareja (§6.4b: una caja que
+            // sostiene un icono se separa con RELLENO, no con un canto).
             <IconButton
               onClick={(e) => setMenuAnchor(e.currentTarget)}
               aria-label="Gestionar territorios"
               sx={{
                 flexShrink: 0,
-                border: '1px solid var(--accent-main)',
+                backgroundColor: 'var(--grey-100)',
                 borderRadius: 'var(--shape-full)',
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
               }}
             >
               <IconMore width={20} height={20} color="var(--accent-dark)" />

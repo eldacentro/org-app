@@ -64,7 +64,10 @@ const SearchRow = ({
         </Button>
       ) : (
         // 48px, el mismo alto que el buscador y con el mismo radio: al lado se
-        // leen como una pareja y no como dos piezas de sitios distintos.
+        // leen como una pareja y no como dos piezas de sitios distintos. Y con
+        // el MISMO relleno, no con un aro alrededor: el buscador es una píldora
+        // rellena y sin canto, así que el anillo hacía del icono una pieza de
+        // otra familia (§6.4b: relleno, no canto).
         <ButtonIcon
           onClick={onToggle}
           aria-label={t('tr_filters')}
@@ -72,7 +75,7 @@ const SearchRow = ({
             flexShrink: 0,
             width: '48px',
             height: '48px',
-            border: '1px solid var(--accent-main)',
+            backgroundColor: 'var(--grey-100)',
           }}
         >
           <IconFilter color="var(--accent-dark)" />

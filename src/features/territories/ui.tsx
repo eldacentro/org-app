@@ -80,6 +80,15 @@ type TagChipProps = {
  * Misma geometría que el `Badge` compartido —píldora, `body-small-semibold`—
  * para que puestas una al lado de otra se lean como de la misma familia. Lo
  * único que cambia es de dónde sale el color.
+ *
+ * **El relleno es OPACO, no translúcido.** Lo era, y encima de una tarjeta
+ * teñida —las de la cuadrícula de Territorios llevan un lavado del color de su
+ * zona— el color de la etiqueta se mezclaba con el de debajo: un "Mediano"
+ * verde sobre una zona azul salía apagado, y la MISMA etiqueta se veía de un
+ * color en una zona y de otro en la siguiente. Justo lo contrario de para qué
+ * está: el color de la etiqueta ES el dato. Mezclando contra `--card` en vez
+ * de contra `transparent`, la píldora vale siempre lo mismo se ponga donde se
+ * ponga, y de paso destaca sobre el lavado en lugar de fundirse con él.
  */
 export const TagChip = ({
   label,
@@ -108,8 +117,8 @@ export const TagChip = ({
       flexShrink: 0,
       backgroundColor: selected
         ? color
-        : `color-mix(in srgb, ${color} 12%, transparent)`,
-      border: `1px solid color-mix(in srgb, ${color} ${selected ? '100%' : '30%'}, transparent)`,
+        : `color-mix(in srgb, ${color} 14%, var(--card))`,
+      border: `1px solid color-mix(in srgb, ${color} ${selected ? '100%' : '32%'}, var(--card))`,
       color: selected ? 'var(--always-white)' : color,
       cursor: onClick ? 'pointer' : 'default',
       transition: onClick
@@ -119,7 +128,7 @@ export const TagChip = ({
         '&:hover': {
           backgroundColor: selected
             ? color
-            : `color-mix(in srgb, ${color} 22%, transparent)`,
+            : `color-mix(in srgb, ${color} 24%, var(--card))`,
         },
         '&:focus-visible': {
           outline: '2px solid var(--accent-main)',
