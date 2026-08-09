@@ -1,6 +1,6 @@
 import { Locale } from 'date-fns';
 import { FullnameOption } from './settings';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 
 export type ColorSchemeType = 'blue' | 'green' | 'purple' | 'orange' | 'red';
 
@@ -106,5 +106,16 @@ export type NavBarOptionsType = {
   /** Puntito de aviso sobre el icono de quickSettings (ej. solicitudes
    *  pendientes) — opcional, no afecta a páginas que no lo pasen. */
   quickSettingsBadge?: boolean;
+  /**
+   * Icono del hueco de quickSettings. Por defecto el engranaje.
+   *
+   * Existe para que una pantalla que se ABRE desde ese hueco pueda CERRARSE
+   * por el mismo sitio: dentro se cambia el engranaje por una flecha de
+   * volver. Antes cada pantalla se lo montaba a su manera —Territorios ponía
+   * un botón "Volver" en la barra de acciones, que en el móvil se va abajo del
+   * todo, y Exhibidores dejaba el engranaje puesto, que dentro de los ajustes
+   * ya no significa nada—. Se entra y se sale por el mismo punto.
+   */
+  quickSettingsIcon?: ReactNode;
   buttons?: ReactElement;
 };

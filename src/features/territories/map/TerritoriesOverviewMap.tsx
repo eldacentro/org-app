@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -24,6 +24,7 @@ import {
   territoryZonesState,
   territoryOpenAssignmentsState,
   territorySettingsState,
+  territoryTagsState,
 } from '@states/territories';
 import {
   getZoneColor,
@@ -31,7 +32,14 @@ import {
   geometryBounds,
   geometryCenter,
   formatTerritoryDate,
+  isInCooldown,
 } from '@services/app/territories';
+import {
+  EstadoBadge,
+  TagChip,
+  ViviendasTag,
+  estadoDeTerritorio,
+} from '@features/territories/ui';
 import { usePersonName } from '../usePersonName';
 
 type Props = {
@@ -40,6 +48,9 @@ type Props = {
 
 const ASSIGNED_COLOR = '#F97316';
 const FREE_COLOR = '#22C55E';
+
+/** Por debajo de esto el mapa deja de ser útil, aunque la pantalla sea baja. */
+const ALTO_MINIMO = 320;
 
 // Antes cada territorio pintaba su propio CircleMarker siempre, sin agrupar
 // — con muchos territorios juntos (zoom alejado) se amontonaban en un lío de
@@ -69,6 +80,18 @@ const FitAll = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
     done.current = true;
     map.fitBounds(bounds, { padding: [24, 24] });
   }, [bounds, map]);
+  return null;
+};
+
+// ─── Avisa a Leaflet de que su caja ha cambiado de tamaño ───────────────────
+// Leaflet mide el contenedor UNA vez y cachea el resultado. Al ajustar el alto
+// del mapa a la pantalla (o al girar el móvil) se quedaba pintando las teselas
+// del tamaño anterior y aparecían franjas grises.
+const AjustarAlContenedor = ({ alto }: { alto: number | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.invalidateSize();
+  }, [alto, map]);
   return null;
 };
 
@@ -154,11 +177,52 @@ const CustomZoomControl = () => {
 const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
   const territories = useAtomValue(territoriesState);
   const zones = useAtomValue(territoryZonesState);
+  const tags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
 
   const [selected, setSelected] = useState<Territory | null>(null);
+
+  // ── El mapa cabe en la pantalla ────────────────────────────────────────
+  //
+  // Iba a `calc(100dvh - 150px)`, un número a ojo que no acertaba: el mapa
+  // se salía por debajo y había que bajar la PÁGINA para verlo entero. Y como
+  // la ficha del territorio elegido va pegada al fondo del mapa, tocar un
+  // territorio no parecía hacer nada — la ficha aparecía fuera de la
+  // pantalla. Ahora se mide dónde empieza el mapa de verdad y se le da lo que
+  // queda; el desplazamiento pasa a ser del mapa, no de la página.
+  const contenedorRef = useRef<HTMLDivElement>(null);
+  const [alto, setAlto] = useState<number | null>(null);
+  const ajustes = useRef(0);
+
+  useLayoutEffect(() => {
+    const medir = () => {
+      const el = contenedorRef.current;
+      if (!el) return;
+      const desdeArriba = el.getBoundingClientRect().top + window.scrollY;
+      ajustes.current = 0;
+      setAlto(Math.max(ALTO_MINIMO, window.innerHeight - desdeArriba));
+    };
+
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+
+  // Segunda pasada: lo que sobre por debajo (el relleno del panel de
+  // pestañas, el de la página) se le descuenta al mapa. Se mide en vez de
+  // restar una constante, que es justo lo que estaba mal antes. Converge en
+  // una pasada; el tope está por si algún día algo de fuera crece solo.
+  useEffect(() => {
+    if (alto === null || ajustes.current >= 3) return;
+    const sobra =
+      document.documentElement.scrollHeight -
+      document.documentElement.clientHeight;
+    if (sobra <= 1) return;
+    ajustes.current += 1;
+    setAlto((actual) => Math.max(ALTO_MINIMO, (actual ?? 0) - sobra));
+  }, [alto]);
 
   const withGeometry = useMemo(
     () => territories.filter((t) => t.geometry),
@@ -225,6 +289,12 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
     ? assignmentByTerritory.get(selected.id)
     : undefined;
 
+  const etiquetasDelSeleccionado = selected
+    ? (selected.tags ?? [])
+        .map((id) => tags.find((t) => t.id === id))
+        .filter(Boolean)
+    : [];
+
   if (withGeometry.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
@@ -238,16 +308,19 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
 
   return (
     <Box
+      ref={contenedorRef}
       sx={{
         position: 'relative',
         width: '100%',
-        // `dvh` y no `vh`: en Safari de iOS, `100vh` es el viewport GRANDE —
-        // el que habría si la barra de direcciones estuviera oculta—, así que
-        // el mapa salía más alto que lo que se ve y su borde inferior quedaba
-        // cortado por debajo de la pantalla. `dvh` sigue al viewport real.
-        height: { mobile: 'calc(100dvh - 150px)', tablet600: '70vh' },
-        borderRadius: 'var(--shape-sm)',
+        // Mientras no se ha medido, `dvh` como red — y `dvh`, no `vh`, porque
+        // en Safari de iOS `100vh` es el viewport GRANDE (el que habría con la
+        // barra de direcciones oculta) y el mapa saldría más alto que lo que
+        // se ve.
+        height: alto ? `${alto}px` : 'calc(100dvh - 200px)',
+        borderRadius: 'var(--shape-md)',
         overflow: 'hidden',
+        // El dedo mueve el mapa, no la página de debajo.
+        overscrollBehavior: 'contain',
         '& .leaflet-container': { height: '100%', width: '100%' },
       }}
     >
@@ -297,6 +370,7 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
         </MarkerClusterGroup>
 
         <FitAll bounds={overallBounds} />
+        <AjustarAlContenedor alto={alto} />
       </MapContainer>
 
       {/* Leyenda */}
@@ -354,18 +428,30 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
       {selected && (
         <Box
           sx={{
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
-            right: 12,
-            zIndex: 1000,
-            backgroundColor: 'var(--white)',
+            backgroundColor: 'var(--card)',
             borderRadius: 'var(--shape-lg)',
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--pop-up-shadow)',
             padding: '16px',
             ...(accentSurface(getZoneColor(selected.zoneId, zones), {
               tint: false,
             }) as object),
+            // DESPUÉS del reparto, no antes: `accentSurface` trae su propio
+            // `position: relative` para colgar la cápsula de color, y puesto
+            // encima dejaba esta ficha en el flujo normal — o sea, DEBAJO del
+            // mapa, recortada por su `overflow: hidden`. Eso era lo que hacía
+            // que tocar un territorio no pareciera hacer nada.
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            // En el móvil ocupa el ancho; en una pantalla grande, estirada a
+            // 1.200px, el botón de dentro medía lo mismo que la barra de
+            // título y la ficha parecía un pie de página.
+            right: { mobile: 12, tablet600: 'auto' },
+            width: { mobile: 'auto', tablet600: 380 },
+            zIndex: 1000,
+            // Con muchas etiquetas la ficha podría comerse el mapa entero.
+            maxHeight: 'calc(100% - 24px)',
+            overflowY: 'auto',
           }}
         >
           <Stack
@@ -412,6 +498,10 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
             </Box>
           </Stack>
 
+          {/* Lo importante del territorio, aquí mismo: quién lo tiene desde
+              cuándo, cuántas viviendas y sus etiquetas. Antes solo decía el
+              nombre y la zona, así que para saber cualquier otra cosa había
+              que abrir la ficha entera. */}
           <Box sx={{ mt: '10px' }}>
             {selectedAssignment ? (
               <Typography
@@ -426,14 +516,42 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
                 )}
               </Typography>
             ) : (
-              <Typography
-                className="body-small-semibold"
-                sx={{ color: FREE_COLOR }}
-              >
-                Libre — sin asignar
-              </Typography>
+              // La misma etiqueta de estado que las fichas de la pestaña
+              // "Territorios", no un texto verde con el color a pelo: el
+              // significado es fijo, así que le toca `Badge` (§6.4). De paso,
+              // un territorio en descanso ya no se anuncia como "Libre".
+              // El `inline-flex` no sobra: el Badge es un bloque y aquí, sin
+              // nada que lo ciña, se estiraba a todo el ancho de la ficha.
+              <Box sx={{ display: 'inline-flex' }}>
+                <EstadoBadge
+                  estado={estadoDeTerritorio(
+                    false,
+                    isInCooldown(selected, settings.daysUntilReassignable)
+                  )}
+                />
+              </Box>
             )}
           </Box>
+
+          {(selected.numeroViviendas ||
+            etiquetasDelSeleccionado.length > 0) && (
+            <Box
+              sx={{
+                mt: '8px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              {selected.numeroViviendas ? (
+                <ViviendasTag count={selected.numeroViviendas} />
+              ) : null}
+              {etiquetasDelSeleccionado.map((tag) => (
+                <TagChip key={tag!.id} label={tag!.nombre} color={tag!.color} />
+              ))}
+            </Box>
+          )}
 
           <Button
             variant="main"

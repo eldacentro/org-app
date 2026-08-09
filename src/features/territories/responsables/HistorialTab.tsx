@@ -6,7 +6,7 @@ import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Badge from '@components/badge';
-import { TerritoryCard } from '@features/territories/ui';
+import { TerritoryCard, TagChip } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignmentsState,
@@ -18,6 +18,7 @@ import {
   territoryLabel,
   formatTerritoryDate,
   getZoneColor,
+  getZoneName,
   displayText,
 } from '@services/app/territories';
 import { usePersonName } from '../usePersonName';
@@ -133,6 +134,11 @@ const HistorialTab = () => {
             const t = territories.find((x) => x.id === a.territoryId);
             const tName = t ? territoryLabel(t) : 'Territorio desconocido';
             const color = t ? getZoneColor(t.zoneId, zones) : 'var(--ink-2)';
+            // El color de la zona ya estaba (la cápsula lateral), pero el
+            // color solo dice de qué zona es a quien se sabe el código. El
+            // nombre va escrito al lado, en ese mismo color: así el número
+            // "19" deja de ser ambiguo entre las tres zonas.
+            const zoneName = t ? getZoneName(t.zoneId, zones) : null;
             const trabajado = a.status === 'trabajado';
             // Quién lo asignó. Todos los registros lo llevan, pero si algún
             // día llega uno importado sin el dato, se cae con elegancia a la
@@ -200,6 +206,7 @@ const HistorialTab = () => {
                           </>
                         )}
                       </Typography>
+                      {zoneName && <TagChip label={zoneName} color={color} />}
                       {marcaCampana}
                     </Stack>
                     <Typography

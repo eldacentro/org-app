@@ -764,7 +764,11 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           color="error"
                           sx={{ '& .MuiBadge-dot': { top: 3, right: 3 } }}
                         >
-                          <IconSettings color="var(--black)" />
+                          {/* La flecha de volver de las pantallas que se abren
+                              desde aquí; engranaje si no se pide otra cosa. */}
+                          {navBarOptions.quickSettingsIcon ?? (
+                            <IconSettings color="var(--black)" />
+                          )}
                         </Badge>
                       </IconButton>
                     ) : (

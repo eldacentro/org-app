@@ -4,7 +4,7 @@ import { useAtomValue } from 'jotai';
 import { Box } from '@mui/material';
 import PageTitle from '@components/page_title';
 import NavBarButton from '@components/nav_bar_button';
-import { IconAdd, IconArrowBack } from '@components/icons';
+import { IconAdd, IconClose } from '@components/icons';
 import { useBreakpoints } from '@hooks/index';
 import { useTerritories } from '@features/territories/useTerritories';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
@@ -84,15 +84,18 @@ const TerritoriesPage = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {showingResponsables ? (
+        // Se entra por el engranaje de la cabecera, así que se sale por el
+        // mismo sitio: aquí el hueco del engranaje lleva la flecha de volver.
+        // Antes "Volver" era un botón de la barra de acciones, y en el móvil
+        // esa barra vive abajo del todo: se entraba arriba y se salía abajo.
         <PageTitle
           title="Responsables"
-          buttons={
-            <NavBarButton
-              text="Volver"
-              icon={<IconArrowBack />}
-              onClick={() => setShowResponsables(false)}
-            />
-          }
+          quickSettings={() => setShowResponsables(false)}
+          // Una ✕ y no una flecha: la barra ya lleva su propia flecha de
+          // "atrás" a la izquierda, y dos flechas iguales en la misma fila no
+          // se distinguen. Esto no retrocede en el historial, cierra el panel.
+          quickSettingsIcon={<IconClose color="var(--black)" />}
+          quickSettingsLabel="Cerrar el panel y volver a Mis territorios"
         />
       ) : (
         <PageTitle

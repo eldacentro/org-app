@@ -1,16 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Box, Stack, Grid } from '@mui/material';
+import { useState } from 'react';
+import { Box } from '@mui/material';
 import ScrollableTabs from '@components/scrollable_tabs';
 import { useAtomValue } from 'jotai';
-import Button from '@components/button';
-import Typography from '@components/typography';
-import Badge from '@components/badge';
-import Checkbox from '@components/checkbox';
-import { IconAdd, IconMapOverview, IconCustom } from '@components/icons';
-import Accordion from '@components/accordion';
-import accentSurface from '@components/accent_surface';
 import TabLabelWithBadge from '@components/tab_label_with_badge';
-import { EstadoBadge, estadoDeTerritorio } from '@features/territories/ui';
 import {
   territoriesState,
   territoryZonesSortedState,
@@ -28,10 +20,7 @@ import {
   Territory,
   TerritoryAssignment,
   TerritoryRequest,
-  TerritoryZone,
-  TerritoryTag,
 } from '@definition/territories';
-import { isInCooldown, territoryLabel } from '@services/app/territories';
 import AsignacionesTab from './AsignacionesTab';
 import SolicitudesTab from './SolicitudesTab';
 import HistorialTab from './HistorialTab';
@@ -41,6 +30,7 @@ import CampanasTab from './CampanasTab';
 import EnlacesTab from './EnlacesTab';
 import ImportExportTab from './ImportExportTab';
 import TerritoriesOverviewMap from '../map/TerritoriesOverviewMap';
+import TerritoriosTab from './TerritoriosTab';
 
 type Props = {
   onView: (t: Territory) => void;
@@ -59,224 +49,6 @@ type Props = {
   onOpenEtiquetas: () => void;
   onOpenImport: () => void;
   onOpenCrear: () => void;
-};
-
-type ZoneSectionProps = {
-  zone: TerritoryZone;
-  items: Territory[];
-  assignedIds: Set<string>;
-  daysUntilReassignable: number;
-  tags: TerritoryTag[];
-  selectionMode: boolean;
-  selectedIds: Set<string>;
-  onToggleSelect: (id: string) => void;
-  onView: (t: Territory) => void;
-};
-
-const ZoneSection = ({
-  zone,
-  items,
-  assignedIds,
-  daysUntilReassignable,
-  tags,
-  selectionMode,
-  selectedIds,
-  onToggleSelect,
-  onView,
-}: ZoneSectionProps) => {
-  const [expanded, setExpanded] = useState<boolean>(false);
-
-  const label = (
-    // Ni `h2` con el tamaño pisado a mano (`1.1rem`, que no está en la escala
-    // y por eso no seguía a ningún punto de ruptura), ni un contador con su
-    // propio `0.85rem`: el título es el de una sección y el contador es la
-    // misma etiqueta gris que se usa en el resto de la app.
-    <Stack
-      direction="row"
-      alignItems="center"
-      spacing={1.5}
-      sx={{ width: '100%' }}
-    >
-      <Box
-        sx={{
-          width: 12,
-          height: 12,
-          borderRadius: 'var(--shape-full)',
-          flexShrink: 0,
-          backgroundColor: zone.color,
-          boxShadow: `0 0 0 3px color-mix(in srgb, ${zone.color} 20%, transparent)`,
-        }}
-      />
-      <Typography className="h4" color="var(--ink)">
-        {zone.nombre}
-      </Typography>
-      <Badge
-        size="small"
-        color="grey"
-        text={
-          items.length === 1 ? '1 territorio' : `${items.length} territorios`
-        }
-      />
-    </Stack>
-  );
-
-  return (
-    <Box sx={{ mb: 3 }}>
-      <Accordion
-        id={zone.id}
-        label={label}
-        expanded={expanded}
-        onChange={(val) => setExpanded(val !== false)}
-        sx={{
-          backgroundColor: 'var(--card)',
-          borderRadius: 'var(--shape-lg) !important',
-          border: '1px solid var(--line)',
-          boxShadow: 'var(--small-card-shadow)',
-          overflow: 'hidden',
-          '&:before': { display: 'none' },
-        }}
-        summaryProps={{
-          sx: {
-            padding: '12px 20px',
-            minHeight: '64px !important',
-            borderBottom: expanded ? '1px solid var(--line)' : 'none',
-            // El hover vivía en la tarjeta ENTERA, cuerpo desplegado
-            // incluido: al pasar el ratón por una lista de territorios se
-            // encendía la sombra de todo el bloque. Lo que se pulsa es la
-            // cabecera, así que la cabecera es lo que reacciona.
-            transition:
-              'background-color var(--motion-fast) var(--ease-standard)',
-            '&:hover': { backgroundColor: 'var(--state-hover)' },
-          },
-        }}
-        detailsProps={{
-          sx: { padding: '16px 16px 12px' },
-        }}
-      >
-        <Grid container spacing={1.5}>
-          {items.map((t: Territory) => {
-            const assigned = assignedIds.has(t.id);
-            const resting = !assigned && isInCooldown(t, daysUntilReassignable);
-            const selected = selectedIds.has(t.id);
-            return (
-              <Grid size={{ mobile: 6, tablet600: 4, laptop: 3 }} key={t.id}>
-                <Box
-                  // Botón real: antes era un Box con onClick, así que no se
-                  // podía abrir ningún territorio con el teclado y para un
-                  // lector de pantalla era un div mudo.
-                  component="button"
-                  type="button"
-                  aria-label={
-                    selectionMode
-                      ? `Seleccionar ${territoryLabel(t)}`
-                      : `Ver ${territoryLabel(t)}`
-                  }
-                  aria-pressed={selectionMode ? selected : undefined}
-                  onClick={() =>
-                    selectionMode ? onToggleSelect(t.id) : onView(t)
-                  }
-                  className="active-press"
-                  sx={{
-                    appearance: 'none',
-                    font: 'inherit',
-                    textAlign: 'left',
-                    width: '100%',
-                    // Sin esto, en una fila con un territorio de nombre
-                    // largo las demás fichas quedaban más bajas y la rejilla
-                    // salía escalonada.
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    '&:focus-visible': {
-                      outline: '2px solid var(--accent-main)',
-                      outlineOffset: '2px',
-                    },
-                    padding: '16px',
-                    borderRadius: 'var(--shape-lg)',
-                    border: '1px solid var(--line)',
-                    cursor: 'pointer',
-                    boxShadow: 'var(--small-card-shadow)',
-                    transition:
-                      'background-color var(--motion-fast) var(--ease-standard)',
-                    // Esta sí se pulsa (abre el territorio o lo marca), así
-                    // que sí reacciona — pero con la capa de estado del
-                    // sistema, no levantándose 2px. El salto obligaba al ojo
-                    // a recolocar toda la rejilla al pasar por encima.
-                    ...(accentSurface(zone.color) as object),
-                    ...(selected && {
-                      backgroundColor: 'var(--state-selected)',
-                      borderColor: 'var(--accent-main)',
-                    }),
-                    '&:hover': {
-                      backgroundColor: selected
-                        ? 'var(--state-selected-strong)'
-                        : `color-mix(in srgb, ${zone.color} 14%, var(--card))`,
-                    },
-                  }}
-                >
-                  {selectionMode && (
-                    <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
-                      {/* Decorativo: el estado real lo anuncia el
-                            aria-pressed del botón que lo contiene. */}
-                      <Box aria-hidden sx={{ pointerEvents: 'none' }}>
-                        <Checkbox checked={selected} readOnly sx={{ p: 0.5 }} />
-                      </Box>
-                    </Box>
-                  )}
-                  <Typography
-                    className="body-regular"
-                    sx={{
-                      color: 'var(--ink)',
-                      fontWeight: 500,
-                      mb: 1,
-                      pr: selectionMode ? 3 : 0,
-                    }}
-                  >
-                    {territoryLabel(t)}
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mt: 0.5 }}
-                  >
-                    <EstadoBadge
-                      estado={estadoDeTerritorio(assigned, resting)}
-                    />
-
-                    {/* Tags indicators */}
-                    {t.tags && t.tags.length > 0 && (
-                      <Stack direction="row" spacing={0.5}>
-                        {t.tags.map((tagId) => {
-                          const tag = tags.find(
-                            (tt: TerritoryTag) => tt.id === tagId
-                          );
-                          if (!tag) return null;
-                          return (
-                            <Box
-                              key={tag.id}
-                              title={tag.nombre}
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: 'var(--shape-full)',
-                                backgroundColor: tag.color,
-                              }}
-                            />
-                          );
-                        })}
-                      </Stack>
-                    )}
-                  </Stack>
-                </Box>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Accordion>
-    </Box>
-  );
 };
 
 const ResponsablesPanel = ({
@@ -318,6 +90,16 @@ const ResponsablesPanel = ({
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
+    });
+  };
+
+  const handleToggleSelectionMode = () => {
+    setSelectionMode((prev) => {
+      // Al salir se olvida lo marcado: volver a entrar y encontrarse ocho
+      // territorios ya seleccionados de una sesión anterior es la manera más
+      // fácil de borrar algo sin querer.
+      if (prev) setSelectedIds(new Set());
+      return !prev;
     });
   };
 
@@ -425,19 +207,6 @@ const ResponsablesPanel = ({
     }
   };
 
-  const byZone = useMemo(
-    () =>
-      zones.map((zone) => ({
-        zone,
-        items: territories
-          .filter((t) => t.zoneId === zone.id)
-          .sort((a, b) =>
-            a.numero.localeCompare(b.numero, undefined, { numeric: true })
-          ),
-      })),
-    [zones, territories]
-  );
-
   return (
     <Box>
       {ConfirmDialogNode}
@@ -485,149 +254,26 @@ const ResponsablesPanel = ({
           {
             label: 'Territorios',
             Component: (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ flexWrap: 'wrap', gap: 1.5 }}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    sx={{ flexWrap: 'wrap', gap: 1.5 }}
-                  >
-                    <Button
-                      variant="tertiary"
-                      onClick={onOpenZonas}
-                      disableAutoStretch
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.75,
-                        }}
-                      >
-                        <IconMapOverview width={18} height={18} /> Zonas
-                      </Box>
-                    </Button>
-                    <Button
-                      variant="tertiary"
-                      onClick={onOpenEtiquetas}
-                      disableAutoStretch
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.75,
-                        }}
-                      >
-                        <IconCustom width={18} height={18} /> Etiquetas
-                      </Box>
-                    </Button>
-                    {/* Hasta ahora un territorio SOLO podía nacer importando
-                        un KML. Borrarlo sí se podía —y en bloque—, así que se
-                        podía deshacer algo que no había forma de volver a
-                        hacer desde la app. */}
-                    <Button
-                      variant="main"
-                      onClick={onOpenCrear}
-                      disableAutoStretch
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.75,
-                        }}
-                      >
-                        <IconAdd width={18} height={18} /> Añadir territorio
-                      </Box>
-                    </Button>
-                    <Button
-                      variant="tertiary"
-                      onClick={onOpenImport}
-                      disableAutoStretch
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.75,
-                        }}
-                      >
-                        <IconMapOverview width={18} height={18} /> Importar KML
-                      </Box>
-                    </Button>
-                  </Stack>
-
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                    {selectionMode && selectedIds.size > 0 && (
-                      <Button
-                        variant="main"
-                        disableAutoStretch
-                        onClick={handleBulkAsignar}
-                        disabled={deleting}
-                      >
-                        Asignar ({selectedIds.size})
-                      </Button>
-                    )}
-                    {selectionMode && selectedIds.size > 0 && (
-                      <Button
-                        variant="tertiary"
-                        disableAutoStretch
-                        onClick={handleBulkDelete}
-                        disabled={deleting}
-                        sx={{
-                          color: 'var(--red-main)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(var(--red-main-base), 0.1)',
-                          },
-                        }}
-                      >
-                        Eliminar ({selectedIds.size})
-                      </Button>
-                    )}
-                    <Button
-                      variant={selectionMode ? 'main' : 'tertiary'}
-                      onClick={() => {
-                        setSelectionMode(!selectionMode);
-                        if (selectionMode) setSelectedIds(new Set());
-                      }}
-                    >
-                      {selectionMode ? 'Hecho' : 'Seleccionar'}
-                    </Button>
-                  </Stack>
-                </Stack>
-
-                {territories.length === 0 && (
-                  <Typography
-                    className="body-small-regular"
-                    color="var(--ink-2)"
-                  >
-                    {loading
-                      ? 'Cargando territorios…'
-                      : 'Aún no hay territorios. Crea una zona y luego añade territorios a mano o importa un archivo KML.'}
-                  </Typography>
-                )}
-
-                {byZone.map(({ zone, items }) => (
-                  <ZoneSection
-                    key={zone.id}
-                    zone={zone}
-                    items={items}
-                    assignedIds={assignedIds}
-                    daysUntilReassignable={settings.daysUntilReassignable}
-                    tags={tags}
-                    selectionMode={selectionMode}
-                    selectedIds={selectedIds}
-                    onToggleSelect={handleToggleSelect}
-                    onView={onView}
-                  />
-                ))}
-              </Box>
+              <TerritoriosTab
+                zones={zones}
+                territories={territories}
+                tags={tags}
+                assignedIds={assignedIds}
+                daysUntilReassignable={settings.daysUntilReassignable}
+                loading={loading}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                deleting={deleting}
+                onToggleSelect={handleToggleSelect}
+                onToggleSelectionMode={handleToggleSelectionMode}
+                onBulkAsignar={handleBulkAsignar}
+                onBulkDelete={handleBulkDelete}
+                onView={onView}
+                onOpenZonas={onOpenZonas}
+                onOpenEtiquetas={onOpenEtiquetas}
+                onOpenImport={onOpenImport}
+                onOpenCrear={onOpenCrear}
+              />
             ),
           },
           {

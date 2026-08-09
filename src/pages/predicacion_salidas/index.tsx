@@ -54,6 +54,7 @@ import InfoTip from '@components/info_tip';
 import {
   IconSettings,
   IconAdd,
+  IconClose,
   IconDelete,
   IconGroups,
   IconCancelFilled,
@@ -1526,7 +1527,20 @@ const PredicacionSalidas = () => {
                 setActiveTab(activeTab === 'planner' ? 'settings' : 'planner')
             : undefined
         }
-        quickSettingsLabel="Configuración de las salidas de predicación"
+        // Dentro de los ajustes, el mismo hueco lleva la ✕ de cerrar: se
+        // entra y se sale por el mismo punto, y un engranaje encendido dentro
+        // de la propia configuración no dice a dónde lleva. Una flecha no
+        // vale: la barra ya tiene la suya de "atrás" a la izquierda.
+        quickSettingsIcon={
+          activeTab === 'settings' ? (
+            <IconClose color="var(--black)" />
+          ) : undefined
+        }
+        quickSettingsLabel={
+          activeTab === 'settings'
+            ? 'Volver al programa de salidas de predicación'
+            : 'Configuración de las salidas de predicación'
+        }
         buttons={
           <>
             {isServiceCommittee && (
