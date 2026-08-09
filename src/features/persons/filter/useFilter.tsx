@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useAtom, useSetAtom } from 'jotai';
+import { useNavigate } from 'react-router';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import { AssignmentCheckListColors } from '@definition/app';
 import { AssignmentCode } from '@definition/assignment';
@@ -8,6 +9,7 @@ import {
   personsFilterOpenState,
   personsFiltersKeyState,
   personsTabState,
+  personsTrashState,
 } from '@states/persons';
 
 const useFilter = () => {
@@ -15,9 +17,15 @@ const useFilter = () => {
 
   const { desktopUp } = useBreakpoints();
 
+  const navigate = useNavigate();
+
   const [filters, setPersonsFiltersKey] = useAtom(personsFiltersKeyState);
 
+  const trash = useAtomValue(personsTrashState);
+
   const setActiveTab = useSetAtom(personsTabState);
+
+  const handleOpenTrash = () => navigate('/persons/trash');
   const setFilterOpen = useSetAtom(personsFilterOpenState);
 
   const checkedItems = filters.filter(
@@ -235,6 +243,8 @@ const useFilter = () => {
     handleToggleAssignment,
     checkedItems,
     handleCloseFilterMobile,
+    handleOpenTrash,
+    trashCount: trash.length,
   };
 };
 

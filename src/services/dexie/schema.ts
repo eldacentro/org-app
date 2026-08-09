@@ -297,6 +297,7 @@ export const settingSchema: SettingsType = {
       { type: 'main', value: false, updatedAt: '', _deleted: false },
     ],
     special_months: [],
+    persons_purged: { value: [], updatedAt: '' },
     source_material: {
       auto_import: {
         enabled: { value: true, updatedAt: '' },

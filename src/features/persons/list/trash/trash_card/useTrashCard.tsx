@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import {
   purgedOnRestore,
+  purgePersonsForever,
   restorePersonFromTrash,
   TrashEntry,
 } from '@services/app/persons_trash';
@@ -17,6 +18,7 @@ const useTrashCard = (entry: TrashEntry) => {
   const reports = useAtomValue(fieldServiceReportsState);
 
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
   /**
    * Lo que la norma de conservación se llevaría EN CUANTO vuelva.
@@ -76,12 +78,45 @@ const useTrashCard = (entry: TrashEntry) => {
     }
   };
 
+  const handlePurgeOpen = () => setIsPurging(true);
+
+  const handlePurgeClose = () => setIsPurging(false);
+
+  const handlePurgeConfirm = async () => {
+    try {
+      // Un identificador, el de esta tarjeta. Nunca por nombre.
+      await purgePersonsForever([entry.person.person_uid]);
+
+      setIsPurging(false);
+
+      displaySnackNotification({
+        header: t('tr_personDeletedForever'),
+        message: t('tr_personDeletedForeverDesc'),
+        severity: 'success',
+        icon: <IconCheckCircle color="var(--card)" />,
+      });
+    } catch (error) {
+      setIsPurging(false);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: error.message,
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    }
+  };
+
   return {
     isRestoring,
     handleOpen,
     handleClose,
     handleConfirm,
     atRisk,
+    isPurging,
+    handlePurgeOpen,
+    handlePurgeClose,
+    handlePurgeConfirm,
   };
 };
 

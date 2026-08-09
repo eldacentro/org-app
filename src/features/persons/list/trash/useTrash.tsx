@@ -1,7 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
+import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { personsState, personsTrashState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
+import { purgePersonsForever } from '@services/app/persons_trash';
+import { displaySnackNotification } from '@services/states/app';
+import { getMessageByCode } from '@services/i18n/translation';
+import { IconCheckCircle, IconError } from '@components/icons';
 import { buildPersonFullname } from '@utils/common';
 import { MESES_ES } from '@utils/nombres_fecha';
 
@@ -31,9 +36,18 @@ export const formatDeletedAt = (value: string) => {
 };
 
 const useTrash = () => {
+  const { t } = useAppTranslation();
+
+  // Borrar para siempre es de administrador, aunque la papelera la vea
+  // cualquier editor de personas. Devolver a alguien se puede deshacer
+  // volviéndolo a borrar; esto no se puede deshacer de ninguna manera.
+  const { isAdmin } = useCurrentUser();
+
   const entries = useAtomValue(personsTrashState);
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+
+  const [isEmptying, setIsEmptying] = useState(false);
 
   /**
    * El nombre de quien borró, resuelto desde su `person_uid`.
@@ -60,7 +74,62 @@ const useTrash = () => {
     };
   }, [persons, fullnameOption]);
 
-  return { entries, resolveName, fullnameOption };
+  const totalReports = useMemo(
+    () =>
+      entries.reduce(
+        (total, entry) => total + entry.reportsAlive + entry.reportsDeleted,
+        0
+      ),
+    [entries]
+  );
+
+  const handleEmptyOpen = () => setIsEmptying(true);
+
+  const handleEmptyClose = () => setIsEmptying(false);
+
+  const handleEmptyConfirm = async () => {
+    try {
+      // Por IDENTIFICADOR, y solo los que la pantalla está enseñando: dentro
+      // de un grupo de idioma la papelera está acotada a ese grupo, y vaciar
+      // «lo que se ve» no puede llevarse por delante lo que no se ve.
+      const result = await purgePersonsForever(
+        entries.map((entry) => entry.person.person_uid)
+      );
+
+      setIsEmptying(false);
+
+      displaySnackNotification({
+        header: t('tr_trashEmptied'),
+        message:
+          result.persons === 1
+            ? t('tr_trashEmptiedDescOne')
+            : t('tr_trashEmptiedDesc', { count: result.persons }),
+        severity: 'success',
+        icon: <IconCheckCircle color="var(--card)" />,
+      });
+    } catch (error) {
+      setIsEmptying(false);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: error.message,
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    }
+  };
+
+  return {
+    entries,
+    resolveName,
+    fullnameOption,
+    canPurge: isAdmin,
+    totalReports,
+    isEmptying,
+    handleEmptyOpen,
+    handleEmptyClose,
+    handleEmptyConfirm,
+  };
 };
 
 export default useTrash;

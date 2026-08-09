@@ -54,6 +54,7 @@ const MyProfile = lazy(() => import('@pages/my_profile'));
 const AyudaPage = lazy(() => import('@pages/ayuda'));
 const PersonsAll = lazy(() => import('@pages/persons/all_persons'));
 const PersonDetails = lazy(() => import('@pages/persons/person_details'));
+const PersonsTrashPage = lazy(() => import('@pages/persons/trash'));
 const PublicTalksList = lazy(
   () => import('@pages/meeting_materials/public_talks_list')
 );
@@ -397,6 +398,10 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 element: <PersonEditorRoute />,
                 children: [
                   { path: '/persons/new', element: <PersonDetails /> },
+                  // Convive con `/persons/:id` (que está en el bloque de
+                  // lectores) por lo mismo que `/persons/new`: el enrutador
+                  // puntúa los tramos fijos por encima de los dinámicos.
+                  { path: '/persons/trash', element: <PersonsTrashPage /> },
                 ],
               },
 

@@ -1,8 +1,10 @@
 import { Box } from '@mui/material';
 import Button from '@components/button';
+import CustomDivider from '@components/divider';
 import Typography from '@components/typography';
+import { IconDelete } from '@components/icons';
 import FilterGroup from './filter_group';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
 import useFilter from './useFilter';
 import AssignmentGroup from '../assignment_group';
 import Tabs from '@components/tabs';
@@ -13,6 +15,8 @@ const PersonsFilter = () => {
 
   const { tabletDown, mobile400Down, desktopUp } = useBreakpoints();
 
+  const { isPersonEditor } = useCurrentUser();
+
   const {
     filters,
     handleClearFilters,
@@ -22,6 +26,8 @@ const PersonsFilter = () => {
     handleToggleAssignment,
     checkedItems,
     handleCloseFilterMobile,
+    handleOpenTrash,
+    trashCount,
   } = useFilter();
 
   const tabs = [
@@ -161,6 +167,46 @@ const PersonsFilter = () => {
           {t('tr_clearAll')}
         </Button>
       </Box>
+
+      {/* LA PAPELERA, aquí abajo.
+          No es un filtro, y por eso va detrás de una línea y del bloque de
+          botones en vez de mezclada con las categorías. Estuvo como pestaña de
+          Personas y luego en la cabecera de la página, y en los dos sitios
+          pesaba demasiado para algo que se abre unas pocas veces al año: este
+          panel se despliega solo cuando alguien lo busca, que es exactamente
+          la atención que merece.
+
+          Se enseña aunque esté vacía —con su cero— porque estando escondida
+          aquí lo caro no es el sitio que ocupa, sino no encontrarla el día que
+          hace falta. */}
+      {isPersonEditor && (
+        <>
+          <CustomDivider color="var(--line)" />
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              marginTop: '12px',
+            }}
+          >
+            <Typography className="body-small-regular" color="var(--ink-3)">
+              {t('tr_deletedPersons')}
+            </Typography>
+
+            <Button
+              variant="secondary"
+              startIcon={<IconDelete color="var(--accent-main)" />}
+              onClick={handleOpenTrash}
+              disableAutoStretch
+            >
+              {`${t('tr_trash')} (${trashCount})`}
+            </Button>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

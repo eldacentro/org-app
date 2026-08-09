@@ -121,6 +121,25 @@ export type SettingsType = {
       }[];
     };
     special_months: SpecialMonthType[];
+    /**
+     * Personas BORRADAS PARA SIEMPRE desde la papelera, por su `person_uid`.
+     *
+     * Es una lista de «esto no debe existir», no un registro histórico. Existe
+     * porque un borrado definitivo no se puede propagar solo: quitar la fila
+     * aquí la quita del servidor (la tabla de personas se sube entera), pero
+     * cualquier otro dispositivo de un editor que aún la tenga la vuelve a
+     * subir la próxima vez que toque a alguien, y reaparece en todas partes.
+     *
+     * Con la lista, cada dispositivo retira en cada sincronización lo que esté
+     * en ella. Es idempotente y se cura sola: si una copia vieja resucita a
+     * alguien, al ciclo siguiente vuelve a caer.
+     *
+     * Va envuelta en `{ value, updatedAt }` A PROPÓSITO. Una lista suelta
+     * dentro de `cong_settings` es justo la forma que la fusión descarta sin
+     * decir nada (lo de `special_months`); así se reemplaza entera por la más
+     * nueva, que es lo que se quiere.
+     */
+    persons_purged?: { value: string[]; updatedAt: string };
     midweek_meeting: {
       type: string;
       _deleted: { value: boolean; updatedAt: string };

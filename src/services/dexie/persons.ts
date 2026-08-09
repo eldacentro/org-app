@@ -7,6 +7,17 @@ import { getTranslation } from '@services/i18n/translation';
 import { getRandomArrayItem, getRandomNumber } from '@utils/common';
 import { computeYearsDiff } from '@utils/date';
 
+/**
+ * «Hay algo que subir en `persons`».
+ *
+ * Se exporta porque el borrado definitivo retira filas con `bulkDelete`, que
+ * no pasa por ninguno de los guardados de aquí — y sin esta marca la tabla no
+ * se sube, así que la fila seguiría en el servidor y volvería a bajar.
+ */
+export const dbPersonsMarkSendLocal = async () => {
+  await dbUpdatePersonMetadata();
+};
+
 const dbUpdatePersonMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
 

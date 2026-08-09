@@ -3,6 +3,7 @@ import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import {
   buildTrashEntries,
+  planPurge,
   planRestore,
   purgedOnRestore,
 } from './persons_trash';
@@ -228,6 +229,84 @@ describe('planRestore', () => {
     );
 
     expect(plan.reports.map((r) => r.report_id)).toEqual(['r1']);
+  });
+});
+
+describe('planPurge — borrar para siempre', () => {
+  it('retira la fila de la persona y pone lápida a sus informes', () => {
+    // Dos tratos distintos porque el servidor guarda cada tabla de una manera:
+    // la de personas la reemplaza entera (quitar la fila la quita de allí), y
+    // los informes los fusiona registro a registro (una fila que se quita no
+    // le dice nada, así que hace falta la lápida).
+    const plan = planPurge(
+      [buildPerson('A', { value: true, updatedAt: BORRADO })],
+      [buildReport('r1', 'A', '2026/01')],
+      ['A'],
+      AHORA
+    );
+
+    expect(plan.personUids).toEqual(['A']);
+    expect(plan.reports).toHaveLength(1);
+    expect(plan.reports[0].report_data._deleted).toBe(true);
+    expect(plan.reports[0].report_data.updatedAt).toBe(AHORA);
+    expect(plan.reports[0].report_data.rev).toBe(AHORA);
+  });
+
+  it('NUNCA toca a quien no tiene ya la lápida puesta', () => {
+    // Borrar para siempre es una operación sobre la papelera, no un atajo
+    // para saltarse el paso de eliminar. Aunque llegue el identificador de
+    // alguien vivo, aquí no se le toca.
+    const plan = planPurge(
+      [
+        buildPerson('vivo', { value: false, updatedAt: '' }),
+        buildPerson('enPapelera', { value: true, updatedAt: BORRADO }),
+      ],
+      [buildReport('r1', 'vivo', '2026/01')],
+      ['vivo', 'enPapelera'],
+      AHORA
+    );
+
+    expect(plan.personUids).toEqual(['enPapelera']);
+    expect(plan.reports).toHaveLength(0);
+  });
+
+  it('no reescribe informes que ya tenían lápida', () => {
+    const plan = planPurge(
+      [buildPerson('A', { value: true, updatedAt: BORRADO })],
+      [buildReport('r1', 'A', '2026/01', true)],
+      ['A'],
+      AHORA
+    );
+
+    expect(plan.personUids).toEqual(['A']);
+    expect(plan.reports).toHaveLength(0);
+  });
+
+  it('no toca los informes de otra persona', () => {
+    const plan = planPurge(
+      [
+        buildPerson('A', { value: true, updatedAt: BORRADO }),
+        buildPerson('B', { value: true, updatedAt: BORRADO }),
+      ],
+      [buildReport('r1', 'A', '2026/01'), buildReport('r2', 'B', '2026/01')],
+      ['A'],
+      AHORA
+    );
+
+    expect(plan.personUids).toEqual(['A']);
+    expect(plan.reports.map((r) => r.report_id)).toEqual(['r1']);
+  });
+
+  it('sin identificadores no hace nada', () => {
+    const plan = planPurge(
+      [buildPerson('A', { value: true, updatedAt: BORRADO })],
+      [buildReport('r1', 'A', '2026/01')],
+      [],
+      AHORA
+    );
+
+    expect(plan.personUids).toHaveLength(0);
+    expect(plan.reports).toHaveLength(0);
   });
 });
 

@@ -55,6 +55,7 @@ export const TABLE_ENCRYPTION_MAP = {
     source_material: 'shared',
     source_material_auto_import: 'shared',
     special_months: 'shared',
+    persons_purged: 'shared',
     type: 'public',
     weekday: 'public',
     time: 'public',

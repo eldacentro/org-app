@@ -64,6 +64,7 @@ import {
   personWasPublisherBy,
 } from '@services/app/publisher_status';
 import { APP_READ_ONLY_ROLES } from '@constants/index';
+import { applyPersonsPurge } from '@services/app/persons_trash';
 import {
   reconcileOutgoingSpeakerLinks,
   remapOutgoingTalkAssignments,
@@ -2532,6 +2533,19 @@ const dbRestoreFromBackup = async (
       await safe('cong_field_service_reports', () =>
         dbRestoreCongReports(backupData, accessCode)
       );
+
+      // Borrados definitivos de la papelera. Va DESPUÉS de bajar los ajustes
+      // —de donde sale la lista—, las personas y los informes, porque lo que
+      // acaba de bajar puede traer de vuelta a quien otro dispositivo ya borró
+      // para siempre: el dispositivo de un editor que llevaba semanas cerrado
+      // sube su tabla entera y lo resucita en el servidor.
+      //
+      // No deduce el borrado de una ausencia —así es como se pierden datos—:
+      // retira exactamente los identificadores apuntados, y no escribe nada si
+      // no hay ninguno. Ver `applyPersonsPurge`.
+      await safe('persons_purge', async () => {
+        await applyPersonsPurge();
+      });
 
       await safe('branch_field_service_reports', () =>
         dbRestoreBranchReports(backupData, accessCode)

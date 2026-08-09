@@ -1,8 +1,12 @@
 import appDb from '@db/appDb';
 import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
-import { dbPersonsBulkSave } from '@services/dexie/persons';
+import {
+  dbPersonsBulkSave,
+  dbPersonsMarkSendLocal,
+} from '@services/dexie/persons';
 import { dbFieldServiceReportsBulkSave } from '@services/dexie/cong_field_service_reports';
+import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { computeRetentionPlan } from './retention';
 
 /**
@@ -216,4 +220,152 @@ export const restorePersonFromTrash = async (person_uid: string) => {
   }
 
   return { person: plan.person, reportsRestored: plan.reports.length };
+};
+
+/**
+ * Qué se escribe para BORRAR PARA SIEMPRE a quien está en la papelera.
+ *
+ * Puro, como `planRestore`, y por el mismo motivo: decide si unos datos dejan
+ * de existir, y eso hay que poder probarlo sin base de datos.
+ *
+ * Dos tratos distintos porque el servidor guarda cada tabla de una manera:
+ *
+ * - **La persona se retira de verdad.** La tabla de personas se sube ENTERA y
+ *   el servidor reemplaza el fichero con lo que le llega, así que quitar la
+ *   fila aquí la quita también de allí.
+ * - **Sus informes se marcan con lápida**, no se retiran. Los informes se
+ *   fusionan registro a registro en el servidor (`saveReportsMerging`): una
+ *   fila que se quita del dispositivo no le dice nada al servidor y volvería a
+ *   bajar en el ciclo siguiente. La lápida sí viaja.
+ *
+ * Y NUNCA se toca a quien no tenga ya la lápida puesta: borrar para siempre es
+ * una operación sobre la papelera, no un atajo para saltarse el paso previo.
+ */
+export const planPurge = (
+  persons: PersonType[],
+  reports: CongFieldServiceReportType[],
+  uids: string[],
+  now: string
+) => {
+  const wanted = new Set(uids);
+
+  const toRemove = persons
+    .filter((person) => wanted.has(person.person_uid) && person._deleted?.value)
+    .map((person) => person.person_uid);
+
+  const removing = new Set(toRemove);
+
+  const reportsToBury = reports
+    .filter(
+      (report) =>
+        removing.has(report.report_data.person_uid) &&
+        !report.report_data._deleted
+    )
+    .map((report) => {
+      const record = structuredClone(report);
+      record.report_data._deleted = true;
+      record.report_data.updatedAt = now;
+      record.report_data.rev = now;
+
+      return record;
+    });
+
+  return { personUids: toRemove, reports: reportsToBury };
+};
+
+/**
+ * Aplica la lista de borrados definitivos a lo que haya en este dispositivo.
+ *
+ * Corre en CADA sincronización, después de bajar personas, y es lo que hace
+ * que un borrado definitivo se propague sin inventarse nada: no deduce el
+ * borrado de una ausencia —que es como se pierden datos—, sino que retira
+ * exactamente los identificadores que alguien puso en la lista.
+ *
+ * Es idempotente y se cura sola: si un dispositivo que llevaba semanas sin
+ * abrirse vuelve a subir su tabla entera y resucita a alguien, al ciclo
+ * siguiente todos —incluido él— lo vuelven a retirar.
+ *
+ * No escribe nada si no hay nada que retirar: una escritura en `persons`
+ * despierta a `useLiveQuery` y redibuja la pantalla entera.
+ */
+export const applyPersonsPurge = async () => {
+  const settings = await appDb.app_settings.get(1);
+
+  const uids = settings?.cong_settings?.persons_purged?.value ?? [];
+
+  if (uids.length === 0) return { persons: 0, reports: 0 };
+
+  const wanted = new Set(uids);
+
+  const persons = await appDb.persons.toArray();
+  const present = persons.filter((person) => wanted.has(person.person_uid));
+
+  const reports = await appDb.cong_field_service_reports.toArray();
+  const pending = reports.filter(
+    (report) =>
+      wanted.has(report.report_data.person_uid) && !report.report_data._deleted
+  );
+
+  if (present.length === 0 && pending.length === 0) {
+    return { persons: 0, reports: 0 };
+  }
+
+  const now = new Date().toISOString();
+
+  if (present.length > 0) {
+    await appDb.persons.bulkDelete(present.map((person) => person.person_uid));
+  }
+
+  if (pending.length > 0) {
+    const buried = pending.map((report) => {
+      const record = structuredClone(report);
+      record.report_data._deleted = true;
+      record.report_data.updatedAt = now;
+      record.report_data.rev = now;
+
+      return record;
+    });
+
+    await dbFieldServiceReportsBulkSave(buried);
+  }
+
+  return { persons: present.length, reports: pending.length };
+};
+
+/**
+ * Borra para siempre a quien se le pase, y lo apunta para que se borre también
+ * en los demás dispositivos.
+ *
+ * El orden importa: primero la LISTA y después las filas. Si se cayera la app
+ * entre las dos cosas, quedaría apuntado un borrado que aún no se ha hecho —y
+ * `applyPersonsPurge` lo termina en la siguiente vuelta—, que es el lado bueno
+ * del fallo. Al revés quedarían unas filas retiradas sin nadie que se lo
+ * cuente al resto, y volverían.
+ */
+export const purgePersonsForever = async (uids: string[]) => {
+  const persons = await appDb.persons.toArray();
+  const reports = await appDb.cong_field_service_reports.toArray();
+
+  const plan = planPurge(persons, reports, uids, new Date().toISOString());
+
+  if (plan.personUids.length === 0) return { persons: 0, reports: 0 };
+
+  const settings = await appDb.app_settings.get(1);
+  const already = settings?.cong_settings?.persons_purged?.value ?? [];
+
+  await dbAppSettingsUpdate({
+    'cong_settings.persons_purged': {
+      value: [...new Set([...already, ...plan.personUids])],
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  await appDb.persons.bulkDelete(plan.personUids);
+  await dbPersonsMarkSendLocal();
+
+  if (plan.reports.length > 0) {
+    await dbFieldServiceReportsBulkSave(plan.reports);
+  }
+
+  return { persons: plan.personUids.length, reports: plan.reports.length };
 };
