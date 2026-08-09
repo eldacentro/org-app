@@ -16,9 +16,10 @@ import EvacuacionConfigDialog from '@features/evacuacion/EvacuacionConfigDialog'
 import useEvacuacionExport from '@features/evacuacion/useEvacuacionExport';
 import NavBarButton from '@components/nav_bar_button';
 import { IconPrint } from '@components/icons';
+import { canExportSite } from '@services/app/export_permissions';
 
 const EvacuacionPage = () => {
-  const { isElder, isAdmin } = useCurrentUser();
+  const { isElder, isAdmin, exportRoles } = useCurrentUser();
   const isManager = isElder || isAdmin;
 
   const [plan, setPlan] = useState<PlanEvacuacion>(PLAN_EVACUACION);
@@ -60,12 +61,19 @@ const EvacuacionPage = () => {
         quickSettings={isManager ? () => setIsConfigOpen(true) : undefined}
         quickSettingsLabel="Configuración del plan de evacuación"
         buttons={
-          <NavBarButton
-            text={exportando ? 'Creando…' : 'Exportar'}
-            onClick={handleExportPDF}
-            disabled={exportando}
-            icon={<IconPrint />}
-          />
+          // La PÁGINA sigue abierta a toda la congregación —el plan está para
+          // que todos sepan por dónde salir—, pero sacarse el plano en PDF es
+          // cosa de quien lo lleva. Mismo criterio que el engranaje de
+          // configuración, y declarado en el registro de exportaciones para
+          // que el interruptor de Mi cuenta lo tenga en cuenta solo.
+          canExportSite('evacuacion', exportRoles) && (
+            <NavBarButton
+              text={exportando ? 'Creando…' : 'Exportar'}
+              onClick={handleExportPDF}
+              disabled={exportando}
+              icon={<IconPrint />}
+            />
+          )
         }
       />
 

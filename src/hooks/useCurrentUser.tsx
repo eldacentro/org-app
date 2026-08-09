@@ -19,6 +19,10 @@ import {
   personWasPublisherBy,
 } from '@services/app/publisher_status';
 import { personIsPioneerNow } from '@services/app/persons';
+import {
+  canExportAnything,
+  ExportRoles,
+} from '@services/app/export_permissions';
 
 const useCurrentUser = () => {
   const { personIsEnrollmentActive, personIsBaptizedPublisher } = usePerson();
@@ -321,45 +325,57 @@ const useCurrentUser = () => {
   }, [isGroup, isAdmin, isLanguageGroupOverseer]);
 
   /**
+   * Los permisos de esta cuenta, en la forma que espera el registro de
+   * exportaciones. Se pasa entero para que allí se pueda preguntar por
+   * cualquiera sin tener que volver aquí a añadir nada.
+   */
+  const exportRoles: ExportRoles = useMemo(
+    () => ({
+      isAdmin,
+      isElder,
+      isServiceCommittee,
+      isMidweekEditor,
+      isWeekendEditor,
+      isDepartmentsEditor,
+      isPublicTalkCoordinator,
+    }),
+    [
+      isAdmin,
+      isElder,
+      isServiceCommittee,
+      isMidweekEditor,
+      isWeekendEditor,
+      isDepartmentsEditor,
+      isPublicTalkCoordinator,
+    ]
+  );
+
+  /**
    * ¿Tiene esta cuenta algún documento que exportar?
    *
-   * Sirve para no enseñarle a un publicador el interruptor de «exportación a
-   * PDF» de Mi cuenta: encenderlo no le haría aparecer ni un botón, porque no
-   * llega a ninguna página que exporte.
+   * Decide si se le enseña el interruptor de «exportación a PDF» de Mi cuenta:
+   * a un publicador raso, encenderlo no le haría aparecer ni un botón, porque
+   * no llega a ninguna página que exporte.
    *
-   * La lista NO está inventada: es exactamente quién pasa el guardia de cada
-   * página que tiene botón de exportar (ver los `*Route` de `App.tsx`).
+   * Ya no es una lista de roles escrita aquí: se calcula sumando las
+   * condiciones declaradas en `services/app/export_permissions`, que es donde
+   * vive cada sitio que exporta. Así, una exportación nueva entra sola en esta
+   * cuenta sin que nadie tenga que acordarse de este fichero.
    *
-   *   Próximos eventos ............ anciano o administrador
-   *   Exhibidores y Salidas ....... comité de servicio
-   *   Reunión de entre semana ..... quien la edita
-   *   Departamentos ............... quien edita departamentos o la de entre semana
-   *   Reunión de fin de semana .... quien la edita o el coordinador de discursos
-   *
-   * De ahí sale el caso que importa: un siervo ministerial no tiene nada que
-   * exportar por serlo, pero si le dan el programa de Departamentos sí, y el
-   * interruptor le aparece solo. `isAdmin` cumple todas por dentro.
+   * El caso que importa: un siervo ministerial no tiene nada que exportar por
+   * serlo, pero si le dan el programa de Departamentos sí, y el interruptor le
+   * aparece solo. `isAdmin` cumple todas las condiciones por dentro.
    */
-  const canExportAnySchedule = useMemo(() => {
-    return (
-      isElder ||
-      isServiceCommittee ||
-      isMidweekEditor ||
-      isWeekendEditor ||
-      isDepartmentsEditor ||
-      isPublicTalkCoordinator
-    );
-  }, [
-    isElder,
-    isServiceCommittee,
-    isMidweekEditor,
-    isWeekendEditor,
-    isDepartmentsEditor,
-    isPublicTalkCoordinator,
-  ]);
+  const canExportAnySchedule = useMemo(
+    () => canExportAnything(exportRoles),
+    [exportRoles]
+  );
 
   return {
     canExportAnySchedule,
+    // Los permisos en crudo, para poder preguntarle al registro de
+    // exportaciones por un sitio concreto (`canExportSite`).
+    exportRoles,
     person,
     first_report,
     enable_AP_application,
