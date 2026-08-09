@@ -2,10 +2,12 @@ import { Box, Slide } from '@mui/material';
 import { Button, PageTitle } from '@components/index';
 import {
   IconAddPerson,
+  IconFilter,
   IconImportExport,
   IconPanelClose,
   IconPanelOpen,
 } from '@components/icons';
+import ButtonIcon from '@components/icon_button';
 import {
   useAppTranslation,
   useBreakpoints,
@@ -18,6 +20,67 @@ import PersonsFilter from '@features/persons/filter';
 import PersonsSearch from '@features/persons/search';
 import NavBarButton from '@components/nav_bar_button';
 import ImportExport from '@features/persons/import_export';
+
+/**
+ * El buscador y el acceso a los filtros, en una fila.
+ *
+ * Estaba escrito DOS veces —una para escritorio y otra para lo demás— con el
+ * buscador suelto en un flex, sin `flex: 1` ni `minWidth: 0`: encogía hasta
+ * cortar su propio texto («Buscar por n…») para dejarle sitio a la palabra
+ * «Filtros», que se usa mucho menos que buscar.
+ *
+ * En pantalla estrecha la palabra se va y se queda el icono, con el nombre en
+ * la etiqueta para quien use lector de pantalla. Es el mismo remedio, y por el
+ * mismo motivo, que el botón «Gestionar» de Territorios.
+ */
+const SearchRow = ({
+  isPanelOpen,
+  onToggle,
+}: {
+  isPanelOpen: boolean;
+  onToggle: VoidFunction;
+}) => {
+  const { t } = useAppTranslation();
+
+  const { tablet600Up } = useBreakpoints();
+
+  return (
+    <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+      {/* `minWidth: 0` es lo que le permite encoger de verdad: sin él, el
+          contenido mínimo del campo manda y quien cede es el vecino. */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <PersonsSearch />
+      </Box>
+
+      {tablet600Up ? (
+        <Button
+          variant="secondary"
+          onClick={onToggle}
+          endIcon={isPanelOpen ? <IconPanelOpen /> : <IconPanelClose />}
+          disableAutoStretch
+          sx={{ flexShrink: 0 }}
+        >
+          {t('tr_filters')}
+        </Button>
+      ) : (
+        // 48px, el mismo alto que el buscador y con el mismo radio: al lado se
+        // leen como una pareja y no como dos piezas de sitios distintos.
+        <ButtonIcon
+          onClick={onToggle}
+          aria-label={t('tr_filters')}
+          sx={{
+            flexShrink: 0,
+            width: '48px',
+            height: '48px',
+            border: '1px solid var(--accent-main)',
+          }}
+        >
+          <IconFilter color="var(--accent-dark)" />
+        </ButtonIcon>
+      )}
+    </Box>
+  );
+};
 
 const PersonsAll = () => {
   const { t } = useAppTranslation();
@@ -91,16 +154,10 @@ const PersonsAll = () => {
               boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <Box sx={{ display: 'flex', gap: '16px' }}>
-              <PersonsSearch />
-              <Button
-                variant="secondary"
-                onClick={() => setIsPanelOpen((prev) => !prev)}
-                endIcon={isPanelOpen ? <IconPanelOpen /> : <IconPanelClose />}
-              >
-                {t('tr_filters')}
-              </Button>
-            </Box>
+            <SearchRow
+              isPanelOpen={isPanelOpen}
+              onToggle={() => setIsPanelOpen((prev) => !prev)}
+            />
 
             <PersonsList />
           </Box>
@@ -130,18 +187,10 @@ const PersonsAll = () => {
                     boxShadow: 'var(--shadow-sm)',
                   }}
                 >
-                  <Box sx={{ display: 'flex', gap: '16px' }}>
-                    <PersonsSearch />
-                    <Button
-                      variant="secondary"
-                      onClick={() => setIsPanelOpen((prev) => !prev)}
-                      endIcon={
-                        isPanelOpen ? <IconPanelOpen /> : <IconPanelClose />
-                      }
-                    >
-                      {t('tr_filters')}
-                    </Button>
-                  </Box>
+                  <SearchRow
+                    isPanelOpen={isPanelOpen}
+                    onToggle={() => setIsPanelOpen((prev) => !prev)}
+                  />
 
                   <PersonsList />
                 </Box>
