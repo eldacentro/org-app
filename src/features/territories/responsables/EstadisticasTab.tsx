@@ -8,18 +8,20 @@ import Typography from '@components/typography';
 import CountBadge from '@components/count_badge';
 import Tooltip from '@components/tooltip';
 import accentSurface from '@components/accent_surface';
-import { EstadoBadge } from '@features/territories/ui';
+import { EstadoBadge, TagChip } from '@features/territories/ui';
 import { IconCheckCircle, IconInfo } from '@components/icons';
 import {
   territoriesState,
   territoryAssignmentsState,
   territorySettingsState,
   territoriesLoadingState,
+  territoryTagsState,
   territoryZonesState,
 } from '@states/territories';
 import {
   Territory,
   TerritoryAssignment,
+  TerritoryTag,
   TerritoryZone,
 } from '@definition/territories';
 import { congIDState, userLocalUIDState } from '@states/settings';
@@ -171,6 +173,7 @@ const KpiCard = ({
 const NoAsignadoRow = ({
   t,
   zones,
+  tags,
   dateFormat,
   daysUntilReassignable,
   onAsignar,
@@ -178,12 +181,18 @@ const NoAsignadoRow = ({
 }: {
   t: Territory;
   zones: TerritoryZone[];
+  tags: TerritoryTag[];
   dateFormat: string;
   daysUntilReassignable: number;
   onAsignar: (t: Territory) => void;
   showZone: boolean;
 }) => {
   const resting = isInCooldown(t, daysUntilReassignable);
+  // Las etiquetas aquí no son adorno: esta lista es "¿cuál entrego ahora?", y
+  // eso se decide sabiendo si el territorio es grande o pequeño.
+  const misEtiquetas = (t.tags ?? [])
+    .map((id) => tags.find((tag) => tag.id === id))
+    .filter(Boolean) as TerritoryTag[];
 
   return (
     <Stack
@@ -219,6 +228,9 @@ const NoAsignadoRow = ({
             </Typography>
           )}
           {resting && <EstadoBadge estado="descanso" />}
+          {misEtiquetas.map((tag) => (
+            <TagChip key={tag.id} label={tag.nombre} color={tag.color} />
+          ))}
         </Stack>
         <Typography className="label-small-regular" color="var(--ink-3)">
           {t.lastWorkedAt
@@ -243,12 +255,14 @@ const PAGE_SIZE = 10;
 const ZoneGroup = ({
   zone,
   territories,
+  tags,
   dateFormat,
   daysUntilReassignable,
   onAsignar,
 }: {
   zone: TerritoryZone;
   territories: Territory[];
+  tags: TerritoryTag[];
   dateFormat: string;
   daysUntilReassignable: number;
   onAsignar: (t: Territory) => void;
@@ -300,6 +314,7 @@ const ZoneGroup = ({
             key={t.id}
             t={t}
             zones={[zone]}
+            tags={tags}
             dateFormat={dateFormat}
             daysUntilReassignable={daysUntilReassignable}
             onAsignar={onAsignar}
@@ -330,6 +345,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
 
   const assignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
+  const tags = useAtomValue(territoryTagsState);
   const settings = useAtomValue(territorySettingsState);
   // El número de "Trabajados" se lleva a la reunión del cuerpo de ancianos,
   // así que la tarjeta debe decir DE QUÉ periodo es. Antes ponía "En el
@@ -694,6 +710,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                 key={zone.id}
                 zone={zone}
                 territories={items}
+                tags={tags}
                 dateFormat={settings.dateFormat}
                 daysUntilReassignable={settings.daysUntilReassignable}
                 onAsignar={onAsignar}
@@ -709,6 +726,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   key={t.id}
                   t={t}
                   zones={zones}
+                  tags={tags}
                   dateFormat={settings.dateFormat}
                   daysUntilReassignable={settings.daysUntilReassignable}
                   onAsignar={onAsignar}
