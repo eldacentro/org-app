@@ -19,15 +19,23 @@ import { MetadataRecordType } from '@definition/metadata';
 
 describe('fusión de un registro con marca de tiempo', () => {
   it('lo más nuevo del servidor gana', () => {
-    const local = { name: { value: 'local', updatedAt: '2026-01-01T00:00:00Z' } };
-    const remote = { name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' } };
+    const local = {
+      name: { value: 'local', updatedAt: '2026-01-01T00:00:00Z' },
+    };
+    const remote = {
+      name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' },
+    };
 
     expect(syncFromRemote(local, remote).name.value).toBe('remoto');
   });
 
   it('lo más nuevo del dispositivo NO se pisa con lo viejo del servidor', () => {
-    const local = { name: { value: 'local', updatedAt: '2026-03-01T00:00:00Z' } };
-    const remote = { name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' } };
+    const local = {
+      name: { value: 'local', updatedAt: '2026-03-01T00:00:00Z' },
+    };
+    const remote = {
+      name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' },
+    };
 
     expect(syncFromRemote(local, remote).name.value).toBe('local');
   });
@@ -42,7 +50,9 @@ describe('fusión de un registro con marca de tiempo', () => {
 
   it('si lo local no tiene marca, el servidor manda', () => {
     const local = { name: { value: 'local', updatedAt: '' } };
-    const remote = { name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' } };
+    const remote = {
+      name: { value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' },
+    };
 
     expect(syncFromRemote(local, remote).name.value).toBe('remoto');
   });
@@ -114,10 +124,18 @@ describe('fusión de listas de registros', () => {
 
   it('los registros de hueco fijo se casan por "type" cuando no hay id', () => {
     const local = {
-      slots: [{ type: 'chairman', value: 'local', updatedAt: '2026-01-01T00:00:00Z' }],
+      slots: [
+        { type: 'chairman', value: 'local', updatedAt: '2026-01-01T00:00:00Z' },
+      ],
     };
     const remote = {
-      slots: [{ type: 'chairman', value: 'remoto', updatedAt: '2026-02-01T00:00:00Z' }],
+      slots: [
+        {
+          type: 'chairman',
+          value: 'remoto',
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
+      ],
     };
 
     const result = syncFromRemote(local, remote);
@@ -129,13 +147,28 @@ describe('fusión de listas de registros', () => {
   it('el id manda sobre el type: dos registros con el mismo type no se pisan', () => {
     const local = {
       talks: [
-        { id: 'a', type: 'main', value: 'A local', updatedAt: '2026-01-01T00:00:00Z' },
-        { id: 'b', type: 'main', value: 'B local', updatedAt: '2026-01-01T00:00:00Z' },
+        {
+          id: 'a',
+          type: 'main',
+          value: 'A local',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
+        {
+          id: 'b',
+          type: 'main',
+          value: 'B local',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
       ],
     };
     const remote = {
       talks: [
-        { id: 'b', type: 'main', value: 'B remoto', updatedAt: '2026-02-01T00:00:00Z' },
+        {
+          id: 'b',
+          type: 'main',
+          value: 'B remoto',
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
       ],
     };
 
@@ -145,15 +178,112 @@ describe('fusión de listas de registros', () => {
     expect(result.talks.find((t) => t.id === 'a')!.value).toBe('A local');
     expect(result.talks.find((t) => t.id === 'b')!.value).toBe('B remoto');
   });
+
+  // `cong_settings.special_months` guarda un registro por año de servicio y no
+  // tiene id ni type: se identifican por el año. Sin 'year' entre las claves,
+  // el motor los tiraba y los meses marcados en un dispositivo no llegaban a
+  // ninguno de los demás.
+  it('el año identifica el registro cuando no hay id ni type', () => {
+    const local = {
+      special_months: [
+        {
+          year: '2026',
+          months: ['2026/03'],
+          _deleted: false,
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+    };
+    const remote = {
+      special_months: [
+        {
+          year: '2026',
+          months: ['2026/03', '2026/04'],
+          _deleted: false,
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
+        {
+          year: '2027',
+          months: ['2027/04'],
+          _deleted: false,
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
+      ],
+    };
+
+    const result = syncFromRemote(local, remote);
+
+    expect(result.special_months).toHaveLength(2);
+    expect(
+      result.special_months.find((r) => r.year === '2026')!.months
+    ).toEqual(['2026/03', '2026/04']);
+    expect(
+      result.special_months.find((r) => r.year === '2027')!.months
+    ).toEqual(['2027/04']);
+  });
+
+  it('el año NO le gana al id: si hay id, manda el id', () => {
+    const local = {
+      rows: [
+        {
+          id: 'a',
+          year: '2026',
+          value: 'A local',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
+        {
+          id: 'b',
+          year: '2026',
+          value: 'B local',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+    };
+    const remote = {
+      rows: [
+        {
+          id: 'b',
+          year: '2026',
+          value: 'B remoto',
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
+      ],
+    };
+
+    const result = syncFromRemote(local, remote);
+
+    expect(result.rows.find((r) => r.id === 'a')!.value).toBe('A local');
+    expect(result.rows.find((r) => r.id === 'b')!.value).toBe('B remoto');
+  });
+
+  it('un año que solo está en el dispositivo no lo borra el servidor', () => {
+    const local = {
+      special_months: [
+        {
+          year: '2026',
+          months: ['2026/03'],
+          _deleted: false,
+          updatedAt: '2026-02-01T00:00:00Z',
+        },
+      ],
+    };
+    const remote = { special_months: [] };
+
+    expect(syncFromRemote(local, remote).special_months).toHaveLength(1);
+  });
 });
 
 describe('cosas que no deberían perderse por el camino', () => {
   it('una marca de borrado más nueva del servidor llega al dispositivo', () => {
     const local = {
-      persons: [{ id: 'p1', _deleted: false, updatedAt: '2026-01-01T00:00:00Z' }],
+      persons: [
+        { id: 'p1', _deleted: false, updatedAt: '2026-01-01T00:00:00Z' },
+      ],
     };
     const remote = {
-      persons: [{ id: 'p1', _deleted: true, updatedAt: '2026-02-01T00:00:00Z' }],
+      persons: [
+        { id: 'p1', _deleted: true, updatedAt: '2026-02-01T00:00:00Z' },
+      ],
     };
 
     expect(syncFromRemote(local, remote).persons[0]._deleted).toBe(true);
@@ -161,17 +291,23 @@ describe('cosas que no deberían perderse por el camino', () => {
 
   it('un borrado local reciente no lo resucita un servidor viejo', () => {
     const local = {
-      persons: [{ id: 'p1', _deleted: true, updatedAt: '2026-03-01T00:00:00Z' }],
+      persons: [
+        { id: 'p1', _deleted: true, updatedAt: '2026-03-01T00:00:00Z' },
+      ],
     };
     const remote = {
-      persons: [{ id: 'p1', _deleted: false, updatedAt: '2026-02-01T00:00:00Z' }],
+      persons: [
+        { id: 'p1', _deleted: false, updatedAt: '2026-02-01T00:00:00Z' },
+      ],
     };
 
     expect(syncFromRemote(local, remote).persons[0]._deleted).toBe(true);
   });
 
   it('lista vacía en el servidor no vacía la del dispositivo', () => {
-    const local = { weeks: [{ id: 'w1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }] };
+    const local = {
+      weeks: [{ id: 'w1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }],
+    };
     const remote = { weeks: [] };
 
     expect(syncFromRemote(local, remote).weeks).toHaveLength(1);
@@ -214,9 +350,12 @@ describe('getObjectLatestUpdate', () => {
   });
 
   it('no se atraganta con null', () => {
-    expect(getObjectLatestUpdate({ a: null, b: { updatedAt: '2026-01-01T00:00:00Z' } })).toBe(
-      '2026-01-01T00:00:00Z'
-    );
+    expect(
+      getObjectLatestUpdate({
+        a: null,
+        b: { updatedAt: '2026-01-01T00:00:00Z' },
+      })
+    ).toBe('2026-01-01T00:00:00Z');
   });
 });
 
@@ -238,8 +377,12 @@ describe('filos conocidos (el esquema los evita, no el motor)', () => {
     expect(syncFromRemote(local, remote).values).toEqual(['A']);
 
     // Así SÍ funciona, que es como está todo el esquema:
-    const localOk = { values: { value: ['A'], updatedAt: '2026-01-01T00:00:00Z' } };
-    const remoteOk = { values: { value: ['A', 'B'], updatedAt: '2026-02-01T00:00:00Z' } };
+    const localOk = {
+      values: { value: ['A'], updatedAt: '2026-01-01T00:00:00Z' },
+    };
+    const remoteOk = {
+      values: { value: ['A', 'B'], updatedAt: '2026-02-01T00:00:00Z' },
+    };
 
     expect(syncFromRemote(localOk, remoteOk).values.value).toEqual(['A', 'B']);
   });
@@ -261,8 +404,12 @@ describe('filos conocidos (el esquema los evita, no el motor)', () => {
 
   it('AVISO: las marcas de tiempo se comparan como texto — escríbelas siempre en UTC (toISOString)', () => {
     // 12:00+02:00 son las 10:00Z, o sea que el servidor (11:00Z) es MÁS nuevo…
-    const local = { n: { value: 'local', updatedAt: '2026-02-01T12:00:00+02:00' } };
-    const remote = { n: { value: 'remoto', updatedAt: '2026-02-01T11:00:00Z' } };
+    const local = {
+      n: { value: 'local', updatedAt: '2026-02-01T12:00:00+02:00' },
+    };
+    const remote = {
+      n: { value: 'remoto', updatedAt: '2026-02-01T11:00:00Z' },
+    };
 
     // …pero como texto gana el local. Por eso toda la app escribe en UTC.
     expect(syncFromRemote(local, remote).n.value).toBe('local');
@@ -293,7 +440,11 @@ describe('¿hace falta guardar?', () => {
     const a = {
       weekOf: '2026-01-05',
       midweek_meeting: {
-        chairman: { type: 'main', value: 'Hno. Pérez', updatedAt: '2026-01-01T00:00:00Z' },
+        chairman: {
+          type: 'main',
+          value: 'Hno. Pérez',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
         ayf_part1: [{ type: 'main', value: '', updatedAt: '' }],
       },
     };
@@ -329,7 +480,9 @@ describe('¿hace falta guardar?', () => {
   it('ante algo que no sabe comparar (una fecha), responde DISTINTO', () => {
     const stamp = 1767225600000;
 
-    expect(isSameRecord({ d: new Date(stamp) }, { d: new Date(stamp) })).toBe(false);
+    expect(isSameRecord({ d: new Date(stamp) }, { d: new Date(stamp) })).toBe(
+      false
+    );
   });
 
   it('no se atraganta con null ni con listas vacías', () => {
@@ -384,7 +537,11 @@ describe('el ciclo de sincronización solo escribe lo que ha cambiado', () => {
     weekOf: '2026-01-05',
     midweek_meeting: {
       chairman: { type: 'main', value: chairman, updatedAt },
-      opening_prayer: { type: 'main', value: 'Hno. Ruiz', updatedAt: '2026-01-01T00:00:00Z' },
+      opening_prayer: {
+        type: 'main',
+        value: 'Hno. Ruiz',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
     },
   });
 
@@ -425,14 +582,20 @@ describe('el ciclo de sincronización solo escribe lo que ha cambiado', () => {
   });
 
   it('una lista fusionada que gana el servidor sí se escribe', () => {
-    const local = { talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }] };
-    const remote = { talks: [{ id: 't1', value: 'B', updatedAt: '2026-02-01T00:00:00Z' }] };
+    const local = {
+      talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }],
+    };
+    const remote = {
+      talks: [{ id: 't1', value: 'B', updatedAt: '2026-02-01T00:00:00Z' }],
+    };
 
     expect(restoreDecision(local, remote).seEscribe).toBe(true);
   });
 
   it('una lista idéntica no se escribe aunque la referencia sea nueva', () => {
-    const local = { talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }] };
+    const local = {
+      talks: [{ id: 't1', value: 'A', updatedAt: '2026-01-01T00:00:00Z' }],
+    };
     const remote = structuredClone(local);
 
     expect(restoreDecision(local, remote).seEscribe).toBe(false);
@@ -463,7 +626,9 @@ describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
     const enLaBase = canciones();
     const reconstruida = [enLaBase[0], enLaBase[2], enLaBase[1]];
 
-    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(true);
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(
+      true
+    );
   });
 
   it('si cambia una sola traducción, sí se rehace', () => {
@@ -471,7 +636,9 @@ describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
     const reconstruida = canciones();
     reconstruida[1].song_title.ES = 'Dos (revisada)';
 
-    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(
+      false
+    );
   });
 
   it('si aparece un idioma nuevo, sí se rehace', () => {
@@ -479,15 +646,23 @@ describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
     const reconstruida = canciones();
     reconstruida[0].song_title['FR'] = 'Un';
 
-    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(
+      false
+    );
   });
 
   it('una fila de más o de menos es un cambio', () => {
     const enLaBase = canciones();
 
-    expect(isSameTableContent(enLaBase, enLaBase.slice(0, 2), 'song_number')).toBe(false);
     expect(
-      isSameTableContent(enLaBase, [...enLaBase, { song_number: 11, song_title: {} }], 'song_number')
+      isSameTableContent(enLaBase, enLaBase.slice(0, 2), 'song_number')
+    ).toBe(false);
+    expect(
+      isSameTableContent(
+        enLaBase,
+        [...enLaBase, { song_number: 11, song_title: {} }],
+        'song_number'
+      )
     ).toBe(false);
   });
 
@@ -496,14 +671,34 @@ describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
     const reconstruida = canciones();
     reconstruida[2] = { song_number: 11, song_title: { ES: 'Once' } };
 
-    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(false);
+    expect(isSameTableContent(enLaBase, reconstruida, 'song_number')).toBe(
+      false
+    );
   });
 
   it('claves repetidas se comparan como las guardaría bulkPut: gana la última', () => {
     const enLaBase = [{ code: 1, name: 'final' }];
 
-    expect(isSameTableContent(enLaBase, [{ code: 1, name: 'primera' }, { code: 1, name: 'final' }], 'code')).toBe(true);
-    expect(isSameTableContent(enLaBase, [{ code: 1, name: 'final' }, { code: 1, name: 'otra' }], 'code')).toBe(false);
+    expect(
+      isSameTableContent(
+        enLaBase,
+        [
+          { code: 1, name: 'primera' },
+          { code: 1, name: 'final' },
+        ],
+        'code'
+      )
+    ).toBe(true);
+    expect(
+      isSameTableContent(
+        enLaBase,
+        [
+          { code: 1, name: 'final' },
+          { code: 1, name: 'otra' },
+        ],
+        'code'
+      )
+    ).toBe(false);
   });
 
   it('una tabla vacía que sigue vacía no se rehace', () => {
@@ -529,7 +724,10 @@ describe('rehacer una tabla derivada solo si su contenido ha cambiado', () => {
 describe('el cierre de la sincronización y las marcas de reemplazo forzado', () => {
   const versions = (values: Record<string, string>) =>
     Object.fromEntries(
-      Object.entries(values).map(([key, version]) => [key, { version, send_local: false }])
+      Object.entries(values).map(([key, version]) => [
+        key,
+        { version, send_local: false },
+      ])
     );
 
   /**
@@ -554,7 +752,11 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
     const toSave = buildMetadataRecord(record, servidor.versions);
     const seEscribe = !record || !isSameRecord(record, toSave);
 
-    return { reemplazoForzado, seEscribe, guardado: seEscribe ? toSave : record };
+    return {
+      reemplazoForzado,
+      seEscribe,
+      guardado: seEscribe ? toSave : record,
+    };
   };
 
   it('la marca de reemplazo ya aplicado sobrevive al cierre de la sincronización', () => {
@@ -570,12 +772,17 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
 
     expect(toSave.schedules_reset_applied).toBe('2026-07-20T10:00:00Z');
     expect(toSave.visiting_speakers_reset_applied).toBe('2026-07-19T10:00:00Z');
-    expect(toSave.speakers_congregations_reset_applied).toBe('2026-07-18T10:00:00Z');
+    expect(toSave.speakers_congregations_reset_applied).toBe(
+      '2026-07-18T10:00:00Z'
+    );
     expect(toSave.metadata.schedules.version).toBe('v2');
   });
 
   it('el reemplazo forzado se aplica UNA vez, no en cada sincronización', () => {
-    const inicial: MetadataRecordType = { id: 1, metadata: versions({ schedules: 'v1' }) };
+    const inicial: MetadataRecordType = {
+      id: 1,
+      metadata: versions({ schedules: 'v1' }),
+    };
     const marca = '2026-07-25T09:00:00Z';
 
     // El servidor manda la MISMA marca de reset en las tres vueltas, porque es
@@ -612,7 +819,9 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
     });
 
     expect(ciclo.reemplazoForzado).toBe(true);
-    expect(ciclo.guardado?.schedules_reset_applied).toBe('2026-07-26T09:00:00Z');
+    expect(ciclo.guardado?.schedules_reset_applied).toBe(
+      '2026-07-26T09:00:00Z'
+    );
   });
 
   it('si el sync no trae ninguna versión nueva, el registro no se reescribe', () => {
@@ -638,7 +847,10 @@ describe('el cierre de la sincronización y las marcas de reemplazo forzado', ()
 
     const toSave = buildMetadataRecord(guardado, { schedules: 'v2' });
 
-    expect(toSave.metadata.schedules).toEqual({ version: 'v2', send_local: true });
+    expect(toSave.metadata.schedules).toEqual({
+      version: 'v2',
+      send_local: true,
+    });
   });
 
   it('la primera vez, sin registro previo, se crea el registro 1 y nada más', () => {

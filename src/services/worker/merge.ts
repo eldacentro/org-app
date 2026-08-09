@@ -33,7 +33,20 @@ export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
   // records can legitimately share the same 'type', e.g. the same dataView).
   // Fixed-slot records (chairman, opening_prayer, etc.) have no 'id' and
   // fall through to 'type' as before.
-  const lockKeys = ['id', 'type', 'talk_number'];
+  //
+  // 'year' va EL ÚLTIMO, y por eso se puede añadir sin miedo: el bucle de
+  // abajo corta con `break` en la primera clave que exista en el registro, así
+  // que esta solo se consulta cuando no hay ninguna de las otras tres. Lo que
+  // cambia son exactamente los registros que hasta ahora se DESCARTABAN sin
+  // decir nada — no puede pisar ninguna coincidencia que ya funcionara.
+  //
+  // El caso real: `cong_settings.special_months` guarda un registro por año
+  // de servicio (`{ year, months, updatedAt, _deleted }`), sin id ni type. Se
+  // subía bien al servidor, pero al bajar a otro dispositivo no encajaba con
+  // ninguna clave y se tiraba: marcabas los meses en el móvil y en el
+  // ordenador no aparecían nunca. Es el filo que merge.test.ts ya avisaba
+  // ("un registro de lista sin id/type/talk_number se descarta").
+  const lockKeys = ['id', 'type', 'talk_number', 'year'];
 
   for (const key of arrayKeys) {
     if (!local[key]) {
@@ -132,7 +145,8 @@ export const syncFromRemote = <T extends object>(local: T, remote: T): T => {
     // salidas, exhibidores). Los `{value, updatedAt}` de cada campo se resuelven
     // más arriba, reemplazando el objeto entero por el más nuevo.
     if (key === 'updatedAt' && typeof remote[key] === 'string') {
-      const actual = typeof local[key] === 'string' ? (local[key] as string) : '';
+      const actual =
+        typeof local[key] === 'string' ? (local[key] as string) : '';
 
       if (actual > (remote[key] as string)) continue;
     }
