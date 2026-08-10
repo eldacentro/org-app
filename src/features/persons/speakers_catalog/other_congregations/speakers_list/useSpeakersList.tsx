@@ -5,7 +5,11 @@ import { visitingSpeakersActiveState } from '@states/visiting_speakers';
 import { speakersCongregationsState } from '@states/speakers_congregations';
 import { speakersSortByName } from '@services/app/visiting_speakers';
 
-const useSpeakersList = (cong_id: string, isEdit: boolean) => {
+const useSpeakersList = (
+  cong_id: string,
+  isEdit: boolean,
+  congSynced: boolean
+) => {
   const visitingSpeakers = useAtomValue(visitingSpeakersActiveState);
   const congregations = useAtomValue(speakersCongregationsState);
 
@@ -26,25 +30,45 @@ const useSpeakersList = (cong_id: string, isEdit: boolean) => {
   }, [filteredList, isEdit]);
 
   /**
-   * Los que mantiene la FUENTE (el Google Sheets del circuito, o la propia
-   * congregación si usa la app): aquí solo se miran.
-   */
-  const sourceOwned = useMemo(() => {
-    return incomingSpeakers.filter(
-      (record) => record.speaker_data.manual?.value !== true
-    );
-  }, [incomingSpeakers]);
-
-  /**
-   * Los añadidos a mano aquí, mientras la fuente no los traiga. Estos sí se
-   * editan — y dejan de salir en esta lista en cuanto la fuente los reclama y
-   * apaga su marca, que es justo lo que se quiere.
+   * QUÉ SE MIRA Y QUÉ SE EDITA.
+   *
+   * Todo depende de si esta congregación tiene una FUENTE que la mantenga (el
+   * Google Sheets del circuito, o la propia congregación si usa la app):
+   *
+   *  · Sin fuente, no hay nada que respetar: la lista es de quien la escribe,
+   *    así que se edita entera. Es como funcionó siempre, y hay que dejarlo
+   *    igual — si no, los oradores metidos a mano antes de que existiera la
+   *    marca (que no la llevan) desaparecerían de la pantalla de edición.
+   *  · Con fuente, lo suyo solo se mira —editarlo aquí duraría hasta la
+   *    siguiente sincronización— y lo añadido a mano se edita, hasta que la
+   *    fuente lo reclame y apague su marca.
+   *
+   * Y mirando (fuera del modo edición) SIEMPRE salen todos: un orador
+   * añadido a mano tiene que verse en la lista normal como cualquier otro.
    */
   const manualAdded = useMemo(() => {
     return incomingSpeakers.filter(
       (record) => record.speaker_data.manual?.value === true
     );
   }, [incomingSpeakers]);
+
+  const sourceOwned = useMemo(() => {
+    return incomingSpeakers.filter(
+      (record) => record.speaker_data.manual?.value !== true
+    );
+  }, [incomingSpeakers]);
+
+  const viewList = useMemo(() => {
+    if (!isEdit) return incomingSpeakers;
+
+    return congSynced ? sourceOwned : [];
+  }, [isEdit, congSynced, incomingSpeakers, sourceOwned]);
+
+  const editList = useMemo(() => {
+    if (!isEdit) return [];
+
+    return congSynced ? manualAdded : incomingSpeakers;
+  }, [isEdit, congSynced, incomingSpeakers, manualAdded]);
 
   const handleVisitingSpeakersAdd = async (cong_id: string) => {
     await dbVisitingSpeakersAdd(cong_id);
@@ -78,8 +102,8 @@ const useSpeakersList = (cong_id: string, isEdit: boolean) => {
     handleVisitingSpeakersAdd,
     incomingSpeakers,
     congregation,
-    sourceOwned,
-    manualAdded,
+    viewList,
+    editList,
   };
 };
 

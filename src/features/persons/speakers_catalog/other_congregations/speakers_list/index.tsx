@@ -22,9 +22,9 @@ const SpeakersList = ({
     handleVisitingSpeakersAdd,
     incomingSpeakers,
     congregation,
-    sourceOwned,
-    manualAdded,
-  } = useSpeakersList(cong_id, isEditMode);
+    viewList,
+    editList,
+  } = useSpeakersList(cong_id, isEditMode, cong_synced);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -56,11 +56,11 @@ const SpeakersList = ({
           </Typography>
         )}
 
-      {/* Los que trae la fuente (el Google Sheets del circuito, o la propia
-          congregación si usa la app) SOLO SE MIRAN, también en modo edición:
-          esos datos los manda quien los publica, y editarlos aquí duraría
-          hasta la siguiente sincronización. */}
-      {(!isEditMode || cong_synced) && sourceOwned.length > 0 && (
+      {/* Lo que solo se mira. Fuera del modo edición son TODOS; dentro, solo
+          los que trae la fuente (el Sheet del circuito, o la propia
+          congregación si usa la app), porque editarlos aquí duraría hasta la
+          siguiente sincronización. Ver `viewList`. */}
+      {viewList.length > 0 && (
         <Box>
           {!mobile400Down && (
             <Box
@@ -100,16 +100,17 @@ const SpeakersList = ({
               },
             }}
           >
-            {sourceOwned.map((speaker) => (
+            {viewList.map((speaker) => (
               <SpeakerRowView key={speaker.person_uid} speaker={speaker} />
             ))}
           </Box>
         </Box>
       )}
 
-      {/* Lo añadido a mano SÍ se edita, venga la congregación de donde venga:
-          es tuyo hasta que la fuente lo reclame. */}
-      {isEditMode && manualAdded.length > 0 && (
+      {/* Lo que se edita. Sin fuente que la mantenga, la lista entera; con
+          fuente, solo lo añadido a mano: es tuyo hasta que la fuente lo
+          reclame. Ver `editList`. */}
+      {editList.length > 0 && (
         <Box
           sx={{
             display: 'flex',
@@ -124,7 +125,7 @@ const SpeakersList = ({
             },
           }}
         >
-          {manualAdded.map((speaker) => (
+          {editList.map((speaker) => (
             <IncomingSpeakerEdit key={speaker.person_uid} speaker={speaker} />
           ))}
         </Box>
