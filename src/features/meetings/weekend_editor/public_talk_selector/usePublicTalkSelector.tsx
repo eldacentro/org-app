@@ -128,7 +128,14 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
     const value = talk?.talk_number ?? '';
 
     if (!schedule_id) {
-      const talkData = structuredClone(source.weekend_meeting.public_talk);
+      // Sin material todavía no hay fila de `sources` para esta semana, y no
+      // pasa nada: se parte de vacío y `dbSourcesUpdate` la crea al guardar.
+      // Antes esto reventaba aquí mismo —`source` era `undefined`—, y como el
+      // error se quedaba dentro del manejador del desplegable, en la pantalla
+      // solo se veía que elegir un discurso no hacía absolutamente nada.
+      const talkData = structuredClone(
+        source?.weekend_meeting.public_talk ?? []
+      );
 
       let data = talkData.find((record) => record.type === dataView);
 

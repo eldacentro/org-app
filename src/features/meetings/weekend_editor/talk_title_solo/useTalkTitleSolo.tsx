@@ -27,7 +27,9 @@ const useTalkTitleSolo = ({ type, week }: TalkTitleSoloType) => {
 
   const handleTitleSaveDb = async () => {
     if (type === 'public_talk') {
-      const talk = structuredClone(source.weekend_meeting.public_talk);
+      // Igual que en el selector de discurso: una semana sin material no tiene
+      // fila todavía, y se crea al guardar.
+      const talk = structuredClone(source?.weekend_meeting.public_talk ?? []);
 
       let localTalk = talk.find((record) => record.type === dataView);
       if (!localTalk) {
@@ -42,7 +44,12 @@ const useTalkTitleSolo = ({ type, week }: TalkTitleSoloType) => {
     }
 
     if (type === 'co_public_talk') {
-      const talk = structuredClone(source.weekend_meeting.co_talk_title.public);
+      const talk = structuredClone(
+        source?.weekend_meeting.co_talk_title.public ?? {
+          src: '',
+          updatedAt: '',
+        }
+      );
 
       talk.updatedAt = new Date().toISOString();
       talk.src = title;
@@ -54,7 +61,10 @@ const useTalkTitleSolo = ({ type, week }: TalkTitleSoloType) => {
 
     if (type === 'co_service_talk') {
       const talk = structuredClone(
-        source.weekend_meeting.co_talk_title.service
+        source?.weekend_meeting.co_talk_title.service ?? {
+          src: '',
+          updatedAt: '',
+        }
       );
 
       talk.updatedAt = new Date().toISOString();

@@ -42,6 +42,30 @@ export const dbSourcesUpdate = async (
   weekOf: string,
   changes: SourceChanges
 ) => {
+  // LA SEMANA PUEDE NO EXISTIR TODAVÍA, y eso es normal.
+  //
+  // Los discursos públicos se cuadran con meses de antelación —cuando llamas a
+  // otra congregación a pedir un orador no esperas a que salga el cuaderno—,
+  // pero el número del discurso vive en `sources`, que solo tiene semanas con
+  // material. Sin fila, `update` no crea nada: se iba en silencio, y en la
+  // pantalla el desplegable del discurso sencillamente no reaccionaba.
+  //
+  // Así que se crea la fila vacía y se escribe encima. No inventa material:
+  // el esqueleto va sin lectura bíblica ni estudio de La Atalaya, que es
+  // justo lo que miran los selectores de semana para decidir qué enseñar, así
+  // que una semana así no aparece como si tuviera cuaderno. Y cuando el
+  // material llegue de verdad, `dbSourcesSave` FUSIONA sobre lo que haya
+  // (`updateObject` nunca recorta una lista que ya está), así que el discurso
+  // apuntado meses antes sigue ahí.
+  const exists = await appDb.sources.get(weekOf);
+
+  if (!exists) {
+    const newSource = structuredClone(sourceSchema);
+    newSource.weekOf = weekOf;
+
+    await appDb.sources.put(newSource);
+  }
+
   await appDb.sources.update(weekOf, changes);
   await dbUpdateSourcesMetadata();
 

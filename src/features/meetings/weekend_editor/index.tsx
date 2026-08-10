@@ -32,6 +32,7 @@ import useWeekendEditor from './useWeekendEditor';
 import AssignmentsWeekDelete from '../assignments_week_delete';
 import Button from '@components/button';
 import Divider from '@components/divider';
+import InfoTip from '@components/info_tip';
 import EventEditor from '../event_editor';
 import Markup from '@components/text_markup';
 import MeetingSection from '../meeting_section';
@@ -63,6 +64,7 @@ const WeekendEditor = () => {
     weekList,
     handleSelectWeek,
     hasSchedule,
+    sinMaterial,
     selectedWeek,
     weekType,
     wtStudyTitle,
@@ -149,6 +151,23 @@ const WeekendEditor = () => {
               <WeekTypeSelector week={selectedWeek} meeting="weekend" />
             </SecondaryFieldContainer>
           </DoubleFieldContainer>
+
+          {/* «Esta semana todavía no tiene el material».
+              El orador y el discurso se cuadran meses antes de que salga el
+              cuaderno, así que la semana se puede trabajar igual. Lo que hay
+              que decir es qué falta y por qué, que era la otra mitad de la
+              queja: el desplegable del discurso no respondía y la pantalla no
+              explicaba nada. */}
+          {sinMaterial && (
+            <InfoTip
+              isBig={false}
+              color="info"
+              text={t(
+                'tr_weekendNoSourcesYet',
+                'Esta semana todavía no tiene el material de las reuniones. Puedes dejar puestos el orador, el discurso y la congregación; el estudio de La Atalaya y las canciones se completarán solos cuando llegue.'
+              )}
+            />
+          )}
 
           {showPartsForGroup && weekType !== Week.WATCHTOWER_STUDY && (
             <Divider color="var(--line)" />

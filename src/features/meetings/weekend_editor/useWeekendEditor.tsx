@@ -216,6 +216,17 @@ const useWeekendEditor = () => {
     // flag evita pintar esos componentes en el instante en que aún no
     // existe (ver el gate en index.tsx).
     hasSchedule: !!schedule,
+    /**
+     * Esta semana todavía no tiene material de JW.org.
+     *
+     * No es un error ni impide trabajar: el orador, el discurso y la
+     * congregación se cuadran meses antes de que salga el cuaderno, y eso se
+     * puede dejar puesto. Lo que no hay todavía es lo que sale del material —
+     * el estudio de La Atalaya y las canciones—, y eso hay que DECIRLO: la
+     * queja no era solo que el desplegable no respondiera, era que no
+     * explicaba por qué.
+     */
+    sinMaterial: !!selectedWeek && !source,
     showEventEditor,
     handleTogglePulicTalk,
     handleToggleWTStudy,
