@@ -387,6 +387,7 @@
   "tr_searchResultsNoneDesc": "Try changing your search input or filters, and double-check for typos.",
   "tr_personRecordExists": "This person already exists in your congregation persons list.",
   "tr_speakersAdd": "Add speaker",
+  "tr_speakersManualAddSynced": "The speakers of this congregation are maintained by its own source, so here they can only be viewed. If one is missing because it has not been entered yet, you can add it by hand: when the source brings it, the two will merge into one without losing what you put in.",
   "tr_speakersReconcileLinks": "Reconnect speakers",
   "tr_speakersReconcileLinksDesc": "Repairs the link of imported speakers that aren't connected to their real Person yet",
   "tr_speakersReconciled": "Speakers reconnected",

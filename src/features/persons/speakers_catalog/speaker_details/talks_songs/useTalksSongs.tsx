@@ -76,7 +76,15 @@ const useTalksSongs = (speaker: VisitingSpeakerType) => {
     handleSongsTalkDelete,
     handleToggleEdit,
     isEdit,
-    cong_synced: (congregation?.cong_data.cong_id.length ?? 0) > 0,
+    // «Sus discursos los manda su fuente, aquí no se tocan» — salvo que a este
+    // orador lo hayamos añadido nosotros a mano, mientras la fuente no lo
+    // traiga: entonces sus discursos son nuestros y hay que poder ponerlos,
+    // que es justo para lo que se añade (cuadrar un bosquejo con meses de
+    // antelación). Cuando la fuente lo reclame, apaga la marca y este editor
+    // vuelve a cerrarse solo.
+    cong_synced:
+      (congregation?.cong_data.cong_id.length ?? 0) > 0 &&
+      speaker.speaker_data.manual?.value !== true,
   };
 };
 

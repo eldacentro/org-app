@@ -422,6 +422,7 @@ export const vistingSpeakerSchema: VisitingSpeakerType = {
     person_email: { value: '', updatedAt: '' },
     person_phone: { value: '', updatedAt: '' },
     local: { value: false, updatedAt: '' },
+    manual: { value: false, updatedAt: '' },
     talks: [],
   },
 };

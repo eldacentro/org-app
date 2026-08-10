@@ -119,6 +119,14 @@ export const dbVisitingSpeakersAdd = async (cong_id: string) => {
     const newSpeaker = structuredClone(vistingSpeakerSchema);
     newSpeaker.person_uid = crypto.randomUUID();
     newSpeaker.speaker_data.cong_id = cong_id;
+    // Lo ha creado una persona. En una congregación del circuito, esta marca
+    // es lo único que impide que el sync de esta madrugada se lo lleve por no
+    // venir en el Sheet — y lo que hace que la pantalla deje editarlo. Ver
+    // `manual` en la definición.
+    newSpeaker.speaker_data.manual = {
+      value: true,
+      updatedAt: new Date().toISOString(),
+    };
 
     await appDb.visiting_speakers.put(newSpeaker);
     await dbUpdateVisitingSpeakersMetadata();
@@ -156,6 +164,9 @@ export const dbVisitingSpeakerQuickAdd = async (
     value: isMinisterialServant,
     updatedAt: now,
   };
+  // Igual que en `dbVisitingSpeakersAdd`: lo ha creado una persona, así que el
+  // sync del circuito no debe borrarlo por no estar todavía en el Sheet.
+  newSpeaker.speaker_data.manual = { value: true, updatedAt: now };
 
   await appDb.visiting_speakers.put(newSpeaker);
   await dbUpdateVisitingSpeakersMetadata();

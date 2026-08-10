@@ -387,6 +387,105 @@ describe('filos conocidos (el esquema los evita, no el motor)', () => {
     expect(syncFromRemote(localOk, remoteOk).values.value).toEqual(['A', 'B']);
   });
 
+  it('los discursos de un orador se fusionan uno a uno, y el puesto a mano sobrevive', () => {
+    // El caso real: llega un hermano nuevo a una congregación del circuito, se
+    // añade aquí a mano con el bosquejo que va a dar (121), y una semana
+    // después el Google Sheets lo trae con TODOS los suyos (121, 128, 4 y 9).
+    // Tienen que quedar los cuatro, y el 121 no puede perderse por el camino.
+    //
+    // Aguanta porque `talk_number` es una de las claves de bloqueo de la
+    // fusión. Si alguien la quitara de `lockKeys`, `talks` pasaría a
+    // descartarse entero y esto se caería — que es exactamente lo que esta
+    // prueba está aquí para impedir.
+    const local = {
+      speaker_data: {
+        talks: [
+          {
+            talk_number: 121,
+            _deleted: false,
+            updatedAt: '2026-08-01T00:00:00Z',
+            talk_songs: [55],
+          },
+        ],
+      },
+    };
+
+    const remote = {
+      speaker_data: {
+        talks: [
+          {
+            talk_number: 121,
+            _deleted: false,
+            updatedAt: '2026-08-08T00:00:00Z',
+            talk_songs: [55],
+          },
+          {
+            talk_number: 128,
+            _deleted: false,
+            updatedAt: '2026-08-08T00:00:00Z',
+            talk_songs: [],
+          },
+          {
+            talk_number: 4,
+            _deleted: false,
+            updatedAt: '2026-08-08T00:00:00Z',
+            talk_songs: [],
+          },
+          {
+            talk_number: 9,
+            _deleted: false,
+            updatedAt: '2026-08-08T00:00:00Z',
+            talk_songs: [],
+          },
+        ],
+      },
+    };
+
+    const talks = syncFromRemote(local, remote).speaker_data.talks;
+
+    expect(talks.map((t) => t.talk_number).sort((a, b) => a - b)).toEqual([
+      4, 9, 121, 128,
+    ]);
+    expect(talks.find((t) => t.talk_number === 121)._deleted).toBe(false);
+  });
+
+  it('un discurso que solo está en el dispositivo no se pierde al fusionar', () => {
+    // La otra mitad: el bucle de la fusión solo recorre lo que LLEGA, así que
+    // lo que solo existe aquí se queda. Es lo que permite apuntar un bosquejo
+    // antes de que la fuente sepa nada de él.
+    const local = {
+      speaker_data: {
+        talks: [
+          {
+            talk_number: 121,
+            _deleted: false,
+            updatedAt: '2026-08-01T00:00:00Z',
+            talk_songs: [],
+          },
+        ],
+      },
+    };
+
+    const remote = {
+      speaker_data: {
+        talks: [
+          {
+            talk_number: 4,
+            _deleted: false,
+            updatedAt: '2026-08-08T00:00:00Z',
+            talk_songs: [],
+          },
+        ],
+      },
+    };
+
+    const talks = syncFromRemote(local, remote).speaker_data.talks;
+
+    expect(talks.map((t) => t.talk_number).sort((a, b) => a - b)).toEqual([
+      4, 121,
+    ]);
+  });
+
   it('AVISO: un registro de lista sin id/type/talk_number se descarta — dale un id', () => {
     const local = { rows: [{ key: 'k1', value: 'local' }] };
     const remote = {

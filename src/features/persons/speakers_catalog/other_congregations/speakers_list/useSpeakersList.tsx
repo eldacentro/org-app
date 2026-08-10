@@ -25,6 +25,27 @@ const useSpeakersList = (cong_id: string, isEdit: boolean) => {
     return isEdit ? filteredList : speakersSortByName(filteredList);
   }, [filteredList, isEdit]);
 
+  /**
+   * Los que mantiene la FUENTE (el Google Sheets del circuito, o la propia
+   * congregación si usa la app): aquí solo se miran.
+   */
+  const sourceOwned = useMemo(() => {
+    return incomingSpeakers.filter(
+      (record) => record.speaker_data.manual?.value !== true
+    );
+  }, [incomingSpeakers]);
+
+  /**
+   * Los añadidos a mano aquí, mientras la fuente no los traiga. Estos sí se
+   * editan — y dejan de salir en esta lista en cuanto la fuente los reclama y
+   * apaga su marca, que es justo lo que se quiere.
+   */
+  const manualAdded = useMemo(() => {
+    return incomingSpeakers.filter(
+      (record) => record.speaker_data.manual?.value === true
+    );
+  }, [incomingSpeakers]);
+
   const handleVisitingSpeakersAdd = async (cong_id: string) => {
     await dbVisitingSpeakersAdd(cong_id);
   };
@@ -53,7 +74,13 @@ const useSpeakersList = (cong_id: string, isEdit: boolean) => {
     });
   }, [visitingSpeakers]);
 
-  return { handleVisitingSpeakersAdd, incomingSpeakers, congregation };
+  return {
+    handleVisitingSpeakersAdd,
+    incomingSpeakers,
+    congregation,
+    sourceOwned,
+    manualAdded,
+  };
 };
 
 export default useSpeakersList;
