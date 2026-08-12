@@ -30,7 +30,11 @@ import {
   TerritoryTag,
   TerritoryZone,
 } from '@definition/territories';
-import { isInCooldown, territoryLabel } from '@services/app/territories';
+import {
+  daysInCooldown,
+  isInCooldown,
+  territoryLabel,
+} from '@services/app/territories';
 import { useBreakpoints } from '@hooks/index';
 
 /**
@@ -231,19 +235,27 @@ const ZoneSection = ({
                     boxShadow: 'var(--small-card-shadow)',
                     transition:
                       'background-color var(--motion-fast) var(--ease-standard)',
-                    // Esta sí se pulsa (abre el territorio o lo marca), así
-                    // que sí reacciona — pero con la capa de estado del
-                    // sistema, no levantándose 2px. El salto obligaba al ojo
-                    // a recolocar toda la rejilla al pasar por encima.
-                    ...(accentSurface(zone.color) as object),
+                    // La cápsula de la zona sí, el LAVADO de fondo no
+                    // (`tint: false`). Aquí no aporta nada: estás dentro del
+                    // desplegable de esa zona, así que todas las fichas que
+                    // ves son de la misma — el fondo teñido no distingue una
+                    // de otra, y en cambio ensuciaba todo lo que se pone
+                    // encima. Con la tarjeta limpia, la única mancha de color
+                    // fuerte vuelve a ser la etiqueta de estado.
+                    ...(accentSurface(zone.color, { tint: false }) as object),
+                    backgroundColor: 'var(--card)',
                     ...(selected && {
                       backgroundColor: 'var(--state-selected)',
                       borderColor: 'var(--accent-main)',
                     }),
+                    // Esta sí se pulsa (abre el territorio o lo marca), así
+                    // que sí reacciona — pero con la capa de estado del
+                    // sistema, no levantándose 2px. El salto obligaba al ojo
+                    // a recolocar toda la rejilla al pasar por encima.
                     '&:hover': {
                       backgroundColor: selected
                         ? 'var(--state-selected-strong)'
-                        : `color-mix(in srgb, ${zone.color} 14%, var(--card))`,
+                        : 'var(--state-hover)',
                     },
                   }}
                 >
@@ -307,6 +319,7 @@ const ZoneSection = ({
                       <Box sx={{ flexShrink: 0, marginLeft: 'auto' }}>
                         <EstadoBadge
                           estado={estadoDeTerritorio(assigned, resting)}
+                          dias={resting ? daysInCooldown(t) : undefined}
                         />
                       </Box>
                     </Box>

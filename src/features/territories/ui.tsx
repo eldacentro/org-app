@@ -77,18 +77,30 @@ type TagChipProps = {
 /**
  * Etiqueta con color de dato (etiquetas de territorio, nombres de zona).
  *
- * Misma geometría que el `Badge` compartido —píldora, `body-small-semibold`—
- * para que puestas una al lado de otra se lean como de la misma familia. Lo
- * único que cambia es de dónde sale el color.
+ * **En reposo la píldora es NEUTRA y el color va en un punto.** Antes la
+ * píldora entera se teñía del color de la etiqueta, y en la cuadrícula de
+ * Territorios eso amontonaba cuatro señales de color en una tarjeta de dos
+ * dedos: el lavado de la zona al fondo, su cápsula al lado, la etiqueta de
+ * estado ("Libre" en verde) y encima una o dos etiquetas más, también en
+ * pastel. Todas se parecían y ninguna destacaba — y la de estado y la de
+ * etiqueta, que dicen cosas distintas, se leían como el mismo objeto.
  *
- * **El relleno es OPACO, no translúcido.** Lo era, y encima de una tarjeta
- * teñida —las de la cuadrícula de Territorios llevan un lavado del color de su
- * zona— el color de la etiqueta se mezclaba con el de debajo: un "Mediano"
- * verde sobre una zona azul salía apagado, y la MISMA etiqueta se veía de un
- * color en una zona y de otro en la siguiente. Justo lo contrario de para qué
- * está: el color de la etiqueta ES el dato. Mezclando contra `--card` en vez
- * de contra `transparent`, la píldora vale siempre lo mismo se ponga donde se
- * ponga, y de paso destaca sobre el lavado en lugar de fundirse con él.
+ * Con la píldora neutra:
+ *  - El color sigue estando, en el punto, que es donde se distingue de un
+ *    vistazo sin competir con nada (§6.4 se cumple igual: el color viene del
+ *    dato, no de la paleta de tokens).
+ *  - El nombre se lee en tinta normal, que es a lo que se viene.
+ *  - La única píldora de color de la tarjeta vuelve a ser la de ESTADO.
+ *  - Y al no mezclarse con el fondo, da igual sobre qué superficie caiga:
+ *    tarjeta teñida, fila en descanso o ficha del mapa.
+ *
+ * Marcada (el rail de filtros) usa el ÚNICO dibujo de "elegido" que tiene la
+ * app —píldora tintada de marca con el texto en azul oscuro, §2.5—, el mismo
+ * que las fichas de estado que van justo encima. Antes se rellenaba del color
+ * de la etiqueta, y eso traía dos problemas: la fila de estados y la de
+ * etiquetas marcaban lo elegido de dos maneras distintas, y con un color claro
+ * (el ámbar de "Grande") el texto blanco encima no se leía. El punto sigue
+ * diciendo de qué etiqueta se trata.
  */
 export const TagChip = ({
   label,
@@ -110,16 +122,18 @@ export const TagChip = ({
       margin: 0,
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '4px',
+      gap: '6px',
       padding: '2px 10px',
       minHeight: '22px',
       borderRadius: 'var(--shape-full)',
       flexShrink: 0,
-      backgroundColor: selected
-        ? color
-        : `color-mix(in srgb, ${color} 14%, var(--card))`,
-      border: `1px solid color-mix(in srgb, ${color} ${selected ? '100%' : '32%'}, var(--card))`,
-      color: selected ? 'var(--always-white)' : color,
+      // `--grey-100` y no `--surface-2`: ese token es un azul bastante subido
+      // (208,220,238) y le ganaba en peso al propio tinte de "elegido"
+      // (224,232,245), así que las etiquetas sin marcar se veían MÁS rellenas
+      // que la marcada. Este es el mismo gris del buscador de al lado.
+      backgroundColor: selected ? 'var(--state-selected)' : 'var(--grey-100)',
+      border: `1px solid ${selected ? 'var(--state-selected)' : 'var(--line)'}`,
+      color: selected ? 'var(--state-selected-ink)' : 'var(--ink)',
       cursor: onClick ? 'pointer' : 'default',
       transition: onClick
         ? 'background-color var(--motion-fast) var(--ease-standard)'
@@ -127,8 +141,8 @@ export const TagChip = ({
       ...(onClick && {
         '&:hover': {
           backgroundColor: selected
-            ? color
-            : `color-mix(in srgb, ${color} 24%, var(--card))`,
+            ? 'var(--state-selected-strong)'
+            : 'var(--state-hover)',
         },
         '&:focus-visible': {
           outline: '2px solid var(--accent-main)',
@@ -137,6 +151,16 @@ export const TagChip = ({
       }),
     }}
   >
+    <Box
+      aria-hidden
+      sx={{
+        width: 8,
+        height: 8,
+        borderRadius: 'var(--shape-full)',
+        backgroundColor: color,
+        flexShrink: 0,
+      }}
+    />
     <Typography
       component="span"
       className="body-small-semibold"
@@ -168,12 +192,31 @@ const ESTADO_COLOR: Record<EstadoTerritorio, 'orange' | 'grey' | 'green'> = {
  * "Asignado" / "Libre" / "En descanso". Estaba escrito cuatro veces, cada una
  * con su `fontSize: 0.75rem` y su borde a base de `rgba(...)`, y en dos de
  * ellas los colores no coincidían entre sí.
+ *
+ * En descanso lleva además cuánto lleva: «En descanso · 20 d». "Descansando"
+ * a secas no dice si le queda mucho o si está a punto, que es justo lo que se
+ * pregunta quien va a repartir. La cuenta sale de `daysInCooldown`, o sea de
+ * la fecha en que se devolvió trabajado — ver allí por qué no vale `updatedAt`.
+ *
+ * El día va abreviado ("20 d") a propósito: la píldora vive en la esquina de
+ * una ficha que en un móvil mide media pantalla, y con "20 días" no cabe.
  */
-export const EstadoBadge = ({ estado }: { estado: EstadoTerritorio }) => (
+export const EstadoBadge = ({
+  estado,
+  dias,
+}: {
+  estado: EstadoTerritorio;
+  /** Días que lleva en descanso. Solo se usa con `estado: 'descanso'`. */
+  dias?: number | null;
+}) => (
   <Badge
     size="small"
     color={ESTADO_COLOR[estado]}
-    text={ESTADO_TEXTO[estado]}
+    text={
+      estado === 'descanso' && typeof dias === 'number'
+        ? `${ESTADO_TEXTO[estado]} · ${dias} d`
+        : ESTADO_TEXTO[estado]
+    }
   />
 );
 

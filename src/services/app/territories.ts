@@ -46,6 +46,23 @@ export const isInCooldown = (
 };
 
 /**
+ * ¿Cuántos días lleva descansando?
+ *
+ * La cuenta arranca en `lastWorkedAt` —la fecha en que se devolvió trabajado—
+ * y no en `updatedAt`, que es la del último cambio del registro: `updatedAt`
+ * se mueve al editar las notas, al cambiar las etiquetas o al retocar el mapa,
+ * y entonces el número diría cuándo se tocó la ficha, no cuánto lleva
+ * descansando. Es además la MISMA fecha desde la que cuenta `isInCooldown`,
+ * así que el número y la etiqueta no pueden contradecirse.
+ *
+ * Devuelve null si nunca se ha trabajado (y entonces nunca está en descanso).
+ */
+export const daysInCooldown = (territory: Territory): number | null => {
+  if (!territory.lastWorkedAt) return null;
+  return Math.max(0, daysSince(territory.lastWorkedAt));
+};
+
+/**
  * ¿Ya terminó la campaña? `fechaFin` se guarda como el INSTANTE que devuelve
  * el selector de fecha (medianoche del día elegido), así que comparar
  * directamente `fechaFin < ahora` daba la campaña por terminada al empezar

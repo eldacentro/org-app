@@ -28,6 +28,7 @@ import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveNotice } from '@services/firebase/territories';
 import {
   daysSince,
+  daysInCooldown,
   formatTerritoryDate,
   getZoneName,
   isInCooldown,
@@ -227,7 +228,9 @@ const NoAsignadoRow = ({
               {getZoneName(t.zoneId, zones)}
             </Typography>
           )}
-          {resting && <EstadoBadge estado="descanso" />}
+          {resting && (
+            <EstadoBadge estado="descanso" dias={daysInCooldown(t)} />
+          )}
           {misEtiquetas.map((tag) => (
             <TagChip key={tag.id} label={tag.nombre} color={tag.color} />
           ))}

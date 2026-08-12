@@ -33,6 +33,7 @@ import {
   geometryCenter,
   formatTerritoryDate,
   isInCooldown,
+  daysInCooldown,
 } from '@services/app/territories';
 import {
   EstadoBadge,
@@ -528,6 +529,11 @@ const TerritoriesOverviewMap = ({ onViewTerritory }: Props) => {
                     false,
                     isInCooldown(selected, settings.daysUntilReassignable)
                   )}
+                  dias={
+                    isInCooldown(selected, settings.daysUntilReassignable)
+                      ? daysInCooldown(selected)
+                      : undefined
+                  }
                 />
               </Box>
             )}
