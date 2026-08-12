@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AssignmentCode } from '@definition/assignment';
 import { AssignmentHistoryType } from '@definition/schedules';
 import { PersonType } from '@definition/person';
-import {
-  construirReparto,
-  construirTotal,
-  tituloDeAsignacion,
-} from './reparto';
+import { construirReparto, tituloDeAsignacion } from './reparto';
 
 /**
  * La rueda tiene que contestar las cuatro preguntas de la hoja de cálculo. Lo
@@ -158,89 +154,5 @@ describe('cómo se llama cada asignación', () => {
         [PRESIDENCIA]: 'Empiece conversaciones',
       })
     ).toBe('Empiece conversaciones');
-  });
-});
-
-describe('el total por hermano', () => {
-  /**
-   * Por qué hacía falta: cada asignación tiene su rueda, así que quien lleva
-   * cinco partes de estudiante las tiene repartidas entre cuatro ruedas y en
-   * cada una sale con una, o con ninguna. La página decía la verdad y aun así
-   * daba la impresión contraria — que a esa persona no le tocaba nunca.
-   */
-  const CODIGOS = new Set([PRESIDENCIA, ORACION]);
-
-  it('suma lo de todas las ruedas, no lo de una', () => {
-    const total = construirTotal({
-      titulo: 'Total',
-      elegibles: [persona('ana'), persona('bea')],
-      history: [
-        llevo('ana', '2026/07/06', PRESIDENCIA),
-        llevo('ana', '2026/06/01', ORACION),
-        llevo('ana', '2026/05/04', ORACION),
-        llevo('bea', '2026/07/13', PRESIDENCIA),
-      ],
-      codigos: CODIGOS,
-      hoy: HOY,
-    });
-
-    const porUid = new Map(total.personas.map((p) => [p.person_uid, p]));
-
-    expect(porUid.get('ana').veces).toBe(3);
-    expect(porUid.get('bea').veces).toBe(1);
-  });
-
-  it('los que menos llevan salen arriba, que es la pregunta de esta lista', () => {
-    // Aquí no se pregunta a quién le toca ahora —eso lo contesta cada rueda—
-    // sino a quién no le está llegando nada.
-    const total = construirTotal({
-      titulo: 'Total',
-      elegibles: [persona('cargada'), persona('olvidada')],
-      history: [
-        llevo('cargada', '2026/07/06', PRESIDENCIA),
-        llevo('cargada', '2026/06/01', ORACION),
-      ],
-      codigos: CODIGOS,
-      hoy: HOY,
-    });
-
-    expect(total.personas[0].person_uid).toBe('olvidada');
-    expect(total.personas[0].veces).toBe(0);
-  });
-
-  it('no cuenta lo que no entra en el reparto', () => {
-    const total = construirTotal({
-      titulo: 'Total',
-      elegibles: [persona('ana')],
-      history: [
-        llevo('ana', '2026/07/06', PRESIDENCIA),
-        llevo('ana', '2026/07/13', AssignmentCode.MM_Memorial, 'Conmemoración'),
-      ],
-      codigos: CODIGOS,
-      hoy: HOY,
-    });
-
-    expect(total.personas[0].veces).toBe(1);
-  });
-
-  it('el aviso de desigual no salta por llevar más asignaciones aprobadas', () => {
-    // Quien puede llevar diez cosas lleva más que quien puede llevar dos, y eso
-    // no es un desequilibrio. El margen aquí es mucho más ancho que en una rueda.
-    const historial = Array.from({ length: 6 }, (_, i) =>
-      llevo('muchas', `2026/0${i + 1}/05`, PRESIDENCIA)
-    );
-
-    const total = construirTotal({
-      titulo: 'Total',
-      elegibles: [persona('muchas'), persona('pocas')],
-      history: historial,
-      codigos: CODIGOS,
-      hoy: HOY,
-    });
-
-    expect(total.mas - total.menos).toBe(6);
-
-    // El total nunca avisa: no es un desequilibrio, es la lista de aprobados.
-    expect(total.desigual).toBe(false);
   });
 });

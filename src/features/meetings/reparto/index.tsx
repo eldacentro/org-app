@@ -59,12 +59,7 @@ const Resumen = ({ reparto }: { reparto: RepartoAsignacionType }) => (
       } · entre ${reparto.menos} y ${reparto.mas} veces`}
     </Typography>
 
-    {/* El total no lleva señal, y es a propósito: «va equilibrado» o «míralo»
-        son juicios sobre una RUEDA, donde todos pueden llevar lo mismo. En el
-        total no — quien está aprobado para doce cosas lleva más que quien lo
-        está para dos, y eso no es un desequilibrio. Con semáforo, esta fila
-        saldría siempre en naranja y dejaría de decir nada. */}
-    {reparto.code === undefined ? null : reparto.desigual ? (
+    {reparto.desigual ? (
       <IconInfo width={16} height={16} color="var(--orange-dark)" />
     ) : (
       <IconCheckCircle width={16} height={16} color="var(--green-main)" />
@@ -108,10 +103,7 @@ const Reparto = () => {
           superficies con el mismo fondo y el mismo borde (ver DESIGN_SYSTEM,
           §8). El plegable pone el comportamiento; la tarjeta, el papel. */}
       {asignaciones.map((reparto) => {
-        // El total no tiene código de asignación —no es una—, así que su
-        // identificador se pone a mano. Sin esto, `String(undefined)` haría de
-        // identificador y funcionaría de milagro.
-        const id = reparto.code === undefined ? 'total' : String(reparto.code);
+        const id = String(reparto.code);
 
         return (
           <Card key={id} sx={{ padding: '8px 16px', gap: '0px' }}>

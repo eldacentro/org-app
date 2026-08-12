@@ -6,11 +6,7 @@ import { personsByViewState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { applyAssignmentFilters } from '@services/app/persons';
 import { buildPersonFullname } from '@utils/common';
-import {
-  construirReparto,
-  construirTotal,
-  tituloDeAsignacion,
-} from '@services/app/reparto';
+import { construirReparto, tituloDeAsignacion } from '@services/app/reparto';
 
 /**
  * Los rótulos de las partes cuyo título cambia cada semana.
@@ -69,25 +65,7 @@ const useReparto = () => {
       .filter((reparto) => reparto.personas.length > 0)
       .sort((a, b) => a.titulo.localeCompare(b.titulo));
 
-    // El total va PRIMERO, y a propósito: es la pregunta que se hace quien abre
-    // esta página. Cada rueda de abajo contesta «¿a quién le toca esto ahora?»;
-    // esta contesta «¿a quién le está tocando algo, y a quién no le llega
-    // nada?». Sin ella, una hermana con cinco partes repartidas entre cuatro
-    // ruedas parecía no llevar ninguna.
-    const enAlgunaRueda = persons.filter((person) =>
-      codigos.some(
-        (code) => applyAssignmentFilters([person], [code]).length > 0
-      )
-    );
-
-    const total = construirTotal({
-      titulo: 'Todas las asignaciones (total por hermano)',
-      elegibles: enAlgunaRueda,
-      history,
-      codigos: new Set(codigos),
-    });
-
-    return total.personas.length > 0 ? [total, ...ruedas] : ruedas;
+    return ruedas;
   }, [history, persons]);
 
   const nombreDe = useMemo(() => {
