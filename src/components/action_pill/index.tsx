@@ -44,9 +44,17 @@ const ActionPill = ({
   const porVariante = {
     solid: {
       border: 'none',
-      backgroundColor: 'var(--accent-main)',
-      '&:hover': { backgroundColor: 'var(--accent-dark)' },
-      '&:active': { backgroundColor: 'var(--accent-dark)' },
+      // `--brand-fill`, el tono de marca que puede llevar letra encima. Ver
+      // `global/index.css`.
+      backgroundColor: 'var(--brand-fill)',
+      '&:hover': {
+        backgroundColor:
+          'color-mix(in srgb, var(--on-brand) 8%, var(--brand-fill))',
+      },
+      '&:active': {
+        backgroundColor:
+          'color-mix(in srgb, var(--on-brand) 14%, var(--brand-fill))',
+      },
     },
     tinted: {
       border: '1px solid var(--accent-200)',
@@ -62,8 +70,12 @@ const ActionPill = ({
     },
   }[variant];
 
-  const color =
-    variant === 'solid' ? 'var(--always-white)' : 'var(--accent-main)';
+  // `solid` lleva relleno de marca, así que su tinta es la emparejada con él,
+  // no un blanco fijo (ver `global/index.css`). Las otras dos van sobre fondo
+  // claro y usan la marca como TEXTO, y para eso vale `--accent-dark`, no
+  // `--accent-main`: el acento a secas está pensado para rellenar, y como
+  // letra se queda corto —2,31:1 en naranja claro—.
+  const color = variant === 'solid' ? 'var(--on-brand)' : 'var(--accent-dark)';
 
   return (
     <Box
@@ -85,6 +97,26 @@ const ActionPill = ({
         borderRadius: 'var(--shape-full)',
         textDecoration: 'none',
         cursor: 'pointer',
+        // El área del dedo. La píldora se dibuja en ~29px de alto —6 de
+        // relleno arriba y abajo sobre una línea de 12— y eso es la mitad de
+        // los 48 que pide Material. El dibujo no se toca: son las tres
+        // variantes las que comparten tamaño a propósito, y subirlo las
+        // convertiría en botones.
+        //
+        // Solo a lo alto, y con un pseudoelemento en vez de `min-height` para
+        // no mover nada: en «Mis asignaciones» hay una por fila y en una
+        // tarjeta hay una junto al texto. `alignSelf: flex-start` las deja
+        // sueltas, así que crecer a lo alto no pisa a ningún otro objetivo.
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          left: 0,
+          right: 0,
+          transform: 'translateY(-50%)',
+          height: 'max(100%, 48px)',
+        },
         transition: 'background-color var(--motion-fast) var(--ease-standard)',
         ...porVariante,
         ...sx,

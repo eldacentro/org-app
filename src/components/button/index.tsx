@@ -38,13 +38,14 @@ const Button: FC<ButtonPropsType> = (props) => {
       }
 
       if (internalVariant === 'contained') {
-        if (color) {
-          result = `var(--${color}-main)`;
-        }
-
-        if (!color) {
-          result = 'var(--accent-main)';
-        }
+        // `-fill` y no `-main`: el relleno de un botón tiene que llevar la
+        // letra encima, así que en los temas donde el tono vivo es demasiado
+        // claro para el blanco se usa uno más bajo. `-main` sigue siendo el
+        // color de la marca para todo lo demás. Ver `global/index.css`.
+        // El valor de reserva cubre los colores sin relleno propio.
+        result = color
+          ? `var(--${color}-fill, var(--${color}-main))`
+          : 'var(--brand-fill)';
       }
     }
 
@@ -55,7 +56,25 @@ const Button: FC<ButtonPropsType> = (props) => {
     let result = '';
 
     if (internalVariant === 'contained') {
-      result = 'var(--always-white)';
+      // La tinta que va sobre el relleno, emparejada con él. NO `--always-white`
+      // a secas: el relleno cambia de tono con el tema y la tinta tiene que
+      // cambiar con él. Medido, el blanco fijo fallaba en ocho de los diez
+      // temas (2,29:1 el botón principal en naranja claro). Ver el bloque
+      // «LA TINTA QUE VA ENCIMA DE UN RELLENO DE COLOR» en `global/index.css`.
+      //
+      // El segundo argumento de `var()` es el valor de reserva: un color sin
+      // pareja definida (`blue`, `accent`, `grey`…) se comporta exactamente
+      // como antes en vez de quedarse sin tinta.
+      result = color
+        ? `var(--on-${color}, var(--always-white))`
+        : 'var(--on-brand)';
+
+      // `semi-white` es la excepción: su fondo no es un relleno de color sino
+      // un velo blanco translúcido sobre una imagen, así que le toca blanco
+      // pase lo que pase.
+      if (variant === 'semi-white') {
+        result = 'var(--always-white)';
+      }
     }
 
     if (internalVariant !== 'contained') {
@@ -86,13 +105,20 @@ const Button: FC<ButtonPropsType> = (props) => {
 
     if (variant !== 'semi-white') {
       if (internalVariant === 'contained') {
-        if (color) {
-          result = `var(--${color}-dark)`;
-        }
-
-        if (!color) {
-          result = 'var(--accent-dark)';
-        }
+        // Capa de estado al 8 %, no un salto al tono oscuro de la familia.
+        //
+        // Antes el hover cambiaba el relleno a `--{color}-dark`, que es un
+        // tono MUCHO más oscuro, y eso rompía la tinta: en verde claro la
+        // tinta que se lee sobre el relleno base (oscura, 5,15:1) se queda en
+        // 3,65 sobre el relleno del hover, y la que se leería sobre el hover
+        // (blanca) no se lee sobre el base. Ninguna sirve para los dos, porque
+        // los dos rellenos están demasiado lejos el uno del otro.
+        //
+        // Con una capa del 8 % del color del CONTENIDO —que es la regla de
+        // §2.5 y la de Material— el hover queda cerca del relleno base, así
+        // que la misma tinta vale para los dos estados. De paso, el botón deja
+        // de tener su propio dialecto de «estoy encima» y usa el de la app.
+        result = `color-mix(in srgb, ${getColor()} 8%, ${getBackgroundColor()})`;
       }
 
       if (internalVariant !== 'contained') {
@@ -129,13 +155,9 @@ const Button: FC<ButtonPropsType> = (props) => {
 
       if (variant !== 'small') {
         if (internalVariant === 'contained') {
-          if (color) {
-            result = `var(--${color}-dark)`;
-          }
-
-          if (!color) {
-            result = 'var(--accent-click)';
-          }
+          // Lo mismo que el hover, al 14 % — los dos porcentajes son los de
+          // `--state-hover` y `--state-pressed` (§2.5).
+          result = `color-mix(in srgb, ${getColor()} 14%, ${getBackgroundColor()})`;
         }
 
         if (internalVariant !== 'contained') {
@@ -224,6 +246,36 @@ const Button: FC<ButtonPropsType> = (props) => {
         // que está mal es el sitio donde se ha metido, no la etiqueta. Salía
         // partida en "Nueva visita" y en "Guardar cambios".
         whiteSpace: 'nowrap',
+        // ─── El dedo acierta en 48; el dibujo sigue midiendo 40 ───────────
+        // El mínimo de Material para un objetivo táctil son 48×48, y el de
+        // iOS 44. Los botones de la app miden 40 —también los de un pie de
+        // diálogo, que es donde se confirma algo—, y ese alto está bien: lo
+        // que faltaba era el área alrededor.
+        //
+        // Se hace con un `::after` invisible y NO subiendo el alto: un botón
+        // de 48 rompería el §6.5 (un botón no se estira al alto de un campo),
+        // los pies de diálogo y las filas ya medidas al píxel. El
+        // pseudoelemento no ocupa sitio en el flujo, así que no mueve nada.
+        //
+        // Los 4px de ancho no roban al vecino: el hueco estándar entre dos
+        // botones es 8 (`gap: '8px'` del pie de diálogo y de la app entera),
+        // así que las dos áreas quedan justo pegadas, sin solaparse.
+        //
+        // El alto NO se escribe como un `-4px` fijo: hay quien pide
+        // `minHeight={32}` —«Eliminar múltiples asignaciones», por ejemplo— y
+        // ahí 32 + 4 + 4 se queda en 40. Con `max(100%, 48px)` centrado, el
+        // área es la del botón cuando ya pasa de 48 y exactamente 48 cuando no
+        // llega, sin tener que saber de antemano cuánto mide.
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          left: '-4px',
+          right: '-4px',
+          transform: 'translateY(-50%)',
+          height: 'max(100%, 48px)',
+        },
         '&:hover': {
           backgroundColor: getBackgroundColorHover(),
           border:

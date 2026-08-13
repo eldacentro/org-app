@@ -64,6 +64,15 @@ const WeekPickerPanel = () => {
             background: 'none',
             border: 'none',
             padding: 0,
+            // El icono se dibuja a 24 y el objetivo tiene que ser 48. Con un
+            // `::after` invisible para no mover la cabecera del panel, que
+            // comparte línea con el título y el chevrón de plegar.
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              inset: '-12px',
+            },
             '&:focus-visible': {
               outline: '2px solid var(--accent-main)',
               outlineOffset: '2px',

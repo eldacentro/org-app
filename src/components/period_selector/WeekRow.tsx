@@ -50,6 +50,11 @@ const WeekRow = ({
       justifyContent: 'space-between',
       gap: '12px',
       padding: '8px 12px',
+      // Mismo motivo que en `MonthRow`: es una fila que se pulsa para elegir
+      // la semana, así que le toca el mínimo de 48. Con `minHeight` y no con
+      // un área que se derrame, porque van pegadas en una lista.
+      minHeight: '48px',
+      boxSizing: 'border-box',
       cursor: 'pointer',
       borderRadius: 'var(--shape-sm)',
       backgroundColor: selected ? 'var(--accent-100)' : 'transparent',

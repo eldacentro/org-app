@@ -26,10 +26,21 @@ import Typography from '@components/typography';
  */
 const CountBadge = ({
   value,
-  color = 'inherit',
+  color = 'var(--ink)',
 }: {
   value: number;
-  /** La tinta del número. Por defecto hereda la del rótulo que acompaña. */
+  /**
+   * La tinta del número. Por defecto, la del texto normal.
+   *
+   * Era `'inherit'`, que sonaba bien —«hereda la del rótulo que acompaña»— y
+   * no lo hacía: no hay ningún ancestro que ponga color, así que subía hasta
+   * el `rgba(0, 0, 0, 0.87)` por defecto de MUI. Negro fijo, en los diez
+   * temas. En modo oscuro el «100» de Personas quedaba a 1,27:1 sobre su
+   * propio fondo — un número gris oscuro sobre azul oscuro, ilegible.
+   *
+   * Las pestañas (`@components/tab_label_with_badge`) sí pasan un color
+   * propio, así que aquellas nunca dependieron de esto.
+   */
   color?: string;
 }) => (
   <Box

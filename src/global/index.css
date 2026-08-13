@@ -74,6 +74,95 @@ p {
   margin: 0;
 }
 
+/* ═══ EL ANILLO DE FOCO, PARA TODA LA APP ═══════════════════════════════════
+   La regla ya estaba escrita en DESIGN_SYSTEM.md §2.5 —2px de acento con 2 de
+   separación— pero implementada A MANO en unos veinte ficheros. Medido con
+   teclado en «Todas las personas»: de 40 elementos enfocables, 18 tenían
+   anillo y 22 no. Entre los que no: los iconos de Atrás e Inicio, el
+   buscador, el botón de filtros, las dos pestañas y las cien papeleras de
+   eliminar.
+
+   Va con `:where()` a propósito: eso deja la especificidad en CERO, así que
+   cualquier componente que ya traiga la suya —las filas de persona, las
+   píldoras de la barra, el visor de territorios— le sigue ganando sin tocar
+   nada. Esto es el suelo, no una imposición.
+
+   `:focus-visible` y no `:focus`: quien pulsa con el dedo no ve el anillo,
+   que es lo que se quiere; quien navega con teclado, sí. */
+:where(
+  button,
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='menuitem'],
+  [role='option'],
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 2px solid var(--accent-main);
+  outline-offset: 2px;
+}
+
+/* ═══ EL ÁREA DEL DEDO EN LOS BOTONES DE ICONO ══════════════════════════════
+   Un botón de icono de la app mide 40×40 (24 de icono + 8 de relleno por
+   lado). Material pide 48×48 de OBJETIVO —«aunque el icono aparente 24»— y
+   iOS 44. El dibujo de 40 está bien; lo que faltaba era el área.
+
+   Se gana con un `::after` invisible, que no ocupa sitio en el flujo y por
+   tanto no mueve ni un píxel de ninguna maquetación.
+
+   Va aquí y no en `@components/icon_button` por dos razones: el componente
+   pierde su `sx` entero cuando quien lo usa le pasa uno (ver el comentario
+   allí), y así esto alcanza también a los ~28 sitios que usan el `IconButton`
+   de MUI en crudo.
+
+   Solo a lo ALTO. A lo ancho no, y es a propósito: en la barra de título
+   caben dos de estos —Atrás e Inicio— dentro de 62px, así que hoy ya se
+   solapan 8px (se pisa el relleno, no los iconos). Ensanchar el área movería
+   esa costura y el borde derecho de «Atrás» abriría «Inicio». Mejor 40×48
+   seguro que 48×48 quitándole al vecino. */
+.MuiIconButton-root::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  /* `max(100%, 48px)` y no un `inset` fijo: los botones de icono no miden
+     todos lo mismo —hay de 40 y hay de 24— y un desplazamiento fijo deja
+     cortos a los pequeños. Así el área es la del botón cuando ya pasa de 48 y
+     exactamente 48 cuando no llega. */
+  height: max(100%, 48px);
+}
+
+/* Las pestañas no pueden usar el truco del pseudoelemento: MUI les pone
+   `overflow: hidden` para recortar la etiqueta, y eso lo recortaría también.
+   Así que alto real. Estaban entre 44 y 46 —o sea que ya cumplían el mínimo
+   de iOS y se quedaban justo por debajo del de Material—, así que esto las
+   sube dos o cuatro píxeles y nada más.
+
+   La clase va DOS veces: la de emotion que genera MUI vale lo mismo que una
+   sola —`min-height: 40px`— y se inyecta después, así que ganaba ella. */
+.MuiTab-root.MuiTab-root {
+  min-height: 48px;
+}
+
+/* La única que necesita especificidad de verdad. MUI declara `outline: 0` en
+   `.MuiInputBase-input`, que es una clase, y le gana al `:where()` de arriba.
+   Comprobado: el buscador de Personas no daba NINGUNA señal de foco —ni
+   borde, ni fondo, ni sombra— más allá del cursor parpadeante. */
+.MuiInputBase-input:focus-visible {
+  outline: 2px solid var(--accent-main);
+  outline-offset: 2px;
+  border-radius: var(--shape-xs);
+}
+
 span .text-markup {
   margin-bottom: 0.5em;
 }
@@ -330,6 +419,78 @@ body iframe {
      apagado. Estaba escrito a mano cuatro veces como `rgba(255,255,255,.2)`;
      como token, si algún día la tarjeta cambia de color se cambia en un sitio. */
   --skeleton-sobre-marca: rgba(255, 255, 255, 0.2);
+
+  /* La banda neutra que lleva TEXTO BLANCO encima: la cabecera de las
+     asignaciones de otra congregación / grupo de idioma.
+
+     Va fija a propósito, como `--always-white`, y ese es justo el motivo de
+     que exista. Antes usaba `--grey-350`, que es el gris del texto terciario
+     y por tanto se INVIERTE con el tema: oscuro sobre fondo claro, claro
+     sobre fondo oscuro. Un relleno que lleva letra blanca no puede
+     invertirse — en los temas claros el blanco sobre ese gris se quedaba en
+     2,81:1, por debajo del mínimo legible.
+
+     Un token para el texto y otro para el relleno, porque son dos trabajos
+     que tiran en sentidos contrarios: el texto quiere contraste contra la
+     TARJETA, el relleno lo quiere contra la LETRA de encima.
+
+     Con este valor el blanco encima da 5,45:1 en los diez temas, y la banda
+     sigue despegándose de la tarjeta (5,45 en los claros, ≥3,1 en los
+     oscuros). */
+  --band-neutral: rgba(90, 106, 130, 1);
+
+  /* ─── EL RELLENO DE COLOR Y LA TINTA QUE VA ENCIMA ───────────────────────
+     De Material Design 3 solo merecía la pena traerse una idea: **cada color
+     de relleno tiene su color de contenido emparejado, y la pareja está
+     construida para dar contraste**, en vez de dar por hecho que encima de un
+     color siempre va blanco.
+
+     El problema medido: la tinta era `--always-white` fija, y en los diez
+     temas eso fallaba en OCHO. El botón principal —lo más importante de cada
+     pantalla— daba 2,29:1 en naranja claro y 2,40 en verde oscuro. La causa
+     es que el relleno cambia de tono con el tema y la tinta no: en los temas
+     OSCUROS `--accent-main` es un color CLARO (blue-dark es #6499E4), y el
+     blanco encima no se lee.
+
+     ── De las dos salidas, la que conserva el blanco ────────────────────────
+
+     Se puede arreglar por cualquiera de los dos lados: girando la TINTA a
+     oscura, o bajando el RELLENO. M3 hace lo primero (tema oscuro: primario
+     tono 80, `on` tono 20). Aquí se hace lo segundo, y a propósito.
+
+     Porque el blanco sobre el color pleno no es un detalle estético: es la
+     firma del §6.4c —«el botón azul relleno: uno por pantalla, y es a lo que
+     vienes»—. Si en modo oscuro esa misma acción pasa a letra negra, deja de
+     reconocerse de un vistazo como la misma cosa.
+
+     Medido tono a tono: el azul oscuro baja de (100,153,228) a (42,115,218) y
+     el blanco vuelve a 4,60 — y sigue siendo azul, de hecho más saturado.
+     Igual el morado, el rojo y el verde.
+
+     ── La única excepción, y por qué lo es ──────────────────────────────────
+
+     El NARANJA no puede llevar blanco en ningún tema: para que llegara a 4,5
+     habría que bajarlo de (229,156,15) a (157,107,10), y eso ya no es el tema
+     naranja, es marrón. Un relleno ámbar con letra oscura es un patrón
+     normal y da 7,5:1, así que ahí —y solo ahí— se gira la tinta.
+     El color lo elige el hermano; la tinta la elegimos nosotros. */
+  --brand-fill: var(--accent-main);
+  --red-fill: var(--red-main);
+  --green-fill: var(--green-main);
+  /* El naranja se queda con su tono vivo: el que gira es su tinta. */
+  --orange-fill: var(--orange-main);
+
+  --on-brand: var(--always-white);
+  --on-red: var(--always-white);
+  --on-green: var(--always-white);
+  --on-orange: rgba(13, 27, 42, 1);
+
+  /* El compañero de `--on-brand`: la dirección CONTRARIA a la tinta.
+     Lo usa el degradado de la tarjeta destacada del Inicio, que necesita dos
+     tonos para tener profundidad. Si el segundo tono se desplaza hacia la
+     tinta, el contraste se hunde por ese extremo; desplazándolo en contra, la
+     tarjeta conserva su degradado y la letra se lee en los dos extremos. */
+  --on-brand-contra: rgba(13, 27, 42, 1);
 
   /* Ancho máximo de la columna de contenido del panel principal y de los
      menús de categoría. Es una variable y no un 600px suelto repetido en
@@ -614,11 +775,48 @@ body iframe {
   --line-2: rgba(255, 255, 255, 0.12);
   --badge: #ff7272; /* softer notification red in dark   */
 
+  /* En oscuro los rellenos semánticos son claros —para que se vean contra el
+     fondo oscuro— y el blanco encima daba 2,1 a 2,9:1. Se bajan los rellenos
+     y la letra sigue siendo blanca. Los cinco temas oscuros comparten estos
+     valores, así que basta una vez. */
+  --red-fill: rgba(229, 32, 32, 1);
+  --green-fill: rgba(53, 133, 42, 1);
+
   /* En oscuro el violeta hay que subirlo o se hunde en el fondo, y el texto
      tiene que ser MÁS claro que el icono, no más oscuro. */
   --song: #a98ede;
   --song-text: #c3aeea;
   --song-tint: rgba(169, 142, 222, 0.14);
+}
+
+/* ─── El relleno de marca, tema a tema ──────────────────────────────────────
+   Solo aparecen los que necesitan bajar para que el blanco llegue a 4,5.
+   Azul claro (4,78) y morado claro (5,73) ya valían y no están aquí. */
+[data-theme='blue-dark'] {
+  --brand-fill: rgba(42, 115, 218, 1);
+}
+[data-theme='green-light'] {
+  --brand-fill: rgba(75, 130, 62, 1);
+}
+[data-theme='green-dark'] {
+  --brand-fill: rgba(68, 131, 59, 1);
+}
+[data-theme='red-light'] {
+  --brand-fill: rgba(234, 12, 0, 1);
+}
+[data-theme='red-dark'] {
+  --brand-fill: rgba(234, 13, 0, 1);
+}
+[data-theme='purple-dark'] {
+  --brand-fill: rgba(135, 93, 212, 1);
+}
+
+/* El naranja es la excepción: conserva su tono vivo y gira la tinta. Bajarlo
+   hasta que el blanco valiera lo dejaba en (157,107,10), que ya es marrón. */
+[data-theme='orange-light'],
+[data-theme='orange-dark'] {
+  --on-brand: rgba(13, 27, 42, 1);
+  --on-brand-contra: var(--always-white);
 }
 
 /* ─── Smooth theme transitions ──────────────────────────────────────────── */
@@ -1020,8 +1218,26 @@ body {
   align-items: center;
   gap: 13px;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--brand-deep), var(--brand));
-  color: #fff;
+  /* El degradado iba de `--brand-deep` a `--brand` con la letra en `#fff`
+     fijo, y eso se rompía justo donde más se ve: es la tarjeta que abre el
+     Inicio. Medido el blanco sobre el degradado en los diez temas: 4,78 en
+     azul claro, pero **1,62 a 3,59 en los cinco temas oscuros**, donde ambos
+     extremos del degradado son colores CLAROS.
+     Ahora la letra es la emparejada con la marca y el segundo tono se
+     desplaza en contra de esa letra, así que hay profundidad y se lee: el
+     peor de los diez temas queda en 4,78. */
+  /* Respaldo primero: si un navegador viejo no entiende `color-mix`, tira la
+     declaración de abajo entera y se queda con esta. Sin él, la tarjeta se
+     quedaría SIN fondo —no es un efecto que se omite, es la superficie que
+     desaparece—. El resto de `color-mix` de la app tiñen o realzan, así que
+     ahí no hace falta. */
+  background: var(--brand-fill);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--on-brand-contra) 30%, var(--brand-fill)),
+    var(--brand-fill)
+  );
+  color: var(--on-brand);
   border-radius: var(--shape-lg);
   padding: 15px 16px;
   margin-bottom: 22px;
@@ -1042,14 +1258,18 @@ body {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
+  /* El círculo decorativo, del mismo lado que el velo del icono: en un tema
+     oscuro un blanco al 7 % sobre un degradado claro no se ve. */
+  background: color-mix(in srgb, var(--on-brand) 7%, transparent);
 }
 .assign-card .ic {
   width: 44px;
   height: 44px;
   border-radius: var(--shape-sm);
   flex: 0 0 auto;
-  background: rgba(255, 255, 255, 0.16);
+  /* El velo iba en blanco fijo: sobre el degradado claro de un tema oscuro no
+     se veía. Ahora es un velo de la propia tinta, así que siempre despega. */
+  background: color-mix(in srgb, var(--on-brand) 14%, transparent);
   display: grid;
   place-items: center;
   backdrop-filter: blur(4px);
@@ -1057,7 +1277,7 @@ body {
 .assign-card .ic svg {
   width: 23px;
   height: 23px;
-  stroke: #fff;
+  stroke: var(--on-brand);
 }
 .assign-card .txt {
   flex: 1;
@@ -1066,7 +1286,10 @@ body {
 .assign-card .txt .lab {
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent-200);
+  /* Era `--accent-200`, un lavado del acento: sobre el degradado daba 1,94:1
+     en naranja claro. A 11px y en versalitas, esta etiqueta necesita la tinta
+     entera; la jerarquía ya la marcan el tamaño y el peso. */
+  color: var(--on-brand);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1084,7 +1307,7 @@ body {
   margin-right: 2px;
 }
 .assign-card .chev-icon {
-  stroke: var(--accent-100);
+  stroke: var(--on-brand);
   width: 20px;
   height: 20px;
   z-index: 1;
@@ -1498,13 +1721,13 @@ body {
 
 /* Main / primary pill (Publicar, etc.) */
 [data-theme$='-light'] .nav-action-pill-main {
-  background: var(--accent-main) !important;
+  background: var(--brand-fill) !important;
   box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.45) !important;
   border: 1px solid rgba(var(--accent-main-base), 0.2) !important;
 }
 
 [data-theme$='-dark'] .nav-action-pill-main {
-  background: var(--accent-main) !important;
+  background: var(--brand-fill) !important;
   box-shadow: 0 4px 14px -4px rgba(var(--accent-main-base), 0.55) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
@@ -1575,7 +1798,51 @@ body {
   animation: page-enter-back 220ms ease-out;
 }
 
+/* ═══ MOVIMIENTO REDUCIDO ═══════════════════════════════════════════════════
+   Cuando alguien pide en su teléfono «reducir movimiento», la app tiene que
+   hacerle caso ENTERA, no solo en la transición de página.
+
+   Antes esto apagaba dos animaciones de las veintiséis que hay. Se quedaban
+   fuera el `scale(0.92)` de cada pulsación, el `rise` de las tarjetas al
+   entrar, el `pulse` de lo que está en curso, la mano que saluda del Inicio y
+   el brillo de los esqueletos de carga. En un teléfono modesto todo eso
+   además cuesta batería y va a tirones, que es la otra mitad del motivo.
+
+   ── Las excepciones, y por qué son excepciones ──────────────────────────
+   Lo que se apaga es el movimiento DECORATIVO. Lo que dice «esto está
+   pasando ahora mismo» se queda: un indicador de progreso congelado no es
+   una interfaz tranquila, es una interfaz que parece rota.
+
+   Van excluidas del selector en vez de reactivadas después a propósito: los
+   dos iconos que giran se animan desde JS con `style.animation`, y un estilo
+   en línea pierde contra un `!important` de la hoja. Si estuvieran dentro y
+   se intentara devolverles la animación, no habría forma de recuperar el
+   valor que puso el JS. Fuera del selector, sencillamente no se les toca.
+
+   Para algo nuevo que de verdad indique progreso: `data-motion="essential"`.
+
+   Nota de lo que esto NO alcanza: los Lottie de las pantallas de arranque se
+   animan por JavaScript, no por CSS, así que siguen moviéndose. Apagarlos es
+   un cambio en el componente, no aquí. */
 @media (prefers-reduced-motion: reduce) {
+  *:not(.organized-sync-icon):not(.organized-generate-icon):not(
+      [data-motion='essential']
+    ),
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .MuiCircularProgress-root,
+  .MuiCircularProgress-svg,
+  .MuiCircularProgress-circle {
+    animation-duration: revert !important;
+    animation-iteration-count: revert !important;
+  }
+
   .page-transition--forward,
   .page-transition--back {
     animation: none;
@@ -2253,4 +2520,60 @@ body {
    `npm run generate:css` y se llevaría el arreglo por delante. */
 .body-small-semibold {
   font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EL INTERLINEADO DEL CUERPO DE TEXTO
+   ══════════════════════════════════════════════════════════════════════════
+
+   Medido en pantalla, la app iba entre un 10 % y un 24 % por debajo de lo que
+   marca Material para el mismo tipo de texto:
+
+     clase                nuestro        ratio    M3 equivalente   ratio
+     label-small-*        12 / 14        1,17     label small      1,45
+     body-small-*         13 / 16        1,23     body medium      1,43
+     body-regular*        15 / 20        1,33     body large       1,50
+
+   Los títulos NO se tocan: ahí M3 también aprieta y los nuestros están bien.
+
+   Esto no es cosmética. A 1,17 la caja tiene casi exactamente el alto de la
+   fuente, así que los rabitos que bajan —g, p, q, y, j— se salen por debajo; y
+   donde hay `overflow: hidden` se cortan. Está documentado en §2.3 del sistema
+   de diseño, que lo parcheó con relleno en la etiqueta de todos los campos.
+   Esto ataca la causa en vez del síntoma.
+
+   Comprobado en pantalla, paso a paso y contando los recortes de cada página
+   antes y después: **no aparece ni un desbordamiento nuevo**. (Los cien avisos
+   de 4px que salen en la lista de personas no son texto cortado: son una caja
+   flex de 48 con 52 de contenido, y ya estaban ahí antes de tocar nada.)
+
+   ── Por qué en RATIO y no en píxeles ───────────────────────────────────────
+
+   Un `line-height: 17px` valdría para el móvil y no para el escritorio, donde
+   la misma clase mide un punto más; y se quedaría fuera del escalón ×1,15 de
+   tablet y de Programas semanales, que es justo el fallo que ya documenta §3.
+   Sin unidad, el interlineado se calcula sobre el tamaño que toque en cada
+   sitio y no hay nada que mantener sincronizado.
+
+   ── Por qué al final del fichero ───────────────────────────────────────────
+
+   Aquí gana a las definiciones de `global.css` Y al escalón de tablet. Es lo
+   contrario de lo que pide §3 para las tres clases huérfanas, y a propósito:
+   aquellas declaran el TAMAÑO, que el escalón tiene que poder cambiar; esto
+   declara solo el interlineado, que al ser un ratio ya crece solo. */
+.label-small-regular,
+.label-small-medium,
+.label-small-semibold {
+  line-height: 1.45;
+}
+
+.body-small-regular,
+.body-small-medium,
+.body-small-semibold {
+  line-height: 1.4;
+}
+
+.body-regular,
+.body-regular-semibold {
+  line-height: 1.45;
 }

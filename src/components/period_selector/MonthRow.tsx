@@ -54,6 +54,14 @@ const MonthRow = ({
       cursor: 'pointer',
       py: 1,
       px: 1,
+      // Es una fila que se pulsa para desplegar el mes: le toca el mínimo de
+      // 48 de Material. Se dibujaba a 34.
+      //
+      // Con `minHeight` y no con un `::after` invisible porque estas filas van
+      // pegadas unas a otras en una lista: un área que se derrame hacia fuera
+      // le quitaría el borde a la fila de al lado.
+      minHeight: '48px',
+      boxSizing: 'border-box',
       borderRadius: 'var(--shape-sm)',
       '&:hover': { backgroundColor: 'var(--accent-100)' },
       '&:focus-visible': {

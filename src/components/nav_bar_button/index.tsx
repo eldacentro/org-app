@@ -49,11 +49,17 @@ const NavBarButton = (props: NavBarButtonProps) => {
   // ── Mobile pill path ─────────────────────────────────────────────
   if (disabled) return null;
 
+  // El `main` va sobre relleno de marca, así que su tinta es la emparejada con
+  // ese relleno y no un blanco fijo: en naranja claro el blanco daba 2,29:1.
+  // Los que NO son `main` van sobre la bandeja clara y usan la marca como
+  // TEXTO: ahí toca `--accent-dark`, que es el tono pensado para leerse; el
+  // `--accent-main` está pensado para rellenar y como letra se queda corto
+  // (2,31:1 en naranja claro).
   const iconColor = main
-    ? 'var(--always-white)'
+    ? 'var(--on-brand)'
     : props.color
       ? `var(--${props.color}-main)`
-      : 'var(--accent-main)';
+      : 'var(--accent-dark)';
 
   return (
     // Dos cosas iban mal aquí, y las dos se ven en la misma línea de código.
@@ -86,6 +92,25 @@ const NavBarButton = (props: NavBarButtonProps) => {
         cursor: 'pointer',
         flexShrink: 0,
         userSelect: 'none',
+        // El área del dedo. Este es EL botón de acción de todas las pantallas
+        // en móvil y se dibuja a 36 de alto; Material pide 48 de objetivo.
+        // Se gana con un `::after` invisible para no tocar el alto, que es lo
+        // que le da a la bandeja flotante su proporción.
+        //
+        // Solo a lo alto: en la bandeja van dos en fila separados por 4px
+        // —«Importar/exportar» y «Añadir»—, así que ensanchar el área haría
+        // que se pisaran. Y con `max(100%, 48px)` en vez de un desplazamiento
+        // fijo, porque la píldora no siempre mide exactamente 36.
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          left: 0,
+          right: 0,
+          transform: 'translateY(-50%)',
+          height: 'max(100%, 48px)',
+        },
         WebkitTapHighlightColor: 'transparent',
         transition:
           'transform var(--motion-fast) var(--ease-emphasized), opacity var(--motion-fast) var(--ease-standard)',

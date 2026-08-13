@@ -154,7 +154,11 @@ const CollapsibleSelector = ({
             onClick={onToggle}
             sx={{
               position: 'absolute',
-              inset: 0,
+              // `-12px 0` y no `0`: la franja del título mide 24 de alto y el
+              // objetivo tiene que ser 48. Los 12 por arriba y por abajo caen
+              // dentro del relleno de 16 del panel, así que no se sale ni pisa
+              // nada.
+              inset: '-12px 0',
               appearance: 'none',
               background: 'none',
               border: 'none',

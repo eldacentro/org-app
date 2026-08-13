@@ -152,9 +152,9 @@
   --black: rgba(var(--black-base), 1);
   --white-base: 255, 255, 255;
   --white: rgba(var(--white-base), 1);
-  --grey-400-base: 90, 106, 130;
+  --grey-400-base: 89, 104, 128;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 138, 155, 179;
+  --grey-350-base: 86, 104, 132;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -170,13 +170,13 @@
   --red-dark: rgba(var(--red-dark-base), 1);
   --red-secondary-base: 231, 55, 55;
   --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --orange-dark-base: 197, 114, 14;
+  --orange-dark-base: 164, 95, 12;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
   --orange-main: rgba(var(--orange-main-base), 1);
   --orange-secondary-base: 253, 245, 237;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
-  --green-main-base: 62, 147, 33;
+  --green-main-base: 53, 125, 28;
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
@@ -229,7 +229,7 @@
   /* Neutral scale — blue-tinted greys */
   --grey-400-base: 140, 150, 174;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 86, 94, 116;              /* tertiary text ≈ 0.38 white  */
+  --grey-350-base: 126, 135, 159;  /* texto terciario — subido a ≥4,5:1 */
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 158, 164, 180;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -273,7 +273,7 @@
 [data-theme='green-light'] {
   --accent-dark-overlay-base: 5, 12, 4;
   --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.48);
-  --accent-dark-base: 82, 135, 69;
+  --accent-dark-base: 69, 114, 58;
   --accent-dark: rgba(var(--accent-dark-base), 1);
   --accent-click-base: 107, 172, 90;
   --accent-click: rgba(var(--accent-click-base), 1);
@@ -297,7 +297,7 @@
   --white: rgba(var(--white-base), 1);
   --grey-400-base: 80, 80, 80;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 117, 117, 117;
+  --grey-350-base: 112, 112, 112;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -313,13 +313,13 @@
   --red-dark: rgba(var(--red-dark-base), 1);
   --red-secondary-base: 231, 55, 55;
   --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --orange-dark-base: 197, 114, 14;
+  --orange-dark-base: 164, 95, 12;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
   --orange-main: rgba(var(--orange-main-base), 1);
   --orange-secondary-base: 253, 245, 237;
   --orange-secondary: rgba(var(--orange-secondary-base), 1);
-  --green-main-base: 62, 147, 33;
+  --green-main-base: 53, 125, 28;
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
@@ -372,7 +372,7 @@
   /* Neutral scale — green-tinted greys */
   --grey-400-base: 134, 156, 132;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 82, 104, 80;              /* tertiary text ≈ 0.38 white  */
+  --grey-350-base: 112, 142, 109;  /* texto terciario — subido a ≥4,5:1 */
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 158, 172, 156;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -450,7 +450,7 @@
   /* Neutral scale — violet-tinted greys */
   --grey-400-base: 150, 142, 170;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 96, 88, 116;              /* tertiary text ≈ 0.38 white  */
+  --grey-350-base: 134, 125, 156;  /* texto terciario — subido a ≥4,5:1 */
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 164, 156, 184;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -517,7 +517,7 @@
   --white: rgba(var(--white-base), 1);
   --grey-400-base: 80, 80, 80;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 117, 117, 117;
+  --grey-350-base: 109, 109, 109;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -533,11 +533,11 @@
   --red-dark: rgba(var(--red-dark-base), 1);
   --red-secondary-base: 231, 55, 55;
   --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --green-main-base: 62, 147, 33;
+  --green-main-base: 53, 125, 28;
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
-  --orange-dark-base: 197, 114, 14;
+  --orange-dark-base: 164, 95, 12;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
   --orange-main: rgba(var(--orange-main-base), 1);
@@ -592,7 +592,7 @@
   /* Neutral scale — warm amber-tinted greys */
   --grey-400-base: 170, 158, 136;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 112, 100, 78;              /* tertiary text ≈ 0.38 white  */
+  --grey-350-base: 144, 129, 101;  /* texto terciario — subido a ≥4,5:1 */
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 180, 164, 140;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -635,7 +635,7 @@
 [data-theme='orange-light'] {
   --accent-dark-overlay-base: 22, 14, 7;
   --accent-dark-overlay: rgba(var(--accent-dark-overlay-base), 0.48);
-  --accent-dark-base: 178, 119, 5;
+  --accent-dark-base: 144, 96, 4;
   --accent-dark: rgba(var(--accent-dark-base), 1);
   --accent-click-base: 216, 159, 48;
   --accent-click: rgba(var(--accent-click-base), 1);
@@ -659,7 +659,7 @@
   --white: rgba(var(--white-base), 1);
   --grey-400-base: 80, 80, 80;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 117, 117, 117;
+  --grey-350-base: 111, 111, 111;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -675,11 +675,11 @@
   --red-dark: rgba(var(--red-dark-base), 1);
   --red-secondary-base: 231, 55, 55;
   --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --green-main-base: 58, 136, 32;
+  --green-main-base: 53, 125, 29;
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
-  --orange-dark-base: 197, 114, 14;
+  --orange-dark-base: 164, 95, 12;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
   --orange-main: rgba(var(--orange-main-base), 1);
@@ -734,7 +734,7 @@
   /* Neutral scale — warm red-tinted greys */
   --grey-400-base: 180, 150, 148;             /* secondary text ≈ 0.60 white */
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 120, 94, 92;               /* tertiary text ≈ 0.38 white  */
+  --grey-350-base: 155, 126, 124;  /* texto terciario — subido a ≥4,5:1 */
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 190, 164, 162;             /* placeholder text            */
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -801,7 +801,7 @@
   --white: rgba(var(--white-base), 1);
   --grey-400-base: 80, 80, 80;
   --grey-400: rgba(var(--grey-400-base), 1);
-  --grey-350-base: 117, 117, 117;
+  --grey-350-base: 109, 109, 109;
   --grey-350: rgba(var(--grey-350-base), 1);
   --grey-300-base: 170, 170, 170;
   --grey-300: rgba(var(--grey-300-base), 1);
@@ -819,11 +819,11 @@
   --red-dark: rgba(var(--red-dark-base), 1);
   --red-secondary-base: 199, 42, 74;
   --red-secondary: rgba(var(--red-secondary-base), 0.1);
-  --green-main-base: 62, 147, 33;
+  --green-main-base: 53, 125, 28;
   --green-main: rgba(var(--green-main-base), 1);
   --green-secondary-base: 238, 246, 235;
   --green-secondary: rgba(var(--green-secondary-base), 1);
-  --orange-dark-base: 197, 114, 14;
+  --orange-dark-base: 164, 95, 12;
   --orange-dark: rgba(var(--orange-dark-base), 1);
   --orange-main-base: 221, 140, 44;
   --orange-main: rgba(var(--orange-main-base), 1);

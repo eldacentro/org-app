@@ -50,8 +50,28 @@ export const StyledIconWrapper = styled(IconButton, {
     '& svg g, & svg g path': {
       fill: iconColor,
     },
-    width: '24px',
-    height: '24px',
+    // 48×48 DE VERDAD, con el icono de 24 centrado dentro.
+    //
+    // Era el peor objetivo táctil de la app: una acción DESTRUCTIVA de 24×24
+    // —la mitad del mínimo de Material— repetida cien veces en una lista que
+    // se recorre con el pulgar.
+    //
+    // Aquí NO vale el truco del `::after` invisible que usa el resto de la
+    // app, y se comprobó a base de intentarlo: `StyledBoxSpaceBetween`, unas
+    // líneas más abajo, lleva `overflow: hidden` para recortar los nombres
+    // largos, y eso recorta también el pseudoelemento. Con
+    // `elementFromPoint`: el área MEDÍA 48×48, pero por arriba y por abajo
+    // seguía respondiendo la ficha de la persona. Un objetivo táctil que solo
+    // existe en la hoja de estilos no sirve de nada.
+    //
+    // Así que este ocupa sitio de verdad. Son 24px de ancho que se le quitan
+    // a la columna del nombre, que va holgada.
+    width: '48px',
+    height: '48px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   })
 );
 

@@ -29,9 +29,16 @@ const SiblingAssignment = ({
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: 'var(--grey-350)',
+          // `--band-neutral`, no `--grey-350`: esta banda lleva texto blanco
+          // encima, y `--grey-350` es el gris del texto terciario, que se
+          // invierte con el tema. Ver el token en `global/index.css`.
+          backgroundColor: 'var(--band-neutral)',
           borderRadius: 'var(--shape-xs)',
           padding: '4px 8px',
+          // Es una banda que se pliega y despliega, o sea un control: le toca
+          // el mínimo de 48. Se dibujaba a 33.
+          minHeight: '48px',
+          boxSizing: 'border-box',
           cursor: 'pointer',
           '&:focus-visible': {
             outline: '2px solid var(--always-white)',

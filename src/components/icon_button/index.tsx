@@ -69,6 +69,20 @@ const IconButton: FC<CustomIconButtonProps> = (props) => {
 
         ...props.sx,
       }}
+      // OJO, y está sin arreglar a propósito: `rest` TODAVÍA contiene `sx`,
+      // así que este spread vuelve a poner el `sx` de quien llama y se lleva
+      // por delante todo el de arriba —relleno, radio, transición, hover,
+      // pulsado y foco—. Le pasa a los 28 ficheros que le pasan un `sx`, que
+      // son casi todos los botones de icono de la app.
+      //
+      // No se toca aquí porque arreglarlo devuelve de golpe el hover y el
+      // `scale(0.92)` a 28 sitios que hoy no los tienen, y eso hay que verlo
+      // pantalla por pantalla. Es una pasada aparte, no un efecto colateral
+      // de otra cosa.
+      //
+      // Por eso el área táctil de 48 NO va aquí sino en `global/index.css`,
+      // sobre `.MuiIconButton-root`: allí ningún `sx` la puede borrar, y de
+      // paso alcanza también a los que usan el `IconButton` de MUI en crudo.
       {...rest}
     >
       {children}

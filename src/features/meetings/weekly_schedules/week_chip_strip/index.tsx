@@ -95,7 +95,21 @@ const WeekChipStrip = (props: WeekChipStripProps) => {
               font: 'inherit',
               color: 'inherit',
               flexShrink: 0,
-              padding: '8px 14px',
+              // 48 de alto DE VERDAD (15 + 18 de línea + 15), no 34 con un
+              // área invisible alrededor.
+              //
+              // Como dice el comentario de arriba, esta tira es de lo que más
+              // se toca de toda la app, y 34 se queda por debajo tanto del
+              // mínimo de Material (48) como del de iOS (44).
+              //
+              // Se intentó primero con el `::after` invisible que usa el resto
+              // de la app, y NO vale aquí: `.schedules-view-week-selector`
+              // lleva `overflow: auto` para que la tira se deslice, y eso
+              // recorta el pseudoelemento. Comprobado con `elementFromPoint`:
+              // el centro del chip respondía y cinco píxeles por encima ya no.
+              // Un objetivo táctil que solo existe en la hoja de estilos no
+              // sirve de nada.
+              padding: '15px 14px',
               borderRadius: 'var(--shape-full)',
               '&:focus-visible': {
                 outline: '2px solid var(--accent-main)',

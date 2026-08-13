@@ -76,7 +76,13 @@ const Badge = (props: BadgePropsType) => {
   } = props;
 
   const getColor = () => {
-    if (filled) return `var(--always-white)`;
+    // Relleno de color: la tinta va emparejada con él, no siempre blanca. Un
+    // distintivo `filled` naranja con letra blanca daba 2,65:1 en los temas
+    // claros y 1,9 en los oscuros. Ver `global/index.css`.
+    if (filled)
+      return color
+        ? `var(--on-${color}, var(--always-white))`
+        : `var(--on-brand)`;
 
     if (color === 'grey') {
       if (faded) {
@@ -102,7 +108,9 @@ const Badge = (props: BadgePropsType) => {
       if (color === 'grey') {
         return `var(--${color}-400)`;
       } else {
-        return `var(--${color}-main)`;
+        // `-fill`: el tono que puede llevar letra encima (ver
+        // `global/index.css`). Con reserva para los colores que no tienen uno.
+        return `var(--${color}-fill, var(--${color}-main))`;
       }
     } else {
       if (color === 'grey') {

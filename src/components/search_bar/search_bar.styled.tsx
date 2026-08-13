@@ -21,6 +21,19 @@ export const StyledButton = styled(Button)({
   minWidth: '0px',
   padding: '8px',
   borderRadius: 'var(--shape-full)',
+  // El área del dedo, solo a lo alto: la lupa y la equis de borrar se dibujan
+  // a 40×40 y Material pide 48 de objetivo. A lo ancho no, que van dentro de
+  // la caja de búsqueda pegadas al campo de texto.
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    transform: 'translateY(-50%)',
+    height: 'max(100%, 48px)',
+  },
   '&:hover': {
     backgroundColor: 'var(--state-hover)',
   },
