@@ -50,6 +50,117 @@ rgba en una página — siempre a través de `var(--token)`, para que los 8 tema
 | `--amber` / `--amber-tint` | Aviso (alias de `--orange-main` / `--orange-secondary`) |
 | `--error-main` / `--error-dark` / `--error-150` | Error (alias de `--red-*`) |
 | `--always-white` | Blanco fijo, NO cambia con el tema (texto sobre fondos de color sólido) |
+| `--band-neutral` | Relleno fijo de una banda neutra que lleva **texto blanco** encima (la cabecera de asignaciones de otra congregación). Ver §2.1b |
+
+#### 2.1a El relleno de color y la tinta que va encima: `--*-fill` y `--on-*`
+
+**Encima de un color NO va siempre blanco, y el color de marca no siempre
+sirve de relleno.** Son dos tokens emparejados:
+
+| Token | Qué es |
+|---|---|
+| `--brand-fill` | El tono de marca que puede llevar letra encima. Lo usan el botón relleno, `ActionPill solid`, la píldora `main` de la barra y el panel destacado del Inicio |
+| `--red-fill` / `--green-fill` / `--orange-fill` | Lo mismo para los rellenos semánticos (botones y distintivos con `color=`) |
+| `--on-brand` / `--on-red` / `--on-green` / `--on-orange` | La tinta emparejada con cada relleno |
+| `--on-brand-contra` | La dirección CONTRARIA a la tinta. La usa el degradado del panel destacado para tener profundidad sin perder contraste |
+
+`--accent-main` **sigue siendo el color de la marca** para todo lo demás
+—bordes, iconos, foco—. Lo que cambia es que un relleno que lleva letra encima
+usa `--brand-fill`.
+
+**Por qué existe.** La tinta era `--always-white` fija y, medido en los diez
+temas, eso fallaba en **ocho**: el botón principal daba 2,29:1 en naranja claro
+y 2,40 en verde oscuro. El relleno cambia de tono con el tema y la tinta no; en
+los temas oscuros `--accent-main` es un color CLARO (blue-dark es `#6499E4`) y
+el blanco encima no se lee.
+
+**De las dos salidas, la que conserva el blanco.** Se arregla girando la TINTA
+a oscura o bajando el RELLENO. M3 hace lo primero (tema oscuro: primario tono
+80, `on` tono 20). Aquí se hace lo segundo, y a propósito: el blanco sobre
+color pleno es la firma del §6.4c —«el botón azul relleno: uno por pantalla, y
+es a lo que vienes»—, y si en modo oscuro esa misma acción pasa a letra negra,
+deja de reconocerse de un vistazo como la misma cosa.
+
+Medido tono a tono, el azul oscuro baja de (100,153,228) a (42,115,218) y el
+blanco vuelve a 4,56 — y sigue siendo azul, de hecho más saturado. Igual el
+morado, el rojo y el verde. **La letra es blanca en ocho de los diez temas.**
+
+**La única excepción es el naranja**, en sus dos modos: para que llevara blanco
+habría que bajarlo de (229,156,15) a (157,107,10), y eso ya no es el tema
+naranja, es marrón. Un relleno ámbar con letra oscura es un patrón normal y da
+7,5:1, así que ahí —y solo ahí— se gira la tinta. El color lo elige el hermano;
+la tinta la elegimos nosotros.
+
+Dos consecuencias que conviene conocer:
+
+- **El acento como TEXTO es `--accent-dark`, no `--accent-main`.** El acento a
+  secas está pensado para rellenar; como letra se queda corto (2,31:1 en
+  naranja claro). Lo usan así `ActionPill` en `tinted`/`outline` y
+  `NavBarButton` cuando no es `main`.
+- **El hover de un botón relleno es una capa del 8 %, no un salto a
+  `--{color}-dark`.** Antes saltaba a un tono mucho más oscuro y eso rompía la
+  pareja: la tinta que se lee sobre el relleno base no se lee sobre el del
+  hover, y al revés. Con `color-mix` al 8 % (y 14 % al pulsar, que son los
+  porcentajes de §2.5) los dos estados quedan cerca y la misma tinta vale para
+  los dos. De paso el botón usa el lenguaje de estados de la app en vez del
+  suyo.
+
+#### 2.1b Contraste: el mínimo es 4,5:1, y está medido
+
+Los grises de texto no se eligen a ojo. A 2026-08-14 se midieron los diez temas
+y `--ink-3` fallaba el mínimo en **seis**: 2,83:1 en blue-light —el tema por
+defecto— y entre 2,65 y 3,09 en los cinco oscuros. En pantalla eso era la tira
+de semanas de Programas semanales a 2,3:1.
+
+Se subieron `--grey-350` (los diez temas), `--grey-400` (blue-light),
+`--green-main`, `--orange-dark` y `--accent-dark` (en los temas claros donde
+hacía falta) hasta que **todo el texto pasa 4,5:1 contra las cuatro superficies
+sobre las que puede caer**: `--card`, `--paper`, `--accent-150` (donde acaba el
+lavado de `.screen`) y `--accent-200` (el fondo de un distintivo). Los valores
+se calcularon conservando el tono, no a ojo.
+
+Tres cosas que se aprendieron y conviene no repetir:
+
+- **Un token de texto no puede ser a la vez un relleno.** `--grey-350` hacía
+  las dos cosas: tinta terciaria y fondo de la banda de «asignaciones de
+  hermanos», que lleva letra blanca. Los dos usos tiran en sentidos contrarios
+  —la tinta quiere contraste contra la TARJETA, el relleno contra la LETRA de
+  encima— así que bajarlo arreglaba uno y rompía el otro en los cinco temas
+  oscuros. Por eso existe `--band-neutral`.
+- **El contador `CountBadge` heredaba el negro de MUI.** Su color por defecto
+  era `'inherit'`, que sonaba a «el del rótulo» y en realidad subía hasta el
+  `rgba(0, 0, 0, 0.87)` de MUI: negro fijo en los diez temas. En modo oscuro el
+  «100» de Personas quedaba a 1,27:1. `'inherit'` solo hereda si alguien pone
+  un color por el camino.
+- **Hay que medir contra TODAS las superficies donde el texto puede caer.** El
+  primer cálculo se hizo solo contra la tarjeta y el fondo de página, y dejó
+  fuera dos: el lavado de `.screen` (que acaba en `--accent-150`, más oscuro
+  que `--paper`) y el fondo de los distintivos (`--accent-200`). Los dos
+  aparecieron después, en pantalla.
+
+Si tocas un color de texto, **mídelo**. Con el color en la mano son cuatro
+líneas de JavaScript en la consola; a ojo es como se llegó hasta aquí.
+
+#### 2.1c Interlineado: en ratio, no en píxeles
+
+El cuerpo de texto iba entre un 10 % y un 24 % por debajo de Material:
+`label-small-*` a 1,17, `body-small-*` a 1,23 y `body-regular*` a 1,33, frente
+a 1,43-1,50. Los títulos no se tocan, que ahí M3 también aprieta.
+
+Ahora los tres van en **ratio sin unidad** (1,45 / 1,40 / 1,45) al final de
+`global/index.css`. Sin unidad porque un valor en píxeles vale para el móvil y
+no para el escritorio, y se queda fuera del escalón ×1,15; con ratio, el
+interlineado se calcula sobre el tamaño que toque en cada sitio y no hay nada
+que mantener sincronizado.
+
+Van al FINAL del fichero a propósito, al revés que las tres clases huérfanas de
+§3: aquellas declaran el TAMAÑO, que el escalón tiene que poder cambiar; esto
+declara solo el interlineado, que al ser un ratio ya crece solo.
+
+> **Cómo se comprobó, porque este es el cambio con más riesgo de todos.** Paso
+> a paso —una clase, una medición— contando en cada página los elementos con
+> `overflow` recortado cuyo contenido no cabe, antes y después. Cuatro páginas,
+> cifras idénticas: ni un desbordamiento nuevo.
 
 ### 2.2 Color — capa de paleta (la usan los tokens de arriba; úsala solo si no hay alias semántico)
 
@@ -227,6 +338,72 @@ igual.
 
 **Y en las dos direcciones:** lo que se puede pulsar SIEMPRE reacciona al
 hover/pulsación; lo que no se puede pulsar NUNCA lleva borde + sombra de botón.
+
+### 2.5a Objetivo táctil: 48, aunque el dibujo mida 24
+
+**Lo que se pulsa tiene que responder en 48×48, aunque se DIBUJE más pequeño.**
+Es el mínimo de Material (iOS pide 44) y aquí pesa más que en otras apps:
+muchos hermanos son mayores y tienen teléfonos modestos.
+
+A 2026-08-14 no lo cumplía casi nada: todos los botones median 40 de alto, la
+píldora de la barra 36, los chips de la tira de semanas y las filas del panel
+de periodo 34, `ActionPill` 29 — y la papelera de cada persona, que es una
+acción **destructiva** repetida cien veces, **24×24**.
+
+Hay dos maneras de arreglarlo y la elección no es de gusto:
+
+**1 · `::after` invisible** — cuando el dibujo NO se puede tocar.
+
+```tsx
+position: 'relative',
+'&::after': { content: '""', position: 'absolute', inset: '-4px 0' },
+```
+
+No ocupa sitio en el flujo, así que no mueve un píxel. Es lo que llevan
+`@components/button` (40 → 48), `nav_bar_button` (36 → 48), `action_pill`
+(29 → 48), el buscador y `.MuiIconButton-root` (regla global en `index.css`,
+40 → 40×48).
+
+**2 · Alto real (`minHeight` / `height`)** — cuando el `::after` no serviría.
+
+Y no sirve en dos casos, los dos encontrados a base de intentarlo:
+
+- **Un ancestro con `overflow` distinto de `visible` lo recorta.** Pasó con la
+  papelera de `user_card` (`StyledBoxSpaceBetween` lleva `overflow: hidden`
+  para recortar nombres largos) y con los chips de la tira de semanas
+  (`.schedules-view-week-selector` lleva `overflow: auto` para deslizarse). En
+  los dos, el área MEDÍA 48 y no respondía.
+- **Los elementos van pegados en una lista.** `MonthRow` y `WeekRow` se tocan
+  entre sí: un área que se derrame le quita el borde a la fila de al lado.
+
+> **La medida no basta: hay que probar la PULSACIÓN.** Un
+> `getBoundingClientRect` más el `inset` del `::after` da 48 aunque el
+> pseudoelemento esté recortado o tapado. La comprobación buena es
+> `document.elementFromPoint(x, y)` en los cuatro bordes del área: si en el
+> centro responde el botón y cinco píxeles más arriba responde otra cosa, el
+> objetivo no existe.
+
+**Y a lo ancho, con cuidado.** Los botones de icono se expandieron **solo a lo
+alto** a propósito: en la barra de título caben dos —Atrás e Inicio— dentro de
+62px, así que ya se solapan 8 (se pisa el relleno, no los iconos). Ensanchar el
+área movería esa costura y el borde derecho de «Atrás» abriría «Inicio». Antes
+de expandir a lo ancho, mira qué hay al lado: Material pide además **8px de
+separación** entre objetivos.
+
+### 2.5b Movimiento reducido y foco: dos reglas globales, no veinte copias
+
+- **`prefers-reduced-motion`** apaga TODAS las animaciones y transiciones, no
+  solo la de cambio de página (que era lo único cubierto: 2 de 26). Quedan
+  fuera, a propósito, los indicadores de progreso —`.organized-sync-icon`,
+  `.organized-generate-icon`, `CircularProgress`— porque un indicador congelado
+  no es una interfaz tranquila, es una que parece rota. Para algo nuevo que de
+  verdad indique progreso: `data-motion="essential"`. Los Lottie de arranque se
+  animan por JS y siguen fuera del alcance de esta regla.
+- **El anillo de foco** (§2.5) ya no se escribe componente a componente: hay
+  una regla `:where(...):focus-visible` en `index.css`. Va con `:where()` para
+  que valga CERO de especificidad, así que cualquier componente que traiga la
+  suya le sigue ganando. Medido antes: de 40 elementos enfocables de «Todas las
+  personas», 18 tenían anillo y 22 no.
 
 ### 2.6 Sombras
 

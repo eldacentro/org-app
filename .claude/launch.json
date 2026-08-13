@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview"],
       "port": 4050
+    },
+    {
+      "name": "test",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--mode", "test", "--port", "4137"],
+      "port": 4137
     }
   ]
 }
