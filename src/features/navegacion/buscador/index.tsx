@@ -16,6 +16,9 @@ import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
 import { IconCancelCicle, IconClose, IconSearch } from '@icons/index';
 import { documentosState, documentoCategoriasState } from '@states/documentos';
+import { weekendMeetingOutgoingTalksPublicState } from '@states/settings';
+import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
+import useCircuitVisitForBrothers from '@features/circuit_visit/shared/useCircuitVisitForBrothers';
 import { DestinoCategoria, DestinoRoles } from '@definition/destinos';
 import { DESTINOS } from '../destinos';
 import { iconoDestino } from '../iconos';
@@ -249,6 +252,22 @@ const Buscador = ({
   const documentos = useAtomValue(documentosState);
   const categorias = useAtomValue(documentoCategoriasState);
 
+  /* Las dos pestañas de Programas semanales que NO siempre están.
+   *
+   * Se calculan igual que en `useWeeklySchedules`, con las mismas fuentes y en
+   * el mismo orden — incluido que el anciano ve la visita en cuanto se
+   * programa y el resto solo dentro de su ventana. Copiar la regla es lo malo;
+   * lo que se copia aquí es la LLAMADA a quien la sabe. */
+  const salientesPublicos = useAtomValue(
+    weekendMeetingOutgoingTalksPublicState
+  );
+  const visitaCompleta = useUpcomingCircuitVisit();
+  const visitaParaHermanos = useCircuitVisitForBrothers();
+
+  const hayVisitaProxima = Boolean(
+    usuario.isElder || usuario.isAdmin ? visitaCompleta : visitaParaHermanos
+  );
+
   const [termino, setTermino] = useState('');
   const [activo, setActivo] = useState(0);
   const [seVa, setSeVa] = useState(false);
@@ -353,8 +372,10 @@ const Buscador = ({
       isMeetingEditor: usuario.isMeetingEditor,
       isGroup: usuario.isGroup,
       enable_AP_application: usuario.enable_AP_application,
+      verOradoresSalientes: salientesPublicos,
+      hayVisitaProxima,
     }),
-    [usuario]
+    [usuario, salientesPublicos, hayVisitaProxima]
   );
 
   const docsBuscables = useMemo(
@@ -424,9 +445,9 @@ const Buscador = ({
    * para cuando cierras y te quedas donde estabas, que es cuando el ojo
    * necesita saber a dónde ha ido lo que tapaba la pantalla.
    */
-  const ir = (ruta: string) => {
+  const ir = (ruta: string, pestana?: string) => {
     onClose(true);
-    navigate(ruta);
+    navigate(pestana ? `${ruta}?ver=${pestana}` : ruta);
   };
 
   const alPulsarTecla = (e: KeyboardEvent) => {
@@ -653,9 +674,14 @@ const Buscador = ({
                       <Fila
                         icono={iconoDestino(d.id)}
                         titulo={d.nombre}
+                        // En el mapa solo lo llevan los que se llaman igual que
+                        // otro —la pestaña y la página de editar—. Sin esto
+                        // salían dos filas idénticas y no había forma de saber
+                        // cuál era cuál.
+                        donde={d.donde}
                         activa={i === activo}
                         onHover={() => setActivo(i)}
-                        onClick={() => ir(d.ruta)}
+                        onClick={() => ir(d.ruta, d.pestana)}
                       />
                     </Box>
                   );
@@ -676,10 +702,12 @@ const Buscador = ({
                       icono={iconoDestino(destino.id)}
                       titulo={destino.nombre}
                       termino={termino}
-                      donde={NOMBRE_CATEGORIA[destino.categoria]}
+                      donde={
+                        destino.donde ?? NOMBRE_CATEGORIA[destino.categoria]
+                      }
                       activa={i === activo}
                       onHover={() => setActivo(i)}
-                      onClick={() => ir(destino.ruta)}
+                      onClick={() => ir(destino.ruta, destino.pestana)}
                     />
                   </Box>
                 );

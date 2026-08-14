@@ -36,6 +36,8 @@ const NADIE: DestinoRoles = {
   isMeetingEditor: false,
   isGroup: false,
   enable_AP_application: false,
+  verOradoresSalientes: false,
+  hayVisitaProxima: false,
 };
 
 const con = (cambios: Partial<DestinoRoles>): DestinoRoles => ({
@@ -43,9 +45,19 @@ const con = (cambios: Partial<DestinoRoles>): DestinoRoles => ({
   ...cambios,
 });
 
+/**
+ * La SEÑA de un destino: su ruta y, si es una pestaña, cuál.
+ *
+ * Desde que Programas semanales aporta siete vistas, la ruta sola ya no
+ * identifica nada —ocho destinos comparten `/weekly-schedules`—. Lo que hay
+ * que congelar es a dónde acaba el hermano, y eso incluye la pestaña.
+ */
+const senal = (d: (typeof DESTINOS)[number]) =>
+  d.pestana ? `${d.ruta}?ver=${d.pestana}` : d.ruta;
+
 const rutasVisibles = (roles: DestinoRoles) =>
   DESTINOS.filter((d) => !d.visible || d.visible(roles))
-    .map((d) => d.ruta)
+    .map(senal)
     .sort();
 
 /** Lo que ve cualquiera, sin ningún permiso. El suelo de la app. */
@@ -59,6 +71,15 @@ const SUELO = [
   '/field-service-groups',
   '/user-profile',
   '/weekly-schedules',
+  // Las cinco pestañas de Programas semanales que ve TODO EL MUNDO. Son la
+  // parte de la app que de verdad se mira: los turnos, el programa, quién
+  // acomoda. Las otras dos —salientes y visita— dependen de un ajuste y de que
+  // haya visita, así que no son suelo.
+  '/weekly-schedules?ver=departments',
+  '/weekly-schedules?ver=exhibitors',
+  '/weekly-schedules?ver=midweek',
+  '/weekly-schedules?ver=service_outings',
+  '/weekly-schedules?ver=weekend',
 ].sort();
 
 describe('índice de destinos', () => {
@@ -159,10 +180,17 @@ describe('índice de destinos', () => {
       })
     );
 
-    const todas = DESTINOS.map((d) => d.ruta).sort();
+    const todas = DESTINOS.map(senal).sort();
 
+    // Las tres que NO dependen de un rol: la solicitud de precursor auxiliar
+    // (ajuste de congregación) y la pestaña de la visita (solo existe cuando
+    // hay visita programada). Ni siendo admin salen si la condición no se da.
     expect(rutas).toEqual(
-      todas.filter((r) => r !== '/auxiliary-pioneer-application')
+      todas.filter(
+        (r) =>
+          r !== '/auxiliary-pioneer-application' &&
+          r !== '/weekly-schedules?ver=circuit_visit'
+      )
     );
   });
 });
@@ -174,10 +202,12 @@ describe('la lista está sana', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('no hay rutas repetidas', () => {
-    const rutas = DESTINOS.map((d) => d.ruta);
+  it('no hay dos destinos que acaben en el mismo sitio', () => {
+    // Ruta MÁS pestaña: ocho destinos comparten `/weekly-schedules` y son
+    // distintos entre sí. Lo que no puede repetirse es el sitio final.
+    const senales = DESTINOS.map(senal);
 
-    expect(new Set(rutas).size).toBe(rutas.length);
+    expect(new Set(senales).size).toBe(senales.length);
   });
 
   it('los sinónimos van en minúscula y sin acentos', () => {

@@ -20,6 +20,8 @@ const NADIE: DestinoRoles = {
   isMeetingEditor: false,
   isGroup: false,
   enable_AP_application: false,
+  verOradoresSalientes: false,
+  hayVisitaProxima: false,
 };
 
 const con = (c: Partial<DestinoRoles>): DestinoRoles => ({ ...NADIE, ...c });
@@ -30,13 +32,51 @@ const rutas = (termino: string, roles: DestinoRoles) =>
 describe('buscar destinos', () => {
   it('NO enseña lo que el hermano no puede abrir', () => {
     // Este es EL fallo que hay que evitar: un resultado que al pulsarlo da con
-    // una puerta cerrada. Un publicador raso no edita Exhibidores.
-    expect(rutas('exhibidores', NADIE)).toEqual([]);
+    // una puerta cerrada. Un publicador raso no EDITA Exhibidores.
+    expect(rutas('exhibidores', NADIE)).not.toContain('/exhibitors');
 
     // Y al del comité de servicio sí se lo enseña.
     expect(rutas('exhibidores', con({ isServiceCommittee: true }))).toContain(
       '/exhibitors'
     );
+  });
+
+  it('a quien solo MIRA le enseña la pestaña, no la página de editar', () => {
+    // El fallo que se vio en marcha: un publicador buscaba "exhibidores" y no
+    // le salía nada, cuando lo que quiere —los turnos de la cartelera— lo
+    // tiene en Programas semanales y lo puede ver de siempre.
+    const r = buscarDestinos('exhibidores', NADIE);
+
+    expect(r).toHaveLength(1);
+    expect(r[0].destino.ruta).toBe('/weekly-schedules');
+    expect(r[0].destino.pestana).toBe('exhibitors');
+  });
+
+  it('quien puede las dos cosas ve PRIMERO mirar y después editar', () => {
+    const r = buscarDestinos('exhibidores', con({ isServiceCommittee: true }));
+
+    expect(r).toHaveLength(2);
+    expect(r[0].destino.pestana).toBe('exhibitors');
+    expect(r[1].destino.ruta).toBe('/exhibitors');
+  });
+
+  it('la pestaña de la visita solo sale si hay visita', () => {
+    expect(rutas('visita del superintendente', NADIE)).toEqual([]);
+
+    const r = buscarDestinos(
+      'visita del superintendente',
+      con({ hayVisitaProxima: true })
+    );
+
+    expect(r[0].destino.pestana).toBe('circuit_visit');
+  });
+
+  it('los salientes salen a todos si el ajuste los publica', () => {
+    expect(rutas('oradores salientes', NADIE)).toEqual([]);
+
+    expect(
+      buscarDestinos('oradores salientes', con({ verOradoresSalientes: true }))
+    ).toHaveLength(1);
   });
 
   it('encuentra sin tildes y en cualquier caja', () => {

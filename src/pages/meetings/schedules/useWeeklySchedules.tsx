@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
+import { useSearchParams } from 'react-router';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { localStorageGetItem } from '@utils/common';
 import { weekendMeetingOutgoingTalksPublicState } from '@states/settings';
@@ -19,8 +20,24 @@ const LOCALSTORAGE_KEY = 'organized_weekly_schedules';
 const useWeeklySchedules = () => {
   const { t } = useAppTranslation();
 
+  /**
+   * `?ver=exhibitors` — por dónde entra el buscador.
+   *
+   * La pestaña se recuerda en `localStorage`, y eso está bien para volver
+   * donde lo dejaste. Pero el buscador necesita ABRIR una pestaña concreta, y
+   * para eso hace falta decírselo a la página desde fuera.
+   *
+   * Es una ORDEN DE UNA VEZ, no un estado: se aplica, se borra de la barra de
+   * direcciones y a partir de ahí manda el recuerdo de siempre. Si se quedara
+   * pegada en la URL, cambiar de pestaña y recargar te devolvería a la de
+   * antes, y esa clase de pantalla que "no obedece" no se olvida.
+   */
+  const [parametros, setParametros] = useSearchParams();
+  const pestanaPedida = parametros.get('ver');
+
   const [scheduleType, setScheduleType] = useState<WeeklySchedulesType>(() => {
     return (
+      (pestanaPedida as WeeklySchedulesType) ||
       (localStorageGetItem(LOCALSTORAGE_KEY) as WeeklySchedulesType) ||
       'midweek'
     );
@@ -39,7 +56,8 @@ const useWeeklySchedules = () => {
   const visitaCompleta = useUpcomingCircuitVisit();
   const visitaParaHermanos = useCircuitVisitForBrothers();
 
-  const upcomingVisit = isElder || isAdmin ? visitaCompleta : visitaParaHermanos;
+  const upcomingVisit =
+    isElder || isAdmin ? visitaCompleta : visitaParaHermanos;
 
   const outgoingTalksPublic = useAtomValue(
     weekendMeetingOutgoingTalksPublicState
@@ -57,6 +75,28 @@ const useWeeklySchedules = () => {
     localStorage.setItem(LOCALSTORAGE_KEY, id);
     setScheduleType(id as WeeklySchedulesType);
   };
+
+  /**
+   * Se atiende la orden y se RETIRA EL CARTEL.
+   *
+   * Lo importante de este efecto hoy es la segunda parte. Quien abre la
+   * pestaña es el valor inicial de arriba —se llega siempre desde Inicio, así
+   * que la página se monta— pero el `?ver=` se quedaría pegado en la
+   * dirección: cambias de pestaña a mano, recargas, y vuelves a la de antes,
+   * porque el parámetro le gana al recuerdo. Se aplica y se borra.
+   *
+   * Y si algún día el buscador se abre desde más sitios, esto ya cubre el caso
+   * de pedir otra pestaña sin volver a montar la página.
+   */
+  useEffect(() => {
+    if (!pestanaPedida) return;
+
+    localStorage.setItem(LOCALSTORAGE_KEY, pestanaPedida);
+    setScheduleType(pestanaPedida as WeeklySchedulesType);
+
+    parametros.delete('ver');
+    setParametros(parametros, { replace: true });
+  }, [pestanaPedida, parametros, setParametros]);
 
   const tabs = useMemo(() => {
     const result = [

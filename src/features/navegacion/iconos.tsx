@@ -42,6 +42,17 @@ import {
  * Los iconos son exactamente los que ya tenía cada baldosa en su panel.
  */
 const ICONOS: Record<string, typeof IconPerson> = {
+  // Las pestañas de Programas semanales llevan EL MISMO icono que su página de
+  // editar: es la misma cosa, vista o tocada. Lo que las distingue en los
+  // resultados es la línea de debajo, no el dibujo.
+  'ver-midweek': IconTreasuresPart,
+  'ver-weekend': IconPodium,
+  'ver-outgoing': IconOutgoindSpeaker,
+  'ver-departments': IconDuties,
+  'ver-circuit-visit': IconCalendarWeek,
+  'ver-service-outings': IconInTerritory,
+  'ver-exhibitors': IconCart,
+
   // Reuniones
   'weekly-schedules': IconClock,
   'midweek-meeting': IconTreasuresPart,

@@ -326,8 +326,21 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       }}
                     >
                       {/* La lupa, antes que la campana: buscar es lo que se
-                          hace a propósito; la campana avisa sola. */}
-                      {isSupported && <BotonBuscador />}
+                          hace a propósito; la campana avisa sola.
+
+                          Y con un poco de aire por la izquierda: medido, del
+                          nombre de la congregación a la lupa había 8px y de la
+                          lupa a la campana 24. Quedaba pegada al texto y suelta
+                          del grupo al que pertenece. Con esto son 16 y 24 — la
+                          lupa se lee como parte de los iconos, no como el final
+                          del nombre. */}
+                      {isSupported && (
+                        <Box
+                          sx={{ marginLeft: { mobile: '4px', tablet: '8px' } }}
+                        >
+                          <BotonBuscador />
+                        </Box>
+                      )}
 
                       {isSupported && <AppNotification />}
 

@@ -53,6 +53,17 @@ export type DestinoRoles = {
   isGroup: boolean;
   /** No es un rol: es el ajuste de congregación que abre las solicitudes. */
   enable_AP_application: boolean;
+  /**
+   * Tampoco son roles: son las dos condiciones que deciden si existen dos de
+   * las pestañas de Programas semanales. Van aquí porque el destino tiene que
+   * poder mirarlas igual que mira un permiso, y quien las calcula es la misma
+   * pantalla —así no hay una segunda versión de la regla.
+   *
+   * `verOradoresSalientes`: anciano o admin, o el ajuste que los publica.
+   * `hayVisitaProxima`: la pestaña de la visita solo existe en su ventana.
+   */
+  verOradoresSalientes: boolean;
+  hayVisitaProxima: boolean;
 };
 
 /** Los seis paneles de categoría, más el Inicio. */
@@ -105,6 +116,22 @@ export type Destino = {
   /**
    * Para los destinos que son una PESTAÑA dentro de otra página (las vistas de
    * Programas semanales). La página los lee al abrirse.
+   *
+   * Existe porque media app vive ahí dentro: «Exhibidores» es una pestaña de
+   * Programas semanales que ve TODO EL MUNDO, mientras que la página
+   * `/exhibitors` es la de editar y la ven cuatro. Sin esto, un publicador
+   * buscaba "exhibidores" y no le salía nada —cuando lo que quería, los turnos
+   * de la cartelera, lo tiene delante—.
    */
   pestana?: string;
+  /**
+   * Qué se lee debajo del nombre en los resultados. Si no está, se pone el
+   * nombre de la categoría.
+   *
+   * Se escribe a mano solo donde hay DOS destinos que se llaman igual —la
+   * pestaña que se mira y la página que se edita—, porque ahí la categoría
+   * sola no distingue nada: «Exhibidores · en Programas semanales» contra
+   * «Exhibidores · editar».
+   */
+  donde?: string;
 };

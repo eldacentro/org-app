@@ -50,6 +50,103 @@ export const DESTINOS: Destino[] = [
     categoria: 'reuniones',
     sinonimos: ['programa', 'horario', 'semana', 'reunion'],
   },
+  // ── Las PESTAÑAS de Programas semanales ──────────────────────────────────
+  //
+  // Esto es media app y faltaba entero. Programas semanales no es una página:
+  // son siete vistas, y son las que MIRA todo el mundo. La página suelta de
+  // cada cosa —`/exhibitors`, `/midweek-meeting`…— es la de EDITAR, y la ven
+  // cuatro hermanos.
+  //
+  // Sin esto, un publicador buscaba "exhibidores" y no le salía nada: el
+  // buscador solo conocía la página de editar, que él no puede abrir. Y era
+  // justo lo que había pedido el encargo — «si es solo publicador, que le
+  // muestre ir a Programas semanales en la pestaña de Exhibidores; y si tiene
+  // permisos, las dos cosas».
+  //
+  // Van DELANTE de su página de editar a propósito: a igual coincidencia gana
+  // el orden de esta lista, y mirar es lo que puede hacer todo el mundo.
+  // Quien además edita tiene la otra fila justo debajo.
+  //
+  // El `donde` está escrito a mano en las catorce porque se llaman igual de
+  // dos en dos, y ahí el nombre solo no distingue nada. Sale tanto en los
+  // resultados como en el mapa de la caja vacía, así que se escribe corto y
+  // sin repetir la categoría —que en el mapa ya la dice la cabecera del
+  // grupo—: «En Programas semanales» y «Editar».
+  {
+    id: 'ver-midweek',
+    clave: 'tr_midweekMeeting',
+    nombre: 'Reunión de entre semana',
+    ruta: '/weekly-schedules',
+    pestana: 'midweek',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    sinonimos: ['entresemana', 'vida y ministerio', 'programa', 'ver'],
+  },
+  {
+    id: 'ver-weekend',
+    clave: 'tr_weekendMeeting',
+    nombre: 'Reunión de fin de semana',
+    ruta: '/weekly-schedules',
+    pestana: 'weekend',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    sinonimos: ['finde', 'domingo', 'atalaya', 'programa', 'ver'],
+  },
+  {
+    id: 'ver-outgoing',
+    clave: 'tr_outgoingTalks',
+    nombre: 'Oradores salientes',
+    ruta: '/weekly-schedules',
+    pestana: 'outgoing',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    // La misma condición que la pestaña: anciano o admin siempre, y el resto
+    // solo si el ajuste publica el programa de salientes.
+    visible: (r) => r.isElder || r.isAdmin || r.verOradoresSalientes,
+    sinonimos: ['salientes', 'ir a otra congregacion', 'ver'],
+  },
+  {
+    id: 'ver-departments',
+    nombre: 'Departamentos',
+    ruta: '/weekly-schedules',
+    pestana: 'departments',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    sinonimos: ['acomodadores', 'audio', 'video', 'micros', 'ver'],
+  },
+  {
+    id: 'ver-circuit-visit',
+    nombre: 'Visita del superintendente',
+    ruta: '/weekly-schedules',
+    pestana: 'circuit_visit',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    // La pestaña solo existe dentro de su ventana, así que el resultado
+    // tampoco: llevar a una pestaña que no está deja al hermano en la primera.
+    visible: (r) => r.hayVisitaProxima,
+    sinonimos: ['circuito', 'superintendente', 'visita', 'ver'],
+  },
+  {
+    id: 'ver-service-outings',
+    clave: 'tr_fieldServiceOutings',
+    nombre: 'Salidas de predicación',
+    ruta: '/weekly-schedules',
+    pestana: 'service_outings',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    sinonimos: ['salidas', 'puntos de encuentro', 'ver'],
+  },
+  {
+    id: 'ver-exhibitors',
+    nombre: 'Exhibidores',
+    ruta: '/weekly-schedules',
+    pestana: 'exhibitors',
+    categoria: 'reuniones',
+    donde: 'En Programas semanales',
+    sinonimos: ['cartelera', 'expositores', 'carrito', 'turnos', 'ver'],
+  },
+
+  // ── Y las páginas de EDITAR de esas mismas cosas ─────────────────────────
   {
     id: 'midweek-meeting',
     clave: 'tr_midweekMeeting',
@@ -57,6 +154,7 @@ export const DESTINOS: Destino[] = [
     ruta: '/midweek-meeting',
     categoria: 'reuniones',
     media: true,
+    donde: 'Editar',
     visible: (r) => r.isMidweekEditor,
     sinonimos: ['entresemana', 'vida y ministerio', 's-140', 'editar'],
   },
@@ -67,6 +165,7 @@ export const DESTINOS: Destino[] = [
     ruta: '/weekend-meeting',
     categoria: 'reuniones',
     media: true,
+    donde: 'Editar',
     // También el coordinador de discursos: la ruta ya le deja entrar y el
     // bloque "Discurso público" solo lo puede rellenar él.
     visible: (r) => r.isWeekendEditor || r.isPublicTalkCoordinator,
@@ -77,6 +176,7 @@ export const DESTINOS: Destino[] = [
     nombre: 'Departamentos',
     ruta: '/departments-schedule',
     categoria: 'reuniones',
+    donde: 'Editar',
     visible: (r) => r.isMidweekEditor || r.isDepartmentsEditor,
     sinonimos: ['acomodadores', 'audio', 'video', 'micros', 'plataforma'],
   },
@@ -102,6 +202,7 @@ export const DESTINOS: Destino[] = [
     nombre: 'Exhibidores',
     ruta: '/exhibitors',
     categoria: 'predicacion',
+    donde: 'Editar',
     visible: (r) => r.isServiceCommittee,
     sinonimos: ['cartelera', 'expositores', 'carrito', 'turnos', 'editar'],
   },
@@ -110,6 +211,7 @@ export const DESTINOS: Destino[] = [
     nombre: 'Salidas de predicación',
     ruta: '/predicacion-salidas',
     categoria: 'predicacion',
+    donde: 'Editar',
     visible: (r) => r.isServiceCommittee,
     sinonimos: ['salidas', 'grupos', 'puntos de encuentro', 'editar'],
   },
@@ -177,6 +279,7 @@ export const DESTINOS: Destino[] = [
     nombre: 'Visita del superintendente',
     ruta: '/congregation/circuit-visit',
     categoria: 'congregacion',
+    donde: 'Editar',
     visible: (r) => r.isElder,
     sinonimos: ['circuito', 'superintendente', 'visita'],
   },
@@ -235,6 +338,7 @@ export const DESTINOS: Destino[] = [
     nombre: 'Oradores salientes',
     ruta: '/outgoing-speakers',
     categoria: 'discursos',
+    donde: 'Editar',
     visible: (r) => r.isAppointed || r.isPublicTalkCoordinator,
     sinonimos: ['salientes', 'ir a otra congregacion'],
   },
