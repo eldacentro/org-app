@@ -33,6 +33,7 @@ import useNavbar from './useNavbar';
 import LogoutConfirm from '@features/my_profile/logout_confirm';
 import AccountHeaderIcon from '@components/account_header_icon';
 import AppNotification from '@features/app_notification';
+import BotonBuscador from '@features/navegacion/buscador';
 import Button from '@components/button';
 import LanguageSwitcher from '@features/language_switcher';
 import ThemeSwitcher from '@features/theme_switcher';
@@ -324,6 +325,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
                         gap: { mobile: '4px', tablet: '8px' },
                       }}
                     >
+                      {/* La lupa, antes que la campana: buscar es lo que se
+                          hace a propósito; la campana avisa sola. */}
+                      {isSupported && <BotonBuscador />}
+
                       {isSupported && <AppNotification />}
 
                       <ThemeSwitcher />

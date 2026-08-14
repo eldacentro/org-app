@@ -932,6 +932,23 @@ body iframe {
   animation: dialogo-entra var(--motion-medium) var(--ease-emphasized) both;
 }
 
+/* El buscador entra igual que un diálogo: subiendo un poco y apareciendo. Es
+   el mismo gesto —una superficie que se pone por encima de todo— así que le
+   toca el mismo idioma. */
+@keyframes buscador-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.buscador-vista {
+  animation: buscador-entra var(--motion-medium) var(--ease-emphasized) both;
+}
+
 /* El contenido de la página, cuando releva al esqueleto o al cargador. Solo
    opacidad: no desplaza nada, así que no hay salto de maquetación justo cuando
    la vista se acaba de dibujar —que es cuando más se notaría—. */
