@@ -932,22 +932,119 @@ body iframe {
   animation: dialogo-entra var(--motion-medium) var(--ease-emphasized) both;
 }
 
-/* El buscador entra igual que un diálogo: subiendo un poco y apareciendo. Es
-   el mismo gesto —una superficie que se pone por encima de todo— así que le
-   toca el mismo idioma. */
+/* ═══ EL BUSCADOR: CRISTAL DETRÁS, SÓLIDO DONDE VA LA LETRA ═════════════════
+   Esa es la regla entera, y es la que separa el cristal bonito del cutre.
+
+   El desenfoque va en el VELO, que es donde produce todo el efecto: ver tu
+   app difuminada detrás dice «esto está por encima, y sigues donde estabas».
+   El panel es una superficie SÓLIDA.
+
+   ── Por qué el panel no lleva cristal ──────────────────────────────────
+   Porque encima va la letra. Todo el texto de la app está medido a 4,5:1
+   contra superficies CONOCIDAS (§2.1b); un panel translúcido convierte ese
+   fondo en «lo que haya detrás», que con el Inicio sale bien y con la lista de
+   cien personas o el mapa de un territorio, no. No se negocia.
+
+   ── Por qué aquí sí compensa el desenfoque, y en `evacuacion` no ───────
+   Allí se quitó un `blur(24px)` con razón: «solo servía para transparentar el
+   plano de debajo». Pagaba caro por nada. Aquí el fondo difuminado ES el
+   efecto. El cristal se gana el sitio o se quita.
+
+   ── Y cómo se controla el coste, que es real ───────────────────────────
+   · El desenfoque NO se anima nunca. Entra con opacidad; el panel, con
+     `transform`. Animar `backdrop-filter` es donde un móvil viejo se atraganta.
+   · Detrás no se mueve nada: el componente bloquea el scroll de la página.
+     Un desenfoque estático se compone una vez; con movimiento detrás, en cada
+     fotograma.
+   · 20px de radio, no 40. El coste sube con el radio y a partir de ahí ya no
+     se nota más.
+   · `saturate(1.35)` y no 1.6 como la bandeja de abajo: sobre la foto de un
+     territorio, más satura y tiñe raro. */
+.buscador-velo {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  /* El mismo tinte que el velo de los diálogos: oscuro en los DIEZ temas.
+     Con `--accent-dark` a secas no valdría — en los temas oscuros es un color
+     claro y aclararía la pantalla en vez de apagarla. */
+  background-color: rgba(var(--accent-dark-overlay-base), 0.28);
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  backdrop-filter: blur(20px) saturate(1.35);
+  animation: fade-in var(--motion-medium) var(--ease-standard) both;
+}
+
+/* Si el navegador no sabe desenfocar, velo sólido. Sin esto el panel se
+   quedaría flotando sobre la página a plena vista, que es peor que no tener
+   cristal. */
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .buscador-velo {
+    background-color: rgba(var(--accent-dark-overlay-base), 0.72);
+  }
+}
+
+/* Y si alguien ha pedido menos transparencia en su sistema, se le hace caso.
+   Hay quien lo activa por mareo o por vista, y cuesta cuatro líneas. */
+@media (prefers-reduced-transparency: reduce) {
+  .buscador-velo {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgba(var(--accent-dark-overlay-base), 0.85);
+  }
+}
+
+/* El panel entra subiendo y creciendo un pelo. `transform` y `opacity`, que es
+   lo único que el navegador mueve sin recalcular nada. */
 @keyframes buscador-entra {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
-.buscador-vista {
+.buscador-panel {
   animation: buscador-entra var(--motion-medium) var(--ease-emphasized) both;
 }
+
+/* Y la salida, que NO es la entrada del revés.
+   Sale en 150 y no en 250, y con `emphasized-out` —arranca lento y acelera al
+   irse—, que es la regla de M3: lo que llega pide que lo mires, lo que se va
+   solo tiene que quitarse de en medio. Y baja 8px, no 12: caer más de lo que
+   subió parecería que se cae, no que se cierra. */
+@keyframes buscador-se-va {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.buscador-panel.se-va {
+  animation: buscador-se-va var(--motion-fast) var(--ease-emphasized-out) both;
+}
+
+/* El velo se va con él, y a la vez: si el cristal se quedara un instante de
+   más se vería el panel desaparecer sobre un fondo aún borroso. */
+@keyframes buscador-velo-se-va {
+  to {
+    opacity: 0;
+  }
+}
+.buscador-velo.se-va {
+  animation: buscador-velo-se-va var(--motion-fast) var(--ease-standard) both;
+}
+
+/* El filo de luz de arriba: 1px claro que hace que el panel parezca cristal
+   sin serlo. En oscuro se baja mucho, que si no parece un borde dibujado. */
+.buscador-panel {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+[data-theme$='dark'] .buscador-panel {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 
 /* El contenido de la página, cuando releva al esqueleto o al cargador. Solo
    opacidad: no desplaza nada, así que no hay salto de maquetación justo cuando

@@ -1,16 +1,24 @@
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  KeyboardEvent,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Box, Portal } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useNavigate } from 'react-router';
 import { useCurrentUser } from '@hooks/index';
 import Typography from '@components/typography';
 import IconButton from '@components/icon_button';
-import { IconArrowBack, IconClose, IconSearch } from '@icons/index';
+import { IconCancelCicle, IconClose, IconSearch } from '@icons/index';
 import { documentosState, documentoCategoriasState } from '@states/documentos';
 import { DestinoCategoria, DestinoRoles } from '@definition/destinos';
 import { DESTINOS } from '../destinos';
 import { iconoDestino } from '../iconos';
-import { buscarDestinos, buscarDocumentos } from '../buscar';
+import { buscarDestinos, buscarDocumentos, normalizar } from '../buscar';
 
 /**
  * EL BUSCADOR.
@@ -19,26 +27,26 @@ import { buscarDestinos, buscarDocumentos } from '../buscar';
  *
  * No la velocidad: el mapa. Hay 31 destinos repartidos en seis paneles, y un
  * hermano que quiere ver los turnos de la cartelera tiene que saber que
- * "Exhibidores" vive DENTRO de Programas semanales, bajo la categoría
+ * «Exhibidores» vive DENTRO de Programas semanales, bajo la categoría
  * Reuniones. Eso es justo lo que no sabe quien acaba de empezar.
  *
- * Por eso cada resultado dice también DÓNDE está. No es decoración: es lo que
- * hace que la segunda vez ya no haga falta buscar.
+ * Por eso cada resultado dice también DÓNDE está, y por eso con la caja vacía
+ * se enseña el mapa entero: para quien abre esto sin saber qué escribir, ver
+ * todo lo que hay ES la respuesta.
  *
- * ── La forma: el «search view» de Material ────────────────────────────────
+ * ── La forma ──────────────────────────────────────────────────────────────
  *
- * En la barra solo hay una lupa. Al pulsarla se abre esta vista a pantalla
- * completa, que es lo que M3 prescribe para móvil —la barra de búsqueda
- * permanente se come sitio de la cabecera todo el rato para algo que se usa de
- * vez en cuando—.
+ * En la barra solo hay una lupa. Al pulsarla se abre un panel flotante sobre
+ * un velo desenfocado. El cristal va en el VELO y el panel es SÓLIDO: ver
+ * `global/index.css`, que explica por qué eso no se negocia.
  *
- * Entra con las curvas de §2.4: sube un poco y aparece. Y se apaga sola con
- * `prefers-reduced-motion`, por la regla global.
+ * Anclado ARRIBA y no centrado: con el teclado abierto, un panel centrado
+ * salta al aparecer. Anclado arriba crece hacia abajo y se queda quieto.
  *
  * ── Lo que NO hace, a propósito ───────────────────────────────────────────
  *
  * No sustituye a las baldosas. Es un atajo para quien ya sabe lo que quiere;
- * quien no lo sabe sigue teniendo los paneles, que enseñan el mapa entero.
+ * quien no lo sabe sigue teniendo los paneles.
  */
 
 const NOMBRE_CATEGORIA: Record<DestinoCategoria, string> = {
@@ -50,100 +58,163 @@ const NOMBRE_CATEGORIA: Record<DestinoCategoria, string> = {
   ajustes: 'Configuración',
 };
 
+const ORDEN_CATEGORIAS = Object.keys(NOMBRE_CATEGORIA) as DestinoCategoria[];
+
+/**
+ * Parte el nombre en tres para poder resaltar lo que coincide.
+ *
+ * Es EL detalle que hace que un buscador se sienta listo: ver «Exhi» destacado
+ * dentro de «Exhibidores» confirma, sin leer nada más, que ha entendido lo que
+ * escribías.
+ *
+ * Se busca sobre el texto normalizado y se corta sobre el ORIGINAL. Vale
+ * porque normalizar no cambia la longitud con texto español —una «ó» sigue
+ * ocupando un carácter—, pero si algún día no cuadrara, no se resalta nada en
+ * vez de cortar por donde no es.
+ */
+const partirPorCoincidencia = (nombre: string, termino: string) => {
+  const t = normalizar(termino.trim());
+  const n = normalizar(nombre);
+
+  if (t.length === 0 || n.length !== nombre.length) return null;
+
+  const i = n.indexOf(t);
+
+  if (i === -1) return null;
+
+  return {
+    antes: nombre.slice(0, i),
+    coincide: nombre.slice(i, i + t.length),
+    despues: nombre.slice(i + t.length),
+  };
+};
+
+const TituloGrupo = ({ children }: { children: ReactNode }) => (
+  <Typography
+    className="label-small-semibold"
+    color="var(--ink-2)"
+    sx={{
+      textTransform: 'uppercase',
+      letterSpacing: '0.07em',
+      padding: '10px 10px 6px',
+      // Se queda pegada al recorrer: con el mapa entero dentro, saber en qué
+      // categoría vas es la mitad de la orientación.
+      position: 'sticky',
+      top: 0,
+      zIndex: 1,
+      backgroundColor: 'var(--card)',
+    }}
+  >
+    {children}
+  </Typography>
+);
+
 const Fila = ({
   icono,
   titulo,
+  termino,
   donde,
+  activa,
   onClick,
+  onHover,
 }: {
   icono: ReactNode;
   titulo: string;
+  /** Lo escrito, para resaltar la parte que coincide. */
+  termino?: string;
   /**
-   * Dónde vive. Solo se pone al BUSCAR: en la lista por categorías sería
-   * repetir debajo de cada nombre lo que ya dice la cabecera del grupo.
+   * Dónde vive. Solo al BUSCAR: en la lista por categorías sería repetir
+   * debajo de cada nombre lo que ya dice la cabecera del grupo.
    */
   donde?: string;
+  activa?: boolean;
   onClick: () => void;
-}) => (
-  <Box
-    component="button"
-    type="button"
-    onClick={onClick}
-    sx={{
-      appearance: 'none',
-      font: 'inherit',
-      textAlign: 'left',
-      border: 'none',
-      background: 'none',
-      width: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      padding: '10px 8px',
-      // Fila de lista: mínimo táctil de 48 (§2.5a). Aquí con alto real, que
-      // van pegadas una debajo de otra.
-      minHeight: '56px',
-      boxSizing: 'border-box',
-      borderRadius: 'var(--shape-sm)',
-      cursor: 'pointer',
-      transition: 'background-color var(--motion-fast) var(--ease-standard)',
-      '&:hover': { backgroundColor: 'var(--state-hover)' },
-      '&:active': { backgroundColor: 'var(--state-pressed)' },
-    }}
-  >
-    {/* La caja del icono: relleno tintado y SIN borde (§6.4b). */}
+  onHover?: () => void;
+}) => {
+  const partes = termino ? partirPorCoincidencia(titulo, termino) : null;
+
+  return (
     <Box
+      component="button"
+      type="button"
+      onClick={onClick}
+      onMouseEnter={onHover}
       sx={{
-        width: 40,
-        height: 40,
-        flexShrink: 0,
-        borderRadius: 'var(--shape-md)',
-        backgroundColor: 'var(--accent-150)',
+        appearance: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        border: 'none',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        gap: '14px',
+        padding: '10px',
+        // Fila de lista: mínimo táctil de 48 (§2.5a). Con alto real, que van
+        // pegadas una debajo de otra.
+        minHeight: '56px',
+        boxSizing: 'border-box',
+        borderRadius: 'var(--shape-md)',
+        cursor: 'pointer',
+        // La fila marcada lleva el MISMO dibujo de «elegido» que el resto de la
+        // app (§2.5): píldora tintada, nunca color pleno.
+        backgroundColor: activa ? 'var(--state-selected)' : 'transparent',
+        transition: 'background-color var(--motion-fast) var(--ease-standard)',
       }}
     >
-      {icono}
-    </Box>
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          flexShrink: 0,
+          borderRadius: 'var(--shape-md)',
+          // Relleno tintado y SIN borde (§6.4b). Sobre la fila marcada se
+          // invierte para que la cajita no desaparezca dentro del tinte.
+          backgroundColor: activa ? 'var(--card)' : 'var(--accent-150)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icono}
+      </Box>
 
-    <Box sx={{ minWidth: 0, flex: 1 }}>
-      <Typography className="body-regular-semibold" color="var(--ink)">
-        {titulo}
-      </Typography>
-      {/* Dónde vive. Esto es lo que enseña el mapa: la segunda vez, el
-          hermano ya sabe ir sin buscar. */}
-      {donde && (
-        <Typography className="label-small-regular" color="var(--ink-2)">
-          {donde}
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Typography className="body-regular-semibold" color="var(--ink)">
+          {partes ? (
+            <>
+              {partes.antes}
+              <Box component="span" sx={{ color: 'var(--accent-dark)' }}>
+                {partes.coincide}
+              </Box>
+              {partes.despues}
+            </>
+          ) : (
+            titulo
+          )}
+        </Typography>
+
+        {donde && (
+          <Typography className="label-small-regular" color="var(--ink-2)">
+            {donde}
+          </Typography>
+        )}
+      </Box>
+
+      {activa && (
+        <Typography className="label-small-semibold" color="var(--ink-3)">
+          ↵
         </Typography>
       )}
     </Box>
-  </Box>
-);
+  );
+};
 
-const Grupo = ({
-  titulo,
-  children,
-}: {
-  titulo: string;
-  children: ReactNode;
-}) => (
-  <Box sx={{ marginBottom: '20px' }}>
-    <Typography
-      className="label-small-semibold"
-      color="var(--ink-2)"
-      sx={{
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        padding: '0 8px 6px',
-      }}
-    >
-      {titulo}
-    </Typography>
-    {children}
-  </Box>
-);
+/**
+ * Lo que tarda en irse. Tiene que ser LO MISMO que `--motion-fast` en
+ * `buscador-se-va`: si aquí fuera menos, se cortaría a media animación; si
+ * fuera más, se quedaría un rato en negro esperando a nadie.
+ */
+const DURACION_SALIDA = 150;
 
 const Buscador = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
@@ -152,17 +223,37 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
   const categorias = useAtomValue(documentoCategoriasState);
 
   const [termino, setTermino] = useState('');
+  const [activo, setActivo] = useState(0);
+  const [seVa, setSeVa] = useState(false);
   const campo = useRef<HTMLInputElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
 
-  // El foco al abrir: si hay que tocar la caja para escribir, el atajo deja de
-  // serlo. En móvil esto además levanta el teclado, que es lo que se espera.
   useEffect(() => {
     campo.current?.focus();
   }, []);
 
-  // Mientras está abierto, lo de detrás no se desplaza. Sin esto, al arrastrar
-  // dentro de los resultados se mueve la página del fondo y al cerrar te
-  // encuentras en otro sitio.
+  /**
+   * Cerrar es en dos tiempos: primero se pinta yéndose, y solo después se
+   * quita de en medio.
+   *
+   * Con `prefers-reduced-motion` la animación no existe —la regla general de
+   * `index.css` la anula—, pero el reloj sigue corriendo: se queda quieto 150ms
+   * y desaparece. Nadie percibe eso como espera, y a cambio no hay dos caminos
+   * de cierre que mantener.
+   */
+  const cerrar = () => setSeVa(true);
+
+  useEffect(() => {
+    if (!seVa) return;
+
+    const reloj = setTimeout(onClose, DURACION_SALIDA);
+
+    return () => clearTimeout(reloj);
+  }, [seVa, onClose]);
+
+  // Mientras está abierto, lo de detrás no se desplaza. Y no es solo comodidad:
+  // un desenfoque con movimiento debajo se recompone en cada fotograma, que es
+  // justo el coste que hay que evitar en un teléfono modesto.
   useEffect(() => {
     const previo = document.body.style.overflow;
 
@@ -172,19 +263,6 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
     };
   }, []);
 
-  // Escape cierra. Es gratis y quien usa teclado lo da por hecho.
-  useEffect(() => {
-    const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', alPulsar);
-    return () => window.removeEventListener('keydown', alPulsar);
-  }, [onClose]);
-
-  // Las banderas que miran los destinos. Se cogen del MISMO hook que usa el
-  // resto de la app: si aquí se dedujeran por su cuenta, el buscador acabaría
-  // discrepando de las puertas de las rutas.
   const roles: DestinoRoles = useMemo(
     () => ({
       isAdmin: usuario.isAdmin,
@@ -218,6 +296,11 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
     [documentos, categorias]
   );
 
+  const permitidos = useMemo(
+    () => DESTINOS.filter((d) => !d.visible || d.visible(roles)),
+    [roles]
+  );
+
   const resultados = useMemo(
     () => buscarDestinos(termino, roles),
     [termino, roles]
@@ -229,163 +312,326 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
   );
 
   const buscando = termino.trim().length > 0;
-  const sinNada = buscando && resultados.length === 0 && docs.length === 0;
 
+  const porCategoria = useMemo(
+    () =>
+      ORDEN_CATEGORIAS.map((c) => ({
+        categoria: c,
+        destinos: permitidos.filter((d) => d.categoria === c),
+      })).filter((g) => g.destinos.length > 0),
+    [permitidos]
+  );
+
+  /**
+   * Todo lo que se puede abrir, EN EL ORDEN EN QUE SE VE. Es la lista sobre la
+   * que se mueven las flechas: si el teclado recorriera otra cosa que lo que
+   * hay en pantalla, la marca saltaría a sitios que no se ven.
+   */
+  const navegables = useMemo(() => {
+    if (!buscando) {
+      return porCategoria.flatMap((g) => g.destinos.map((d) => d.ruta));
+    }
+
+    return [
+      ...resultados.map((r) => r.destino.ruta),
+      ...docs.map(() => '/congregation/documentos'),
+    ];
+  }, [buscando, porCategoria, resultados, docs]);
+
+  // Al cambiar lo escrito se vuelve arriba: si no, la marca se queda en una
+  // fila que ya no existe.
+  useEffect(() => {
+    setActivo(0);
+  }, [termino]);
+
+  /**
+   * Ir a un sitio cierra EN SECO, sin la animación de salida.
+   *
+   * No es un descuido: quien pulsa un resultado ya está mirando a otra parte, y
+   * la transición que importa es la de la página que llega. Ver el buscador
+   * desvanecerse encima solo retrasaría lo que ha pedido. La salida animada es
+   * para cuando cierras y te quedas donde estabas, que es cuando el ojo
+   * necesita saber a dónde ha ido lo que tapaba la pantalla.
+   */
   const ir = (ruta: string) => {
     onClose();
     navigate(ruta);
   };
 
-  // Con la caja vacía se enseña el mapa entero, agrupado. Para quien abre el
-  // buscador sin saber qué escribir, ver todo lo que hay es la respuesta.
-  const porCategoria = useMemo(() => {
-    const permitidos = DESTINOS.filter((d) => !d.visible || d.visible(roles));
+  const alPulsarTecla = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cerrar();
+      return;
+    }
 
-    return (Object.keys(NOMBRE_CATEGORIA) as DestinoCategoria[])
-      .map((c) => ({
-        categoria: c,
-        destinos: permitidos.filter((d) => d.categoria === c),
-      }))
-      .filter((g) => g.destinos.length > 0);
-  }, [roles]);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+
+      const siguiente =
+        e.key === 'ArrowDown'
+          ? Math.min(activo + 1, navegables.length - 1)
+          : Math.max(activo - 1, 0);
+
+      setActivo(siguiente);
+
+      // Que la fila marcada se vea siempre. `nearest` y no `center`: centrar
+      // mueve la lista entera en cada flecha y marea.
+      const filas = lista.current?.querySelectorAll('[data-fila]');
+
+      filas?.[siguiente]?.scrollIntoView({ block: 'nearest' });
+
+      return;
+    }
+
+    if (e.key === 'Enter' && navegables[activo]) {
+      e.preventDefault();
+      ir(navegables[activo]);
+    }
+  };
+
+  // El índice de cada fila, contando de arriba abajo en el orden en que se
+  // pintan. Va fuera del render de cada bloque para que las flechas y lo que
+  // se ve no puedan desincronizarse.
+  let indice = -1;
+  const siguienteIndice = () => {
+    indice += 1;
+    return indice;
+  };
 
   return (
     /* AL `body`, y no donde nace.
      *
      * Un `position: fixed` NO se ancla a la ventana si algún ancestro tiene
-     * `transform`, `filter` o `will-change`: pasa a anclarse a ESE ancestro.
-     * Y la lupa vive dentro de `.topbar`, que tiene las dos cosas — medido: la
-     * vista se quedaba en 343×96, del tamaño de la barra, con la página
-     * asomando por debajo.
-     *
-     * El portal la saca al `body`, donde `fixed` vuelve a significar lo que
-     * dice. Y de paso queda a salvo de que mañana alguien anime la barra. */
+     * `transform`, `filter` o `will-change`: pasa a anclarse a ESE ancestro. Y
+     * la lupa vive dentro de `.topbar`, que tiene las dos cosas — medido, la
+     * vista se quedaba en 343×96, del tamaño de la barra. */
     <Portal>
+      {/* El velo, que es quien lleva el cristal. Pulsarlo cierra, que es lo
+          que todo el mundo intenta. */}
       <Box
-        className="buscador-vista"
+        className={`buscador-velo${seVa ? ' se-va' : ''}`}
+        onClick={cerrar}
+        aria-hidden
+      />
+
+      <Box
+        className={`buscador-panel${seVa ? ' se-va' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Buscar en la aplicación"
+        onKeyDown={alPulsarTecla}
         sx={{
           position: 'fixed',
-          inset: 0,
-          zIndex: 1300,
-          backgroundColor: 'var(--paper)',
+          zIndex: 1301,
+          // Anclado arriba y con márgenes. En pantalla ancha se centra y se
+          // limita: un panel de 1200px de ancho no parece un buscador.
+          top: 'calc(12px + env(safe-area-inset-top))',
+          left: '16px',
+          right: '16px',
+          marginInline: 'auto',
+          maxWidth: '560px',
+          // `dvh` y no `vh`: en un móvil, `vh` no descuenta la barra del
+          // navegador y el panel se saldría por abajo.
+          maxHeight: 'calc(100dvh - 24px - env(safe-area-inset-top))',
           display: 'flex',
           flexDirection: 'column',
-          // La muesca del iPhone, igual que en los diálogos.
-          paddingTop: 'env(safe-area-inset-top)',
+          overflow: 'hidden',
+          backgroundColor: 'var(--card)',
+          borderRadius: 'var(--shape-xl)',
+          // Sombra larga y suave con el tinte de la marca, no una dura.
+          boxShadow:
+            '0 24px 64px -16px rgba(var(--accent-dark-base), 0.45), 0 2px 8px rgba(0, 0, 0, 0.08)',
         }}
       >
-        {/* La caja de búsqueda, arriba y pegada */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '8px 12px',
-            borderBottom: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-          }}
-        >
-          <IconButton onClick={onClose} aria-label="Cerrar la búsqueda">
-            <IconArrowBack color="var(--ink)" />
-          </IconButton>
-
+        {/* La caja de escribir */}
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          {/* Un lavado de marca casi invisible: es lo que hace que la cabecera
+              parezca cristal sin llevarlo. */}
           <Box
-            component="input"
-            ref={campo}
-            value={termino}
-            onChange={(e) => setTermino(e.target.value)}
-            onKeyDown={(e) => {
-              // Intro abre el primero: quien escribe «exhi» y pulsa Intro no
-              // quiere leer la lista, quiere llegar.
-              if (e.key === 'Enter' && resultados.length > 0) {
-                ir(resultados[0].destino.ruta);
-              }
-            }}
-            placeholder="Buscar en la aplicación…"
-            aria-label="Buscar en la aplicación"
+            aria-hidden
             sx={{
-              flex: 1,
-              minWidth: 0,
-              appearance: 'none',
-              border: 'none',
-              outline: 'none',
-              background: 'none',
-              color: 'var(--ink)',
-              fontFamily: 'inherit',
-              fontSize: '16px',
-              padding: '8px 4px',
-              '&::placeholder': { color: 'var(--ink-3)' },
+              position: 'absolute',
+              inset: '0 0 auto',
+              height: '64px',
+              pointerEvents: 'none',
+              background:
+                'linear-gradient(180deg, rgba(var(--accent-main-base), 0.07), transparent)',
             }}
           />
 
-          {termino.length > 0 && (
-            <IconButton
-              onClick={() => {
-                setTermino('');
-                campo.current?.focus();
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '12px 14px',
+              position: 'relative',
+            }}
+          >
+            <IconSearch color="var(--ink-2)" width={20} height={20} />
+
+            <Box
+              component="input"
+              ref={campo}
+              value={termino}
+              onChange={(e) => setTermino(e.target.value)}
+              placeholder="Buscar en la aplicación…"
+              aria-label="Buscar en la aplicación"
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'none',
+                color: 'var(--ink)',
+                fontFamily: 'inherit',
+                // 16px justos: por debajo, iOS hace zoom al enfocar el campo.
+                fontSize: '16px',
+                padding: '6px 0',
+                '&::placeholder': { color: 'var(--ink-3)' },
               }}
-              aria-label="Borrar lo escrito"
+            />
+
+            {/* Borrar lo escrito. Aspa DENTRO de un círculo, que es el dibujo
+                de toda la vida de «vaciar el campo» y no se confunde con el
+                aspa desnuda de al lado, que cierra. Solo cuando hay algo que
+                borrar. */}
+            {termino.length > 0 && (
+              <IconButton
+                onClick={() => {
+                  setTermino('');
+                  campo.current?.focus();
+                }}
+                aria-label="Borrar lo escrito"
+              >
+                <IconCancelCicle color="var(--ink-3)" width={18} height={18} />
+              </IconButton>
+            )}
+
+            {/* La pista de teclado, solo donde hay teclado. */}
+            <Box
+              aria-hidden
+              sx={{
+                display: { mobile: 'none', tablet688: 'block' },
+                flexShrink: 0,
+                border: '1px solid var(--line-2)',
+                borderRadius: 'var(--shape-xs)',
+                padding: '3px 6px',
+              }}
             >
-              <IconClose color="var(--ink-2)" />
+              <Typography className="label-small-semibold" color="var(--ink-3)">
+                ESC
+              </Typography>
+            </Box>
+
+            {/* CERRAR, y siempre visible.
+             *
+             * Pulsar el velo también cierra, y Esc también, pero ninguna de las
+             * dos SE VE. Quien le da a la lupa sin querer necesita ver la
+             * salida, no intuirla: en un móvil no hay Esc y «pulsa fuera» es
+             * justo lo que no se le ocurre a quien se ha asustado. */}
+            <IconButton onClick={cerrar} aria-label="Cerrar el buscador">
+              <IconClose color="var(--ink-2)" width={20} height={20} />
             </IconButton>
-          )}
+          </Box>
         </Box>
+
+        <Box
+          sx={{ height: '1px', backgroundColor: 'var(--line)', flexShrink: 0 }}
+        />
 
         {/* Los resultados */}
         <Box
+          ref={lista}
           sx={{
             flex: 1,
             overflowY: 'auto',
-            padding: '16px 12px calc(24px + env(safe-area-inset-bottom))',
+            // A los lados sí, ARRIBA NO. Una cabecera pegajosa no puede subir
+            // por encima del relleno de su contenedor —su bloque contenedor es
+            // la caja de relleno—, así que con `padding: 8px` se quedaba 8px
+            // más abajo y por esa rendija se veía pasar la lista por detrás.
+            // Medido: borde del área 69, cabecera clavada en 77.
+            padding: '0 8px',
+            paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
           }}
         >
           {!buscando &&
             porCategoria.map((g) => (
-              <Grupo key={g.categoria} titulo={NOMBRE_CATEGORIA[g.categoria]}>
-                {g.destinos.map((d) => (
-                  <Fila
-                    key={d.id}
-                    icono={iconoDestino(d.id)}
-                    titulo={d.nombre}
-                    donde={NOMBRE_CATEGORIA[d.categoria]}
-                    onClick={() => ir(d.ruta)}
-                  />
-                ))}
-              </Grupo>
+              <Fragment key={g.categoria}>
+                <TituloGrupo>{NOMBRE_CATEGORIA[g.categoria]}</TituloGrupo>
+
+                {g.destinos.map((d) => {
+                  const i = siguienteIndice();
+
+                  return (
+                    <Box key={d.id} data-fila>
+                      <Fila
+                        icono={iconoDestino(d.id)}
+                        titulo={d.nombre}
+                        activa={i === activo}
+                        onHover={() => setActivo(i)}
+                        onClick={() => ir(d.ruta)}
+                      />
+                    </Box>
+                  );
+                })}
+              </Fragment>
             ))}
 
           {buscando && resultados.length > 0 && (
-            <Grupo titulo="Ir a">
-              {resultados.map(({ destino }) => (
-                <Fila
-                  key={destino.id}
-                  icono={iconoDestino(destino.id)}
-                  titulo={destino.nombre}
-                  donde={NOMBRE_CATEGORIA[destino.categoria]}
-                  onClick={() => ir(destino.ruta)}
-                />
-              ))}
-            </Grupo>
+            <>
+              <TituloGrupo>Ir a</TituloGrupo>
+
+              {resultados.map(({ destino }) => {
+                const i = siguienteIndice();
+
+                return (
+                  <Box key={destino.id} data-fila>
+                    <Fila
+                      icono={iconoDestino(destino.id)}
+                      titulo={destino.nombre}
+                      termino={termino}
+                      donde={NOMBRE_CATEGORIA[destino.categoria]}
+                      activa={i === activo}
+                      onHover={() => setActivo(i)}
+                      onClick={() => ir(destino.ruta)}
+                    />
+                  </Box>
+                );
+              })}
+            </>
           )}
 
           {buscando && docs.length > 0 && (
-            <Grupo titulo="Documentos">
-              {docs.map((doc) => (
-                <Fila
-                  key={doc.id}
-                  icono={iconoDestino('documentos')}
-                  titulo={doc.nombre}
-                  // La categoría del documento: es POR LO QUE se ha encontrado
-                  // cuando el nombre no la dice.
-                  donde={doc.categoria || 'Documentos'}
-                  onClick={() => ir('/congregation/documentos')}
-                />
-              ))}
-            </Grupo>
+            <>
+              <TituloGrupo>Documentos</TituloGrupo>
+
+              {docs.map((doc) => {
+                const i = siguienteIndice();
+
+                return (
+                  <Box key={doc.id} data-fila>
+                    <Fila
+                      icono={iconoDestino('documentos')}
+                      titulo={doc.nombre}
+                      termino={termino}
+                      // La categoría: es POR LO QUE se ha encontrado cuando el
+                      // nombre no la dice.
+                      donde={doc.categoria || 'Documentos'}
+                      activa={i === activo}
+                      onHover={() => setActivo(i)}
+                      onClick={() => ir('/congregation/documentos')}
+                    />
+                  </Box>
+                );
+              })}
+            </>
           )}
 
-          {sinNada && (
-            <Box sx={{ textAlign: 'center', padding: '48px 24px' }}>
+          {buscando && resultados.length === 0 && docs.length === 0 && (
+            <Box sx={{ textAlign: 'center', padding: '40px 24px' }}>
               <Typography className="h3" color="var(--ink)">
                 No hay nada con «{termino.trim()}»
               </Typography>
@@ -405,9 +651,23 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-/** La lupa de la barra, y la vista que abre. */
+/** La lupa de la barra, y el panel que abre. */
 const BotonBuscador = () => {
   const [abierto, setAbierto] = useState(false);
+
+  // Ctrl/⌘+K, donde hay teclado. No estorba a nadie y quien lo conoce lo
+  // agradece.
+  useEffect(() => {
+    const alPulsar = (e: globalThis.KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setAbierto(true);
+      }
+    };
+
+    window.addEventListener('keydown', alPulsar);
+    return () => window.removeEventListener('keydown', alPulsar);
+  }, []);
 
   return (
     <>

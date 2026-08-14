@@ -646,6 +646,30 @@ respectivamente). Evitar valores sueltos como `6px`, `10px`, `14px`,
 - Gap entre elementos de una fila (icono + texto): `8px`.
 - Padding de un diálogo (`DialogActions`/pie): `16px`.
 
+### 4.1 Una cabecera pegajosa NO puede subir por encima del relleno de su caja
+
+Si una lista que se desplaza lleva `padding: 8px` y dentro hay una cabecera con
+`position: sticky; top: 0`, la cabecera **no se clava en el borde: se clava 8px
+más abajo**. Por esa rendija se ve pasar el contenido por detrás, y parece un
+fallo de pintado.
+
+No es un fallo del navegador: el bloque contenedor de un elemento pegajoso es
+la **caja de relleno** del que se desplaza, y ningún hijo sale de ahí. `top: 0`
+significa "lo más arriba que puedas", y lo más arriba es el borde del relleno.
+
+**La regla:** el contenedor que se desplaza lleva relleno **a los lados y
+abajo, nunca arriba**. El aire de arriba lo pone la propia cabecera con su
+`padding`, que sí viaja con ella.
+
+```
+padding: '0 8px'                                  ✅
+paddingBottom: 'calc(8px + env(safe-area-inset-bottom))'
+padding: '8px'                                    ❌ 8px de rendija
+```
+
+Pasó en el buscador (`features/navegacion/buscador`), y se vio antes de
+medirlo: el borde del área estaba en 69 y la cabecera clavada en 77.
+
 ---
 
 ## 5. Mayúsculas y capitalización (español)
