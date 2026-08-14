@@ -125,7 +125,21 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                   {!isTest && initialSetupOpen && <InitialSetup />}
                   {isPublisher && <AppReminders />}
 
+                  {/* `aparece-sobre-esqueleto`: cuando el trozo de la página
+                      termina de cargarse, lo que había —el esqueleto del
+                      Inicio o el cargador— desaparece y esto entra con un
+                      fundido corto en vez de aparecer de golpe.
+
+                      Es la regla de Material para los esqueletos: «once
+                      content is loaded, it quickly fades in on top of the
+                      skeleton loader». Y es el cambio más barato que existe:
+                      solo mueve OPACIDAD, que el navegador resuelve sin
+                      recalcular ni repintar nada.
+
+                      Va aquí y no en cada página porque todas cuelgan de este
+                      único `Suspense`: un sitio, y vale para la app entera. */}
                   <Box
+                    className="aparece-sobre-esqueleto"
                     sx={{
                       marginBottom: '32px',
                       paddingBottom: hasFloatingBottomBar

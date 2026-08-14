@@ -1012,7 +1012,7 @@ const OutgoingSpeakersPage = () => {
                                 ? 'rotate(180deg)'
                                 : 'rotate(0deg)',
                               transition:
-                                'transform var(--motion-medium) var(--ease-emphasized)',
+                                'transform var(--motion-medium) var(--ease-spring)',
                             }}
                           />
                         </Box>
@@ -1112,7 +1112,7 @@ const OutgoingSpeakersPage = () => {
                                 ? 'rotate(180deg)'
                                 : 'rotate(0deg)',
                               transition:
-                                'transform var(--motion-medium) var(--ease-emphasized)',
+                                'transform var(--motion-medium) var(--ease-spring)',
                             }}
                           />
                         </Box>

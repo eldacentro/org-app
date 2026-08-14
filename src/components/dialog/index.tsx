@@ -84,9 +84,25 @@ const Dialog = ({ open, onClose, children, sx, PaperProps }: DialogProps) => {
         // mientras el resto de la app levantaba los suyos. Todos repetían
         // además el mismo radio, el mismo fondo y un `width: 100%` que ya da
         // el `fullWidth` de arriba.
+        // `dialogo-entra` da la dirección de entrada: un diálogo aparece
+        // subiendo un poco, no materializándose en el sitio. Es la regla de
+        // Material —un componente entra desde el borde por el que llega— y en
+        // móvil, donde el diálogo ocupa casi toda la pantalla, es lo que hace
+        // que se lea como una hoja que sube y no como un cambio de imagen.
+        //
+        // Va como CLASE y no como regla global sobre `.MuiDialog-container >
+        // .MuiPaper-root`: eso ya se intentó el 2 de agosto y hubo que
+        // revertirlo, porque alcanzaba también a los diálogos a pantalla
+        // completa —el mapa de un territorio, el visor de documentos— que no
+        // pasan por aquí. Con la clase, solo se mueve lo que sale de este
+        // componente.
+        //
+        // Solo el desplazamiento: la opacidad la sigue poniendo el `Fade` que
+        // MUI trae de fábrica, y así la salida se queda como estaba.
         className: [
           ...new Set([
             'pop-up-shadow',
+            'dialogo-entra',
             ...(PaperProps?.className ?? '').split(' '),
           ]),
         ]

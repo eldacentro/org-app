@@ -1,6 +1,7 @@
+import { forwardRef } from 'react';
 import {
-  Fade,
-  FadeProps,
+  Slide,
+  SlideProps,
   Snackbar as MUISnackbar,
   SnackbarCloseReason,
   SnackbarOrigin,
@@ -10,11 +11,36 @@ import InfoMessage from '@components/info-message';
 import useBreakpoints from '@hooks/useBreakpoints';
 
 /**
- * Custom transition component for the Snackbar.
+ * El aviso entra DESDE EL BORDE en el que aparece: si sale abajo, sube; si
+ * sale arriba, baja.
+ *
+ * Antes era un `Fade`, el mismo para las dos posiciones, así que el aviso se
+ * materializaba en el sitio sin decir de dónde venía. La regla es de Material
+ * —«the direction a component enters is informed by their location on screen,
+ * expanding away from the device edge»— y no es adorno: un aviso que sube
+ * desde abajo se entiende como algo que ha llegado, y deja claro hacia dónde
+ * se va cuando se cierre.
+ *
+ * `Slide` mueve solo `transform`, que es lo más barato que hay.
  */
-const FadeTransition = (props: FadeProps) => {
-  return <Fade {...props} />;
-};
+const SlideTransition = forwardRef<
+  HTMLDivElement,
+  SlideProps & { direccion: 'up' | 'down' }
+>(({ direccion, ...props }, ref) => (
+  <Slide
+    {...props}
+    ref={ref}
+    direction={direccion}
+    // Entra frenando y sale acelerando, como el diálogo. Si no se le dicen,
+    // `Slide` usa las curvas de MUI y el aviso se movería con otro acento que
+    // el resto de la app.
+    easing={{
+      enter: 'var(--ease-emphasized)',
+      exit: 'var(--ease-emphasized-out)',
+    }}
+  />
+));
+SlideTransition.displayName = 'SlideTransition';
 
 /**
  * Custom Snackbar component.
@@ -67,8 +93,11 @@ const Snackbar = (props: SnackbarPropsType) => {
       onClose={handleClose}
       anchorOrigin={getAnchorOrigin()}
       autoHideDuration={variant === 'message-with-button' ? null : 5000}
-      slots={{ transition: FadeTransition }}
+      slots={{ transition: SlideTransition }}
       slotProps={{
+        transition: {
+          direccion: position === 'top-center' ? 'down' : 'up',
+        } as never,
         content: {
           style: {
             boxShadow: 'none',

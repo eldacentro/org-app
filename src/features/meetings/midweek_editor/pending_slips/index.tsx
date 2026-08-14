@@ -119,8 +119,7 @@ const PendingSlips = () => {
             sx={{
               flexShrink: 0,
               transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition:
-                'transform var(--motion-medium) var(--ease-emphasized)',
+              transition: 'transform var(--motion-medium) var(--ease-spring)',
             }}
           />
         )}

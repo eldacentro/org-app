@@ -191,15 +191,27 @@ const CollapsibleSelector = ({
               color="var(--black)"
               sx={{
                 transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)',
-                transition:
-                  'transform var(--motion-medium) var(--ease-standard)',
+                transition: 'transform var(--motion-medium) var(--ease-spring)',
               }}
             />
           )}
         </Box>
       </Box>
 
-      <Collapse in={desktopUp || expanded} timeout="auto" unmountOnExit>
+      {/* La curva de lo que se despliega: arranca rápido y frena tarde, así
+          que el panel llega y se posa. Es `--ease-emphasized` y NO
+          `--ease-spring`: `Collapse` anima la ALTURA, y un sobreimpulso sobre
+          el alto haría que el panel se pasara y volviera. El muelle se queda
+          para el chevrón, que es `transform` puro. */}
+      <Collapse
+        in={desktopUp || expanded}
+        timeout="auto"
+        unmountOnExit
+        easing={{
+          enter: 'var(--ease-emphasized)',
+          exit: 'var(--ease-emphasized-out)',
+        }}
+      >
         {children}
       </Collapse>
     </Box>

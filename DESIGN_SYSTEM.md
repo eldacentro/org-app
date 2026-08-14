@@ -281,12 +281,89 @@ se queda alineado.
 ```
 --motion-fast    150ms   lo que responde al dedo (fondo, color, opacidad)
 --motion-medium  250ms   lo que cambia de tamaño o aparece
---ease-standard    cubic-bezier(0.2, 0, 0, 1)   todo lo demás
---ease-emphasized  cubic-bezier(0.3, 0, 0, 1)   lo que se despliega
+
+--ease-standard        cubic-bezier(0.2, 0, 0, 1)      todo lo ordinario
+--ease-emphasized      cubic-bezier(0.05, 0.7, 0.1, 1) lo que ENTRA o se despliega
+--ease-emphasized-out  cubic-bezier(0.3, 0, 0.8, 0.15) lo que SE VA
+--ease-spring          cubic-bezier(0.27, 1.06, 0.18, 1) solo `transform`
 ```
 
 Más allá de 300 ms una aplicación de consulta se siente lenta, no elegante.
-Nunca animar `width`/`height`/`top` si se puede animar `transform`/`opacity`.
+
+**Regla dura: solo se animan `transform` y `opacity`.** Todo lo demás obliga al
+navegador a recalcular la maquetación o a repintar, y es lo que hace que un
+teléfono de hace siete años vaya a tirones. La única excepción tolerada es el
+`Collapse` de MUI, que anima la altura porque no hay forma de desplegar un
+panel sin saber cuánto mide.
+
+Y el criterio, antes que la técnica: **una animación que no ayuda a entender
+qué acaba de pasar, no va** — por bonita que sea.
+
+#### De dónde salen los valores
+
+Son los de Material Design 3, no aproximaciones. `--ease-standard` coincidía ya
+exactamente con la curva estándar de M3; `--ease-emphasized` era una
+aproximación casera (`0.3, 0, 0, 1`) y ahora es el valor oficial de M3 para CSS
+(emphasized decelerate).
+
+Dos cosas de M3 que conviene saber:
+
+- **Las transiciones de M3 siguen usando este sistema** de duración + curva, no
+  el de muelles del que tanto se habla. Está en su página de transiciones: «M3
+  transitions use the legacy easing and duration system». O sea que esto no es
+  un legado que haya que abandonar: es lo vigente para lo que más importa.
+- **M3 publica una tabla de conversión muelle → `cubic-bezier` para web.** De
+  ahí sale `--ease-spring`. El tacto expresivo no necesita una librería de
+  física: necesita una curva y una duración.
+
+#### Cuándo el muelle, y cuándo no
+
+`--ease-spring` tiene un 1,06 en el tercer número: un sobreimpulso tan pequeño
+que no se lee como rebote sino como que la cosa tiene peso. Lo llevan los
+chevrones de todo lo que se despliega, que son `transform` puro.
+
+**Nunca sobre `height` o `width`.** Ahí el sobreimpulso hace que el panel se
+pase de alto y vuelva, y eso sí se ve. Los `Collapse` llevan
+`--ease-emphasized` al entrar y `--ease-emphasized-out` al salir.
+
+Y se descartó el esquema `expressive` de M3, cuya conversión es
+`cubic-bezier(0.42, 1.67, 0.21, 0.90)`: ese 1,67 es rebote de verdad, y rebote
+en cada pulsación, en una app que se consulta de pie en el Salón, es ruido.
+
+#### La dirección: de dónde viene cada cosa
+
+Material: un componente entra expandiéndose **desde el borde por el que
+aparece**. No es adorno — es lo que dice que eso venía de algún sitio y puede
+volver, en vez de haberse materializado en el aire.
+
+- **Los diálogos** (`@components/dialog`) suben 12px al entrar, con la clase
+  `dialogo-entra`. Doce y no cien: M3 recuerda que Android acorta el recorrido
+  y lo compensa con un fundido en vez de cruzar la pantalla. La opacidad la
+  sigue poniendo el `Fade` de MUI.
+  Va como CLASE y **no** como regla global sobre `.MuiDialog-container >
+  .MuiPaper-root`: eso ya se intentó el 2 de agosto y hubo que revertirlo
+  porque alcanzaba a los diálogos a pantalla completa, que no pasan por el
+  componente (ver `DIALOGOS_IOS.md`).
+- **El aviso** (`@components/snackbar`) entra desde su borde: si sale abajo
+  sube, si sale arriba baja. Antes era el mismo fundido para las dos
+  posiciones.
+- **El contenido de la página** entra con un fundido corto cuando releva al
+  esqueleto o al cargador (`aparece-sobre-esqueleto`). Es la regla de M3 para
+  los esqueletos, y es lo más barato que existe: solo opacidad, cero
+  desplazamiento, así que no hay salto de maquetación justo cuando la vista se
+  acaba de dibujar. Va en el `Suspense` de `root_layout` — un solo sitio, y
+  vale para todas las páginas.
+
+#### Lo que se descartó, y por qué
+
+**Container transform** (la tarjeta que se expande a pantalla completa). Es el
+patrón que M3 llama «the most expressive»… y el más caro: hay que medir
+posiciones y animar con FLIP. Con la lista de cien personas en un teléfono
+modesto es justo donde daría tirones. Y la transición de página que ya existe
+—adelante/atrás, con fundido y 16px— cumple la misma función informativa.
+
+**Animar sombras, `backdrop-filter` o degradados.** Son las tres cosas que de
+verdad tiran del teléfono.
 
 ### 2.5 Estados
 

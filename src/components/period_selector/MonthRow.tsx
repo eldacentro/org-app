@@ -89,7 +89,7 @@ const MonthRow = ({
         height={18}
         sx={{
           transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          transition: 'transform var(--motion-medium) var(--ease-emphasized)',
+          transition: 'transform var(--motion-medium) var(--ease-spring)',
         }}
       />
     </Box>

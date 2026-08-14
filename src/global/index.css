@@ -387,17 +387,43 @@ body iframe {
   --r-lg: var(--shape-xl);
 
   /* ─── Movimiento ─────────────────────────────────────────────────────────
-     Dos duraciones y dos curvas para toda la app. `fast` es para lo que
+     Dos duraciones y cuatro curvas para toda la app. `fast` es para lo que
      responde al dedo (color de fondo, opacidad); `medium` para lo que cambia
      de tamaño o aparece. Más allá de 300 ms una interfaz de consulta se
      siente lenta, no elegante.
 
-     `--ease-emphasized` arranca despacio y frena tarde: es la curva de las
-     cosas que se despliegan. `--ease-standard` vale para todo lo demás. */
+     Los valores son los de Material Design 3, no aproximaciones. Conviene
+     saber dos cosas que dice M3 y que aquí importan:
+
+     · Las transiciones de M3 **siguen usando este sistema** de duración +
+       curva, no el de muelles del que tanto se habla. Está escrito en su
+       página de transiciones: «M3 transitions use the legacy easing and
+       duration system». O sea que esto no es un legado, es lo vigente.
+     · Y M3 publica una tabla de conversión muelle → `cubic-bezier` para web,
+       de donde sale `--ease-spring`. El tacto expresivo no necesita una
+       librería de física: necesita una curva y una duración.
+
+     Cuál usar:
+
+       --ease-standard     todo lo ordinario: color, opacidad, movimientos
+                           cortos. Es la curva estándar de M3, clavada.
+       --ease-emphasized   lo que ENTRA o se despliega: arranca rápido y frena
+                           tarde, así que llega y se posa. (M3: emphasized
+                           decelerate.)
+       --ease-emphasized-out  lo que SE VA: arranca lento y acelera al salir,
+                           que es lo contrario. (M3: emphasized accelerate.)
+       --ease-spring       solo para `transform`, cuando un pelo de rebote da
+                           vida: el 1,06 del tercer número es un sobreimpulso
+                           tan pequeño que no se lee como rebote sino como que
+                           la cosa tiene peso. NUNCA sobre `height` o `width`:
+                           ahí el sobreimpulso hace que el panel se pase de
+                           alto y vuelva, y eso sí se ve. */
   --motion-fast: 150ms;
   --motion-medium: 250ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-emphasized-out: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --ease-spring: cubic-bezier(0.27, 1.06, 0.18, 1);
 
   /* ─── Estados ────────────────────────────────────────────────────────────
      Un solo lenguaje para "puedes tocarme", "estoy pulsado" y "estoy
@@ -819,6 +845,39 @@ body iframe {
   --on-brand-contra: var(--always-white);
 }
 
+/* ═══ DE DÓNDE VIENE CADA COSA ══════════════════════════════════════════════
+   Material: un componente entra expandiéndose DESDE EL BORDE por el que
+   aparece. Un menú arriba se despliega hacia abajo; una hoja abajo sube. No es
+   adorno: es lo que le dice a quien mira que eso venía de algún sitio y puede
+   volver, en vez de haberse materializado en el aire.
+
+   Todo es `transform` y `opacity`, lo único que el navegador puede mover sin
+   recalcular nada. En un teléfono de hace siete años eso es la diferencia
+   entre deslizarse y dar tirones. */
+
+/* El diálogo sube 12px al entrar. Doce y no cien: Material recuerda que
+   Android reduce el recorrido y lo compensa con un fundido, en vez de cruzar
+   la pantalla entera. La opacidad la pone el `Fade` de MUI; aquí solo el
+   desplazamiento. */
+@keyframes dialogo-entra {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.dialogo-entra {
+  animation: dialogo-entra var(--motion-medium) var(--ease-emphasized) both;
+}
+
+/* El contenido de la página, cuando releva al esqueleto o al cargador. Solo
+   opacidad: no desplaza nada, así que no hay salto de maquetación justo cuando
+   la vista se acaba de dibujar —que es cuando más se notaría—. */
+.aparece-sobre-esqueleto {
+  animation: fade-in var(--motion-fast) var(--ease-standard) both;
+}
+
 /* ─── Smooth theme transitions ──────────────────────────────────────────── */
 html {
   transition: background-color 0.25s ease;
@@ -877,7 +936,7 @@ body {
 }
 
 .active-press {
-  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--motion-fast) var(--ease-standard);
 }
 .active-press:active {
   transform: scale(0.96) !important;
@@ -909,7 +968,7 @@ body {
   align-items: center;
   gap: 0 !important;
   margin-bottom: 0 !important;
-  animation: rise 0.6s 0.02s both cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.6s 0.02s both var(--ease-emphasized);
 }
 .topbar .logo-container svg {
   width: 36px !important;
@@ -1149,7 +1208,7 @@ body {
 
 /* ---------- GREETING ---------- */
 .hello-greeting {
-  animation: rise 0.6s 0.08s both cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.6s 0.08s both var(--ease-emphasized);
   margin-bottom: 18px;
 }
 .hello-greeting h1 {
@@ -1244,7 +1303,7 @@ body {
   box-shadow: 0 14px 28px -12px rgba(var(--accent-dark-base), 0.65);
   position: relative;
   overflow: hidden;
-  animation: rise 0.6s 0.14s both cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.6s 0.14s both var(--ease-emphasized);
   transition: transform var(--motion-fast) var(--ease-standard);
 }
 .assign-card:active {
@@ -1344,7 +1403,7 @@ body {
   box-shadow: var(--shadow-md);
   border: 1px solid var(--line);
   overflow: hidden;
-  animation: rise 0.6s 0.2s both cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.6s 0.2s both var(--ease-emphasized);
 }
 .week-head-section {
   display: flex;
@@ -1560,7 +1619,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  animation: rise 0.55s both cubic-bezier(0.22, 1, 0.36, 1);
+  animation: rise 0.55s both var(--ease-emphasized);
 }
 .tile-item:active {
   transform: scale(0.96);

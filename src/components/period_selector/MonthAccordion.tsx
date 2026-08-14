@@ -65,7 +65,17 @@ const MonthAccordion = ({
               trailing={month.trailing}
             />
 
-            <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Collapse
+              in={expanded}
+              timeout="auto"
+              unmountOnExit
+              // Misma curva que el panel de periodo: entra frenando, sale
+              // acelerando. Sin muelle, que aquí lo que se anima es la altura.
+              easing={{
+                enter: 'var(--ease-emphasized)',
+                exit: 'var(--ease-emphasized-out)',
+              }}
+            >
               <Box
                 onClick={onWeekPicked ? () => setAbierto('') : undefined}
                 sx={{
