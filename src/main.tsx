@@ -2,12 +2,17 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AppRoot from './RootWrap';
 import { getCSSPropertyValue } from '@utils/common';
+import { leerAlmacen } from '@utils/almacenamiento';
 import Sentry from '@services/sentry';
 import { LANGUAGE_LIST } from './constants';
 import { initDbWithRecovery } from '@services/app/dbRecovery';
 
+// Las tres leen el almacenamiento en el cuerpo del módulo, antes de que exista
+// React: si el acceso lanza (navegación privada, almacenamiento bloqueado), no
+// hay red que lo recoja y la app se queda en el logotipo. Ver
+// @utils/almacenamiento.
 const getInitialColor = () => {
-  const savedColor = localStorage.getItem('color');
+  const savedColor = leerAlmacen('color');
 
   if (!savedColor) return 'blue';
 
@@ -19,7 +24,7 @@ const getInitialColor = () => {
 };
 
 const getInitialTheme = () => {
-  const savedTheme = localStorage.getItem('theme');
+  const savedTheme = leerAlmacen('theme');
 
   if (!savedTheme) return 'light';
 
@@ -31,7 +36,7 @@ const getInitialTheme = () => {
 };
 
 const getInitialDirection = () => {
-  const savedLang = localStorage.getItem('ui_lang') || 'spa';
+  const savedLang = leerAlmacen('ui_lang') || 'spa';
   const direction = LANGUAGE_LIST.find(
     (record) => record.threeLettersCode === savedLang
   )?.direction;

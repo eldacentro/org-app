@@ -3,12 +3,19 @@ import { getListLanguages } from '@services/app';
 import { SongOverrideType, SongType } from '@definition/songs';
 import { applySongsOverride } from '@utils/songs';
 import { dbReplaceTableIfChanged } from './rebuild';
+import { localesListos } from '@services/i18n/ready';
 import appDb from '@db/appDb';
 
 export const dbSongUpdate = async () => {
   const result: SongType[] = [];
 
   const languages = await getListLanguages();
+
+  // Sin todos los idiomas cargados esto reescribiría la tabla sin los títulos
+  // del idioma que falte. Ver services/i18n/ready.ts.
+  const listos = await localesListos(languages.map((lang) => lang.locale));
+
+  if (!listos) return;
 
   for (const lang of languages) {
     const langCode = lang.code.toUpperCase();

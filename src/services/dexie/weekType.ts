@@ -3,6 +3,7 @@ import { getListLanguages } from '@services/app';
 import { Week, WeekType } from '@definition/week_type';
 import { LANGUAGE_LIST } from '@constants/index';
 import { dbReplaceTableIfChanged } from './rebuild';
+import { localesListos } from '@services/i18n/ready';
 import appDb from '@db/appDb';
 
 export const dbWeekTypeUpdate = async () => {
@@ -31,6 +32,13 @@ export const dbWeekTypeUpdate = async () => {
   }
 
   const languages = await getListLanguages();
+
+  // Sin todos los idiomas cargados, `getTranslation` caería en el idioma de
+  // reserva y guardaría castellano en la casilla del inglés. Ver
+  // services/i18n/ready.ts.
+  const listos = await localesListos(languages.map((lang) => lang.locale));
+
+  if (!listos) return;
 
   for (const lang of languages) {
     const locale = lang.locale;

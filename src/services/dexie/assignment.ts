@@ -3,6 +3,7 @@ import { getTranslation } from '@services/i18n/translation';
 import { getListLanguages } from '@services/app';
 import { LANGUAGE_LIST } from '@constants/index';
 import { dbReplaceTableIfChanged } from './rebuild';
+import { localesListos } from '@services/i18n/ready';
 import appDb from '@db/appDb';
 
 export const dbAssignmentUpdate = async () => {
@@ -40,6 +41,13 @@ export const dbAssignmentUpdate = async () => {
   const dicussionObj: { [language: string]: string } = {};
 
   const languages = await getListLanguages();
+
+  // Sin todos los idiomas cargados, `getTranslation` caería en el idioma de
+  // reserva y guardaría castellano en la casilla del inglés. Ver
+  // services/i18n/ready.ts.
+  const listos = await localesListos(languages.map((lang) => lang.locale));
+
+  if (!listos) return;
 
   for (const lang of languages) {
     const langCode = lang.code.toUpperCase();

@@ -48,6 +48,8 @@ import {
 } from '@services/dexie/user_field_service_reports';
 import { dbPublicTalkUpdate } from '@services/dexie/public_talk';
 import { dbSongUpdate } from '@services/dexie/songs';
+import { localesListos } from '@services/i18n/ready';
+import { escribirAlmacen, leerAlmacen } from '@utils/almacenamiento';
 import { dbSourcesUpdateEventsName } from '@services/dexie/sources';
 import {
   congAccessCodeState,
@@ -98,15 +100,28 @@ export const runUpdater = async () => {
   const needsStaticUpdate = currentLang !== lastLang || currentVersion !== lastVersion;
 
   if (needsStaticUpdate) {
-    await Promise.all([
-      dbSongUpdate(),
-      dbPublicTalkUpdate(),
-      dbWeekTypeUpdate(),
-      dbAssignmentUpdate(),
-    ]);
+    // Las cuatro tablas derivadas se rehacen leyendo TODOS los idiomas de la
+    // lista, y desde que el arranque solo espera al de la interfaz, los demás
+    // pueden estar aún cargándose. Se espera aquí a que estén (ver
+    // services/i18n/ready.ts).
+    //
+    // Si no llegan —red caída a media descarga—, ni se reconstruye ni se
+    // apunta la versión como hecha: así se vuelve a intentar en el próximo
+    // arranque, en vez de dar por buena una reconstrucción que no ocurrió.
+    const languages = await getListLanguages();
+    const listos = await localesListos(languages.map((lang) => lang.locale));
 
-    localStorage.setItem('last_run_updater_lang', currentLang);
-    localStorage.setItem('last_run_updater_version', currentVersion);
+    if (listos) {
+      await Promise.all([
+        dbSongUpdate(),
+        dbPublicTalkUpdate(),
+        dbWeekTypeUpdate(),
+        dbAssignmentUpdate(),
+      ]);
+
+      localStorage.setItem('last_run_updater_lang', currentLang);
+      localStorage.setItem('last_run_updater_version', currentVersion);
+    }
   }
 
   // Run all other database cleanup, migration and setup tasks in parallel groups
@@ -221,13 +236,13 @@ export const getAppLang = () => {
   if (FORCED_UI_LANG) {
     // Single-language lock: always Spanish, ignore any previously-cached
     // browser-detected language and skip detection entirely.
-    localStorage?.setItem('ui_lang', FORCED_UI_LANG);
+    escribirAlmacen('ui_lang', FORCED_UI_LANG);
     store.set(appLangState, FORCED_UI_LANG);
 
     return FORCED_UI_LANG;
   }
 
-  let appLang = localStorage?.getItem('ui_lang');
+  let appLang = leerAlmacen('ui_lang');
 
   if (!appLang) {
     const browserLang = convertBrowserLanguage();
@@ -243,7 +258,7 @@ export const getAppLang = () => {
       appLang = 'spa';
     }
 
-    localStorage?.setItem('ui_lang', appLang);
+    escribirAlmacen('ui_lang', appLang);
   }
 
   store.set(appLangState, appLang);

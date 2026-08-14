@@ -4,6 +4,7 @@ import { PublicTalkOverrideType, PublicTalkType } from '@definition/public_talks
 import { LANGUAGE_LIST } from '@constants/index';
 import { applyPublicTalksOverride } from '@utils/public_talks';
 import { dbReplaceTableIfChanged } from './rebuild';
+import { localesListos } from '@services/i18n/ready';
 import appDb from '@db/appDb';
 
 const triggerSync = () => {
@@ -28,6 +29,12 @@ export const dbPublicTalkUpdate = async () => {
   const result: PublicTalkType[] = [];
 
   const languages = await getListLanguages();
+
+  // Sin todos los idiomas cargados esto reescribiría la tabla sin los títulos
+  // del idioma que falte. Ver services/i18n/ready.ts.
+  const listos = await localesListos(languages.map((lang) => lang.locale));
+
+  if (!listos) return;
 
   for (const lang of languages) {
     const langCode = lang.code.toUpperCase();
