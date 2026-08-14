@@ -64,6 +64,30 @@ html {
 
 body {
   background-color: var(--paper) !important;
+  /* La tinta HEREDADA de toda la app.
+
+     El `CssBaseline` de MUI pone aquí su `text.primary` por defecto, que es
+     `rgba(0, 0, 0, 0.87)` — negro fijo, en los diez temas. Y como este
+     proyecto no configura ninguna `palette`, ese negro es lo que hereda TODO
+     lo que no se pone color propio.
+
+     Casi todo se lo pone, así que no se veía. Pero lo que no: los segmentos de
+     fecha del `DatePicker` (que tienen sus propias clases,
+     `MuiPickersSectionList`), y unas cuantas etiquetas sueltas. En modo oscuro
+     salían en negro sobre fondo oscuro — invisibles. Se veía, por ejemplo, en
+     las ausencias de «Mi cuenta»: veintisiete elementos solo en la ficha de una
+     persona.
+
+     Se arregla aquí y no componente a componente porque el fallo es la
+     herencia: quien no dice nada debe heredar la tinta del tema, no un negro
+     de fábrica. Y no se toca la `palette` de MUI, que sería lo "correcto",
+     porque MUI le aplica `alpha()` a `text.primary` en varios sitios y
+     `alpha()` de un `var(--…)` revienta.
+
+     `!important` por lo mismo que el fondo de arriba: los estilos de MUI se
+     inyectan después. Solo afecta al propio `body`; quien declara su color
+     sigue mandando. */
+  color: var(--ink) !important;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
@@ -493,23 +517,31 @@ body iframe {
      el blanco vuelve a 4,60 — y sigue siendo azul, de hecho más saturado.
      Igual el morado, el rojo y el verde.
 
-     ── La única excepción, y por qué lo es ──────────────────────────────────
+     ── El naranja, que costó dos intentos ───────────────────────────────────
 
-     El NARANJA no puede llevar blanco en ningún tema: para que llegara a 4,5
-     habría que bajarlo de (229,156,15) a (157,107,10), y eso ya no es el tema
-     naranja, es marrón. Un relleno ámbar con letra oscura es un patrón
-     normal y da 7,5:1, así que ahí —y solo ahí— se gira la tinta.
-     El color lo elige el hermano; la tinta la elegimos nosotros. */
+     Primero se le puso tinta oscura, porque sobre el papel bajarlo hasta que
+     el blanco valiera lo dejaba en (166,102,27) y eso, leído como número,
+     parecía marrón. Puesto en pantalla al lado de las otras dos opciones, no
+     lo era: es un ámbar más hondo que se sigue leyendo naranja, y con el
+     blanco encima queda más limpio que el naranja vivo con letra negra.
+
+     Así que no hay excepción. Un relleno de color lleva letra blanca en toda
+     la app, y lo que se ajusta es el relleno. El color lo elige el hermano;
+     el tono exacto lo ajustamos nosotros para que la letra se lea.
+
+     Lección: un color no se descarta por su valor RGB. Se mira. */
   --brand-fill: var(--accent-main);
   --red-fill: var(--red-main);
   --green-fill: var(--green-main);
-  /* El naranja se queda con su tono vivo: el que gira es su tinta. */
-  --orange-fill: var(--orange-main);
+  --orange-fill: rgba(166, 102, 27, 1);
 
+  /* Y la tinta es blanca SIEMPRE, sin excepciones. Ese es el objetivo de todo
+     esto: en la app, un relleno de color lleva letra blanca, y punto. Lo que
+     se ajusta es el relleno. */
   --on-brand: var(--always-white);
   --on-red: var(--always-white);
   --on-green: var(--always-white);
-  --on-orange: rgba(13, 27, 42, 1);
+  --on-orange: var(--always-white);
 
   /* El compañero de `--on-brand`: la dirección CONTRARIA a la tinta.
      Lo usa el degradado de la tarjeta destacada del Inicio, que necesita dos
@@ -558,6 +590,35 @@ body iframe {
    Los selectores van doblados (`.X.X`) para ganarle en especificidad a los
    estilos de MUI y a los `sx` de cada componente, que son emotion y se
    inyectan después, sin recurrir a `!important`. */
+
+/* ═══ LA TINTA QUE MUI DA POR HECHA ═════════════════════════════════════════
+   MUI declara `color: rgba(0, 0, 0, 0.87)` —negro fijo— en las RAÍCES de sus
+   campos y superficies: `InputBase`, `PickersInputBase` y `Paper` (el de un
+   diálogo y el de una tarjeta). Como este proyecto no configura ninguna
+   `palette`, ese es el valor de fábrica, y lo hereda todo lo que hay dentro
+   que no se ponga color propio.
+
+   Casi todo se lo pone, así que no se veía. Pero lo que no: los segmentos de
+   fecha del `DatePicker`, que tienen sus propias clases
+   (`MuiPickersSectionList`), y unas cuantas etiquetas sueltas. En modo oscuro
+   salían negras sobre fondo oscuro, o sea invisibles — se veía en las
+   ausencias de «Mi cuenta», y medido en la ficha de una persona eran
+   veintisiete elementos.
+
+   Se arregla en la raíz y no componente a componente porque el fallo es de
+   HERENCIA: quien no dice nada tiene que heredar la tinta del tema.
+
+   No se toca la `palette` de MUI, que sería lo más limpio: MUI le aplica
+   `alpha()` a `text.primary` en varios sitios, y `alpha()` de un `var(--…)`
+   revienta.
+
+   Selectores doblados por lo mismo que el bloque de los campos de abajo: para
+   ganarle a emotion sin `!important`. */
+.MuiInputBase-root.MuiInputBase-root,
+.MuiPickersInputBase-root.MuiPickersInputBase-root,
+.MuiPaper-root.MuiPaper-root {
+  color: var(--ink);
+}
 
 .MuiOutlinedInput-root.MuiOutlinedInput-root,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root {
@@ -807,6 +868,7 @@ body iframe {
      valores, así que basta una vez. */
   --red-fill: rgba(229, 32, 32, 1);
   --green-fill: rgba(53, 133, 42, 1);
+  --orange-fill: rgba(163, 103, 16, 1);
 
   /* En oscuro el violeta hay que subirlo o se hunde en el fondo, y el texto
      tiene que ser MÁS claro que el icono, no más oscuro. */
@@ -837,12 +899,11 @@ body iframe {
   --brand-fill: rgba(135, 93, 212, 1);
 }
 
-/* El naranja es la excepción: conserva su tono vivo y gira la tinta. Bajarlo
-   hasta que el blanco valiera lo dejaba en (157,107,10), que ya es marrón. */
-[data-theme='orange-light'],
+[data-theme='orange-light'] {
+  --brand-fill: rgba(157, 107, 10, 1);
+}
 [data-theme='orange-dark'] {
-  --on-brand: rgba(13, 27, 42, 1);
-  --on-brand-contra: var(--always-white);
+  --brand-fill: rgba(157, 107, 28, 1);
 }
 
 /* ═══ DE DÓNDE VIENE CADA COSA ══════════════════════════════════════════════

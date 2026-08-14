@@ -85,11 +85,18 @@ Medido tono a tono, el azul oscuro baja de (100,153,228) a (42,115,218) y el
 blanco vuelve a 4,56 — y sigue siendo azul, de hecho más saturado. Igual el
 morado, el rojo y el verde. **La letra es blanca en ocho de los diez temas.**
 
-**La única excepción es el naranja**, en sus dos modos: para que llevara blanco
-habría que bajarlo de (229,156,15) a (157,107,10), y eso ya no es el tema
-naranja, es marrón. Un relleno ámbar con letra oscura es un patrón normal y da
-7,5:1, así que ahí —y solo ahí— se gira la tinta. El color lo elige el hermano;
-la tinta la elegimos nosotros.
+**No hay excepciones: la tinta es blanca siempre.** El naranja costó dos
+intentos. Primero se le puso tinta oscura, porque sobre el papel bajarlo hasta
+que el blanco valiera lo dejaba en (166,102,27) y eso, leído como número,
+parecía marrón. Puesto en pantalla al lado de las otras dos opciones no lo era:
+es un ámbar más hondo que se sigue leyendo naranja, y con blanco encima queda
+más limpio que el naranja vivo con letra negra.
+
+> **Lección: un color no se descarta por su valor RGB. Se mira.** El primer
+> descarte se hizo con la calculadora y estaba mal.
+
+El color lo elige el hermano; el tono exacto lo ajustamos nosotros para que la
+letra se lea.
 
 Dos consecuencias que conviene conocer:
 
@@ -137,6 +144,19 @@ Tres cosas que se aprendieron y conviene no repetir:
   fuera dos: el lavado de `.screen` (que acaba en `--accent-150`, más oscuro
   que `--paper`) y el fondo de los distintivos (`--accent-200`). Los dos
   aparecieron después, en pantalla.
+
+- **Y el negro que MUI da por hecho.** Este proyecto no configura ninguna
+  `palette`, así que MUI usa su `text.primary` de fábrica —`rgba(0, 0, 0,
+  0.87)`, negro fijo— y lo declara en el `body` y en las RAÍCES de sus campos y
+  superficies: `InputBase`, `PickersInputBase` y `Paper`. Todo lo que hay
+  dentro y no se pone color propio lo hereda. Casi todo se lo pone, así que no
+  se veía; pero los segmentos de fecha del `DatePicker` —que tienen sus propias
+  clases, `MuiPickersSectionList`— y unas cuantas etiquetas sueltas salían
+  NEGRAS sobre fondo oscuro. Medido: veintisiete elementos solo en la ficha de
+  una persona. Está arreglado en la raíz, en `global/index.css`.
+  No se toca la `palette` de MUI, que sería lo más limpio: MUI le aplica
+  `alpha()` a `text.primary` en varios sitios y `alpha()` de un `var(--…)`
+  revienta.
 
 Si tocas un color de texto, **mídelo**. Con el color en la mano son cuatro
 líneas de JavaScript en la consola; a ojo es como se llegó hasta aquí.
