@@ -158,6 +158,19 @@ Tres cosas que se aprendieron y conviene no repetir:
   `alpha()` a `text.primary` en varios sitios y `alpha()` de un `var(--…)`
   revienta.
 
+- **Y el BLANCO que MUI da por hecho, que es el mismo fallo por el otro lado.**
+  Igual que con el texto, MUI usa su `background.paper` de fábrica —blanco
+  fijo— en toda superficie suya: `Paper`, `Card`, `Menu`, `Popover`. La mayoría
+  de los sitios se ponen el fondo a mano y por eso no se veía; los que no, se
+  quedaban BLANCOS en modo oscuro. Pasaba con la tarjeta «Superintendente» de
+  la visita del circuito y con las tarjetas de día de Exhibidores, las dos con
+  el `Card` de MUI en crudo y sin `backgroundColor` en su `sx`.
+  Arreglado en `styleOverrides.MuiPaper` (`src/states/app.ts`), que es donde
+  toca: una superficie nueva nace con el fondo del tema en vez de con un blanco
+  que hay que acordarse de tapar. Y como es un `styleOverride` y no la
+  `palette`, el `sx` de quien llama sigue ganando —lo necesita la banda de
+  `--accent-100` de Salidas—.
+
 Si tocas un color de texto, **mídelo**. Con el color en la mano son cuatro
 líneas de JavaScript en la consola; a ojo es como se llegó hasta aquí.
 

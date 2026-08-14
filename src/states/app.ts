@@ -106,6 +106,27 @@ export const appThemeState = atom((get) => {
           root: {
             borderRadius: 'var(--shape-lg)',
             backgroundImage: 'none',
+            // El fondo de CUALQUIER superficie de MUI: `Paper`, `Card`,
+            // `Menu`, `Popover`, `Accordion`…
+            //
+            // Sin esto, MUI usa su `background.paper` de fábrica —blanco
+            // fijo—, porque este proyecto no configura ninguna `palette`. La
+            // mayoría de los sitios se ponían el fondo a mano y por eso no se
+            // veía; los que no, se quedaban BLANCOS en modo oscuro. Pasaba con
+            // la tarjeta «Superintendente» de la visita del circuito y con las
+            // tarjetas de día de Exhibidores.
+            //
+            // Va aquí y no en cada tarjeta porque el fallo es el valor por
+            // defecto: una superficie nueva debe nacer con el fondo del tema,
+            // no con un blanco de fábrica que hay que acordarse de tapar.
+            //
+            // Y va en `styleOverrides` y no en la `palette`: MUI le aplica
+            // `alpha()` a los colores de la paleta en varios sitios, y
+            // `alpha()` de un `var(--…)` revienta. Además así el `sx` de quien
+            // llama sigue ganando —lo aplica emotion después—, que es justo lo
+            // que hace falta para las superficies que van de otro color (la
+            // banda de `--accent-100` de Salidas, por ejemplo).
+            backgroundColor: 'var(--card)',
           },
         },
       },
