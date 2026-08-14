@@ -2,6 +2,7 @@ import {
   Fragment,
   KeyboardEvent,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -216,7 +217,33 @@ const Fila = ({
  */
 const DURACION_SALIDA = 150;
 
-const Buscador = ({ onClose }: { onClose: () => void }) => {
+/**
+ * ¿ABRIMOS EL TECLADO SOLOS? Con ratón sí, con el dedo no.
+ *
+ * Antes se enfocaba el campo y punto, y el resultado dependía del sistema:
+ * Android abre el teclado con un `focus()` de código, pero iOS lo ignora si no
+ * viene pegado a un gesto —y el nuestro llegaba después del toque—. El mismo
+ * botón hacía dos cosas distintas según el teléfono, que es peor que
+ * cualquiera de las dos.
+ *
+ * Elegido: en el móvil NO se abre el teclado. El panel se abre para enseñar el
+ * mapa entero y el teclado se come más de media pantalla justo cuando hay algo
+ * que mirar; quien quiera escribir toca el campo, que lo tiene delante. Con
+ * ratón y teclado no hay nada que tapar, así que ahí sí: listo para escribir.
+ *
+ * Se pregunta por el APARATO y no por el ancho: una tableta con teclado se
+ * comporta como un escritorio, y un móvil apaisado de 900px sigue siendo un
+ * dedo.
+ */
+const conRaton = () =>
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+const Buscador = ({
+  onClose,
+}: {
+  /** `haNavegado` distingue «me voy a una página» de «cierro y me quedo». */
+  onClose: (haNavegado: boolean) => void;
+}) => {
   const navigate = useNavigate();
   const usuario = useCurrentUser();
   const documentos = useAtomValue(documentosState);
@@ -227,9 +254,33 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
   const [seVa, setSeVa] = useState(false);
   const campo = useRef<HTMLInputElement>(null);
   const lista = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    campo.current?.focus();
+  /**
+   * EL FOCO SE DA AL NACER EL NODO, NO EN UN EFECTO.
+   *
+   * Esto estaba mal desde el primer día y no se veía: el efecto de montaje
+   * corría ANTES de que `Portal` hubiera puesto nada en el `body` —Portal
+   * resuelve su contenedor en un efecto de disposición y hasta la siguiente
+   * pasada no monta a sus hijos—, así que el `ref` valía `null`, el `?.` se lo
+   * tragaba sin rechistar y el campo no se enfocaba nunca. Medido: cero
+   * llamadas a `focus()` al abrir.
+   *
+   * Un `ref` de función se ejecuta EN EL MOMENTO en que el nodo entra en el
+   * documento. No hay carrera que perder ni temporizador que ajustar.
+   */
+  const alMontarElCampo = useCallback((nodo: HTMLInputElement | null) => {
+    campo.current = nodo;
+
+    if (nodo && conRaton()) nodo.focus();
+  }, []);
+
+  const alMontarElPanel = useCallback((nodo: HTMLDivElement | null) => {
+    panel.current = nodo;
+
+    // Con el dedo el foco va al PANEL, no al campo: se entra en el diálogo
+    // —que es lo que un lector de pantalla necesita— sin levantar el teclado.
+    if (nodo && !conRaton()) nodo.focus();
   }, []);
 
   /**
@@ -243,10 +294,30 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
    */
   const cerrar = () => setSeVa(true);
 
+  /**
+   * Esc escucha en la VENTANA, no en el panel.
+   *
+   * Colgado del panel solo funcionaba con el foco dentro, y basta con pulsar en
+   * un hueco del panel —o que otra cosa se lleve el foco— para que el foco
+   * caiga al `body` y Esc deje de responder. Una tecla de escape que a veces va
+   * y a veces no es peor que no tenerla: dejas de fiarte de ella.
+   */
+  useEffect(() => {
+    const alPulsarEnLaVentana = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+
+      e.preventDefault();
+      setSeVa(true);
+    };
+
+    window.addEventListener('keydown', alPulsarEnLaVentana);
+    return () => window.removeEventListener('keydown', alPulsarEnLaVentana);
+  }, []);
+
   useEffect(() => {
     if (!seVa) return;
 
-    const reloj = setTimeout(onClose, DURACION_SALIDA);
+    const reloj = setTimeout(() => onClose(false), DURACION_SALIDA);
 
     return () => clearTimeout(reloj);
   }, [seVa, onClose]);
@@ -354,17 +425,11 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
    * necesita saber a dónde ha ido lo que tapaba la pantalla.
    */
   const ir = (ruta: string) => {
-    onClose();
+    onClose(true);
     navigate(ruta);
   };
 
   const alPulsarTecla = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      cerrar();
-      return;
-    }
-
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
 
@@ -416,10 +481,15 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
       />
 
       <Box
+        ref={alMontarElPanel}
         className={`buscador-panel${seVa ? ' se-va' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label="Buscar en la aplicación"
+        // -1: se le puede dar el foco desde código, pero no está en el
+        // recorrido del tabulador. Es lo que permite entrar en el diálogo sin
+        // meterse en el campo de escribir.
+        tabIndex={-1}
         onKeyDown={alPulsarTecla}
         sx={{
           position: 'fixed',
@@ -473,7 +543,7 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
 
             <Box
               component="input"
-              ref={campo}
+              ref={alMontarElCampo}
               value={termino}
               onChange={(e) => setTermino(e.target.value)}
               placeholder="Buscar en la aplicación…"
@@ -491,6 +561,19 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
                 fontSize: '16px',
                 padding: '6px 0',
                 '&::placeholder': { color: 'var(--ink-3)' },
+                /* AQUÍ NO VA EL ANILLO DE FOCO.
+                 *
+                 * La regla global se lo pone a todo lo enfocable, y con razón:
+                 * navegando con el tabulador hay que ver dónde estás. Pero
+                 * dentro de este panel el foco no se busca, se da: se abre y ya
+                 * estás escribiendo. El anillo solo dibujaba un rectángulo
+                 * suelto alrededor de una franja que no parece un campo —el
+                 * campo, visualmente, es el panel entero—.
+                 *
+                 * Lo que dice dónde estás es el cursor parpadeando, que no se
+                 * quita. Dos clases de especificidad para ganarle a la global,
+                 * que va en `:where()` y no puede subir más. */
+                '&:focus-visible': { outline: 'none' },
               }}
             />
 
@@ -654,6 +737,23 @@ const Buscador = ({ onClose }: { onClose: () => void }) => {
 /** La lupa de la barra, y el panel que abre. */
 const BotonBuscador = () => {
   const [abierto, setAbierto] = useState(false);
+  const lupa = useRef<HTMLButtonElement>(null);
+
+  /**
+   * Al cerrar, el foco vuelve a la lupa.
+   *
+   * Si no, se queda en el `body` y el siguiente tabulador empieza otra vez por
+   * arriba del todo. Solo se nota navegando con teclado o con lector de
+   * pantalla, que es justo a quien más le cuesta recuperarse de eso.
+   *
+   * Solo al cerrar de verdad: si se cerró porque el resultado te llevó a otra
+   * página, el foco ya no es asunto nuestro.
+   */
+  const cerrado = (haNavegado: boolean) => {
+    setAbierto(false);
+
+    if (!haNavegado) lupa.current?.focus();
+  };
 
   // Ctrl/⌘+K, donde hay teclado. No estorba a nadie y quien lo conoce lo
   // agradece.
@@ -672,13 +772,14 @@ const BotonBuscador = () => {
   return (
     <>
       <IconButton
+        ref={lupa}
         onClick={() => setAbierto(true)}
         aria-label="Buscar en la aplicación"
       >
         <IconSearch color="var(--black)" width={22} height={22} />
       </IconButton>
 
-      {abierto && <Buscador onClose={() => setAbierto(false)} />}
+      {abierto && <Buscador onClose={cerrado} />}
     </>
   );
 };
