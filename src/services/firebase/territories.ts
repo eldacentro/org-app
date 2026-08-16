@@ -670,6 +670,35 @@ export const finalizeAssignmentBatch = async (
       batch.update(fsDoc(territoriesCol(congId), territory.id), territoryUpdate);
     }
   }
+
+  // Entregado el territorio, los avisos que lo reclamaban dejan de tener
+  // sentido: se dan por leídos aquí y desaparecen solos de la campanita, del
+  // panel de inicio y de "Mis territorios". Antes había que descartarlos a
+  // mano, así que quien devolvía el territorio desde el propio aviso se
+  // quedaba con el aviso puesto y parecía que no había servido de nada.
+  //
+  // Se marcan como leídos, NO se borran: el registro de que se avisó es lo
+  // que apaga el botón "Notificar" del responsable durante unos días.
+  //
+  // Y no rompe la entrega si falla: es cosmético comparado con cerrar la
+  // asignación, así que se pide aparte del batch y su error solo se anota.
+  try {
+    const avisos = await getDocs(
+      query(
+        noticesCol(congId),
+        where('territoryId', '==', assignment.territoryId),
+        where('personUid', '==', assignment.personUid)
+      )
+    );
+
+    avisos.forEach((d) => {
+      if ((d.data() as TerritoryNotice).leido) return;
+      batch.update(d.ref, { leido: true });
+    });
+  } catch (err) {
+    console.error('No se pudieron cerrar los avisos del territorio', err);
+  }
+
   await batch.commit();
 };
 

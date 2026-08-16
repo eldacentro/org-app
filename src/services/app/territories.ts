@@ -85,6 +85,21 @@ export const isCampaignRunning = (
   now: Date = new Date()
 ): boolean => new Date(fechaInicio) <= now && !isCampaignOver(fechaFin, now);
 
+/**
+ * Título del aviso de "territorio atrasado".
+ *
+ * Es una constante y no un texto suelto porque lo escriben y lo LEEN sitios
+ * distintos: quien manda el aviso, quien mira si ya se mandó (para apagar el
+ * botón durante unos días) y la campanita, que por él decide si ofrecer
+ * "Entregar territorio" o solo "Ver territorio". Escrito a mano en cuatro
+ * ficheros, el día que alguien lo retoque en uno los otros tres dejan de
+ * reconocerlo sin que falle nada.
+ *
+ * El CUERPO del mensaje sí lo escribe el responsable en Configuración; el
+ * título no.
+ */
+export const AVISO_ATRASADO_TITULO = 'Territorio atrasado';
+
 /** Días transcurridos desde una fecha ISO. */
 export const daysSince = (iso: string, now: Date = new Date()): number => {
   return Math.floor(

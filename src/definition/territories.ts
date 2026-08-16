@@ -8,7 +8,12 @@
  * subir; el resto va en claro. Las asignaciones guardan solo `personUid`: el
  * nombre se resuelve en cliente desde la tabla `persons` (ya cifrada E2E).
  */
-import type { FeatureCollection, Geometry, Polygon, MultiPolygon } from 'geojson';
+import type {
+  FeatureCollection,
+  Geometry,
+  Polygon,
+  MultiPolygon,
+} from 'geojson';
 
 export type { FeatureCollection, Geometry, Polygon, MultiPolygon };
 
@@ -143,6 +148,16 @@ export type TerritoryNotice = {
   mensaje: string;
   /** territorio relacionado (opcional). */
   territoryId?: string;
+  /**
+   * El territorio, escrito: "Elda - Urbano 12".
+   *
+   * Va guardado en el propio aviso y no se resuelve al leerlo a propósito: la
+   * campanita y el panel de inicio viven fuera de Territorios y ahí no están
+   * cargados ni los territorios ni las zonas, así que sin esto no habría con
+   * qué escribir el nombre. Los avisos anteriores a este campo no lo traen y
+   * se muestran como antes.
+   */
+  territoryLabel?: string;
   /** quién lo envió (person_uid). */
   sentBy?: string;
   createdAt: string;
@@ -196,26 +211,27 @@ export type TerritorySettings = {
   updatedAt: string;
 };
 
-export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> = {
-  id: 'settings',
-  dateFormat: 'dd-MM-yyyy',
-  statsIncludeCampaigns: false,
-  assignedCountsAsWorked: false,
-  daysUntilOverdue: 120,
-  overdueMessage:
-    'Tu territorio está atrasado. Por favor, indícanos si lo has terminado, ' +
-    'si lo devuelves sin trabajar, o si deseas renovarlo. ¡Gracias!',
-  statsRange: 'service_year',
-  statsGrouping: 'zone',
-  expandInfo: false,
-  expandMap: true,
-  expandImage: true,
-  daysUntilReassignable: 30,
-  publishersCanReturn: true,
-  publishersCanSeeGroup: false,
-  publishersCanAddLocations: true,
-  locationsRequireApproval: true,
-};
+export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> =
+  {
+    id: 'settings',
+    dateFormat: 'dd-MM-yyyy',
+    statsIncludeCampaigns: false,
+    assignedCountsAsWorked: false,
+    daysUntilOverdue: 120,
+    overdueMessage:
+      'Tu territorio está atrasado. Por favor, indícanos si lo has terminado, ' +
+      'si lo devuelves sin trabajar, o si deseas renovarlo. ¡Gracias!',
+    statsRange: 'service_year',
+    statsGrouping: 'zone',
+    expandInfo: false,
+    expandMap: true,
+    expandImage: true,
+    daysUntilReassignable: 30,
+    publishersCanReturn: true,
+    publishersCanSeeGroup: false,
+    publishersCanAddLocations: true,
+    locationsRequireApproval: true,
+  };
 
 // ── Registros de caché local en IndexedDB (por dispositivo) ──
 

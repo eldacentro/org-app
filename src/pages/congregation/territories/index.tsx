@@ -22,9 +22,11 @@ import DialogSolicitar from '@features/territories/dialogs/DialogSolicitar';
 import MisTerritoriosSection from '@features/territories/MisTerritorios/MisTerritoriosSection';
 import { Territory, TerritoryAssignment } from '@definition/territories';
 import {
+  myTerritoryAssignmentsState,
   territoriesState,
   territoryPendingRequestsState,
 } from '@states/territories';
+import { displaySnackNotification } from '@services/states/app';
 
 type AsignarState = {
   open: boolean;
@@ -47,6 +49,7 @@ const TerritoriesPage = () => {
   const pendingRequestsCount = useAtomValue(
     territoryPendingRequestsState
   ).length;
+  const myAssignments = useAtomValue(myTerritoryAssignmentsState);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [openZonas, setOpenZonas] = useState(false);
@@ -80,6 +83,36 @@ const TerritoriesPage = () => {
       }
     }
   }, [searchParams, territories, viewing, setSearchParams]);
+
+  // `?entregar=<territoryId>` — lo usa el botón del aviso de territorio
+  // atrasado de la campanita. Ese aviso se lee porque te están pidiendo que
+  // devuelvas el territorio, así que abre directamente el diálogo de entrega
+  // en vez de dejarte en la ficha buscando por dónde se hace.
+  //
+  // Espera a que hayan llegado las asignaciones: sin ellas no hay ninguna que
+  // abrir, y el parámetro se limpiaría sin haber hecho nada.
+  useEffect(() => {
+    const entregarId = searchParams.get('entregar');
+    if (!entregarId || myAssignments.length === 0) return;
+
+    const asignacion = myAssignments.find((a) => a.territoryId === entregarId);
+
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('entregar');
+    setSearchParams(newParams, { replace: true });
+
+    if (asignacion) {
+      setEntregando(asignacion);
+    } else {
+      // Ya no lo tiene: lo entregó desde otro dispositivo, o se lo cerró un
+      // responsable. Mejor decirlo que abrir un diálogo vacío.
+      displaySnackNotification({
+        severity: 'success',
+        header: 'Ya está entregado',
+        message: 'Ese territorio ya no está a tu nombre.',
+      });
+    }
+  }, [searchParams, myAssignments, setSearchParams]);
 
   const showingResponsables = canManage && showResponsables;
 

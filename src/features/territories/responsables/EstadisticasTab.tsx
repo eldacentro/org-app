@@ -15,6 +15,7 @@ import {
   territoryAssignmentsState,
   territorySettingsState,
   territoriesLoadingState,
+  territoryNoticesState,
   territoryTagsState,
   territoryZonesState,
 } from '@states/territories';
@@ -27,6 +28,7 @@ import {
 import { congIDState, userLocalUIDState } from '@states/settings';
 import { saveNotice } from '@services/firebase/territories';
 import {
+  AVISO_ATRASADO_TITULO,
   daysSince,
   daysInCooldown,
   formatTerritoryDate,
@@ -43,6 +45,17 @@ import { apiSendTerritoryPush } from '@services/api/territories';
 type Props = {
   onAsignar: (t: Territory) => void;
   onEntregar: (a: TerritoryAssignment) => void;
+};
+
+/** Días que el botón "Notificar" se queda apagado tras enviar un aviso. */
+const DIAS_SILENCIO_AVISO = 7;
+
+/** "hoy" / "ayer" / "hace 4 días" — para contarlo en una frase. */
+const cuandoFue = (iso: string): string => {
+  const dias = daysSince(iso);
+  if (dias <= 0) return 'hoy';
+  if (dias === 1) return 'ayer';
+  return `hace ${dias} días`;
 };
 
 // Rediseñada para verse "de un vistazo": antes cada tarjeta ocupaba casi una
@@ -349,6 +362,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
   const assignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
   const tags = useAtomValue(territoryTagsState);
+  const notices = useAtomValue(territoryNoticesState);
   const settings = useAtomValue(territorySettingsState);
   // El número de "Trabajados" se lleva a la reunión del cuerpo de ancianos,
   // así que la tarjeta debe decir DE QUÉ periodo es. Antes ponía "En el
@@ -465,28 +479,74 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
     };
   }, [territories, assignments, zones, settings]);
 
+  /**
+   * El último aviso de atraso que se le mandó a esta persona por ESTE
+   * territorio, si sigue dentro de la ventana de silencio.
+   *
+   * Se casa por territorio + persona + título, y el título sale de la misma
+   * constante con la que se crea el aviso (`AVISO_ATRASADO_TITULO`), para que
+   * no puedan separarse: si mañana se le cambia el texto, el que busca y el
+   * que escribe cambian a la vez.
+   */
+  const avisoReciente = (a: TerritoryAssignment) => {
+    const desde = new Date();
+    desde.setDate(desde.getDate() - DIAS_SILENCIO_AVISO);
+
+    return notices
+      .filter(
+        (n) =>
+          n.territoryId === a.territoryId &&
+          n.personUid === a.personUid &&
+          n.title === AVISO_ATRASADO_TITULO &&
+          new Date(n.createdAt) > desde
+      )
+      .sort((x, y) => y.createdAt.localeCompare(x.createdAt))
+      .at(0);
+  };
+
   const notificar = async (a: TerritoryAssignment) => {
     const nombre = resolveName(a.personUid);
-    const ok = await confirm({
-      title: 'Notificar territorio atrasado',
-      message: `¿Enviar aviso a ${nombre}? Le llegará al instante en su lista "Mis territorios".`,
-      confirmLabel: 'Enviar',
-    });
+    const previo = avisoReciente(a);
+
+    // Ya se avisó hace poco. No se bloquea —un responsable puede tener buena
+    // razón para insistir— pero sí se dice quién lo hizo y cuándo, que es lo
+    // que evita que tres personas distintas le manden el mismo aviso el mismo
+    // día sin enterarse unas de otras.
+    const ok = previo
+      ? await confirm({
+          title: 'Ya se le avisó hace poco',
+          message: `${previo.sentBy ? resolveName(previo.sentBy) : 'Otro responsable'} ya le envió a ${nombre} el aviso de territorio atrasado ${cuandoFue(previo.createdAt)}. ¿Quieres enviarle otro?`,
+          confirmLabel: 'Enviar otro',
+        })
+      : await confirm({
+          title: 'Notificar territorio atrasado',
+          message: `¿Enviar aviso a ${nombre}? Le llegará al instante a sus notificaciones y a su lista "Mis territorios".`,
+          confirmLabel: 'Enviar',
+        });
+
     if (!ok) return;
     try {
+      const territorio = territories.find((t) => t.id === a.territoryId);
+
       await saveNotice(congId, {
         id: crypto.randomUUID(),
         personUid: a.personUid,
-        title: 'Territorio atrasado',
+        title: AVISO_ATRASADO_TITULO,
         mensaje: settings.overdueMessage,
         territoryId: a.territoryId,
+        // Escrito, no solo el id: la campanita y el panel de inicio viven
+        // fuera de Territorios y ahí no hay ni territorios ni zonas cargadas
+        // con las que resolverlo.
+        territoryLabel: territorio
+          ? `${getZoneName(territorio.zoneId, zones)} ${territoryLabel(territorio)}`
+          : undefined,
         sentBy: currentUid || undefined,
         createdAt: new Date().toISOString(),
         leido: false,
       });
       await apiSendTerritoryPush(
         [a.personUid],
-        'Territorio atrasado',
+        AVISO_ATRASADO_TITULO,
         settings.overdueMessage || 'Tienes un territorio atrasado.',
         a.territoryId
       ).catch((err) => console.error('Failed to send push', err));
@@ -660,13 +720,36 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                     spacing={1}
                     sx={{ mt: { mobile: 1, tablet600: 0 }, flexShrink: 0 }}
                   >
-                    <Button
-                      variant="tertiary"
-                      disableAutoStretch
-                      onClick={() => notificar(a)}
-                    >
-                      Notificar
-                    </Button>
+                    {(() => {
+                      // Apagado, no deshabilitado: sigue pulsándose (y
+                      // entonces pregunta), pero deja de pedir el clic. Sin
+                      // esto, el botón se veía igual de nuevo al minuto de
+                      // haber avisado y era imposible saber si alguien ya lo
+                      // había hecho.
+                      const previo = avisoReciente(a);
+                      return (
+                        <Button
+                          variant="tertiary"
+                          disableAutoStretch
+                          onClick={() => notificar(a)}
+                          ariaLabel={
+                            previo
+                              ? `Notificar de nuevo; ya se le avisó ${cuandoFue(previo.createdAt)}`
+                              : undefined
+                          }
+                          sx={
+                            previo
+                              ? {
+                                  color: 'var(--ink-3)',
+                                  borderColor: 'var(--line-2)',
+                                }
+                              : undefined
+                          }
+                        >
+                          {previo ? 'Notificado' : 'Notificar'}
+                        </Button>
+                      );
+                    })()}
                     <Button
                       variant="main"
                       disableAutoStretch

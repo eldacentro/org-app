@@ -38,6 +38,7 @@ import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 import useUpcomingCircuitVisit from '@features/circuit_visit/shared/useUpcomingCircuitVisit';
 import { fmtRangeEs } from '@features/circuit_visit/shared/fmtDayEs';
 import { appLangState } from '@states/app';
+import AvisoTerritorioInicio from '@features/territories/AvisoTerritorioInicio';
 import useDashboard from './useDashboard';
 import useSharedHook from './useSharedHook';
 import Snackbar from '@components/snackbar';
@@ -1031,6 +1032,12 @@ const Dashboard = () => {
           </Typography>
         </Box>
       )}
+
+      {/* Un territorio atrasado del que ya te han avisado. Va aquí arriba
+          porque la campanita y el aviso del móvil se le pueden escapar a
+          cualquiera — ver el propio componente. No pinta nada si no hay
+          ningún aviso pendiente. */}
+      <AvisoTerritorioInicio />
 
       {/* MY ASSIGNMENTS SHORTCUT */}
       <button

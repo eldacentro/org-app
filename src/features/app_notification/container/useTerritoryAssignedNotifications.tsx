@@ -39,7 +39,16 @@ const useTerritoryAssignedNotifications = () => {
         unreadNotices.map((notice) => ({
           id: `territory-assigned-${notice.id}`,
           title: notice.title || 'Aviso de territorio',
-          description: notice.mensaje,
+          // De qué territorio habla, en negrita y delante del mensaje. El
+          // texto del aviso lo escribe el responsable en Configuración y es
+          // genérico ("Tu territorio está atrasado…"), así que quien tiene
+          // tres territorios no sabía cuál de ellos le estaban reclamando.
+          // Sale del propio aviso (`territoryLabel`): aquí no hay territorios
+          // ni zonas cargadas con las que resolverlo. Los avisos viejos no lo
+          // traen y se muestran como siempre.
+          description: notice.territoryLabel
+            ? `<p><strong>${notice.territoryLabel}</strong></p><p>${notice.mensaje}</p>`
+            : notice.mensaje,
           date: notice.createdAt,
           // El icono decide además si se pinta el botón "Ver Territorio"
           // (ver notification_item), así que se elige por un dato REAL: si el

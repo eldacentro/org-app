@@ -148,12 +148,44 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         const matchingRow = rows.find((r) => r.territory.id === n.territoryId);
         return (
           <Box key={n.id} sx={{ position: 'relative' }}>
-            <InfoTip
-              color="warning"
-              isBig={false}
-              text={n.mensaje}
-              sx={{ pr: 5 }}
-            />
+            {/* El botón va DENTRO del aviso, como hijo de `InfoTip`.
+                Estuvo fuera, de hermano justo debajo y tirado hacia arriba con
+                un `mt: -4px`: se montaba sobre el canto de la caja ámbar y
+                quedaba a caballo entre el aviso y el fondo de la página, ni
+                dentro ni fuera. `InfoTip` acepta hijos justo para esto. */}
+            <InfoTip color="warning" isBig={false} sx={{ pr: 5 }}>
+              <Box>
+                <Typography className="body-regular" color="inherit">
+                  {n.mensaje}
+                </Typography>
+                {matchingRow && (
+                  <Box sx={{ mt: '12px' }}>
+                    {/* Relleno, no de contorno: el azul del canto sobre el
+                        ámbar del aviso peleaba con el fondo. Y además es LA
+                        acción de ese aviso — lo único que se le pide a quien
+                        lo lee. */}
+                    <Button
+                      variant="main"
+                      disableAutoStretch
+                      onClick={() => onEntregar(matchingRow.assignment)}
+                      disabled={!settings.publishersCanReturn}
+                    >
+                      Entregar territorio
+                    </Button>
+                    {!settings.publishersCanReturn && (
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-2)"
+                        sx={{ display: 'block', mt: 0.5 }}
+                      >
+                        Solo un responsable puede marcar este territorio como
+                        entregado.
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </InfoTip>
             <IconButton
               onClick={() => handleDismissNotice(n.id)}
               size="small"
@@ -162,33 +194,6 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
             >
               <IconClose color="var(--ink-2)" width={16} height={16} />
             </IconButton>
-            {/* El botón iba SUELTO debajo del aviso, con `variant="small"` —
-                que se pinta sin fondo ni borde. Fuera de la caja del aviso y
-                sin nada que lo dibujara, se leía como una línea de texto
-                perdida entre el aviso y la lista, no como algo que se pulsa.
-                Va dentro del aviso y con la forma de un botón de verdad. */}
-            {matchingRow && (
-              <Box sx={{ mt: '-4px', mb: '12px', pl: '16px' }}>
-                <Button
-                  variant="tertiary"
-                  disableAutoStretch
-                  onClick={() => onEntregar(matchingRow.assignment)}
-                  disabled={!settings.publishersCanReturn}
-                >
-                  Entregar territorio
-                </Button>
-                {!settings.publishersCanReturn && (
-                  <Typography
-                    className="label-small-regular"
-                    color="var(--ink-2)"
-                    sx={{ display: 'block', mt: 0.5 }}
-                  >
-                    Solo un responsable puede marcar este territorio como
-                    entregado.
-                  </Typography>
-                )}
-              </Box>
-            )}
           </Box>
         );
       })}
@@ -288,9 +293,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
           en la frase deja de ser un dato y pasa a ser parte del rótulo, así
           que no se puede mirar de un vistazo. Es la misma chapa que llevan
           Personas y las pestañas. */}
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
         <Typography className="h2" sx={{ color: 'var(--ink)' }}>
           Mis territorios
         </Typography>
@@ -374,7 +377,11 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                         )}
                       />
                       <MetaItem
-                        label="Vence"
+                        // En pasado cuando ya pasó: "Vence 28-05-2026" con la
+                        // fecha en rojo y en el pasado se lee como una
+                        // contradicción — el rótulo promete algo que aún no ha
+                        // ocurrido y la fecha dice que sí.
+                        label={overdue ? 'Venció' : 'Vence'}
                         tone={overdue ? 'danger' : undefined}
                         value={formatTerritoryDate(
                           assignment.dueAt ||
