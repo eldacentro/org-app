@@ -272,7 +272,10 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
           // hojita salga. Antes esto era un aviso rojo que le mandaba a los
           // ajustes a cambiar el formato a mano — con el hermano esperando al
           // otro lado, y con el PDF ya hecho aquí mismo, sin usar.
-          console.error('No se ha podido convertir la hojita en imagen:', error);
+          console.error(
+            'No se ha podido convertir la hojita en imagen:',
+            error
+          );
 
           if (!cancelado) setCayoAPdf(true);
 
@@ -331,7 +334,6 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
           // falló y va el PDF, un fichero llamado `.png` no lo abriría nadie.
           formato === 'imagen' && !cayoAPdf ? 'png' : 'pdf'
         ),
-        titulo: `Hojita de ${nombreCompleto || s89.student_name}`,
         alCompartir: () => marcarEnviada(true),
       });
     } finally {

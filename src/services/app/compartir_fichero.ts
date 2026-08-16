@@ -23,24 +23,23 @@ import { displaySnackNotification } from '@services/states/app';
  *
  * ── Y por qué no viaja el mensaje aquí dentro ────────────────────────────
  *
- * La API admite `text` junto a los ficheros, pero WhatsApp lo DESCARTA cuando
- * lo que se comparte es un documento (en Android lo usa de pie de foto solo con
- * imagen y vídeo; en iOS es aún menos fiable, y pasar los dos juntos hace
- * desaparecer destinos de la hoja). Un mensaje que se pierde en silencio es
- * peor que dos toques, así que el texto va por su lado, con `wa.me`, y aquí
- * viaja solo el PDF.
+ * Porque no llega a los dos sitios, y eso se midió en móviles de verdad en vez
+ * de suponerlo: en iPhone el texto que acompaña al fichero acaba de pie de foto
+ * en el chat, y en Android WhatsApp lo descarta —también con una imagen, que
+ * era la esperanza de meterlo todo en un solo envío—. Ver el detalle en la
+ * llamada a `navigator.share`, más abajo.
+ *
+ * Así que el texto va por su lado, con `wa.me`, donde llega siempre y además
+ * cae en el chat correcto; y por aquí viaja solo el fichero.
  */
 export const compartirFichero = async ({
   blob,
   nombre,
-  titulo,
   alCompartir,
 }: {
   blob: Blob;
   /** Nombre del fichero, CON su extensión. */
   nombre: string;
-  /** Lo que se lee en la cabecera de la hoja del sistema. */
-  titulo: string;
   /**
    * Qué hacer cuando el PDF ha salido de la app de verdad.
    *
@@ -80,7 +79,22 @@ export const compartirFichero = async ({
   }
 
   try {
-    await navigator.share({ files: [file], title: titulo });
+    // SIN `title` y SIN `text`, y las dos ausencias están medidas en móviles
+    // de verdad (2026-08):
+    //
+    //  · En iPhone, la extensión de WhatsApp recoge el `title` y lo planta de
+    //    PIE DE FOTO. Aquí ponía «Hojita de Carlos Saca Jr.» —pensado para la
+    //    cabecera de la hoja del sistema— y al hermano le llegaba su propio
+    //    nombre escrito debajo de su hojita.
+    //  · En Android, WhatsApp DESCARTA el texto que acompaña a un fichero, sea
+    //    PDF o imagen. Comprobado con la imagen, que era la esperanza: llega
+    //    sola igualmente.
+    //
+    // O sea que el pie de foto no se puede tener en los dos, y una hojita que
+    // llega sin decir de qué parte es ni qué día es peor que un toque de más.
+    // Por eso el mensaje viaja SIEMPRE por `wa.me` —donde además cae en el chat
+    // correcto— y por aquí va solo el fichero.
+    await navigator.share({ files: [file] });
 
     await alCompartir?.();
 
