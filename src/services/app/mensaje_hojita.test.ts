@@ -70,7 +70,7 @@ describe('el mensaje que va escrito en el chat', () => {
       expect(mensaje).toBe(
         'Hola, Javier. Vas de *ayudante* de Marcos Ruiz el miércoles 3 de septiembre, en la parte 5, «Haga revisitas» (sala auxiliar núm. 1).\n' +
           'La parte la lleva Marcos Ruiz; tú le acompañas.\n' +
-          'Te paso su hojita, donde sales como ayudante. ¡Gracias!'
+          'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!'
       );
     });
 
@@ -118,10 +118,15 @@ describe('el mensaje que va escrito en el chat', () => {
       expect(mensaje).toContain('La parte no es tuya');
     });
 
-    it('avisa de que la hojita que recibe es la del otro', () => {
+    it('le dice en qué línea de la hojita está su nombre', () => {
+      // La hoja impresa titula esa línea «Auxiliar:» —y más abajo pone «Sala
+      // auxiliar núm. 1», con lo que la palabra vale para dos cosas en el mismo
+      // papel—. El mensaje dice «ayudante» para no chocar con la sala, así que
+      // tiene que decirle dónde mirar o le toca adivinar que ese es él.
       const mensaje = componerMensajeHojita(ayudante);
 
-      expect(mensaje).toContain('su hojita, donde sales como ayudante');
+      expect(mensaje).toContain('su hojita');
+      expect(mensaje).toContain('«Auxiliar»');
     });
   });
 });

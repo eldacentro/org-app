@@ -3,8 +3,12 @@ import { generateSW } from 'workbox-build';
 export default generateSW({
   swDest: 'dist/service-worker.js',
   globDirectory: 'dist/',
+  // `mjs` entró con pdf.js, que convierte la hojita en imagen para mandarla por
+  // WhatsApp: su hilo de trabajo se emite con esa extensión y, sin recogerlo
+  // aquí, quedaba fuera de la precarga. Se veía solo sin conexión — con
+  // cobertura el navegador lo pedía a la red y nadie se enteraba.
   globPatterns: [
-    '**/*.{ico,json,png,html,js,css,webmanifest,pdf,svg,woff,woff2,ttf}',
+    '**/*.{ico,json,png,html,js,mjs,css,webmanifest,pdf,svg,woff,woff2,ttf}',
   ],
   ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
   maximumFileSizeToCacheInBytes: 12582912,

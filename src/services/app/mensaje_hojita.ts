@@ -21,11 +21,17 @@
  *    app está prohibido (ver DESIGN_SYSTEM §5).
  *  · **Se dice quién lleva la parte, por su nombre.** «La parte la lleva él» a
  *    secas se puede leer como una fórmula; con el nombre delante, no.
- *  · **La palabra es AYUDANTE, no auxiliar.** La app usa «auxiliar» para dos
- *    cosas distintas —la persona (`tr_assistant`) y la sala (`tr_auxClass1`)—,
- *    así que «eres auxiliar en la sala auxiliar» es justo la frase que no se
- *    entiende. «Ayudante» es además lo que dice la casilla de la S-89 que va a
- *    recibir (`tr_assistantS89`), o sea la palabra que tiene en la mano.
+ *  · **La palabra es AYUDANTE, no auxiliar.** Y aquí hay un filo que se vio
+ *    mirando la hoja de verdad, no el diccionario: la S-89 impresa titula esa
+ *    línea «Auxiliar:» (usa `tr_assistant`; la clave `tr_assistantS89`, que sí
+ *    dice «Ayudante», no la usa nadie) — y en la MISMA hoja, tres líneas más
+ *    abajo, pone «Sala auxiliar núm. 1». O sea que la palabra ya significa dos
+ *    cosas en el propio papel. Por eso el mensaje dice «ayudante», que no
+ *    choca con nada…
+ *  · **…y por eso la última línea le dice dónde mirar.** Si el mensaje usara
+ *    una palabra y la hoja otra sin más, tendría que adivinar que «Auxiliar:»
+ *    es él. Nombrar la línea lo cierra: lee el mensaje, mira la hojita, y se
+ *    encuentra.
  */
 
 /**
@@ -120,6 +126,6 @@ export const componerMensajeHojita = (datos: DatosMensajeHojita): string => {
   return [
     `Hola, ${nombre}. Vas de *ayudante*${aQuien} el ${fecha}, en ${laParte(datos)}${enSala}.`,
     quienLaLleva,
-    'Te paso su hojita, donde sales como ayudante. ¡Gracias!',
+    'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!',
   ].join('\n');
 };

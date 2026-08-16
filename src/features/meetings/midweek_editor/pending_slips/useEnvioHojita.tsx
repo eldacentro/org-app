@@ -13,10 +13,12 @@ import {
   limpiarPasaje,
   limpiarTituloParte,
 } from '@services/app/mensaje_hojita';
-import { compartirPDF } from '@services/app/compartir_pdf';
+import { compartirFichero } from '@services/app/compartir_fichero';
+import { displaySnackNotification } from '@services/states/app';
+import { hojitaComoImagen } from '@services/app/hojita_imagen';
 import { TemplateS89 } from '@views/index';
 import { personsState } from '@states/persons';
-import { schedulesState } from '@states/schedules';
+import { formatoHojitaState, schedulesState } from '@states/schedules';
 import { sourcesState } from '@states/sources';
 import {
   displayNameMeetingsEnableState,
@@ -40,8 +42,10 @@ import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
  * plantilla y los MISMOS datos que el botón de exportar de cada fila. Aquí solo
  * cambia a dónde va el fichero.
  *
- * El PDF se genera al abrir, no al pulsar. Ver `compartirPDF`: en iOS, generar
- * dentro del gesto lo invalida y compartir falla con `NotAllowedError`.
+ * El fichero se genera al abrir, no al pulsar. Ver `compartirFichero`: en iOS,
+ * generar dentro del gesto lo invalida y compartir falla con `NotAllowedError`.
+ * Con la hojita en imagen eso pesa aún más, porque encima del PDF hay que
+ * rasterizarla — más motivo para tenerla hecha antes de que nadie toque nada.
  */
 const useEnvioHojita = (slip: PendingSlip | null) => {
   const persons = useAtomValue(personsState);
@@ -51,6 +55,7 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
   const sourceLocale = useAtomValue(JWLangLocaleState);
   const dataView = useAtomValue(userDataViewState);
   const classCount = useAtomValue(midweekMeetingClassCountState);
+  const formato = useAtomValue(formatoHojitaState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
@@ -221,7 +226,7 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
    * visto por el otro lado.
    */
   const claveHoja = slip
-    ? `${slip.weekOf}|${asignacionEstudiante}|${dataView}|${sourceLocale}`
+    ? `${slip.weekOf}|${asignacionEstudiante}|${dataView}|${sourceLocale}|${formato}`
     : null;
 
   const s89Ref = useRef(s89);
@@ -244,11 +249,27 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
 
     pdf(<TemplateS89 data={datos} lang={sourceLocale} />)
       .toBlob()
+      // La imagen sale del PDF ya hecho, no de una hoja dibujada aparte: es la
+      // MISMA S-89 de la impresión, fotografiada. Ver `hojitaComoImagen`.
+      .then((generado) =>
+        formato === 'imagen' ? hojitaComoImagen(generado) : generado
+      )
       .then((generado) => {
         if (!cancelado) setBlob(generado);
       })
       .catch((error) => {
         console.error('No se ha podido preparar la hojita:', error);
+
+        if (!cancelado) {
+          displaySnackNotification({
+            header: 'No se ha podido preparar la hojita',
+            message:
+              formato === 'imagen'
+                ? 'Prueba a cambiar el formato a PDF en los ajustes de la reunión.'
+                : 'Vuelve a abrirla; si sigue igual, exporta la hojita desde el programa.',
+            severity: 'error',
+          });
+        }
       })
       .finally(() => {
         if (!cancelado) setPreparando(false);
@@ -259,7 +280,7 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
     };
     // `s89` a propósito FUERA: cambia de identidad en cada sincronización sin
     // cambiar de contenido, y se lee por referencia. Ver `claveHoja`.
-  }, [claveHoja, sourceLocale]);
+  }, [claveHoja, sourceLocale, formato]);
 
   const marcarEnviada = async (enviada: boolean) => {
     if (!schedule || !slip) return;
@@ -276,11 +297,12 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
       // La marca la pone la propia función de compartir, y solo si el fichero
       // ha salido de verdad: cerrar la hoja del sistema sin elegir destino deja
       // la hojita como estaba.
-      return await compartirPDF({
+      return await compartirFichero({
         blob,
         nombre: nombreArchivo(
           'S-89',
-          `${diaArchivo(s89.weekOf)} ${s89.student_name}`
+          `${diaArchivo(s89.weekOf)} ${s89.student_name}`,
+          formato === 'imagen' ? 'png' : 'pdf'
         ),
         titulo: `Hojita de ${nombreCompleto || s89.student_name}`,
         alCompartir: () => marcarEnviada(true),

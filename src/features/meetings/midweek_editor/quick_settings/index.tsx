@@ -3,6 +3,7 @@ import { useAppTranslation } from '@hooks/index';
 import { QuickSettingsMidweekMeetingProps } from './index.types';
 import AuxiliaryClassroom from '@features/congregation/settings/meeting_settings/midweek/auxiliary_classroom';
 import AvisarAyudantes from './avisar_ayudantes';
+import FormatoHojita from './formato_hojita';
 import DayTime from '@features/congregation/settings/meeting_settings/midweek/day_time';
 import Divider from '@components/divider';
 import LinkedParts from '@features/congregation/settings/meeting_settings/midweek/linked_parts';
@@ -34,8 +35,12 @@ const QuickSettingsMidweekMeeting = ({
           <AuxiliaryClassroom />
         </Stack>
 
-        {/* Reparto de hojitas: quién recibe mensaje además del estudiante. */}
+        {/* Reparto de hojitas: en qué formato salen y quién más recibe aviso.
+            Los dos juntos porque se contestan de una sentada, al ponerse a
+            repartir por primera vez. */}
         <Stack spacing="16px">
+          <FormatoHojita />
+
           <AvisarAyudantes />
         </Stack>
 

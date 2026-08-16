@@ -61,6 +61,23 @@ export const S89TemplateState = atom<S89TemplateType>(
 );
 
 /**
+ * En qué formato se manda la hojita: el documento o una foto de él.
+ *
+ * Vive donde la plantilla de S-89 de aquí arriba y por lo mismo: es cómo
+ * reparte quien reparte, no una norma de la congregación, y así no se toca el
+ * esquema que se sincroniza.
+ *
+ * Por defecto, IMAGEN. Un PDF que llega por WhatsApp es un adjunto que hay que
+ * abrir; una imagen se ve en el propio chat, y para saber qué parte te toca y
+ * qué día eso es toda la diferencia. El PDF sigue a un toque: es el formato
+ * bueno para imprimir, y la salida si la letra pequeña no aguantara la
+ * compresión de WhatsApp.
+ */
+export const formatoHojitaState = atom<'imagen' | 'pdf'>(
+  localStorageGetItem('organized_formato_hojita') === 'pdf' ? 'pdf' : 'imagen'
+);
+
+/**
  * Avisar también al AYUDANTE de cada parte al repartir las hojitas.
  *
  * Vive en este dispositivo y no en los ajustes de la congregación a propósito:

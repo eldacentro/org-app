@@ -2,7 +2,7 @@ import { saveAs } from 'file-saver';
 import { displaySnackNotification } from '@services/states/app';
 
 /**
- * Mandar un PDF por la hoja de compartir del sistema.
+ * Mandar un fichero por la hoja de compartir del sistema.
  *
  * Estaba en `weekend_editor/pdfShare.ts`, hecho para la invitación al orador
  * visitante. Se saca aquí porque ahora hay dos cosas que comparten PDF y una
@@ -30,14 +30,14 @@ import { displaySnackNotification } from '@services/states/app';
  * peor que dos toques, así que el texto va por su lado, con `wa.me`, y aquí
  * viaja solo el PDF.
  */
-export const compartirPDF = async ({
+export const compartirFichero = async ({
   blob,
   nombre,
   titulo,
   alCompartir,
 }: {
   blob: Blob;
-  /** Nombre del fichero, con su `.pdf`. */
+  /** Nombre del fichero, CON su extensión. */
   nombre: string;
   /** Lo que se lee en la cabecera de la hoja del sistema. */
   titulo: string;
@@ -49,7 +49,13 @@ export const compartirPDF = async ({
    */
   alCompartir?: () => void | Promise<void>;
 }): Promise<'compartido' | 'descargado' | 'cancelado' | 'error'> => {
-  const file = new File([blob], nombre, { type: 'application/pdf' });
+  // El tipo sale del propio blob, que ya sabe lo que es. Escribirlo aquí a
+  // mano era lo que hacía que una imagen viajara diciendo que era un PDF —y
+  // WhatsApp decide POR EL TIPO si te enseña la foto en el chat o un adjunto
+  // que hay que abrir, que es justo lo que se quería cambiar.
+  const file = new File([blob], nombre, {
+    type: blob.type || 'application/octet-stream',
+  });
 
   const puedeCompartir =
     typeof navigator.share === 'function' &&
