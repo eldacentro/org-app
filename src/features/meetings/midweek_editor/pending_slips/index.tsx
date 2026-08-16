@@ -5,6 +5,9 @@ import { IconCheck, IconExpand } from '@components/icons';
 import ActionPill from '@components/action_pill';
 import Badge from '@components/badge';
 import Typography from '@components/typography';
+import { useConfirm } from '@components/confirm_dialog';
+import { displaySnackNotification } from '@services/states/app';
+import { fmtDiaLargo } from '@utils/nombres_fecha';
 import DialogEnvio from './DialogEnvio';
 import usePendingSlips from './usePendingSlips';
 
@@ -45,11 +48,38 @@ const PendingSlips = () => {
    */
   const [cola, setCola] = useState<typeof porEnviar>([]);
   const [indice, setIndice] = useState(0);
+  /**
+   * Las que se han saltado en esta ronda.
+   *
+   * Solo para poder decir al terminar cuántas quedaron sin mandar: saltar no
+   * escribe nada en el programa, a propósito.
+   */
+  const [saltadas, setSaltadas] = useState<Set<string>>(new Set());
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const todoConfirmado = pending.length === 0;
   const quedanPorEnviar = porEnviar.length;
 
   const actual = cola[indice] ?? null;
+
+  const clave = (slip: { weekOf: string; assignment: string }) =>
+    `${slip.weekOf}|${slip.assignment}`;
+
+  /**
+   * Cuántas de esta ronda siguen SIN MANDAR, sin contar la de delante.
+   *
+   * Se cuenta contra la lista viva de pendientes, no contra la posición en la
+   * cola. Antes era `cola.length - indice - 1`, y eso hacía que saltar a alguien
+   * bajara el número: decía «quedan 4» cuando en realidad seguían quedando 5,
+   * porque la saltada no se había mandado. El número tiene que decir lo que
+   * queda por hacer, no por dónde vas.
+   */
+  const restantes = cola.filter(
+    (slip) =>
+      clave(slip) !== (actual ? clave(actual) : '') &&
+      porEnviar.some((pendiente) => clave(pendiente) === clave(slip))
+  ).length;
 
   // "Parte 4 · 1-7 de septiembre": lo que ya dice la fila de la lista, para que
   // la hoja de envío no lo vuelva a calcular por su cuenta.
@@ -70,17 +100,90 @@ const PendingSlips = () => {
   const cerrarCola = () => {
     setCola([]);
     setIndice(0);
+    setSaltadas(new Set());
   };
 
-  const siguiente = () => {
+  /**
+   * Volver a mandar una que ya salió, avisando antes.
+   *
+   * Se pregunta porque el hermano ya tiene su hojita: mandarla otra vez no
+   * rompe nada, pero recibir dos veces lo mismo hace dudar de si la primera
+   * valía. Y se dice QUIÉN la mandó, que es lo que de verdad se quiere saber —
+   * si fue uno mismo y se le olvidó, o si otro ya se ocupó.
+   */
+  const reenviar = async (slip: (typeof pending)[number]) => {
+    const quien = slip.sentBy ? `La mandó ${slip.sentBy}` : 'Ya se mandó';
+    const cuando = slip.sentAt
+      ? ` el ${fmtDiaLargo(slip.sentAt.slice(0, 10).replace(/-/g, '/'))}`
+      : '';
+
+    const seguro = await confirm({
+      title: 'Esta hojita ya se mandó',
+      message: `${quien} a ${slip.name}${cuando}. ¿Se la vuelves a mandar?`,
+      confirmLabel: 'Volver a mandarla',
+    });
+
+    if (!seguro) return;
+
+    // Una ronda de una sola: se está reenviando ESTA, no empezando el reparto.
+    setCola([slip]);
+    setIndice(0);
+    setSaltadas(new Set());
+  };
+
+  const siguiente = (saltada = false) => {
+    const estaClave = cola[indice] ? clave(cola[indice]) : null;
+
+    if (saltada && estaClave) {
+      // Saltar NO marca nada: la hojita sigue pendiente y sigue en la lista de
+      // abajo. Lo único que hace es pasar a la siguiente para no cortar la
+      // ronda por alguien a quien se le va a decir en persona.
+      setSaltadas((valor) => new Set(valor).add(estaClave));
+    }
+
     // La última cierra la cola en vez de dejar un diálogo vacío. Volver a la
     // lista al terminar es la señal de que se acabó.
     if (indice + 1 >= cola.length) {
-      cerrarCola();
+      // La clave viaja como argumento porque `setSaltadas` de arriba todavía no
+      // ha llegado al estado: leer `saltadas` aquí dejaría fuera justo la
+      // última, que es la que se acaba de saltar.
+      terminarCola(saltada ? estaClave : null);
       return;
     }
 
     setIndice((valor) => valor + 1);
+  };
+
+  /**
+   * Cerrar la ronda diciendo qué se quedó sin mandar.
+   *
+   * Sin esto, saltar a tres hermanos y llegar al final se veía igual que
+   * haberlos mandado a todos: la cola desaparecía y nada decía que quedaban
+   * tres. Están en la lista, sí, pero hay que acordarse de mirarla.
+   */
+  const terminarCola = (ultimaSaltada: string | null) => {
+    const todas = new Set(saltadas);
+
+    if (ultimaSaltada) todas.add(ultimaSaltada);
+
+    const saltadasEnRonda = cola.filter(
+      (slip) =>
+        todas.has(clave(slip)) &&
+        porEnviar.some((pendiente) => clave(pendiente) === clave(slip))
+    ).length;
+
+    cerrarCola();
+
+    if (saltadasEnRonda === 0) return;
+
+    displaySnackNotification({
+      header: 'Ronda terminada',
+      message:
+        saltadasEnRonda === 1
+          ? 'Queda 1 hojita que te has saltado. Sigue en la lista, sin mandar.'
+          : `Quedan ${saltadasEnRonda} hojitas que te has saltado. Siguen en la lista, sin mandar.`,
+      severity: 'success',
+    });
   };
 
   return (
@@ -282,13 +385,44 @@ const PendingSlips = () => {
                   </Box>
 
                   {slip.sent ? (
-                    <Badge
-                      text="Enviada"
-                      color="green"
-                      size="small"
-                      filled={false}
-                      sx={{ flexShrink: 0 }}
-                    />
+                    // Pulsable: es donde se pregunta «¿esta ya la mandé?», y
+                    // hasta ahora era una etiqueta muerta que no contestaba.
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={() => reenviar(slip)}
+                      aria-label={`Volver a mandar la hojita de ${slip.name}`}
+                      sx={{
+                        flexShrink: 0,
+                        appearance: 'none',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        // El dibujo mide menos de 48, así que el área se
+                        // estira por debajo sin mover nada (DESIGN_SYSTEM
+                        // §2.5a). La fila no lleva `overflow`, así que aquí el
+                        // `::after` sí llega.
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          inset: '-12px',
+                        },
+                        '&:focus-visible': {
+                          outline: '2px solid var(--accent-main)',
+                          outlineOffset: '2px',
+                          borderRadius: 'var(--shape-full)',
+                        },
+                      }}
+                    >
+                      <Badge
+                        text="Enviada"
+                        color="green"
+                        size="small"
+                        filled={false}
+                      />
+                    </Box>
                   ) : (
                     // `outline` porque se repite en cada fila: rellenas serían
                     // un muro de color (DESIGN_SYSTEM §6.2).
@@ -308,11 +442,13 @@ const PendingSlips = () => {
       <DialogEnvio
         slip={actual}
         detalle={detalle}
-        restantes={Math.max(cola.length - indice - 1, 0)}
+        restantes={restantes}
         onClose={cerrarCola}
-        onEnviada={siguiente}
-        onSaltar={siguiente}
+        onEnviada={() => siguiente()}
+        onSaltar={() => siguiente(true)}
       />
+
+      {ConfirmDialogNode}
     </Box>
   );
 };

@@ -99,6 +99,21 @@ export type AssignmentCongregation = {
    */
   sentAt?: string;
   /**
+   * Quién mandó la hojita, por su nombre.
+   *
+   * Aparte de `by` a propósito, aunque los dos guarden un nombre. `by` responde
+   * «quién puso a esta persona en esta parte»; esto responde «quién le mandó su
+   * hojita», y son dos personas distintas más veces de lo que parece: uno
+   * reparte las asignaciones y otro las manda. Machacar `by` al mandar habría
+   * hecho que el panel de «Última actualización» dijera que Fulano cambió el
+   * programa cuando lo único que hizo fue darle a compartir.
+   *
+   * Existe para poder avisar antes de mandar dos veces la misma hojita: sin el
+   * nombre, el aviso solo podría decir «esta ya se mandó», y lo primero que se
+   * pregunta uno es si la mandó él y se le olvidó.
+   */
+  sentBy?: string;
+  /**
    * Quién puso este valor, por su nombre.
    *
    * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del

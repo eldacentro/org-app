@@ -13,9 +13,10 @@
  * miércoles con el tema aprendido, y quien la tenía que hacer no la ha
  * preparado. Así que:
  *
- *  · **El papel va primero.** Antes de la fecha y antes de la parte. Un mensaje
- *    de WhatsApp se lee de la primera línea a la tercera, y el que se salta el
- *    resto tiene que haber leído ya lo importante.
+ *  · **El papel va primero.** Antes de la fecha y antes de la parte: en cuanto
+ *    pasa el saludo, lo primero que se lee es que la parte no es suya. Un
+ *    mensaje de WhatsApp se recorre de arriba abajo y el que se salta el resto
+ *    tiene que haber leído ya lo importante.
  *  · **En negrita, no en mayúsculas.** Los asteriscos de WhatsApp son negrita
  *    de verdad en el chat; escribir «AYUDANTE» sería gritar y, encima, en la
  *    app está prohibido (ver DESIGN_SYSTEM §5).
@@ -106,7 +107,8 @@ export const componerMensajeHojita = (datos: DatosMensajeHojita): string => {
     const enLaSala = sala ? `, en la ${sala}` : '';
 
     return [
-      `Hola, ${nombre}. Te toca ${laParte(datos)}${cierre} el ${fecha}${enLaSala}.`,
+      `Hola, ${nombre}. ¿Qué tal?`,
+      `Se te ha asignado ${laParte(datos)}${cierre} el ${fecha}${enLaSala}.`,
       'Te paso la hojita. ¡Gracias!',
     ].join('\n');
   }
@@ -124,7 +126,8 @@ export const componerMensajeHojita = (datos: DatosMensajeHojita): string => {
     : 'La parte no es tuya: tú acompañas.';
 
   return [
-    `Hola, ${nombre}. Vas de *ayudante*${aQuien} el ${fecha}, en ${laParte(datos)}${enSala}.`,
+    `Hola, ${nombre}. ¿Qué tal?`,
+    `Vas de *ayudante*${aQuien} el ${fecha}, en ${laParte(datos)}${enSala}.`,
     quienLaLleva,
     'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!',
   ].join('\n');

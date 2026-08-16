@@ -60,6 +60,15 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [blob, setBlob] = useState<Blob | null>(null);
+  /**
+   * Se pidió imagen y hubo que mandar el PDF.
+   *
+   * Se dice en la propia hoja de envío, en pequeño, en vez de con un aviso
+   * rojo: no es un fallo que impida trabajar —la hojita sale igual— y quien
+   * está repartiendo quince no necesita que le paren para contarle un detalle
+   * de formato.
+   */
+  const [cayoAPdf, setCayoAPdf] = useState(false);
   const [preparando, setPreparando] = useState(false);
   const [compartiendo, setCompartiendo] = useState(false);
 
@@ -246,27 +255,43 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
 
     setPreparando(true);
     setBlob(null);
+    setCayoAPdf(false);
 
     pdf(<TemplateS89 data={datos} lang={sourceLocale} />)
       .toBlob()
-      // La imagen sale del PDF ya hecho, no de una hoja dibujada aparte: es la
-      // MISMA S-89 de la impresión, fotografiada. Ver `hojitaComoImagen`.
-      .then((generado) =>
-        formato === 'imagen' ? hojitaComoImagen(generado) : generado
-      )
+      .then(async (documento) => {
+        if (formato !== 'imagen') return documento;
+
+        // La imagen sale del PDF ya hecho, no de una hoja dibujada aparte: es
+        // la MISMA S-89 de la impresión, fotografiada. Ver `hojitaComoImagen`.
+        try {
+          return await hojitaComoImagen(documento);
+        } catch (error) {
+          // Y si no se puede convertir, SE MANDA EL PDF. Quien está repartiendo
+          // no necesita enterarse de por qué falló pdf.js: necesita que la
+          // hojita salga. Antes esto era un aviso rojo que le mandaba a los
+          // ajustes a cambiar el formato a mano — con el hermano esperando al
+          // otro lado, y con el PDF ya hecho aquí mismo, sin usar.
+          console.error('No se ha podido convertir la hojita en imagen:', error);
+
+          if (!cancelado) setCayoAPdf(true);
+
+          return documento;
+        }
+      })
       .then((generado) => {
         if (!cancelado) setBlob(generado);
       })
       .catch((error) => {
+        // Aquí solo se llega si ni siquiera se pudo generar el PDF, que es un
+        // fallo de verdad: no hay nada que mandar.
         console.error('No se ha podido preparar la hojita:', error);
 
         if (!cancelado) {
           displaySnackNotification({
             header: 'No se ha podido preparar la hojita',
             message:
-              formato === 'imagen'
-                ? 'Prueba a cambiar el formato a PDF en los ajustes de la reunión.'
-                : 'Vuelve a abrirla; si sigue igual, exporta la hojita desde el programa.',
+              'Vuelve a abrirla; si sigue igual, sácala con «Exportar» desde el programa.',
             severity: 'error',
           });
         }
@@ -302,7 +327,9 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
         nombre: nombreArchivo(
           'S-89',
           `${diaArchivo(s89.weekOf)} ${s89.student_name}`,
-          formato === 'imagen' ? 'png' : 'pdf'
+          // La extensión, según lo que de verdad se manda: si la conversión
+          // falló y va el PDF, un fichero llamado `.png` no lo abriría nadie.
+          formato === 'imagen' && !cayoAPdf ? 'png' : 'pdf'
         ),
         titulo: `Hojita de ${nombreCompleto || s89.student_name}`,
         alCompartir: () => marcarEnviada(true),
@@ -315,6 +342,7 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
   return {
     nombre,
     nombreCompleto,
+    cayoAPdf,
     telefono,
     mensaje,
     enlace,

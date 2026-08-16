@@ -44,6 +44,10 @@ export type PendingSlip = {
    * en esta lista.
    */
   sent: boolean;
+  /** Cuándo se mandó, si se mandó. */
+  sentAt?: string;
+  /** Quién la mandó, por su nombre. Ver `sentBy` en la asignación. */
+  sentBy?: string;
   /** Solo en un ayudante: el person_uid del estudiante al que ayuda. */
   ayudaA?: string;
 };
@@ -117,6 +121,8 @@ export const pendingS89Slips = ({
           person: assigned.value,
           papel: 'estudiante',
           sent: Boolean(assigned.sent),
+          sentAt: assigned.sentAt,
+          sentBy: assigned.sentBy,
         });
       }
 
@@ -147,6 +153,8 @@ export const pendingS89Slips = ({
         person: assistant.value,
         papel: 'ayudante',
         sent: Boolean(assistant.sent),
+        sentAt: assistant.sentAt,
+        sentBy: assistant.sentBy,
         ayudaA: assigned.value,
       });
     }

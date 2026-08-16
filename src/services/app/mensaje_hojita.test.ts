@@ -31,7 +31,8 @@ describe('el mensaje que va escrito en el chat', () => {
       });
 
       expect(mensaje).toBe(
-        'Hola, Marcos. Te toca la parte 4, «Empiece conversaciones», el miércoles 3 de septiembre, en la sala auxiliar núm. 1.\n' +
+        'Hola, Marcos. ¿Qué tal?\n' +
+          'Se te ha asignado la parte 4, «Empiece conversaciones», el miércoles 3 de septiembre, en la sala auxiliar núm. 1.\n' +
           'Te paso la hojita. ¡Gracias!'
       );
     });
@@ -39,7 +40,9 @@ describe('el mensaje que va escrito en el chat', () => {
     it('sin título de parte, el número basta', () => {
       const mensaje = componerMensajeHojita({ ...base, papel: 'estudiante' });
 
-      expect(mensaje).toContain('Te toca la parte 4 el miércoles 3 de septiembre.');
+      expect(mensaje).toContain(
+        'Se te ha asignado la parte 4 el miércoles 3 de septiembre.'
+      );
       expect(mensaje).not.toContain('«');
     });
 
@@ -68,18 +71,19 @@ describe('el mensaje que va escrito en el chat', () => {
       });
 
       expect(mensaje).toBe(
-        'Hola, Javier. Vas de *ayudante* de Marcos Ruiz el miércoles 3 de septiembre, en la parte 5, «Haga revisitas» (sala auxiliar núm. 1).\n' +
+        'Hola, Javier. ¿Qué tal?\n' +
+          'Vas de *ayudante* de Marcos Ruiz el miércoles 3 de septiembre, en la parte 5, «Haga revisitas» (sala auxiliar núm. 1).\n' +
           'La parte la lleva Marcos Ruiz; tú le acompañas.\n' +
           'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!'
       );
     });
 
-    it('«ayudante» va en la PRIMERA línea', () => {
+    it('«ayudante» va en el primer renglón después del saludo', () => {
       // Lo que se lee de un vistazo. Si esto se rompe al reordenar el mensaje,
       // el mensaje ha dejado de hacer su trabajo aunque siga diciendo lo mismo.
       const mensaje = componerMensajeHojita(ayudante);
 
-      expect(mensaje.split('\n')[0]).toContain('*ayudante*');
+      expect(mensaje.split('\n')[1]).toContain('*ayudante*');
     });
 
     it('va en negrita de WhatsApp, no en mayúsculas', () => {
@@ -97,12 +101,12 @@ describe('el mensaje que va escrito en el chat', () => {
       expect(mensaje).toContain('La parte la lleva Marcos Ruiz; tú le acompañas.');
     });
 
-    it('nunca le dice «te toca» ni «tu parte»', () => {
+    it('nunca le dice que se le ha asignado la parte', () => {
       // Las dos fórmulas del mensaje del estudiante. Si alguna se cuela aquí,
       // el mensaje dice lo contrario de lo que pretende.
       const mensaje = componerMensajeHojita(ayudante);
 
-      expect(mensaje).not.toContain('Te toca');
+      expect(mensaje).not.toContain('Se te ha asignado');
       expect(mensaje).not.toContain('tu parte');
     });
 
@@ -114,7 +118,7 @@ describe('el mensaje que va escrito en el chat', () => {
         estudiante: undefined,
       });
 
-      expect(mensaje.split('\n')[0]).toContain('*ayudante*');
+      expect(mensaje.split('\n')[1]).toContain('*ayudante*');
       expect(mensaje).toContain('La parte no es tuya');
     });
 

@@ -1335,6 +1335,32 @@ export const schedulesUpdateHistory = (
  * se pierde la MARCA, nunca la asignación. Y una marca perdida se ve a simple
  * vista (la fila vuelve a estar pendiente) y se vuelve a pulsar.
  */
+/**
+ * Quién mandó la hojita queda apuntado; quién la confirmó, no.
+ *
+ * Y no por descuido: la confirmación la pone quien tenga el móvil delante
+ * cuando el hermano contesta, y ese dato no le sirve a nadie. El de mandarla sí
+ * —es lo que evita que dos personas manden la misma hojita sin saberlo—, y es
+ * lo que se enseña al avisar de un reenvío.
+ *
+ * Se BORRA al desmarcar: un «la mandó Fulano» colgando de una hojita que consta
+ * como no mandada es peor que no tener el dato.
+ */
+const aplicarAutor = (
+  registro: AssignmentCongregation,
+  marca: 'confirmed' | 'sent',
+  valor: boolean
+) => {
+  if (marca !== 'sent') return;
+
+  if (valor) {
+    registro.sentBy = store.get(fullnameState);
+    return;
+  }
+
+  delete registro.sentBy;
+};
+
 const schedulesMarkAssignment = async (
   schedule: SchedWeekType,
   assignment: AssignmentFieldType,
@@ -1362,12 +1388,16 @@ const schedulesMarkAssignment = async (
     assigned[marca] = valor;
     assigned.updatedAt = updatedAt;
     assigned[sello] = updatedAt;
+
+    aplicarAutor(assigned, marca, valor);
   } else {
     if (!fieldUpdate?.value) return;
 
     fieldUpdate[marca] = valor;
     fieldUpdate.updatedAt = updatedAt;
     fieldUpdate[sello] = updatedAt;
+
+    aplicarAutor(fieldUpdate, marca, valor);
   }
 
   await dbSchedUpdate(schedule.weekOf, {
@@ -1493,6 +1523,7 @@ export const schedulesSaveAssignment = async (
           // recibido, así que no se le mandaría nunca.
           delete assigned.sent;
           delete assigned.sentAt;
+          delete assigned.sentBy;
         }
 
         assigned.value = toSave;
@@ -1530,6 +1561,7 @@ export const schedulesSaveAssignment = async (
         delete fieldUpdate.confirmedAt;
         delete fieldUpdate.sent;
         delete fieldUpdate.sentAt;
+        delete fieldUpdate.sentBy;
       }
 
       fieldUpdate.value = toSave;
