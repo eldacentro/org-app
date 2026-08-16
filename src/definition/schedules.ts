@@ -60,6 +60,45 @@ export type AssignmentCongregation = {
    */
   confirmedAt?: string;
   /**
+   * La hojita SE MANDÓ. Que no es lo mismo que que la hayan aceptado.
+   *
+   * Hasta ahora solo existía `confirmed`, y con una sola marca las dos
+   * preguntas del que reparte se mezclaban en una: «¿a quién le falta que le
+   * llegue?» y «¿a quién le falta contestar?». Sin separarlas, la lista de
+   * pendientes obligaba a acordarse de memoria de a cuáles ya se les había
+   * mandado — que es exactamente lo que se acaba mandando dos veces, o ninguna.
+   *
+   * Se pone SOLA al compartir la hojita, no a mano: el trabajo que se quería
+   * quitar era el de ir apuntando. `confirmed` sigue siendo manual, porque
+   * depende de que el hermano conteste y eso la app no lo puede saber.
+   *
+   * Vive aquí dentro, y no en una tabla aparte, por lo mismo que `confirmed`:
+   * pertenece al par parte+persona y tiene que morir con él. Al reasignar la
+   * parte se borran las dos.
+   *
+   * A diferencia de `confirmed`, esta marca SÍ la lleva también el AYUDANTE de
+   * una parte —su registro tiene esta misma forma—, porque a él también se le
+   * manda un mensaje. Lo que no lleva es `confirmed`: el que acepta la hojita
+   * es el estudiante, que es de quien es la parte.
+   */
+  sent?: boolean;
+  /**
+   * Cuándo se marcó que la hojita se había mandado.
+   *
+   * Existe por el MISMO motivo que `confirmedAt`, y hay que leerlo con él
+   * delante: marcar tiene que sellar `updatedAt` —si no, la marca no gana la
+   * fusión y no llega a los demás dispositivos—, pero eso hacía que el contador
+   * de «cambios desde que se publicó» contara como cambio del programa algo que
+   * no lo es. Mandar quince hojitas una tarde decía «has hecho quince cambios»
+   * y empujaba a republicar un mes que nadie había tocado.
+   *
+   * Si esta fecha coincide con `updatedAt`, el último toque de la asignación
+   * fue mandar la hojita. En cuanto se edite otra cosa, `updatedAt` avanza,
+   * dejan de coincidir, y ese cambio sí cuenta. Ver `collectUpdatedAfter`, que
+   * ahora mira los DOS sellos.
+   */
+  sentAt?: string;
+  /**
    * Quién puso este valor, por su nombre.
    *
    * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del

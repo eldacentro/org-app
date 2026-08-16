@@ -60,6 +60,23 @@ export const S89TemplateState = atom<S89TemplateType>(
     'S89_1x1'
 );
 
+/**
+ * Avisar también al AYUDANTE de cada parte al repartir las hojitas.
+ *
+ * Vive en este dispositivo y no en los ajustes de la congregación a propósito:
+ * es la costumbre de quien reparte, no una norma. Y por el camino se ahorra
+ * tocar el esquema que se sincroniza, que en este repo es donde han dolido los
+ * errores. Mismo patrón que la plantilla de S-89 de aquí arriba, con el mismo
+ * cuidado de leer `localStorage` a través del ayudante para que el módulo
+ * siga cargando en Node y en un Web Worker.
+ *
+ * Apagado por defecto: muchas veces el ayudante es del mismo domicilio que el
+ * estudiante y ya está enterado, así que su fila sería ruido en la lista.
+ */
+export const avisarAyudantesState = atom<boolean>(
+  localStorageGetItem('organized_avisar_ayudantes') === 'true'
+);
+
 export const defaultWTStudyConductorNameState = atom((get) => {
   const value = get(weekendMeetingWTStudyConductorDefaultState);
   const useDisplayName = get(displayNameMeetingsEnableState);

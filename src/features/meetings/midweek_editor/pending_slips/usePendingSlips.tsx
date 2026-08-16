@@ -13,7 +13,11 @@ import { formatDate, getWeekDate } from '@utils/date';
 import { monthNamesState } from '@states/app';
 import { personsState } from '@states/persons';
 import { sourcesState } from '@states/sources';
-import { schedulesState, selectedWeekState } from '@states/schedules';
+import {
+  avisarAyudantesState,
+  schedulesState,
+  selectedWeekState,
+} from '@states/schedules';
 import {
   displayNameMeetingsEnableState,
   fullnameOptionState,
@@ -21,6 +25,7 @@ import {
   userDataViewState,
 } from '@states/settings';
 import { personGetDisplayName } from '@utils/common';
+import { normalizarTelefono } from '@utils/telefono';
 import { useAppTranslation } from '@hooks/index';
 
 /**
@@ -49,6 +54,7 @@ const usePendingSlips = () => {
   const monthNames = useAtomValue(monthNamesState);
   const displayNameEnabled = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const avisarAyudantes = useAtomValue(avisarAyudantesState);
 
   const pending = useMemo(() => {
     const fromWeek = formatDate(getWeekDate(), 'yyyy/MM/dd');
@@ -57,6 +63,7 @@ const usePendingSlips = () => {
       schedules,
       dataView,
       fromWeek,
+      incluirAyudantes: avisarAyudantes,
       // El material de la semana hace falta para saber el TIPO de cada parte
       // de "Seamos mejores maestros": las de «Análisis» las dirige un hermano
       // y no llevan papeleta, así que tampoco cuentan como pendientes.
@@ -84,12 +91,21 @@ const usePendingSlips = () => {
         (record) => record.person_uid === slip.person
       );
 
+      // El ayudante comparte la parte del estudiante, así que su etiqueta sale
+      // del mismo sitio: hay que quitarle también su palabra, o la fila diría
+      // «MM_AYFPart1_Assistant» en crudo.
       const clave = slip.assignment
-        .replace(/_Student/, '')
+        .replace(/_(Student|Assistant)/, '')
         .replace(/_[AB]$/, '');
+
+      // El teléfono se resuelve AQUÍ, con la lista, y no al pulsar: quien
+      // reparte tiene que ver de un vistazo a quién no se le puede escribir,
+      // en vez de descubrirlo hojita por hojita.
+      const telefono = normalizarTelefono(person?.person_data.phone.value);
 
       return {
         ...slip,
+        telefono,
         // Si la persona ya no existe, el nombre desnormalizado del propio
         // programa evita que la fila quede en blanco y no se sepa a quién
         // había que darle la hojita.
@@ -106,6 +122,7 @@ const usePendingSlips = () => {
     sources,
     lang,
     dataView,
+    avisarAyudantes,
     persons,
     displayNameEnabled,
     fullnameOption,
@@ -150,7 +167,21 @@ const usePendingSlips = () => {
     return pending.filter((slip) => slip.weekOf === selectedWeek);
   }, [pending, selectedWeek]);
 
-  return { pending, porSemana, enSemana };
+  // Los DOS estados, que es de lo que va todo esto. «Por enviar» es trabajo
+  // que queda por hacer; «esperando» son hojitas que ya salieron y de las que
+  // falta que contesten. Mezclados en un solo número no se sabe por dónde
+  // empezar — ni siquiera si hay algo que empezar.
+  const porEnviar = useMemo(
+    () => pending.filter((slip) => !slip.sent),
+    [pending]
+  );
+
+  const esperando = useMemo(
+    () => pending.filter((slip) => slip.sent),
+    [pending]
+  );
+
+  return { pending, porSemana, enSemana, porEnviar, esperando };
 };
 
 export default usePendingSlips;

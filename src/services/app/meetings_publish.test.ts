@@ -410,6 +410,91 @@ describe('avisar de lo que se ha cambiado desde que se publicó', () => {
     ).toBe(0);
   });
 
+  it('mandar la hojita tampoco es un cambio del programa', () => {
+    // Lo mismo que confirmar, y más veces: una tarde repartiendo son quince
+    // marcas seguidas. Si contaran, el aviso diría «has hecho quince cambios»
+    // de un mes que nadie ha tocado, y a la tercera vez deja de leerse.
+    const cuandoSeMando = '2026-10-03T10:00:00Z';
+
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              updatedAt: cuandoSeMando,
+              sent: true,
+              sentAt: cuandoSeMando,
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(0);
+  });
+
+  it('confirmar después de mandar sigue sin contar', () => {
+    // Las dos marcas conviven en la misma asignación: primero se manda, y
+    // luego contesta el hermano. El sello viejo (`sentAt`) ya no coincide con
+    // `updatedAt`, pero el nuevo sí — y por eso se miran los dos. Con uno solo,
+    // la segunda marca de cada hojita volvía a contar como cambio.
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-1',
+              name: 'Ana',
+              updatedAt: '2026-10-04T09:00:00Z',
+              sent: true,
+              sentAt: '2026-10-03T10:00:00Z',
+              confirmed: true,
+              confirmedAt: '2026-10-04T09:00:00Z',
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(0);
+  });
+
+  it('pero editar después de mandar sí cuenta', () => {
+    // Cambiar de persona después de haber mandado la hojita es justo lo que
+    // hay que republicar: al de antes le llegó una hojita que ya no es suya.
+    const semanas = [
+      week('2026/10/05', {
+        midweek: {
+          published: publishedMark(true, publicadoEl),
+          opening_prayer: [
+            {
+              type: 'main',
+              value: 'uid-2',
+              name: 'Luis',
+              updatedAt: '2026-10-04T09:00:00Z',
+              sent: true,
+              sentAt: '2026-10-03T10:00:00Z',
+            },
+          ],
+        },
+      }),
+    ];
+
+    expect(
+      countMeetingChangesSincePublish(semanas, FUTURO, 'midweek', 'main')
+    ).toBe(1);
+  });
+
   it('pero editar DESPUÉS de confirmar sí cuenta', () => {
     // En cuanto se toca cualquier otra cosa, `updatedAt` avanza y deja de
     // coincidir con la fecha de la hojita: ese cambio sí hay que publicarlo.

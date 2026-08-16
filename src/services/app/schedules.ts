@@ -1315,22 +1315,31 @@ export const schedulesUpdateHistory = (
 };
 
 /**
- * Marcar (o desmarcar) que la hojita de asignación se entregó y se aceptó.
+ * Poner (o quitar) una de las dos marcas de la hojita.
+ *
+ * Son dos —`sent`, que la app pone sola al compartir, y `confirmed`, que se
+ * pulsa cuando el hermano contesta— pero se guardan EXACTAMENTE igual, y por
+ * eso hay una sola función: cada una tiene su campo y su sello de fecha, y todo
+ * lo demás (el sellado de `updatedAt`, no tocar quién tiene la parte, no crear
+ * registros vacíos) es común. Escrito dos veces, sería cuestión de tiempo que
+ * una de las dos se dejara el sello y sus marcas empezaran a contarse como
+ * cambios del programa.
  *
  * Escribe SOLO ese campo y la marca de tiempo, sin tocar quién tiene la parte.
- * Es a propósito: quien confirma hojitas y quien reparte asignaciones pueden
- * ser dos personas a la vez en dos dispositivos, y reescribir aquí el `value`
- * leído de una copia local rancia podría revivir a un asignado ya cambiado.
+ * Es a propósito: quien reparte hojitas y quien reparte asignaciones pueden ser
+ * dos personas a la vez en dos dispositivos, y reescribir aquí el `value` leído
+ * de una copia local rancia podría revivir a un asignado ya cambiado.
  *
  * La fusión de la sincronización reemplaza el objeto entero por el más
- * reciente, así que en el peor caso —confirmar y reasignar en el mismo
- * instante— se pierde la MARCA, nunca la asignación. Y una marca perdida se ve
- * a simple vista (la casilla vuelve a estar vacía) y se vuelve a pulsar.
+ * reciente, así que en el peor caso —marcar y reasignar en el mismo instante—
+ * se pierde la MARCA, nunca la asignación. Y una marca perdida se ve a simple
+ * vista (la fila vuelve a estar pendiente) y se vuelve a pulsar.
  */
-export const schedulesToggleAssignmentConfirmed = async (
+const schedulesMarkAssignment = async (
   schedule: SchedWeekType,
   assignment: AssignmentFieldType,
-  confirmed: boolean
+  marca: 'confirmed' | 'sent',
+  valor: boolean
 ) => {
   const dataView = store.get(userDataViewState);
   const path = ASSIGNMENT_PATH[assignment];
@@ -1338,30 +1347,54 @@ export const schedulesToggleAssignmentConfirmed = async (
   const fieldUpdate = structuredClone(schedulesGetData(schedule, path));
   const updatedAt = new Date().toISOString();
 
+  // La MISMA fecha en los dos campos: así se sabe que el último toque de esta
+  // asignación fue la hojita y no una edición del programa. Ver `confirmedAt`
+  // y `sentAt` en la definición.
+  const sello = `${marca}At` as 'confirmedAt' | 'sentAt';
+
   if (Array.isArray(fieldUpdate)) {
     const assigned = fieldUpdate.find((record) => record.type === dataView);
 
-    // Sin nadie asignado no hay nada que confirmar: crear el registro aquí
+    // Sin nadie asignado no hay nada que marcar: crear el registro aquí
     // dejaría una asignación vacía marcada como entregada.
     if (!assigned?.value) return;
 
-    assigned.confirmed = confirmed;
+    assigned[marca] = valor;
     assigned.updatedAt = updatedAt;
-    // La MISMA fecha en los dos: así se sabe que el último toque de esta
-    // asignación fue la hojita y no una edición del programa. Ver `confirmedAt`.
-    assigned.confirmedAt = updatedAt;
+    assigned[sello] = updatedAt;
   } else {
     if (!fieldUpdate?.value) return;
 
-    fieldUpdate.confirmed = confirmed;
+    fieldUpdate[marca] = valor;
     fieldUpdate.updatedAt = updatedAt;
-    fieldUpdate.confirmedAt = updatedAt;
+    fieldUpdate[sello] = updatedAt;
   }
 
   await dbSchedUpdate(schedule.weekOf, {
     [path]: fieldUpdate,
   } as unknown as UpdateSpec<SchedWeekType>);
 };
+
+/** Marcar (o desmarcar) que la hojita se entregó y el hermano la aceptó. */
+export const schedulesToggleAssignmentConfirmed = async (
+  schedule: SchedWeekType,
+  assignment: AssignmentFieldType,
+  confirmed: boolean
+) => schedulesMarkAssignment(schedule, assignment, 'confirmed', confirmed);
+
+/**
+ * Marcar (o desmarcar) que la hojita se MANDÓ.
+ *
+ * La pone sola la pantalla de envío al compartir el PDF, y se puede quitar a
+ * mano: compartir es lo último que la app llega a ver —lo que pase después ya
+ * es cosa de WhatsApp—, así que tiene que poder deshacerse cuando el envío se
+ * quedó a medias.
+ */
+export const schedulesToggleAssignmentSent = async (
+  schedule: SchedWeekType,
+  assignment: AssignmentFieldType,
+  sent: boolean
+) => schedulesMarkAssignment(schedule, assignment, 'sent', sent);
 
 /**
  * El nombre de la congregación de un orador visitante.
@@ -1455,6 +1488,11 @@ export const schedulesSaveAssignment = async (
           // Y su fecha con ella: si se quedara, la asignación nueva parecería
           // «tocada solo por la hojita» y su cambio no se contaría.
           delete assigned.confirmedAt;
+          // Y lo mismo con «mandada», por el mismo motivo y uno más: la lista
+          // de pendientes daría por enviada una hojita que el nuevo no ha
+          // recibido, así que no se le mandaría nunca.
+          delete assigned.sent;
+          delete assigned.sentAt;
         }
 
         assigned.value = toSave;
@@ -1490,6 +1528,8 @@ export const schedulesSaveAssignment = async (
       if (fieldUpdate.value !== toSave) {
         delete fieldUpdate.confirmed;
         delete fieldUpdate.confirmedAt;
+        delete fieldUpdate.sent;
+        delete fieldUpdate.sentAt;
       }
 
       fieldUpdate.value = toSave;

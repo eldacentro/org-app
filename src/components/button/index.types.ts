@@ -72,6 +72,17 @@ export type ButtonPropsType = {
   href?: string;
 
   /**
+   * Dónde se abre el enlace cuando el botón es un ancla.
+   *
+   * Hace falta `_blank` para salir a otra aplicación —`wa.me`, un mapa— sin
+   * llevarse la nuestra por delante: sin él, el enlace navega en la MISMA
+   * pestaña, y en la app instalada eso significa perder la pantalla donde
+   * estabas y volver a montarla al regresar. Acompáñalo siempre de
+   * `rel="noopener"`.
+   */
+  target?: string;
+
+  /**
    * Minimum height of the button, in pixels.
    * Useful for ensuring consistent sizing across different layouts or devices.
    */

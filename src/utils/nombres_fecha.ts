@@ -107,6 +107,28 @@ export const fmtDiaCorto = (fecha: string): string => {
 };
 
 /**
+ * "miércoles 3 de septiembre" a partir de una fecha en 'yyyy/MM/dd'.
+ *
+ * Toda en MINÚSCULA, como manda el fichero: esta etiqueta nace para ir DENTRO
+ * de una frase —«te toca la parte 4 el miércoles 3 de septiembre»—, que es el
+ * caso en el que la mayúscula sobraría. Si algún día hace falta abriendo una
+ * etiqueta, la pone quien la construye con `capitalizarPrimera`.
+ *
+ * Sin año a propósito: las hojitas se reparten con dos meses de antelación como
+ * mucho, así que el año no distingue nada y solo alarga el mensaje.
+ */
+export const fmtDiaLargo = (fecha: string): string => {
+  const [year, month, day] = fecha.split(/[/-]/).map(Number);
+  const d = new Date(year, month - 1, day);
+
+  if (Number.isNaN(d.getTime())) return fecha;
+
+  const dia = DIAS_ES_DESDE_DOMINGO[d.getDay()];
+
+  return `${dia} ${d.getDate()} de ${MESES_ES[d.getMonth()]}`;
+};
+
+/**
  * "Semana del 27 de julio al 2 de agosto" a partir de un `weekOf`
  * ("2026/07/27", que siempre es el lunes).
  *

@@ -2,6 +2,7 @@ import { Stack } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import { QuickSettingsMidweekMeetingProps } from './index.types';
 import AuxiliaryClassroom from '@features/congregation/settings/meeting_settings/midweek/auxiliary_classroom';
+import AvisarAyudantes from './avisar_ayudantes';
 import DayTime from '@features/congregation/settings/meeting_settings/midweek/day_time';
 import Divider from '@components/divider';
 import LinkedParts from '@features/congregation/settings/meeting_settings/midweek/linked_parts';
@@ -31,6 +32,11 @@ const QuickSettingsMidweekMeeting = ({
 
         <Stack spacing="16px">
           <AuxiliaryClassroom />
+        </Stack>
+
+        {/* Reparto de hojitas: quién recibe mensaje además del estudiante. */}
+        <Stack spacing="16px">
+          <AvisarAyudantes />
         </Stack>
 
         {/* El mismo componente que en Ajustes de congregación, como el resto de

@@ -539,10 +539,14 @@ const collectUpdatedAfter = (
     // Si las dos fechas coinciden, el último toque de esta asignación fue la
     // confirmación. En cuanto se edite cualquier otra cosa, `updatedAt` avanza,
     // dejan de coincidir y ese cambio sí se cuenta.
-    if (
-      typeof record.confirmedAt === 'string' &&
-      record.confirmedAt === record.updatedAt
-    ) {
+    //
+    // Y son DOS sellos, no uno: mandar la hojita (`sentAt`) tampoco es un
+    // cambio del programa, y se manda mucho más a menudo que se confirma —una
+    // tarde repartiendo quince decía «has hecho quince cambios desde que
+    // publicaste», que es la forma más segura de que ese aviso deje de leerse.
+    const sellos = [record.confirmedAt, record.sentAt];
+
+    if (sellos.some((sello) => sello === record.updatedAt)) {
       return [];
     }
 
