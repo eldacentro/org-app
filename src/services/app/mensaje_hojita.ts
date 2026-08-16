@@ -27,12 +27,14 @@
  *    línea «Auxiliar:» (usa `tr_assistant`; la clave `tr_assistantS89`, que sí
  *    dice «Ayudante», no la usa nadie) — y en la MISMA hoja, tres líneas más
  *    abajo, pone «Sala auxiliar núm. 1». O sea que la palabra ya significa dos
- *    cosas en el propio papel. Por eso el mensaje dice «ayudante», que no
- *    choca con nada…
- *  · **…y por eso la última línea le dice dónde mirar.** Si el mensaje usara
- *    una palabra y la hoja otra sin más, tendría que adivinar que «Auxiliar:»
- *    es él. Nombrar la línea lo cierra: lee el mensaje, mira la hojita, y se
- *    encuentra.
+ *    cosas en el propio papel, y por eso el mensaje usa «ayudante»: no choca
+ *    con la sala. Encontrarse en la hojita no necesita explicación —su nombre
+ *    está ahí, y el del estudiante en la línea de arriba—.
+ *  · **«Se te ha asignado COMO ayudante», nunca «se te ha asignado la parte».**
+ *    Es la misma fórmula que abre el mensaje del estudiante, y ese parecido es
+ *    bueno —las dos son asignaciones de verdad—, pero lo que sigue tiene que
+ *    separarlas en la misma frase. Hay una prueba que falla si «se te ha
+ *    asignado la parte» se cuela aquí.
  */
 
 /**
@@ -127,8 +129,8 @@ export const componerMensajeHojita = (datos: DatosMensajeHojita): string => {
 
   return [
     `Hola, ${nombre}. ¿Qué tal?`,
-    `Vas de *ayudante*${aQuien} el ${fecha}, en ${laParte(datos)}${enSala}.`,
+    `Se te ha asignado como *ayudante*${aQuien} el ${fecha}, en ${laParte(datos)}${enSala}.`,
     quienLaLleva,
-    'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!',
+    'Te paso su hojita. ¡Gracias!',
   ].join('\n');
 };

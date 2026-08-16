@@ -72,9 +72,9 @@ describe('el mensaje que va escrito en el chat', () => {
 
       expect(mensaje).toBe(
         'Hola, Javier. ¿Qué tal?\n' +
-          'Vas de *ayudante* de Marcos Ruiz el miércoles 3 de septiembre, en la parte 5, «Haga revisitas» (sala auxiliar núm. 1).\n' +
+          'Se te ha asignado como *ayudante* de Marcos Ruiz el miércoles 3 de septiembre, en la parte 5, «Haga revisitas» (sala auxiliar núm. 1).\n' +
           'La parte la lleva Marcos Ruiz; tú le acompañas.\n' +
-          'Te paso su hojita: tu nombre va en la línea de «Auxiliar». ¡Gracias!'
+          'Te paso su hojita. ¡Gracias!'
       );
     });
 
@@ -98,15 +98,20 @@ describe('el mensaje que va escrito en el chat', () => {
       const mensaje = componerMensajeHojita(ayudante);
 
       expect(mensaje).toContain('de Marcos Ruiz');
-      expect(mensaje).toContain('La parte la lleva Marcos Ruiz; tú le acompañas.');
+      expect(mensaje).toContain(
+        'La parte la lleva Marcos Ruiz; tú le acompañas.'
+      );
     });
 
-    it('nunca le dice que se le ha asignado la parte', () => {
-      // Las dos fórmulas del mensaje del estudiante. Si alguna se cuela aquí,
-      // el mensaje dice lo contrario de lo que pretende.
+    it('le asignan COMO ayudante, nunca la parte', () => {
+      // El mensaje empieza igual que el del estudiante a propósito —las dos son
+      // asignaciones de verdad— y se separan justo en la palabra siguiente. Si
+      // alguna vez dijera «se te ha asignado la parte», diría lo contrario de
+      // lo que pretende.
       const mensaje = componerMensajeHojita(ayudante);
 
-      expect(mensaje).not.toContain('Se te ha asignado');
+      expect(mensaje).toContain('Se te ha asignado como *ayudante*');
+      expect(mensaje).not.toContain('Se te ha asignado la parte');
       expect(mensaje).not.toContain('tu parte');
     });
 
@@ -122,15 +127,14 @@ describe('el mensaje que va escrito en el chat', () => {
       expect(mensaje).toContain('La parte no es tuya');
     });
 
-    it('le dice en qué línea de la hojita está su nombre', () => {
-      // La hoja impresa titula esa línea «Auxiliar:» —y más abajo pone «Sala
-      // auxiliar núm. 1», con lo que la palabra vale para dos cosas en el mismo
-      // papel—. El mensaje dice «ayudante» para no chocar con la sala, así que
-      // tiene que decirle dónde mirar o le toca adivinar que ese es él.
+    it('le avisa de que la hojita que recibe es la del otro', () => {
+      // "su hojita", no "tu hojita": lo que le llega es la hoja del estudiante,
+      // donde él aparece como auxiliar. Es la última señal de que la parte no
+      // es suya.
       const mensaje = componerMensajeHojita(ayudante);
 
-      expect(mensaje).toContain('su hojita');
-      expect(mensaje).toContain('«Auxiliar»');
+      expect(mensaje).toContain('Te paso su hojita.');
+      expect(mensaje).not.toContain('Te paso la hojita.');
     });
   });
 });
