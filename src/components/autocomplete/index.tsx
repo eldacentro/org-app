@@ -178,9 +178,14 @@ const Autocomplete = <T,>(props: AutocompletePropsType<T>) => {
                     '&:hover': {
                       backgroundColor: 'var(--orange-secondary)',
                     },
+                    // El anillo de foco va fuera; el de 1px de arriba se
+                    // queda dentro a propósito: ese no es foco, es la marca
+                    // permanente de "esto hay que mirarlo".
                     '&.Mui-focused': {
                       backgroundColor: 'var(--card)',
-                      boxShadow: 'inset 0 0 0 2px var(--orange-dark)',
+                      outline: '2px solid var(--orange-dark)',
+                      outlineOffset: '2px',
+                      boxShadow: 'none',
                     },
                   },
                   '.MuiInputLabel-root': {

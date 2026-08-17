@@ -73,9 +73,13 @@ const OTPInput: FC<OTPInputProps> = ({ hasError, ...props }) => {
                   ? 'var(--red-secondary)'
                   : 'var(--state-selected)',
               },
+              // El anillo, POR FUERA, como el resto de la app. Dentro de una
+              // casilla de 52px se comía el dígito. Con 2px de separación
+              // sobre un hueco de 8 no llega a tocar a la de al lado.
               '&.Mui-focused': {
                 backgroundColor: 'var(--card)',
-                boxShadow: `inset 0 0 0 2px var(${hasError ? '--red-main' : '--accent-main'})`,
+                outline: `2px solid var(${hasError ? '--red-main' : '--accent-main'})`,
+                outlineOffset: '2px',
               },
             },
           },

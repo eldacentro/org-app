@@ -515,12 +515,25 @@ separación** entre objetivos.
   suya le sigue ganando. Medido antes: de 40 elementos enfocables de «Todas las
   personas», 18 tenían anillo y 22 no.
 
-**Y en los CAMPOS DE ESCRIBIR, el anillo no se pone: ya lo tienen.** Un campo
-de la app es una superficie rellena que al enfocarse se pinta un
-`inset 0 0 0 2px var(--accent-main)` —eso vive en el bloque «EL CAMPO» de
-`index.css` y es la señal de foco de las cuatro familias de campo—. Añadirle
-encima el anillo general dibuja **dos rectángulos concéntricos con un carril
-entre medias**, que es lo que se veía al tocar cualquier campo en Android.
+**El anillo va SIEMPRE POR FUERA, y en todo: botones, pestañas, filas,
+tarjetas y también los campos.** `outline: 2px solid var(--accent-main)` con
+`outline-offset: 2px`. Nunca `box-shadow: inset`.
+
+Los campos fueron durante un tiempo la excepción —se pintaban el aro por
+dentro— y se notaba: apretaba el texto contra el borde y no se parecía a nada
+más de la app. Peor todavía cuando encima les caía el anillo general: **dos
+rectángulos concéntricos con un carril entre medias**, que es lo que se veía
+al tocar cualquier campo en Android.
+
+**Y en un campo, el anillo se pinta sobre la RAÍZ, no sobre el `input`.** Sobre
+el `input` de dentro sale un rectángulo suelto alrededor del renglón, sin la
+etiqueta ni los adornos y sin seguir el radio del campo.
+
+Si un campo tiene además un estado propio —el verde de "código validado", el
+naranja de aviso— ese aro va también en `outline`, no en `box-shadow`: en la
+misma propiedad, para que mientras escribes mande el foco y al salir vuelva el
+color del estado. En propiedades distintas se dibujan los dos a la vez y
+vuelves al problema de partida.
 
 Y no vale pensar «con el dedo no sale»: la norma dice que un campo de texto
 case con `:focus-visible` SIEMPRE que tenga el foco, se haya llegado a él como

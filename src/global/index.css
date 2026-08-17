@@ -676,20 +676,35 @@ body iframe {
 }
 
 /* Enfocado: la superficie se aclara y aparece el anillo. El campo pasa de
-   "sitio donde se puede escribir" a "el sitio donde estás escribiendo". */
+   "sitio donde se puede escribir" a "el sitio donde estás escribiendo".
+
+   EL ANILLO VA POR FUERA, como en toda la app.
+
+   Nació por dentro (`inset 0 0 0 2px`) y era el único sitio donde iba así: los
+   botones, las pestañas, las filas y las tarjetas lo llevan fuera, con
+   `outline` y 2px de separación. Un campo con el anillo comiéndose su propio
+   relleno aprieta el texto contra el borde y no se parece a nada más.
+
+   Se pinta sobre la RAÍZ y no sobre el `input` de dentro, que es lo que hace
+   que rodee el campo entero —etiqueta y adornos incluidos— y siga su radio en
+   vez de dibujar un rectángulo suelto alrededor del renglón. */
 .MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-focused,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-focused {
   background-color: var(--card);
-  box-shadow: inset 0 0 0 2px var(--accent-main);
+  outline: 2px solid var(--accent-main);
+  outline-offset: 2px;
 }
 
 .MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-error,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-error {
   background-color: var(--red-secondary);
 }
+/* Y si además está mal, el mismo anillo en rojo. Fuera también: si el foco se
+   dibujara fuera y el error dentro, un campo mal relleno y enfocado saldría
+   con dos aros, que es de lo que veníamos. */
 .MuiOutlinedInput-root.MuiOutlinedInput-root.Mui-error.Mui-focused,
 .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-root.Mui-error.Mui-focused {
-  box-shadow: inset 0 0 0 2px var(--red-main);
+  outline-color: var(--red-main);
 }
 
 /* Deshabilitado: no reacciona al ratón, y se apaga sin llegar a desaparecer

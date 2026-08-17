@@ -109,7 +109,16 @@ const TextField = (props: TextFieldTypeProps) => {
           // estado "correcto" (p. ej. un código de acceso ya validado), que no
           // tiene clase propia en MUI: mismo anillo que el foco, en verde, y
           // permanente, porque es un resultado y no un estado pasajero.
-          ...(success && { boxShadow: 'inset 0 0 0 2px var(--green-main)' }),
+          //
+          // Y por fuera, en la MISMA propiedad que el foco. Si uno fuera
+          // `outline` y el otro `box-shadow`, un campo validado y enfocado
+          // saldría con dos aros — que es justo lo que se quitó. Compartiendo
+          // propiedad, mientras escribes manda el foco y al salir vuelve el
+          // verde.
+          ...(success && {
+            outline: '2px solid var(--green-main)',
+            outlineOffset: '2px',
+          }),
         },
         '.MuiInputLabel-root': {
           ...(success && {
