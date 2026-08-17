@@ -515,6 +515,23 @@ separación** entre objetivos.
   suya le sigue ganando. Medido antes: de 40 elementos enfocables de «Todas las
   personas», 18 tenían anillo y 22 no.
 
+**Y en los CAMPOS DE ESCRIBIR, el anillo no se pone: ya lo tienen.** Un campo
+de la app es una superficie rellena que al enfocarse se pinta un
+`inset 0 0 0 2px var(--accent-main)` —eso vive en el bloque «EL CAMPO» de
+`index.css` y es la señal de foco de las cuatro familias de campo—. Añadirle
+encima el anillo general dibuja **dos rectángulos concéntricos con un carril
+entre medias**, que es lo que se veía al tocar cualquier campo en Android.
+
+Y no vale pensar «con el dedo no sale»: la norma dice que un campo de texto
+case con `:focus-visible` SIEMPRE que tenga el foco, se haya llegado a él como
+se haya llegado —porque ahí se va a escribir—. Comprobado en marcha con un
+clic de ratón: `matches(':focus-visible')` → `true`.
+
+Por eso la regla de `.MuiInputBase-input` excluye `.MuiOutlinedInput-input` y
+`.MuiFilledInput-input`. Los que quedan son los campos sin adorno propio —el
+buscador de Personas es uno—, y esos sí lo necesitan: sin él no daban ninguna
+señal más allá del cursor.
+
 ### 2.6 Sombras
 
 ```

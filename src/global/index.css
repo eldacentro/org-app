@@ -180,8 +180,26 @@ p {
 /* La única que necesita especificidad de verdad. MUI declara `outline: 0` en
    `.MuiInputBase-input`, que es una clase, y le gana al `:where()` de arriba.
    Comprobado: el buscador de Personas no daba NINGUNA señal de foco —ni
-   borde, ni fondo, ni sombra— más allá del cursor parpadeante. */
-.MuiInputBase-input:focus-visible {
+   borde, ni fondo, ni sombra— más allá del cursor parpadeante.
+
+   PERO SOLO A LOS QUE NO SE MARCAN SOLOS.
+
+   Un campo `outlined` —que es lo que rinde `@components/textfield`, y por
+   tanto casi todos los campos de la app— ya trae su propio marco con la muesca
+   de la etiqueta, y al enfocarlo se pone de 2px y en color de acento. Ponerle
+   encima nuestro anillo dibujaba DOS rectángulos concéntricos con un carril
+   entre medias: se veía en Android al tocar el teléfono en «Editar persona».
+
+   Y no es cosa de Android ni de haber tocado con el dedo: la norma dice que un
+   campo de escribir SIEMPRE case con `:focus-visible`, se haya enfocado como
+   se haya enfocado —porque ahí se va a escribir—. Así que el anillo de más
+   salía en todos los campos, en todos los aparatos, siempre.
+
+   Lo mismo con `filled`, que se marca con su subrayado. Los que quedan son los
+   que no tienen nada propio, como aquel buscador — y esos sí lo necesitan. */
+.MuiInputBase-input:focus-visible:not(.MuiOutlinedInput-input):not(
+    .MuiFilledInput-input
+  ) {
   outline: 2px solid var(--accent-main);
   outline-offset: 2px;
   border-radius: var(--shape-xs);
