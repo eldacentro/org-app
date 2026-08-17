@@ -7,7 +7,10 @@ import { markNoticeRead } from '@services/firebase/territories';
 import { useAtomValue } from 'jotai';
 import { congIDState } from '@states/settings';
 import useAppNotification from '@features/app_notification/useAppNotification';
-import { AVISO_ATRASADO_TITULO } from '@services/app/territories';
+import {
+  AVISO_ATRASADO_TITULO,
+  esAvisoInformativo,
+} from '@services/app/territories';
 
 const TerritoryAssignedNotice = ({
   notification,
@@ -22,19 +25,26 @@ const TerritoryAssignedNotice = ({
   // Un aviso de territorio ATRASADO no se lee para mirar el mapa: se lee
   // porque te están pidiendo que lo devuelvas. Así que el botón lleva
   // directamente al diálogo de entrega, en vez de dejar al hermano en la
-  // ficha buscando por dónde se hace. Para el resto de avisos (uno nuevo
-  // asignado, una dirección aprobada…) sigue siendo "Ver territorio".
+  // ficha buscando por dónde se hace.
   const esAtrasado = notice.title === AVISO_ATRASADO_TITULO;
 
-  const handleVerTerritorio = async () => {
-    // Si la notice tiene el ID, la marcamos como leída en Firebase
-    if (notice.id) {
-      try {
-        await markNoticeRead(congId, notice.id);
-      } catch (e) {
-        console.error('Failed to mark notice as read', e);
-      }
+  // Y los que le llegan a un RESPONSABLE —"X devolvió el 12 sin trabajar",
+  // "X añadió una dirección"— son un parte de lo que ha pasado: no hay nada
+  // que hacer. Ofrecerle "Ver territorio" es mandarle a un sitio al que no
+  // iba; lo único que quiere es darse por enterado y quitárselo de encima.
+  const soloEnterarse = esAvisoInformativo(notice.title);
+
+  const handleMarcarLeido = async () => {
+    if (!notice.id) return;
+    try {
+      await markNoticeRead(congId, notice.id);
+    } catch (e) {
+      console.error('Failed to mark notice as read', e);
     }
+  };
+
+  const handleVerTerritorio = async () => {
+    await handleMarcarLeido();
 
     // Navegar a la página de territorios con el parámetro view
     if (notice.territoryId) {
@@ -60,8 +70,8 @@ const TerritoryAssignedNotice = ({
     >
       <Stack direction="row" justifyContent="flex-start">
         <Button
-          variant="main"
-          onClick={handleVerTerritorio}
+          variant={soloEnterarse ? 'tertiary' : 'main'}
+          onClick={soloEnterarse ? handleMarcarLeido : handleVerTerritorio}
           sx={{
             height: '38px',
             minHeight: '38px',
@@ -79,7 +89,11 @@ const TerritoryAssignedNotice = ({
             },
           }}
         >
-          {esAtrasado ? 'Entregar territorio' : 'Ver territorio'}
+          {soloEnterarse
+            ? 'Entendido'
+            : esAtrasado
+              ? 'Entregar territorio'
+              : 'Ver territorio'}
         </Button>
       </Stack>
     </Box>

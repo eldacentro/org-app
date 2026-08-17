@@ -100,6 +100,31 @@ export const isCampaignRunning = (
  */
 export const AVISO_ATRASADO_TITULO = 'Territorio atrasado';
 
+/** Títulos de los avisos que van a un RESPONSABLE, no al publicador. */
+export const AVISO_DEVUELTO_TITULO = 'Territorio devuelto';
+export const AVISO_DIRECCION_TITULO = 'Dirección pendiente de aprobar';
+
+/**
+ * ¿Este aviso es solo para enterarse?
+ *
+ * Los que le llegan a un responsable —"X devolvió el 12 sin trabajar", "X
+ * añadió una dirección"— son un parte de lo que ha pasado: no hay nada que
+ * hacer al leerlos. Los del publicador, en cambio, siempre piden algo (entrega
+ * este territorio, mira el que te acaban de dar).
+ *
+ * De esa diferencia dependen dos cosas: qué botón lleva el aviso en la
+ * campanita (enterarse y quitarlo, en vez de ir a algún sitio) y si además
+ * sale en el panel de inicio (solo lo del publicador; un responsable que abre
+ * la aplicación no necesita una tira roja porque alguien devolvió algo).
+ *
+ * Se distingue por el título porque es lo que llevan TODOS los avisos, también
+ * los guardados antes de que existiera esta distinción. Los títulos son
+ * constantes de este mismo fichero, así que quien los escribe y quien los
+ * clasifica no pueden separarse.
+ */
+export const esAvisoInformativo = (titulo?: string): boolean =>
+  titulo === AVISO_DEVUELTO_TITULO || titulo === AVISO_DIRECCION_TITULO;
+
 /** Días transcurridos desde una fecha ISO. */
 export const daysSince = (iso: string, now: Date = new Date()): number => {
   return Math.floor(

@@ -5,9 +5,10 @@ import Typography from '@components/typography';
 import Button from '@components/button';
 import { IconError } from '@components/icons';
 import { myUnreadNoticesState } from '@states/territories';
+import { AVISO_ATRASADO_TITULO } from '@services/app/territories';
 
 /**
- * El aviso de territorio, en la primera pantalla.
+ * El aviso de territorio ATRASADO del publicador, en la primera pantalla.
  *
  * Un aviso de "territorio atrasado" ya llegaba por tres sitios: la campanita
  * —que se llena sola aunque no se entre nunca en Territorios—, un push al
@@ -26,7 +27,16 @@ import { myUnreadNoticesState } from '@states/territories';
  */
 const AvisoTerritorioInicio = () => {
   const navigate = useNavigate();
-  const avisos = useAtomValue(myUnreadNoticesState);
+  const todos = useAtomValue(myUnreadNoticesState);
+
+  // SOLO los territorios atrasados del propio publicador.
+  //
+  // Los avisos de responsable —"X devolvió el 12 sin trabajar", "X añadió una
+  // dirección"— también van dirigidos a una persona, así que caían aquí y le
+  // salían al responsable en su inicio. Ahí no pintan nada: no hay que hacer
+  // nada con ellos, para eso está la campanita. El inicio se reserva para lo
+  // único que de verdad reclama algo de quien abre la aplicación.
+  const avisos = todos.filter((n) => n.title === AVISO_ATRASADO_TITULO);
 
   if (avisos.length === 0) return null;
 

@@ -31,7 +31,10 @@ import { responsabilidadesState } from '@states/responsabilidades';
 import { territoriesState } from '@states/territories';
 import { getTerritoryManagersUids } from './utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
-import { territoryLabel } from '@services/app/territories';
+import {
+  AVISO_DIRECCION_TITULO,
+  territoryLabel,
+} from '@services/app/territories';
 
 type Props = { territoryId: string; canManage: boolean };
 
@@ -118,7 +121,7 @@ const DireccionesTab = ({ territoryId, canManage }: Props) => {
               saveNotice(congId, {
                 id: crypto.randomUUID(),
                 personUid: destino,
-                title: 'Dirección pendiente de aprobar',
+                title: AVISO_DIRECCION_TITULO,
                 mensaje,
                 territoryId,
                 sentBy: uid,

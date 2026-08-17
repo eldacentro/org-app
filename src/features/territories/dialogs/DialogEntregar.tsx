@@ -18,7 +18,11 @@ import { apiSendTerritoryPush } from '@services/api/territories';
 import { getTerritoryManagersUids } from '../utils/managers';
 import { usePersonName } from '@features/territories/usePersonName';
 import { useIsTerritoryManager } from '@features/territories/useIsTerritoryManager';
-import { territoryLabel, isStillEncrypted } from '@services/app/territories';
+import {
+  AVISO_DEVUELTO_TITULO,
+  territoryLabel,
+  isStillEncrypted,
+} from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
 import { userLocalUIDState } from '@states/settings';
 
@@ -132,7 +136,7 @@ const DialogEntregar = ({ assignment, onClose, onSuccess }: Props) => {
                 saveNotice(congId, {
                   id: crypto.randomUUID(),
                   personUid: targetUid,
-                  title: 'Territorio devuelto',
+                  title: AVISO_DEVUELTO_TITULO,
                   mensaje: msg,
                   // Sin esto el responsable recibía el aviso pero sin botón
                   // para ir al territorio (ver useTerritoryAssignedNotifications).
