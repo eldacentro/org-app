@@ -248,6 +248,12 @@ const useEnvioHojita = (slip: PendingSlip | null) => {
 
     if (!datos) {
       setBlob(null);
+      // Y se apaga el «preparando», que si no se queda encendido PARA SIEMPRE:
+      // al cerrar la hoja mientras se generaba, la limpieza marca el intento
+      // como cancelado —así que su `finally` ya no toca nada— y esta salida
+      // temprana se iba sin apagarlo. La siguiente hojita abría con el botón
+      // muerto y un «Preparando la hojita…» que no terminaba nunca.
+      setPreparando(false);
       return;
     }
 

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Box, Collapse, Stack } from '@mui/material';
 import { PendingSlip } from '@services/app/pending_s89';
-import { IconCheck, IconExpand } from '@components/icons';
+import { IconCheck, IconExpand, IconShare } from '@components/icons';
 import ActionPill from '@components/action_pill';
-import Badge from '@components/badge';
 import Typography from '@components/typography';
 import { useConfirm } from '@components/confirm_dialog';
+import AssignmentConfirmed from '@features/meetings/weekly_schedules/assignment_confirmed';
 import { displaySnackNotification } from '@services/states/app';
 import { fmtDiaLargo } from '@utils/nombres_fecha';
 import DialogEnvio from './DialogEnvio';
@@ -271,12 +271,14 @@ const PendingSlips = () => {
             </Typography>
 
             {/* Lo segundo: las que ya salieron y esperan contestación. No es
-              trabajo pendiente de quien reparte, así que va en gris y debajo. */}
+              trabajo pendiente de quien reparte, así que va en gris y debajo.
+              La MISMA palabra que la fila —«por confirmar»— para que el número
+              de arriba y el tic de abajo se lean como la misma cosa. */}
             {!todoConfirmado && esperando.length > 0 && (
               <Typography className="label-small-regular" color="var(--ink-2)">
                 {esperando.length === 1
-                  ? 'y 1 esperando respuesta'
-                  : `y ${esperando.length} esperando respuesta`}
+                  ? 'y 1 por confirmar'
+                  : `y ${esperando.length} por confirmar`}
               </Typography>
             )}
 
@@ -354,7 +356,7 @@ const PendingSlips = () => {
                     paddingLeft: slip.papel === 'ayudante' ? '32px' : '16px',
                   }}
                 >
-                  <Box sx={{ minWidth: 0 }}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography
                       className="body-small-semibold"
                       color="var(--ink)"
@@ -377,7 +379,9 @@ const PendingSlips = () => {
                         // Se dice AQUÍ, con la lista delante, y no al pulsar:
                         // así se ve de un vistazo a quién hay que buscarle el
                         // número antes de ponerse.
-                        slip.telefono === null ? 'sin teléfono' : null,
+                        slip.telefono === null && !slip.sent
+                          ? 'sin teléfono'
+                          : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}
@@ -385,42 +389,67 @@ const PendingSlips = () => {
                   </Box>
 
                   {slip.sent ? (
-                    // Pulsable: es donde se pregunta «¿esta ya la mandé?», y
-                    // hasta ahora era una etiqueta muerta que no contestaba.
                     <Box
-                      component="button"
-                      type="button"
-                      onClick={() => reenviar(slip)}
-                      aria-label={`Volver a mandar la hojita de ${slip.name}`}
                       sx={{
                         flexShrink: 0,
-                        appearance: 'none',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        // El dibujo mide menos de 48, así que el área se
-                        // estira por debajo sin mover nada (DESIGN_SYSTEM
-                        // §2.5a). La fila no lleva `overflow`, así que aquí el
-                        // `::after` sí llega.
-                        position: 'relative',
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          inset: '-12px',
-                        },
-                        '&:focus-visible': {
-                          outline: '2px solid var(--accent-main)',
-                          outlineOffset: '2px',
-                          borderRadius: 'var(--shape-full)',
-                        },
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
                       }}
                     >
-                      <Badge
-                        text="Enviada"
-                        color="green"
-                        size="small"
-                        filled={false}
+                      {/* Volver a mandarla es raro, así que va de icono y no
+                          de botón con texto: lo que se hace a diario en esta
+                          fila es marcar el tic. Sigue preguntando antes. */}
+                      <Box
+                        component="button"
+                        type="button"
+                        onClick={() => reenviar(slip)}
+                        aria-label={`Volver a mandar la hojita de ${slip.name}`}
+                        sx={{
+                          display: 'flex',
+                          appearance: 'none',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          // El dibujo mide 20, así que el área se estira sin
+                          // mover nada (DESIGN_SYSTEM §2.5a). La fila no lleva
+                          // `overflow`, así que aquí el `::after` sí llega.
+                          position: 'relative',
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            inset: '-14px',
+                          },
+                          '&:focus-visible': {
+                            outline: '2px solid var(--accent-main)',
+                            outlineOffset: '4px',
+                            borderRadius: 'var(--shape-full)',
+                          },
+                        }}
+                      >
+                        <IconShare
+                          width={20}
+                          height={20}
+                          color="var(--ink-3)"
+                        />
+                      </Box>
+
+                      {/* El MISMO tic que en el programa, con la misma función
+                          detrás: marcarlo aquí es marcarlo allí. Lo que cambia
+                          es la frase — aquí ya se sabe que la hojita salió, así
+                          que lo útil es el estado en que se ha quedado.
+                          En un ayudante no se dibuja solo: no confirma nada, y
+                          `useAssignmentConfirmed` ya lo sabe. */}
+                      <AssignmentConfirmed
+                        week={slip.weekOf}
+                        assignment={slip.assignment}
+                        withLabel
+                        textos={{
+                          pendiente: 'Por confirmar',
+                          confirmado: 'Confirmada',
+                        }}
+                        sx={{ marginTop: 0 }}
                       />
                     </Box>
                   ) : (

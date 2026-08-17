@@ -1,4 +1,4 @@
-import { Box, Tooltip } from '@mui/material';
+import { Box, SxProps, Theme, Tooltip } from '@mui/material';
 import { AssignmentFieldType } from '@definition/assignment';
 import { IconCheck } from '@components/icons';
 import Typography from '@components/typography';
@@ -25,6 +25,18 @@ const AssignmentConfirmed = (props: {
   dataView?: string;
   /** Con texto al lado, para cuando va suelta debajo de un campo. */
   withLabel?: boolean;
+  /**
+   * Otro texto para el modo con etiqueta.
+   *
+   * Existe porque la misma casilla sirve en dos sitios donde la frase útil no
+   * es la misma: debajo del nombre, en el programa, lo que hace falta decir es
+   * qué significa marcarla («Marcar hojita entregada»); en la lista de
+   * pendientes, donde ya se sabe que la hojita salió, lo que hace falta es el
+   * estado en el que se ha quedado («Por confirmar»).
+   */
+  textos?: { pendiente: string; confirmado: string };
+  /** Para encajarla en una fila; sin esto lleva el aire de ir debajo de un campo. */
+  sx?: SxProps<Theme>;
 }) => {
   const { visible, confirmed, toggle, saving } = useAssignmentConfirmed(props);
 
@@ -96,15 +108,19 @@ const AssignmentConfirmed = (props: {
         marginTop: '6px',
         cursor: saving ? 'default' : 'pointer',
         width: 'fit-content',
+        ...props.sx,
       }}
     >
       {casilla}
 
       <Typography
         className="label-small-regular"
-        color={confirmed ? 'var(--green-main)' : 'var(--grey-400)'}
+        color={confirmed ? 'var(--green-main)' : 'var(--ink-2)'}
+        sx={{ whiteSpace: 'nowrap' }}
       >
-        {confirmed ? 'Hojita entregada' : 'Marcar hojita entregada'}
+        {confirmed
+          ? (props.textos?.confirmado ?? 'Hojita entregada')
+          : (props.textos?.pendiente ?? 'Marcar hojita entregada')}
       </Typography>
     </Box>
   );
