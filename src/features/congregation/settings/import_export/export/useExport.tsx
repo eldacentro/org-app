@@ -1,3 +1,4 @@
+import appDb from '@db/appDb';
 import { useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { saveAs } from 'file-saver';
@@ -85,11 +86,90 @@ const useExport = ({ onClose }: ExportType) => {
     try {
       setIsProcessing(true);
 
+      // LAS TABLAS QUE FALTABAN, leídas directamente de la base local.
+      //
+      // Esta lista se escribió a mano y se quedó con los módulos de entonces:
+      // faltaban DIEZ. Comprobado sobre una copia real del 2026-08-17 — traía 16
+      // tablas y se dejaba fuera Exhibidores, Salidas de predicación,
+      // Territorios (las ocho tablas), Departamentos, limpieza, evacuación,
+      // responsabilidades, visitas del superintendente y los ajustes de
+      // discursos y canciones.
+      //
+      // No es una incomodidad, es un agujero: quien restaure desde ese fichero
+      // pierde esos módulos y no se entera. Y la vía de la copia se usa de
+      // verdad — el 2026-08-15 se recuperó de una a una familia entera.
+      //
+      // Se leen de Dexie y no de los átomos a propósito: varios átomos filtran
+      // o derivan (dejan fuera el registro `settings`, que es donde viven los
+      // sellos de publicación de Exhibidores y Salidas). Para un archivo hay que
+      // guardar la tabla tal cual está.
+      //
+      // `metadata` se deja FUERA a propósito: son las versiones de
+      // sincronización de ESTE dispositivo, no datos de la congregación, y
+      // restaurarlas en otro sitio enredaría su sincronización.
+      const [
+        exhibitors,
+        serviceOutings,
+        departmentsSchedule,
+        limpiezaConfig,
+        evacuacionConfig,
+        responsabilidades,
+        circuitOverseerVisits,
+        publicTalksOverride,
+        songsOverride,
+        delegatedFieldServiceReports,
+        territories,
+        territoryZones,
+        territoryTags,
+        territoryAssignments,
+        territoryCampaigns,
+        territoryNotices,
+        territoryRequests,
+        territorySettings,
+      ] = await Promise.all([
+        appDb.exhibitors.toArray(),
+        appDb.service_outings.toArray(),
+        appDb.departments_schedule.toArray(),
+        appDb.limpieza_config.toArray(),
+        appDb.evacuacion_config.toArray(),
+        appDb.responsabilidades.toArray(),
+        appDb.circuit_overseer_visits.toArray(),
+        appDb.public_talks_override.toArray(),
+        appDb.songs_override.toArray(),
+        appDb.delegated_field_service_reports.toArray(),
+        appDb.territories.toArray(),
+        appDb.territory_zones.toArray(),
+        appDb.territory_tags.toArray(),
+        appDb.territory_assignments.toArray(),
+        appDb.territory_campaigns.toArray(),
+        appDb.territory_notices.toArray(),
+        appDb.territory_requests.toArray(),
+        appDb.territory_settings.toArray(),
+      ]);
+
       const backupData = {
         name: 'Organized',
         exported: new Date().toISOString(),
         version: import.meta.env.PACKAGE_VERSION,
         data: {
+          exhibitors,
+          service_outings: serviceOutings,
+          departments_schedule: departmentsSchedule,
+          limpieza_config: limpiezaConfig,
+          evacuacion_config: evacuacionConfig,
+          responsabilidades,
+          circuit_overseer_visits: circuitOverseerVisits,
+          public_talks_override: publicTalksOverride,
+          songs_override: songsOverride,
+          delegated_field_service_reports: delegatedFieldServiceReports,
+          territories,
+          territory_zones: territoryZones,
+          territory_tags: territoryTags,
+          territory_assignments: territoryAssignments,
+          territory_campaigns: territoryCampaigns,
+          territory_notices: territoryNotices,
+          territory_requests: territoryRequests,
+          territory_settings: territorySettings,
           assignments: handleGetAssignments(),
           app_settings: handleGetSettings(),
           branch_cong_analysis: branchCongAnalysis,
