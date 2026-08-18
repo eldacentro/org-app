@@ -7,6 +7,7 @@ import {
   territoriesState,
   territoryZonesSortedState,
   territoryAssignedIdsState,
+  territoryPendingLocationsState,
   territoryPendingRequestsState,
   territorySettingsState,
   territoryTagsState,
@@ -31,6 +32,7 @@ import EnlacesTab from './EnlacesTab';
 import ImportExportTab from './ImportExportTab';
 import TerritoriesOverviewMap from '../map/TerritoriesOverviewMap';
 import TerritoriosTab from './TerritoriosTab';
+import UbicacionesTab from './UbicacionesTab';
 
 /**
  * Posición de la pestaña "Solicitudes" dentro de `tabs`.
@@ -83,6 +85,7 @@ const ResponsablesPanel = ({
   const assignedIds = useAtomValue(territoryAssignedIdsState);
   const settings = useAtomValue(territorySettingsState);
   const pending = useAtomValue(territoryPendingRequestsState);
+  const pendingLocations = useAtomValue(territoryPendingLocationsState);
   // Si se entra con solicitudes pendientes, abrir directamente en
   // "Solicitudes" (ver `TAB_SOLICITUDES`). La insignia roja del engranaje
   // solo se enciende por eso, y antes te dejaba en "Estadísticas": había que
@@ -281,6 +284,20 @@ const ResponsablesPanel = ({
             Component: (
               <SolicitudesTab onAsignarParaSolicitud={onAsignarParaSolicitud} />
             ),
+          },
+          {
+            // Mismo contador que "Solicitudes": las direcciones pendientes
+            // son la otra cosa de esta pantalla que espera por alguien.
+            label:
+              pendingLocations.length > 0 ? (
+                <TabLabelWithBadge
+                  label="Ubicaciones"
+                  count={pendingLocations.length}
+                />
+              ) : (
+                'Ubicaciones'
+              ),
+            Component: <UbicacionesTab onView={onView} />,
           },
           {
             label: 'Historial',
