@@ -1,8 +1,12 @@
 import { useEffect, useMemo } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import { applicationsNewState } from '@states/persons';
-import { notificationsState } from '@states/notification';
+import {
+  applicationsSeenState,
+  notificationsState,
+} from '@states/notification';
+import { pruneSeenApplications } from '@services/app/applications_seen';
 import { PioneerApplicationNotificationType } from '@definition/notification';
 
 /**
@@ -14,39 +18,65 @@ import { PioneerApplicationNotificationType } from '@definition/notification';
  * página a la que no tenía motivo para entrar. Esto es el enganche que
  * faltaba, con el mismo patrón que informes sin verificar o peticiones de
  * territorio.
+ *
+ * Dos límites, los dos a propósito:
+ *
+ * - Solo al COMITÉ DE SERVICIO (coordinador, secretario y superintendente de
+ *   servicio), que son los tres que firman la aprobación. Un anciano que no
+ *   está en el comité ve la página, pero no puede hacer nada con la
+ *   solicitud, así que el aviso solo sería ruido.
+ * - El aviso se retira en cuanto se ABRE la solicitud, aunque siga pendiente
+ *   de aprobar: ya está vista, y sigue en su página, que es donde se atiende.
  */
 const useApplicationsNotifications = () => {
   const { t } = useAppTranslation();
 
-  const { isElder } = useCurrentUser();
+  const { isServiceCommittee } = useCurrentUser();
 
   const setNotifications = useSetAtom(notificationsState);
 
   const applications = useAtomValue(applicationsNewState);
+  const [seen, setSeen] = useAtom(applicationsSeenState);
+
+  const pendingIds = useMemo(() => {
+    return applications.map((record) => record.request_id);
+  }, [applications]);
+
+  // El registro de "ya vistas" se limpia de lo que ya no está pendiente, para
+  // que no crezca sin fin y para que una solicitud nueva vuelva a avisar.
+  useEffect(() => {
+    setSeen((prev) => pruneSeenApplications(prev, pendingIds));
+  }, [pendingIds, setSeen]);
 
   const entries = useMemo(() => {
-    return applications.map((record) => ({
-      request_id: record.request_id,
-      person_uid: record.person_uid,
-      months: record.months ?? [],
-    }));
-  }, [applications]);
+    const seenIds = new Set(seen);
+
+    return applications
+      .filter((record) => !seenIds.has(record.request_id))
+      .map((record) => ({
+        request_id: record.request_id,
+        person_uid: record.person_uid,
+        months: record.months ?? [],
+      }));
+  }, [applications, seen]);
 
   const lastSubmitted = useMemo(() => {
-    if (applications.length === 0) return '';
+    if (entries.length === 0) return '';
 
-    // applicationsNewState ya viene ordenado por `submitted` descendente, pero
-    // no se da por supuesto: la fecha del aviso es la de la solicitud más
-    // reciente, y de ahí sale su posición en la lista de avisos.
-    return applications.reduce(
-      (acc, record) => (record.submitted > acc ? record.submitted : acc),
-      applications[0].submitted
+    const pending = applications.filter((record) =>
+      entries.some((entry) => entry.request_id === record.request_id)
     );
-  }, [applications]);
+
+    // La fecha del aviso es la de la solicitud sin ver más reciente, y de ahí
+    // sale su posición en la lista de avisos.
+    return pending.reduce(
+      (acc, record) => (record.submitted > acc ? record.submitted : acc),
+      pending[0].submitted
+    );
+  }, [applications, entries]);
 
   useEffect(() => {
-    // Solo los ancianos (los administradores entre ellos) pueden atenderlas.
-    if (!isElder || entries.length === 0) {
+    if (!isServiceCommittee || entries.length === 0) {
       setNotifications((prev) =>
         prev.filter((record) => record.id !== 'pioneer-applications')
       );
@@ -74,7 +104,7 @@ const useApplicationsNotifications = () => {
 
       return newValue;
     });
-  }, [isElder, entries, lastSubmitted, t, setNotifications]);
+  }, [isServiceCommittee, entries, lastSubmitted, t, setNotifications]);
 };
 
 export default useApplicationsNotifications;
