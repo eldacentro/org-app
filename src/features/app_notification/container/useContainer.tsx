@@ -41,6 +41,7 @@ import useTerritoryAssignedNotifications from './useTerritoryAssignedNotificatio
 import usePendingRequests from './usePendingRequests';
 import useRemoteNotifications from './useRemoteNotifications';
 import useUnverifiedReports from './useUnverifiedReports';
+import useApplicationsNotifications from './useApplicationsNotifications';
 import appDb from '@db/appDb';
 
 const useContainer = () => {
@@ -57,6 +58,7 @@ const useContainer = () => {
   const { setJoinRequests } = useJoinRequests();
   useTerritoryRequestsNotifications();
   useTerritoryAssignedNotifications();
+  useApplicationsNotifications();
 
   const [notifications, setNotifications] = useAtom(notificationsState);
   const dbNotifications = useAtomValue(notificationsDbState);

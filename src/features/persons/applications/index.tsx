@@ -10,7 +10,7 @@ const PersonApplications = () => {
   const { t } = useAppTranslation();
 
   const {
-    AP_count,
+    countLabel,
     handleSearchChange,
     search,
     tabs,
@@ -26,9 +26,7 @@ const PersonApplications = () => {
         onSearch={handleSearchChange}
       />
 
-      <Typography className="h2">
-        {t('tr_applicationsAmount', { amount: AP_count })}
-      </Typography>
+      <Typography className="h2">{countLabel}</Typography>
 
       <Box sx={{ marginBottom: '-24px' }}>
         <ScrollableTabs

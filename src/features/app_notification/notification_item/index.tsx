@@ -6,10 +6,12 @@ import {
   IconPrepareReport,
   IconTalk,
   IconLocation,
+  IconPioneerForm,
 } from '@components/icons';
 import {
   JoinRequestNotificationType,
   NotificationRecordType,
+  PioneerApplicationNotificationType,
   SpeakerNotificationType,
   UnverifiedReportNotificationType,
 } from '@definition/notification';
@@ -21,6 +23,7 @@ import SpeakerAccessRequest from '../speakers_access_request';
 import TerritoryAccessRequest from '../territory_access_request';
 import TerritoryAssignedNotice from '../territory_assigned_notice';
 import UnverifiedReportItem from '../unverified_report_item';
+import PioneerApplicationItem from '../pioneer_application_item';
 import {
   TerritoryRequestNotificationType,
   TerritoryAssignedNotificationType,
@@ -57,6 +60,11 @@ const ICON_MAP: Record<
     icon: <IconAccount color="var(--orange-main)" />,
     color: 'var(--orange-main)',
     bg: 'color-mix(in srgb, var(--orange-main) 10%, transparent)',
+  },
+  'pioneer-applications': {
+    icon: <IconPioneerForm color="var(--brand)" />,
+    color: 'var(--brand)',
+    bg: 'var(--accent-200)',
   },
   'territory-assigned': {
     icon: <IconLocation color="var(--green-main)" />,
@@ -144,7 +152,8 @@ const NotificationItem = ({
         <Stack spacing="6px" sx={{ flex: 1, minWidth: 0 }}>
           {/* Title */}
           <Box sx={{ pr: '18px' }}>
-            {notification.id !== 'reports-unverified' ? (
+            {notification.id !== 'reports-unverified' &&
+            notification.id !== 'pioneer-applications' ? (
               <Typography
                 className="h4"
                 sx={{ fontWeight: 700, lineHeight: 1.3 }}
@@ -156,7 +165,13 @@ const NotificationItem = ({
                 className="h4"
                 label={notification.title}
                 badgeColor="var(--accent-main)"
-                count={(notification as UnverifiedReportNotificationType).count}
+                count={
+                  (
+                    notification as
+                      | UnverifiedReportNotificationType
+                      | PioneerApplicationNotificationType
+                  ).count
+                }
               />
             )}
           </Box>
@@ -181,6 +196,13 @@ const NotificationItem = ({
                 />
               )
             )}
+
+          {notification.id === 'pioneer-applications' &&
+            (
+              notification as PioneerApplicationNotificationType
+            ).applications.map((entry) => (
+              <PioneerApplicationItem key={entry.request_id} entry={entry} />
+            ))}
 
           {notification.id === 'speakers-request' &&
             (notification as SpeakerNotificationType).congs.map((request) => (

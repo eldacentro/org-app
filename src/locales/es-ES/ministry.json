@@ -143,5 +143,10 @@
   "tr_hoursBalanceHint": "hasta {{ month }} · solo meses informados",
   "tr_eldaCreditOther": "Otro",
   "tr_eldaCreditOtherDesc": "Indica qué fue y cuántas horas se acreditan.",
-  "tr_eldaCreditOtherLabel": "Motivo"
+  "tr_eldaCreditOtherLabel": "Motivo",
+  "tr_pioneerApplicationsTitle": "Solicitudes de precursor auxiliar",
+  "tr_pioneerApplicationsDesc": "Estos hermanos han firmado una solicitud que espera aprobación. También puedes abrir la página de <a title=''>Solicitudes de precursor auxiliar</a> para verlas todas.",
+  "tr_currentAuxiliaryPioneers": "Este mes",
+  "tr_noAuxiliaryPioneersThisMonth": "Ningún precursor auxiliar este mes",
+  "tr_applicantNotFound": "La solicitud se aprobó, pero el solicitante ya no está en la lista de personas: no se le ha podido inscribir como precursor auxiliar."
 }

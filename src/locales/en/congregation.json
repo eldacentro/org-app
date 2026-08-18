@@ -634,5 +634,6 @@
   "tr_publisherDetailsDesc": "View and manage the spiritual status and first report date for this publisher.",
   "tr_branchOfficeReportDesc": "Manage and submit congregation reports to the branch office.",
   "tr_serviceYearHistory": "History of service reports for the service year.",
-  "tr_personAwayOpenNotice": "Away since {{ date }}, with no return date set"
+  "tr_personAwayOpenNotice": "Away since {{ date }}, with no return date set",
+  "tr_auxiliaryPioneersAmount": "Auxiliary pioneers: {{ amount }}"
 }

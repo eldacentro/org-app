@@ -636,5 +636,6 @@
   "tr_serviceYearHistory": "Historial de informes de servicio para el año de servicio.",
   "tr_personAwayOpenNotice": "Ausente desde el {{ date }} y sin fecha de vuelta puesta",
   "tr_reportAddedBy": "Añadido por",
-  "tr_groupAssistant": "Auxiliar de grupo"
+  "tr_groupAssistant": "Auxiliar de grupo",
+  "tr_auxiliaryPioneersAmount": "Precursores auxiliares: {{ amount }}"
 }

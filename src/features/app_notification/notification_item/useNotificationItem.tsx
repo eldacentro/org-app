@@ -70,6 +70,10 @@ const useNotificationItem = (notification: NotificationRecordType) => {
       setStatusFilter('unverified');
       navigate('/reports/field-service');
     }
+
+    if (notification.id === 'pioneer-applications') {
+      navigate('/pioneer-applications');
+    }
   };
 
   return { itemDate, handleMarkAsRead, handleAnchorClick };

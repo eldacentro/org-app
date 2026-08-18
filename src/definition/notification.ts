@@ -7,7 +7,8 @@ export type NotificationIconType =
   | 'reports'
   | 'join-requests'
   | 'territory-requests'
-  | 'territory-assigned';
+  | 'territory-assigned'
+  | 'pioneer-applications';
 
 export type NotificationDbRecordType = {
   id: number;
@@ -44,6 +45,24 @@ export type UnverifiedReportNotificationType = {
   icon: NotificationIconType;
   count: number;
   reports: UnverifiedReportEntry[];
+  enableRead: boolean;
+  read?: boolean;
+};
+
+export type PioneerApplicationEntry = {
+  request_id: string;
+  person_uid: string;
+  months: string[];
+};
+
+export type PioneerApplicationNotificationType = {
+  id: 'pioneer-applications';
+  title: string;
+  description: string;
+  date: string;
+  icon: NotificationIconType;
+  count: number;
+  applications: PioneerApplicationEntry[];
   enableRead: boolean;
   read?: boolean;
 };
@@ -95,6 +114,7 @@ export type StandardNotificationType = {
 export type NotificationRecordType =
   | SpeakerNotificationType
   | UnverifiedReportNotificationType
+  | PioneerApplicationNotificationType
   | JoinRequestNotificationType
   | StandardNotificationType
   | TerritoryRequestNotificationType

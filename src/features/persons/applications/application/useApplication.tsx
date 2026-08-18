@@ -24,7 +24,10 @@ const useApplication = ({ application }: ApplicationProps) => {
   }, [persons, application.person_uid]);
 
   const name = useMemo(() => {
-    if (!person) return '';
+    // Una solicitud cuyo solicitante ya no está en la lista tiene que seguir
+    // viéndose y poder abrirse — sin nombre no habría manera de distinguirla
+    // ni de retirarla.
+    if (!person) return 'Publicador desconocido';
 
     return buildPersonFullname(
       person.person_data.person_lastname.value,

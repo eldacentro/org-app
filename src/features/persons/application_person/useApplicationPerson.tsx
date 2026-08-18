@@ -20,7 +20,7 @@ import {
   apiCongregationSaveApplication,
 } from '@services/api/congregation';
 import { getMessageByCode } from '@services/i18n/translation';
-import { formatDate, groupConsecutiveMonths } from '@utils/date';
+import { buildAPEnrollmentPeriods } from '@services/app/ap_enrollment';
 import { dbPersonsSave } from '@services/dexie/persons';
 
 const useApplicationPerson = () => {
@@ -122,38 +122,67 @@ const useApplicationPerson = () => {
     return { applications, code };
   };
 
+  /**
+   * Aprobar no es solo cambiar el estado de la solicitud: la persona tiene que
+   * quedar de verdad inscrita como precursora auxiliar de los meses que pide,
+   * porque de esa inscripción (`enrollments`, tipo 'AP') salen los informes,
+   * la pestaña "Este mes" y todo lo demás. Si esto no se guarda, la solicitud
+   * aparece aprobada y el hermano no consta en ningún sitio.
+   */
   const handlePersonUpdate = async (application: APRecordType) => {
     const findPerson = persons.find(
       (record) => record.person_uid === application.person_uid
     );
 
+    // La solicitud ya se guardó como aprobada en el servidor antes de llegar
+    // aquí; si el solicitante ya no está (borrado o archivado), callar dejaría
+    // la solicitud aprobada y a nadie inscrito. Se avisa en vez de reventar.
+    if (!findPerson) {
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: t('tr_applicantNotFound'),
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+
+      return;
+    }
+
     const person = structuredClone(findPerson);
 
-    const groups = groupConsecutiveMonths(application.months);
+    const periods = buildAPEnrollmentPeriods(application.months);
 
-    for (const group of groups) {
-      const splits = group.split('-');
-      const start = `${splits[0]}/01`;
+    if (periods.length === 0) return;
 
-      let [year, month] = splits[0].split('/').map(Number);
+    let added = 0;
 
-      if (splits[1]) {
-        const end = splits[1].split('/').map(Number);
-        year = end[0];
-        month = end[1];
-      }
+    for (const period of periods) {
+      // Idempotente a propósito: volver a pulsar "aprobar" sobre una solicitud
+      // ya aprobada llegaba hasta aquí y apilaba una inscripción 'AP' repetida
+      // por cada pulsación, y luego había que limpiarlas a mano en la ficha.
+      const exists = person.person_data.enrollments.some(
+        (record) =>
+          record._deleted === false &&
+          record.enrollment === 'AP' &&
+          record.start_date === period.start_date &&
+          record.end_date === period.end_date
+      );
 
-      const end = formatDate(new Date(year, month, 0), 'yyyy/MM/dd');
+      if (exists) continue;
 
       person.person_data.enrollments.push({
         id: crypto.randomUUID(),
         enrollment: 'AP',
         _deleted: false,
-        start_date: start,
-        end_date: end,
+        start_date: period.start_date,
+        end_date: period.end_date,
         updatedAt: new Date().toISOString(),
       });
+
+      added++;
     }
+
+    if (added === 0) return;
 
     await dbPersonsSave(person);
 

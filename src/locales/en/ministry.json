@@ -142,5 +142,10 @@
   "tr_hoursBalanceHint": "through {{ month }} · reported months only",
   "tr_eldaCreditOther": "Other",
   "tr_eldaCreditOtherDesc": "Say what it was and how many hours are credited.",
-  "tr_eldaCreditOtherLabel": "Reason"
+  "tr_eldaCreditOtherLabel": "Reason",
+  "tr_pioneerApplicationsTitle": "Auxiliary pioneer applications",
+  "tr_pioneerApplicationsDesc": "These publishers signed an application that is waiting for approval. You can also open the <a title=''>Auxiliary pioneer applications</a> page to see all of them.",
+  "tr_currentAuxiliaryPioneers": "This month",
+  "tr_noAuxiliaryPioneersThisMonth": "No auxiliary pioneers this month",
+  "tr_applicantNotFound": "The application was approved, but the applicant is no longer in the persons list, so they could not be enrolled as an auxiliary pioneer."
 }
