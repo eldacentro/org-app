@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import useMidweekContainer from './useMidweekContainer';
+import { midweekExportPersonalState } from '@states/settings';
+import MidweekExport from '@features/meetings/midweek_export';
+import { IconPrint } from '@components/icons';
+import Button from '@components/button';
 import useSiblingAssignments from '../../sibling_assignments/useSiblingAssignments';
 import MidweekMeeting from '../midweek_meeting';
 import NoSchedule from '../no_schedule';
@@ -36,7 +41,18 @@ const MidweekContainer = ({
     dataView,
   } = useMidweekContainer();
 
-  const { isMidweekEditor } = useCurrentUser();
+  const { isMidweekEditor, isElder } = useCurrentUser();
+
+  // El botón de exportar el programa desde aquí.
+  //
+  // No todos los ancianos llegan a la página de edición de la reunión de entre
+  // semana, pero algunos quieren imprimir el programa para presidir. Se enciende
+  // por cuenta en Mi cuenta y viene APAGADO: añade un botón a una pantalla que
+  // se mira a diario, y a quien no lo use le estorba.
+  const midweekExportEnabled = useAtomValue(midweekExportPersonalState);
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const puedeExportar = isElder && midweekExportEnabled && !!week;
   const schedules = useAtomValue(schedulesState);
 
   // Quien lleva el programa tiene que poder ver SU borrador; el resto de la
@@ -58,6 +74,14 @@ const MidweekContainer = ({
 
   return (
     <>
+      {puedeExportar && (
+        <MidweekExport
+          open={exportOpen}
+          onClose={() => setExportOpen(false)}
+          semanaBase={week}
+        />
+      )}
+
       {noSchedule && <NoSchedule />}
 
       {!noSchedule && (
@@ -84,8 +108,22 @@ const MidweekContainer = ({
             title={headline.title}
             subtitle={headline.subtitle}
             action={
-              jwLibraryUrl ? (
-                <JwLibraryLink href={jwLibraryUrl} variant="solid" />
+              jwLibraryUrl || puedeExportar ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {jwLibraryUrl && (
+                    <JwLibraryLink href={jwLibraryUrl} variant="solid" />
+                  )}
+
+                  {puedeExportar && (
+                    <Button
+                      variant="small"
+                      startIcon={<IconPrint color="var(--accent-main)" />}
+                      onClick={() => setExportOpen(true)}
+                    >
+                      Exportar
+                    </Button>
+                  )}
+                </Box>
               ) : undefined
             }
           />

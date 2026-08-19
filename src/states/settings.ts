@@ -620,6 +620,23 @@ export const pdfExportEnabledPersonalState = atom((get) => {
 
 export const pdfExportEnabledState = pdfExportEnabledPersonalState;
 
+/**
+ * ¿Enseñar el botón de exportar el programa en «Programas semanales»?
+ *
+ * APAGADO de fábrica, a diferencia del interruptor general: este añade un botón
+ * a una pantalla que se mira a diario, y a quien no lo use le estorba. Quien lo
+ * quiera lo enciende una vez en Mi cuenta.
+ *
+ * Quién puede encenderlo se decide en la propia pantalla de ajustes (solo
+ * ancianos, y solo si el interruptor general de exportar está puesto); aquí solo
+ * vive el valor.
+ */
+export const midweekExportPersonalState = atom((get) => {
+  const settings = get(settingsState);
+
+  return settings.user_settings.midweek_export_enabled_personal?.value ?? false;
+});
+
 // USER SETTINGS
 
 export const userDataViewState = atom((get) => {

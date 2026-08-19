@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -11,8 +12,9 @@ import S89TemplateSelector from './S89TemplateSelector';
 import WeekRangeSelector from '../week_range_selector';
 import { useAtomValue } from 'jotai';
 import { pdfExportEnabledState } from '@states/settings';
+import { sourcesState } from '@states/sources';
 
-const MidweekExport = ({ open, onClose }: MidweekExportType) => {
+const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
   const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
   const { t } = useAppTranslation();
 
@@ -28,6 +30,42 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
     handleSetEndWeek,
     handleSetStartWeek,
   } = useMidweekExport(onClose);
+
+  const sources = useAtomValue(sourcesState);
+  const [conSiguiente, setConSiguiente] = useState(false);
+
+  const handleToggleSiguiente = () => setConSiguiente((valor) => !valor);
+
+  /** La semana que va justo después de la que se está mirando, si existe. */
+  const semanaSiguiente = useMemo(() => {
+    if (!semanaBase) return '';
+
+    const semanas = sources
+      .map((registro) => registro.weekOf)
+      .filter(Boolean)
+      .sort();
+
+    const i = semanas.indexOf(semanaBase);
+
+    return i >= 0 ? (semanas[i + 1] ?? '') : '';
+  }, [semanaBase, sources]);
+
+  // Sembrar el rango con la semana que se está mirando. Sin esto el diálogo se
+  // abriría sin rango y no exportaría nada, porque desde aquí no se enseña el
+  // selector de fechas.
+  //
+  // Las dos funciones de fijar semana se dejan FUERA de las dependencias a
+  // propósito: se recrean en cada render y meterlas haría un bucle infinito.
+  // Lo que de verdad manda este efecto son las tres de abajo.
+  useEffect(() => {
+    if (!semanaBase) return;
+
+    handleSetStartWeek(semanaBase);
+    handleSetEndWeek(
+      conSiguiente && semanaSiguiente ? semanaSiguiente : semanaBase
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [semanaBase, conSiguiente, semanaSiguiente]);
 
   return (
     <Dialog
@@ -52,11 +90,42 @@ const MidweekExport = ({ open, onClose }: MidweekExportType) => {
           </Typography>
         </Box>
 
-        <WeekRangeSelector
-          meeting="midweek"
-          onStartChange={handleSetStartWeek}
-          onEndChange={handleSetEndWeek}
-        />
+        {/* Desde «Programas semanales» no se elige un rango: se está mirando
+            UNA semana y lo único que se quiere decidir es si va también la
+            siguiente. Elegir fechas a mano ahí sobra y se equivoca uno.
+
+            Desde la página de edición sigue saliendo el selector de siempre. */}
+        {semanaBase ? (
+          <Stack spacing="8px">
+            <Typography className="h4">
+              {t('tr_whatToExport', 'Qué se exporta')}
+            </Typography>
+
+            <Checkbox
+              label={t('tr_alsoNextWeek', 'Incluir también la semana siguiente')}
+              checked={conSiguiente}
+              onChange={handleToggleSiguiente}
+            />
+
+            {!semanaSiguiente && conSiguiente && (
+              <Typography
+                className="label-small-regular"
+                color="var(--orange-dark)"
+              >
+                {t(
+                  'tr_noNextWeekAvailable',
+                  'No hay semana siguiente guardada: se exportará solo esta.'
+                )}
+              </Typography>
+            )}
+          </Stack>
+        ) : (
+          <WeekRangeSelector
+            meeting="midweek"
+            onStartChange={handleSetStartWeek}
+            onEndChange={handleSetEndWeek}
+          />
+        )}
 
         {/* Una casilla por cosa: se saca lo que se marque, y marcar una no
             arrastra la otra. El botón no se apaga; si no hay nada marcado, lo

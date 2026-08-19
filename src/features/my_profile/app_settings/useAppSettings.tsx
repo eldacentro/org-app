@@ -5,6 +5,7 @@ import {
   backupIntervalState,
   themeFollowOSEnabledState,
   pdfExportEnabledPersonalState,
+  midweekExportPersonalState,
 } from '@states/settings';
 import { useBreakpoints, useCurrentUser } from '@hooks/index';
 
@@ -13,16 +14,19 @@ const useAppSettings = () => {
 
   // Quién ve el interruptor de exportación a PDF: solo quien tenga algún
   // documento que exportar. Ver `canExportAnySchedule` en useCurrentUser.
-  const { canExportAnySchedule } = useCurrentUser();
+  const { canExportAnySchedule, isElder } = useCurrentUser();
 
   const autoBackupInterval = useAtomValue(backupIntervalState);
   const followOSTheme = useAtomValue(themeFollowOSEnabledState);
   const pdfExportPersonal = useAtomValue(pdfExportEnabledPersonalState);
+  const midweekExportPersonal = useAtomValue(midweekExportPersonalState);
 
   const [autoSyncInterval, setAutoSyncInterval] = useState(autoBackupInterval);
   const [syncTheme, setSyncTheme] = useState(followOSTheme);
   const [pdfExportPersonalEnabled, setPdfExportPersonalEnabled] =
     useState(pdfExportPersonal);
+  const [midweekExportEnabled, setMidweekExportEnabled] =
+    useState(midweekExportPersonal);
 
   const handleUpdateSyncInterval = async (value: number) => {
     setAutoSyncInterval(value);
@@ -61,9 +65,27 @@ const useAppSettings = () => {
     });
   };
 
+  // Igual que el de arriba: solo user_settings, y solo para esta cuenta. Quien
+  // lo enciende se asoma el botón de exportar el programa en «Programas
+  // semanales» sin que a nadie más le cambie nada.
+  const handleSwitchMidweekExport = async (value: boolean) => {
+    setMidweekExportEnabled(value);
+
+    await dbAppSettingsUpdate({
+      'user_settings.midweek_export_enabled_personal': {
+        value,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  };
+
   useEffect(() => {
     setSyncTheme(followOSTheme);
   }, [followOSTheme]);
+
+  useEffect(() => {
+    setMidweekExportEnabled(midweekExportPersonal);
+  }, [midweekExportPersonal]);
 
   // Mantener en sincronía si los átomos cambian externamente (ej. data sync push)
   useEffect(() => {
@@ -83,6 +105,9 @@ const useAppSettings = () => {
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
     canExportAnySchedule,
+    midweekExportEnabled,
+    handleSwitchMidweekExport,
+    isElder,
   };
 };
 

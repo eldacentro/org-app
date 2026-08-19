@@ -23,6 +23,9 @@ const AppSettings = () => {
     syncTheme,
     pdfExportPersonalEnabled,
     handleSwitchPdfExportPersonal,
+    midweekExportEnabled,
+    handleSwitchMidweekExport,
+    isElder,
     canExportAnySchedule,
   } = useAppSettings();
 
@@ -95,6 +98,29 @@ const AppSettings = () => {
             )}
             checked={pdfExportPersonalEnabled}
             onChange={handleSwitchPdfExportPersonal}
+          />
+        )}
+
+        {/* Colgado del anterior y solo para ancianos, porque no todos llegan a
+            la página de edición de la reunión de entre semana pero algunos
+            quieren imprimir el programa para presidir.
+
+            APAGADO de fábrica y aparte, a propósito: añade un botón a una
+            pantalla que se mira a diario, y a quien no lo use le estorba. Y
+            colgado del interruptor general porque sin él no saldría el PDF,
+            así que encenderlo solo no serviría de nada. */}
+        {canExportAnySchedule && isElder && pdfExportPersonalEnabled && (
+          <SwitchWithLabel
+            label={t(
+              'tr_midweekExportPersonalEnabled',
+              'Exportar el programa desde Programas semanales'
+            )}
+            helper={t(
+              'tr_midweekExportPersonalEnabledDesc',
+              'Añade un botón para exportar el programa de la reunión de entre semana desde la pestaña, sin entrar en la página de edición.'
+            )}
+            checked={midweekExportEnabled}
+            onChange={handleSwitchMidweekExport}
           />
         )}
 

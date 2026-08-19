@@ -305,6 +305,19 @@ export type SettingsType = {
     // interruptor que queda: lo tiene todo el mundo y no afecta a nadie más.
     // Ver pdfExportEnabledState en @states/settings.
     pdf_export_enabled_personal?: { value: boolean; updatedAt: string };
+    /**
+     * Enseñar el botón de exportar el programa en «Programas semanales».
+     *
+     * Aparte del interruptor general de exportar, y APAGADO de fábrica. No todos
+     * los ancianos llegan a la página de edición de la reunión de entre semana,
+     * pero algunos quieren imprimir el programa para presidir. Este interruptor
+     * les asoma ahí el botón sin darles la página entera.
+     *
+     * Va aparte y no encendido para todos porque a quien no lo use le estorba:
+     * es un botón más en una pantalla que se mira a diario. Quien lo quiera lo
+     * enciende una vez.
+     */
+    midweek_export_enabled_personal?: { value: boolean; updatedAt: string };
   };
 };
 
