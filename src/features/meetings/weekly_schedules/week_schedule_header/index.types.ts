@@ -18,4 +18,15 @@ export type WeekScheduleHeaderProps = {
    * tenga peso sin ocupar una fila para ella sola.
    */
   action?: ReactNode;
+  /**
+   * Una acción de segunda fila, en la línea de «Última actualización».
+   *
+   * Va abajo y no junto a `action` porque ahí competiría: `action` es la acción
+   * de la pestaña y tiene peso visual propio (el botón de JW Library es un
+   * círculo rojo). Dos cosas llamativas seguidas se estorban.
+   *
+   * Esa última línea, en cambio, estaba vacía por la derecha, así que aquí se
+   * equilibra la cabecera en vez de recargarla.
+   */
+  secondaryAction?: ReactNode;
 };

@@ -4,7 +4,6 @@ import useMidweekContainer from './useMidweekContainer';
 import { midweekExportPersonalState } from '@states/settings';
 import MidweekExport from '@features/meetings/midweek_export';
 import { IconPrint } from '@components/icons';
-import Button from '@components/button';
 import useSiblingAssignments from '../../sibling_assignments/useSiblingAssignments';
 import MidweekMeeting from '../midweek_meeting';
 import NoSchedule from '../no_schedule';
@@ -108,21 +107,38 @@ const MidweekContainer = ({
             title={headline.title}
             subtitle={headline.subtitle}
             action={
-              jwLibraryUrl || puedeExportar ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {jwLibraryUrl && (
-                    <JwLibraryLink href={jwLibraryUrl} variant="solid" />
-                  )}
-
-                  {puedeExportar && (
-                    <Button
-                      variant="small"
-                      startIcon={<IconPrint color="var(--accent-main)" />}
-                      onClick={() => setExportOpen(true)}
-                    >
-                      Exportar
-                    </Button>
-                  )}
+              jwLibraryUrl ? (
+                <JwLibraryLink href={jwLibraryUrl} variant="solid" />
+              ) : undefined
+            }
+            /* Abajo y no junto a JW Library: ese botón es un círculo rojo con
+               peso propio, y dos cosas llamativas seguidas se estorban. Aquí
+               sigue el mismo patrón discreto que «Ir a la semana actual» —icono
+               pequeño y texto en color de acento—, que es el que la cabecera ya
+               usa para las acciones de apoyo. */
+            secondaryAction={
+              puedeExportar ? (
+                <Box
+                  onClick={() => setExportOpen(true)}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <IconPrint
+                    width={16}
+                    height={16}
+                    color="var(--accent-main)"
+                  />
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--accent-main)"
+                  >
+                    Exportar
+                  </Typography>
                 </Box>
               ) : undefined
             }

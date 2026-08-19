@@ -109,10 +109,24 @@ const WeekScheduleHeader = (props: WeekScheduleHeaderProps) => {
         </Box>
       )}
 
-      {props.lastUpdated && (
-        <Typography className="label-small-regular" color="var(--grey-350)">
-          {t('tr_lastUpdated', { date: props.lastUpdated })}
-        </Typography>
+      {(props.lastUpdated || props.secondaryAction) && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Typography className="label-small-regular" color="var(--grey-350)">
+            {props.lastUpdated
+              ? t('tr_lastUpdated', { date: props.lastUpdated })
+              : ''}
+          </Typography>
+
+          {props.secondaryAction}
+        </Box>
       )}
     </Box>
   );
