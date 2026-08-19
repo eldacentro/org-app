@@ -1,3 +1,4 @@
+import { congIdFromShort, congIdToShort } from '@services/encryption/share';
 import {
   Territory,
   TerritoryLocation,
@@ -139,29 +140,42 @@ export type ParsedShareLink = {
 } | null;
 
 /**
- * Formato del enlace: `#/t/{congId}/{token}?k={clave}`.
+ * Formato del enlace: `#/t/{cong}/{token}/{clave}`.
  *
  * Todo va después de la almohadilla a propósito: el navegador nunca envía el
  * fragmento al servidor, así que ni el token ni la clave aparecen en los logs
  * del hosting ni en la cabecera `Referer`. Se parsea a mano para que la página
  * pública no tenga que cargar react-router.
+ *
+ * SE ENTIENDEN DOS FORMATOS, y hay que seguir entendiendo el viejo:
+ *
+ *   nuevo:  #/t/{cong22}/{token22}/{clave22}          ~95 caracteres
+ *   viejo:  #/t/{UUID-36}/{token32}?k={clave43}       ~142 caracteres
+ *
+ * Los enlaces que ya circulan siguen abriéndose hasta que caduquen solos. Se
+ * distinguen sin ambigüedad: el viejo lleva la clave en `?k=` y el
+ * identificador con guiones.
  */
 export const parseShareHash = (hash: string): ParsedShareLink => {
   const raw = hash.startsWith('#') ? hash.slice(1) : hash;
   const [path, search] = raw.split('?');
-  const parts = path.split('/').filter(Boolean); // ['t', congId, token]
+  const parts = path.split('/').filter(Boolean);
 
   if (parts.length < 3 || parts[0] !== 't') return null;
 
-  const keyB64 = new URLSearchParams(search ?? '').get('k') ?? '';
+  const congId = congIdFromShort(parts[1]);
+  const token = parts[2];
 
-  return { congId: parts[1], token: parts[2], keyB64 };
+  // La clave: cuarto trozo en los nuevos, `?k=` en los de antes.
+  const keyB64 = parts[3] ?? new URLSearchParams(search ?? '').get('k') ?? '';
+
+  return { congId, token, keyB64 };
 };
 
-/** Compone la URL para compartir. */
+/** Compone la URL para compartir, en el formato corto. */
 export const buildShareUrl = (
   origin: string,
   congId: string,
   token: string,
   keyB64: string
-): string => `${origin}/#/t/${congId}/${token}?k=${keyB64}`;
+): string => `${origin}/#/t/${congIdToShort(congId)}/${token}/${keyB64}`;

@@ -14,7 +14,7 @@ import DialogVerTerritorio from '@features/territories/DialogVerTerritorio';
 import { construirStorePublico } from './publicTerritoryStore';
 import { TerritorySharePayload } from '@definition/territory_shares';
 import { fetchPublicShare } from '@services/firebase/territory_shares';
-import { SHARE_KEY_LENGTH } from '@services/encryption/share';
+import { isShareKeyLength } from '@services/encryption/share';
 import { ParsedShareLink, parseShareHash } from '@services/app/territory_share';
 import { FORCED_UI_LANG, LANGUAGE_LIST } from '@constants/index';
 
@@ -64,7 +64,7 @@ const PublicTerritoryPage = () => {
   const load = useCallback(async () => {
     const parsed = link.current;
 
-    if (!parsed || parsed.keyB64.length !== SHARE_KEY_LENGTH) {
+    if (!parsed || !isShareKeyLength(parsed.keyB64)) {
       setState({ status: 'error', kind: 'link' });
       return;
     }
