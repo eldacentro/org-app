@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import IconLoading from '@components/icon_loading';
 import { useAppTranslation } from '@hooks/index';
@@ -35,6 +35,24 @@ const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
   const [conSiguiente, setConSiguiente] = useState(false);
 
   const handleToggleSiguiente = () => setConSiguiente((valor) => !valor);
+
+  // El programa viene YA marcado cuando se entra desde «Programas semanales»:
+  // es a lo único que se viene, así que pedir que se marque sobra. Una sola vez
+  // por apertura, para no volver a marcarlo si el usuario lo desmarca.
+  const sembrado = useRef(false);
+
+  useEffect(() => {
+    if (!open) {
+      sembrado.current = false;
+      return;
+    }
+
+    if (!semanaBase || sembrado.current) return;
+
+    sembrado.current = true;
+    if (!exportS140) handleToggleS140();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, semanaBase]);
 
   /** La semana que va justo después de la que se está mirando, si existe. */
   const semanaSiguiente = useMemo(() => {
@@ -97,27 +115,40 @@ const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
             Desde la página de edición sigue saliendo el selector de siempre. */}
         {semanaBase ? (
           <Stack spacing="8px">
-            <Typography className="h4">
-              {t('tr_whatToExport', 'Qué se exporta')}
-            </Typography>
+            {/* Solo el programa. Desde aquí no se sacan las hojitas: quien entra
+                por «Programas semanales» viene a imprimir para presidir, no a
+                repartir asignaciones — eso se hace desde la página de edición,
+                que es donde se sabe a quién le toca cada una. */}
+            <Checkbox
+              label={t('tr_MMScheduleS140')}
+              checked={exportS140}
+              onChange={handleToggleS140}
+            />
 
             <Checkbox
-              label={t('tr_alsoNextWeek', 'Incluir también la semana siguiente')}
+              label={t(
+                'tr_alsoNextWeek',
+                'Incluir también la semana siguiente'
+              )}
               checked={conSiguiente}
               onChange={handleToggleSiguiente}
             />
 
-            {!semanaSiguiente && conSiguiente && (
-              <Typography
-                className="label-small-regular"
-                color="var(--orange-dark)"
-              >
-                {t(
-                  'tr_noNextWeekAvailable',
-                  'No hay semana siguiente guardada: se exportará solo esta.'
-                )}
-              </Typography>
-            )}
+            <Typography
+              className="label-small-regular"
+              color="var(--grey-400)"
+              sx={{ marginLeft: '32px' }}
+            >
+              {!semanaSiguiente && conSiguiente
+                ? t(
+                    'tr_noNextWeekAvailable',
+                    'No hay semana siguiente guardada: se exportará solo esta.'
+                  )
+                : t(
+                    'tr_alsoNextWeekDesc',
+                    'Las dos semanas van en el mismo documento.'
+                  )}
+            </Typography>
           </Stack>
         ) : (
           <WeekRangeSelector
@@ -130,7 +161,7 @@ const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
         {/* Una casilla por cosa: se saca lo que se marque, y marcar una no
             arrastra la otra. El botón no se apaga; si no hay nada marcado, lo
             dice al pulsarlo. */}
-        {pdfExportEnabled && (
+        {pdfExportEnabled && !semanaBase && (
           <Stack spacing="8px">
             <Checkbox
               label={t('tr_MMScheduleS140')}

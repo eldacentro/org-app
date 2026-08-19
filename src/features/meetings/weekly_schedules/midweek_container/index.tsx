@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import useMidweekContainer from './useMidweekContainer';
-import { midweekExportPersonalState } from '@states/settings';
+import {
+  midweekExportPersonalState,
+  pdfExportEnabledState,
+} from '@states/settings';
 import MidweekExport from '@features/meetings/midweek_export';
 import { IconPrint } from '@components/icons';
 import useSiblingAssignments from '../../sibling_assignments/useSiblingAssignments';
@@ -51,7 +54,12 @@ const MidweekContainer = ({
   const midweekExportEnabled = useAtomValue(midweekExportPersonalState);
   const [exportOpen, setExportOpen] = useState(false);
 
-  const puedeExportar = isElder && midweekExportEnabled && !!week;
+  // También exige el interruptor general: sin él el diálogo no sacaría el
+  // programa (solo saldrían las hojitas, que desde aquí no se quieren).
+  const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
+
+  const puedeExportar =
+    isElder && midweekExportEnabled && pdfExportEnabled && !!week;
   const schedules = useAtomValue(schedulesState);
 
   // Quien lleva el programa tiene que poder ver SU borrador; el resto de la
