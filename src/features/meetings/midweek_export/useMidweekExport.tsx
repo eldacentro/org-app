@@ -40,7 +40,11 @@ import { WEEK_TYPE_NO_MEETING } from '@constants/index';
 import { sourcesState } from '@states/sources';
 import { diaArchivo, nombreArchivo, rangoArchivo } from '@utils/nombre_pdf';
 
-const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
+const useMidweekExport = (
+  onClose: MidweekExportType['onClose'],
+  /** Puesta cuando se abre desde «Programas semanales». Ver `shouldExportS89`. */
+  semanaBase?: MidweekExportType['semanaBase']
+) => {
   const [S89Template, setS89Template] = useAtom(S89TemplateState);
 
   const pdfExportEnabled = useAtomValue(pdfExportEnabledState);
@@ -68,7 +72,16 @@ const useMidweekExport = (onClose: MidweekExportType['onClose']) => {
   // Con la exportación a PDF apagada no hay casillas que marcar y lo único que
   // sale son las hojitas, así que ahí se da por marcada.
   const shouldExportS140 = pdfExportEnabled && exportS140;
-  const shouldExportS89 = pdfExportEnabled ? exportS89 : true;
+  // Desde «Programas semanales» NUNCA salen las hojitas, y se dice aquí y no
+  // solo escondiendo la casilla: ahí abajo hay un `: true` que las daría por
+  // pedidas si alguien apagase el interruptor general con el diálogo abierto.
+  // Que dependa de una cadena de condiciones algo que el usuario ha pedido dos
+  // veces que no salga es buscarse un fallo.
+  const shouldExportS89 = semanaBase
+    ? false
+    : pdfExportEnabled
+      ? exportS89
+      : true;
 
   const handleSetStartWeek = (value: string) => setStartWeek(value);
 

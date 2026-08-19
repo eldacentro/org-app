@@ -29,7 +29,7 @@ const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
     handleSelectS89Template,
     handleSetEndWeek,
     handleSetStartWeek,
-  } = useMidweekExport(onClose);
+  } = useMidweekExport(onClose, semanaBase);
 
   const sources = useAtomValue(sourcesState);
   const [conSiguiente, setConSiguiente] = useState(false);
@@ -176,18 +176,23 @@ const MidweekExport = ({ open, onClose, semanaBase }: MidweekExportType) => {
           </Stack>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: '500', color: 'var(--grey-400)' }}
-          >
-            {t('tr_templateS89')}
-          </Typography>
-          <S89TemplateSelector
-            selected={S89Template}
-            onChange={(value) => handleSelectS89Template(value)}
-          />
-        </Box>
+        {/* La plantilla de las hojitas tampoco: desde «Programas semanales» no
+            se sacan hojitas, así que elegir con qué formato salen no pinta
+            nada. Se quedaba abajo aunque la casilla ya no estuviera. */}
+        {!semanaBase && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: '500', color: 'var(--grey-400)' }}
+            >
+              {t('tr_templateS89')}
+            </Typography>
+            <S89TemplateSelector
+              selected={S89Template}
+              onChange={(value) => handleSelectS89Template(value)}
+            />
+          </Box>
+        )}
       </Box>
 
       <Box
