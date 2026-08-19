@@ -44,6 +44,8 @@ const useApplicationsNotifications = () => {
 
   // El registro de "ya vistas" se limpia de lo que ya no está pendiente, para
   // que no crezca sin fin y para que una solicitud nueva vuelva a avisar.
+  // Mientras no haya pendientes no se toca (ver pruneSeenApplications): al
+  // arrancar la aplicación están vacías por no haber bajado todavía.
   useEffect(() => {
     setSeen((prev) => pruneSeenApplications(prev, pendingIds));
   }, [pendingIds, setSeen]);

@@ -28,7 +28,12 @@ describe('pruneSeenApplications', () => {
     expect(pruneSeenApplications(seen, ['a', 'b'])).toBe(seen);
   });
 
-  it('sin nada pendiente, el registro queda vacío', () => {
-    expect(pruneSeenApplications(['a', 'b'], [])).toEqual([]);
+  // La regresión que hacía reaparecer el aviso en cada arranque: al abrir la
+  // aplicación las solicitudes aún no han bajado, la lista de pendientes está
+  // vacía por eso, y limpiar contra ella borraba el registro entero.
+  it('sin pendientes NO se toca el registro (aún no han bajado)', () => {
+    const seen = ['a', 'b'];
+
+    expect(pruneSeenApplications(seen, [])).toBe(seen);
   });
 });
