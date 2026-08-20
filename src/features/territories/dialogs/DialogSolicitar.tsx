@@ -317,7 +317,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                   color="var(--ink-3)"
                   sx={{ display: 'block', mb: 0.75 }}
                 >
-                  Motivo
+                  Para
                 </Typography>
                 {/* La campaña PRIMERO: mientras dura es lo que se pide casi
                     siempre, y es lo que viene marcado.
