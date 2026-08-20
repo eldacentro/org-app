@@ -47,6 +47,13 @@ type Props = {
   campaignTerritoryIds?: string[];
   /** Nombre de esa campaña, para rotular el interruptor. */
   campaignName?: string;
+  /**
+   * Zona por la que abrirse, si el que pidió el territorio dijo alguna
+   * preferencia. Se salta el primer paso —elegir zona— y entra directo en su
+   * lista; se sale con "Zonas" como siempre, porque es una preferencia y no
+   * una condición.
+   */
+  zonaInicial?: string;
 };
 
 /** «hace 3 meses», «hace 12 días», «sin registro». */
@@ -76,6 +83,7 @@ const SelectorTerritorio = ({
   cargando = false,
   campaignTerritoryIds,
   campaignName,
+  zonaInicial,
 }: Props) => {
   const territories = useAtomValue(territoriesState);
   const zonas = useAtomValue(territoryZonesSortedState);
@@ -87,7 +95,9 @@ const SelectorTerritorio = ({
   // inválida: nunca marcaría «En descanso» y nadie sabría por qué.
   const diasDescanso = settings.daysUntilReassignable ?? 30;
 
-  const [zonaAbierta, setZonaAbierta] = useState<string | null>(null);
+  const [zonaAbierta, setZonaAbierta] = useState<string | null>(
+    zonaInicial ?? null
+  );
   const [orden, setOrden] = useState<Orden>('numero');
 
   const hayCampana = (campaignTerritoryIds?.length ?? 0) > 0;
@@ -122,6 +132,17 @@ const SelectorTerritorio = ({
     }
     return mapa;
   }, [territories, asignados, soloCampana, idsCampana]);
+
+  // El diálogo de asignar no se desmonta entre una solicitud y la siguiente,
+  // así que el estado inicial de arriba solo valdría la primera vez. Y no se
+  // entra en una zona que no tenga nada que ofrecer: se dejaría al responsable
+  // mirando una lista vacía.
+  useEffect(() => {
+    if (!zonaInicial) return;
+    setZonaAbierta((actual) =>
+      (libresPorZona.get(zonaInicial)?.length ?? 0) > 0 ? zonaInicial : actual
+    );
+  }, [zonaInicial, libresPorZona]);
 
   const listaZona = useMemo(() => {
     if (!zonaAbierta) return [];

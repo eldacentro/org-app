@@ -13,7 +13,9 @@ import {
   territoryCampaignsState,
   territoryPendingRequestsState,
   territorySettingsState,
+  territoryZonesSortedState,
 } from '@states/territories';
+import { TagChip } from '@features/territories/ui';
 import FilterChip from '@components/filter_chip';
 import {
   formatTerritoryDate,
@@ -39,11 +41,14 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const resolveName = usePersonName();
 
   const campaigns = useAtomValue(territoryCampaignsState);
+  const zonas = useAtomValue(territoryZonesSortedState);
 
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
   /** Campaña elegida, o null para "territorio normal". */
   const [campaignId, setCampaignId] = useState<string | null>(null);
+  /** Zona preferida, o null para "cualquiera". */
+  const [zoneId, setZoneId] = useState<string | null>(null);
 
   /**
    * Las campañas que todavía no han terminado, la que antes empiece primero.
@@ -64,15 +69,13 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
     if (!open) return;
     setNota('');
 
-    // Se preselecciona SOLO la campaña que está corriendo hoy. Una que está
-    // creada pero empieza dentro de quince días no se marca sola: durante esos
-    // quince días lo normal es querer un territorio corriente, y marcarla por
-    // él le haría pedir para la campaña sin darse cuenta. Si de verdad la
-    // quiere, la elige.
-    const enMarcha = campanasAbiertas.find((c) =>
-      isCampaignRunning(c.fechaInicio, c.fechaFin)
-    );
-    setCampaignId(enMarcha?.id ?? null);
+    setZoneId(null);
+
+    // Con una campaña abierta, viene marcada: es lo que se pide casi siempre
+    // mientras dura. La que todavía no ha empezado también, pero diciéndolo
+    // debajo ("todavía no ha empezado") — si lo que quiere es un territorio
+    // corriente para estos días de en medio, lo desmarca de un toque.
+    setCampaignId(campanasAbiertas[0]?.id ?? null);
   }, [open, campanasAbiertas]);
 
   /** La solicitud pendiente de quien está mirando, si tiene alguna. */
@@ -122,6 +125,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         personUid: uid,
         nota: nota.trim() || undefined,
         campaignId: campaignId ?? undefined,
+        zoneId: zoneId ?? undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -253,8 +257,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           sx={{ mb: 2 }}
         >
           Tu solicitud llegará a los responsables del departamento de
-          Territorios. Si tienes alguna preferencia (por ejemplo: rural, con
-          casas bajas, con ascensores…), escríbela en la nota.
+          Territorios. Si prefieres algo más —casas bajas, con ascensores, uno
+          pequeño…— escríbelo en la nota.
         </Typography>
 
         {miSolicitud ? (
@@ -315,20 +319,29 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                 >
                   ¿Para qué lo pides?
                 </Typography>
+                {/* La campaña PRIMERO: mientras dura es lo que se pide casi
+                    siempre, y es lo que viene marcado.
+
+                    Con una sola campaña abierta el chip dice "Campaña" a
+                    secas — el nombre entero no cabe bien y además está
+                    escrito justo debajo, con sus fechas. Con dos o más sí
+                    hace falta el nombre para poder distinguirlas. */}
                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
+                  {campanasAbiertas.map((c) => (
+                    <FilterChip
+                      key={c.id}
+                      label={
+                        campanasAbiertas.length === 1 ? 'Campaña' : c.nombre
+                      }
+                      selected={campaignId === c.id}
+                      onClick={() => setCampaignId(c.id)}
+                    />
+                  ))}
                   <FilterChip
                     label="Territorio normal"
                     selected={campaignId === null}
                     onClick={() => setCampaignId(null)}
                   />
-                  {campanasAbiertas.map((c) => (
-                    <FilterChip
-                      key={c.id}
-                      label={c.nombre}
-                      selected={campaignId === c.id}
-                      onClick={() => setCampaignId(c.id)}
-                    />
-                  ))}
                 </Stack>
 
                 {/* Las fechas de la campaña elegida, y si todavía no ha
@@ -356,6 +369,45 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                     ) && ' · todavía no ha empezado'}
                   </Typography>
                 )}
+              </Box>
+            )}
+
+            {/* La zona que prefiere. Es una PREFERENCIA, no una condición: el
+                responsable la ve y el selector se le abre por ahí, pero puede
+                darle otra. Va siempre, haya campaña o no — "de Salinas, que me
+                pilla al lado" es de lo más común que se escribía a mano en la
+                nota.
+
+                Con el color de cada zona, que es como se reconocen en todo el
+                módulo: la cápsula de las tarjetas, el mapa, las cabeceras.
+                "Cualquiera" lleva punto gris — es una opción más, no la
+                ausencia de opción. */}
+            {zonas.length > 1 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  className="label-small-semibold"
+                  color="var(--ink-3)"
+                  sx={{ display: 'block', mb: 0.75 }}
+                >
+                  ¿De alguna zona en particular?
+                </Typography>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
+                  <TagChip
+                    label="Cualquiera"
+                    color="var(--ink-3)"
+                    selected={zoneId === null}
+                    onClick={() => setZoneId(null)}
+                  />
+                  {zonas.map((z) => (
+                    <TagChip
+                      key={z.id}
+                      label={z.nombre}
+                      color={z.color}
+                      selected={zoneId === z.id}
+                      onClick={() => setZoneId(z.id)}
+                    />
+                  ))}
+                </Stack>
               </Box>
             )}
 

@@ -65,6 +65,8 @@ type Props = {
   requestId?: string;
   isCampaign?: boolean;
   campaignId?: string;
+  /** Zona que pidió el solicitante, si dijo alguna. */
+  preferredZoneId?: string;
 };
 
 const DialogAsignar = ({
@@ -76,6 +78,7 @@ const DialogAsignar = ({
   requestId,
   isCampaign = false,
   campaignId,
+  preferredZoneId,
 }: Props) => {
   const isBulk = (bulkTerritories?.length ?? 0) > 0;
   const congId = useAtomValue(congIDState);
@@ -548,6 +551,7 @@ const DialogAsignar = ({
                 cargando={cargandoTerritorios}
                 campaignTerritoryIds={campanaDeLaAsignacion?.territoryIds}
                 campaignName={campanaDeLaAsignacion?.nombre}
+                zonaInicial={preferredZoneId}
               />
             </Box>
           )}

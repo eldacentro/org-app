@@ -37,6 +37,7 @@ type AsignarState = {
   requestId?: string;
   isCampaign?: boolean;
   campaignId?: string;
+  preferredZoneId?: string;
 };
 
 const CLOSED_ASIGNAR: AsignarState = { open: false, territory: null };
@@ -169,6 +170,7 @@ const TerritoriesPage = () => {
               // buscar cuáles eran.
               isCampaign: Boolean(req.campaignId),
               campaignId: req.campaignId,
+              preferredZoneId: req.zoneId,
             })
           }
           onAsignarCampana={(t, campaignId) =>
@@ -264,6 +266,7 @@ const TerritoriesPage = () => {
         requestId={asignar.requestId}
         isCampaign={asignar.isCampaign}
         campaignId={asignar.campaignId}
+        preferredZoneId={asignar.preferredZoneId}
         onClose={() => setAsignar(CLOSED_ASIGNAR)}
       />
     </Box>

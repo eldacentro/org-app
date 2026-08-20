@@ -5,8 +5,10 @@ import Typography from '@components/typography';
 import { useConfirm } from '@components/confirm_dialog';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import Badge from '@components/badge';
+import { TagChip } from '@features/territories/ui';
 import {
   territoryCampaignsState,
+  territoryZonesSortedState,
   territoryPendingRequestsState,
   territoriesLoadingState,
 } from '@states/territories';
@@ -29,6 +31,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   const uid = useAtomValue(userLocalUIDState);
   const pending = useAtomValue(territoryPendingRequestsState);
   const campaigns = useAtomValue(territoryCampaignsState);
+  const zonas = useAtomValue(territoryZonesSortedState);
   const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
   const { confirm, ConfirmDialogNode } = useConfirm();
@@ -95,6 +98,15 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                         }
                       />
                     )}
+                    {/* Y de qué zona lo prefiere, en el color de esa zona.
+                        Es lo primero que se mira al decidir qué darle, y el
+                        asignador ya se abre por ahí. */}
+                    {(() => {
+                      const z = zonas.find((x) => x.id === req.zoneId);
+                      return z ? (
+                        <TagChip label={z.nombre} color={z.color} />
+                      ) : null;
+                    })()}
                   </Stack>
                   <Typography
                     className="label-small-regular"

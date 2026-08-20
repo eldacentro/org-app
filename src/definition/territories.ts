@@ -141,6 +141,12 @@ export type TerritoryRequest = {
    * directamente los territorios de esa campaña.
    */
   campaignId?: string;
+  /**
+   * Zona que prefiere, si dijo alguna. Es una PREFERENCIA, no una condición:
+   * el responsable ve de cuál la pidió y el selector se le abre por ahí, pero
+   * puede darle uno de otra zona sin más.
+   */
+  zoneId?: string;
   createdAt: string;
   /** person_uid del responsable que la atendió — al rellenarse desaparece
    *  para los demás responsables (patrón vistoPor de Documentos). */
