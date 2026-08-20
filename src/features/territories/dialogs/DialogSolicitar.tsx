@@ -338,7 +338,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                     />
                   ))}
                   <FilterChip
-                    label="Predicación normal"
+                    label="Normal"
                     selected={campaignId === null}
                     onClick={() => setCampaignId(null)}
                   />
