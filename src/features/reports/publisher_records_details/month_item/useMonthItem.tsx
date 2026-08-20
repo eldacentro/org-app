@@ -1,3 +1,7 @@
+import {
+  effectiveCreditHours,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo, useState } from 'react';
 import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
@@ -140,7 +144,13 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
   const credit_hours = useMemo(() => {
     if (!report) return 0;
 
-    return report.report_data.hours.credit.approved;
+    // El que CUENTA ese mes, no el apuntado: si la predicación ya llega a 55,
+    // el crédito no suma nada y enseñarlo daría a entender lo contrario. Lo
+    // apuntado sigue estando en el detalle del informe. Ver `credit_hours.ts`.
+    return effectiveCreditHours(
+      report.report_data.hours.field_service,
+      rawCreditHours(report.report_data.hours.credit)
+    );
   }, [report]);
 
   const bible_studies = useMemo(() => {

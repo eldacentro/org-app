@@ -1,3 +1,4 @@
+import { monthlyCreditedTotal } from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
@@ -338,10 +339,16 @@ const useMinistryMonthlyRecord = ({
   }, [publisher, congReport, userReport, isSelf, delegatedReport]);
 
   const hours_total = useMemo(() => {
+    // EL TOPE DEL MES: la predicación cuenta entera, y el crédito solo lo que
+    // quepa hasta 55. Antes se sumaban a pelo, así que un mes de 60 horas con 8
+    // de crédito daba 68 cuando de verdad son 60. Ver `credit_hours.ts`.
     if (!publisher) {
       if (congReport) {
         return String(
-          +hours_fields.split(':').at(0) + +hours_credits.split(':').at(0)
+          monthlyCreditedTotal(
+            +hours_fields.split(':').at(0),
+            +hours_credits.split(':').at(0)
+          )
         );
       }
 
@@ -351,11 +358,15 @@ const useMinistryMonthlyRecord = ({
     const [hoursField, minutesField] = hours_fields.split(':').map(Number);
     const [hoursCredit, minutesCredit] = hours_credits.split(':').map(Number);
 
-    let totalHours = hoursField + hoursCredit;
+    // Los minutos se juntan primero y se pasan a horas, y solo entonces se
+    // aplica el tope: si no, un mes de 54:30 + 0:45 de crédito se toparía sobre
+    // 54 en vez de sobre 55 y se perdería media hora que sí cabía.
     const totalMinutes = (minutesField || 0) + (minutesCredit || 0);
-
     const minutesRemain = totalMinutes % 60;
-    totalHours += (totalMinutes - minutesRemain) / 60;
+    const horasDeLosMinutos = (totalMinutes - minutesRemain) / 60;
+
+    const totalHours =
+      monthlyCreditedTotal(hoursField, hoursCredit) + horasDeLosMinutos;
 
     return `${totalHours}:${String(minutesRemain).padStart(2, '0')}`;
   }, [publisher, congReport, hours_fields, hours_credits]);

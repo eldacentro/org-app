@@ -1,3 +1,7 @@
+import {
+  effectiveCreditHours,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 import { useAtomValue } from 'jotai';
@@ -77,8 +81,18 @@ const useYearDetails = (year: string) => {
   const credit_hours = useMemo(() => {
     if (!show_hours_total) return 0;
 
+    // MES A MES, nunca sumando en bruto. El crédito rellena hasta 55 y ni una
+    // hora más, así que un mes de 60 horas de predicación no aporta crédito
+    // ninguno. Sumar primero y topar después daría una cifra inventada: a
+    // Claudia le salían 35 horas de crédito en 2025-2026 cuando las que de
+    // verdad cuentan son 14. Ver `credit_hours.ts`.
     const sum = reports.reduce(
-      (acc, current) => acc + current.report_data.hours.credit.approved,
+      (acc, current) =>
+        acc +
+        effectiveCreditHours(
+          current.report_data.hours.field_service,
+          rawCreditHours(current.report_data.hours.credit)
+        ),
       0
     );
 

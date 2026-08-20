@@ -1,3 +1,7 @@
+import {
+  effectiveCreditHours,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { userFieldServiceMonthlyReportsState } from '@states/user_field_service_reports';
@@ -239,7 +243,17 @@ const useMinistryYearlyRecord = (year: string) => {
 
       if (!cuenta) return acc;
 
-      return acc + current.report_data.hours.credit.approved;
+      // CON EL TOPE DEL MES. El crédito rellena hasta 55 horas y ni una más:
+      // un mes con 60 de predicación no aporta crédito ninguno. Sumar en bruto
+      // y no topar daba cifras infladas en el registro del hermano. Ver
+      // `credit_hours.ts`, donde está la regla con los ejemplos del secretario.
+      return (
+        acc +
+        effectiveCreditHours(
+          current.report_data.hours.field_service,
+          rawCreditHours(current.report_data.hours.credit)
+        )
+      );
     }, 0);
 
     const userTotal = yearlyUserReports.reduce((acc, current) => {
@@ -250,17 +264,19 @@ const useMinistryYearlyRecord = (year: string) => {
 
       if (!cuenta) return acc;
 
-      if (current.report_data.hours.credit['approved']) {
-        const approved = current.report_data.hours.credit['approved'] as number;
+      // Mismo tope que arriba, y con el mismo criterio de qué campo manda.
+      const campo = current.report_data.hours.field_service;
 
-        if (approved > 0) {
-          acc += approved;
-        }
-
-        if (approved === 0) {
-          const value = current.report_data.hours.credit['value'] as number;
-          acc += value;
-        }
+      if (typeof campo === 'number') {
+        acc += effectiveCreditHours(
+          campo,
+          rawCreditHours(
+            current.report_data.hours.credit as {
+              value?: number;
+              approved?: number;
+            }
+          )
+        );
       }
 
       if (current.report_data.hours.credit.monthly) {

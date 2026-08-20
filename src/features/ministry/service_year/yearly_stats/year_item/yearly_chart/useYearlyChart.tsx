@@ -1,3 +1,7 @@
+import {
+  effectiveCreditHours,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
@@ -43,8 +47,10 @@ const getMonthData = (
 
   if (congReport) {
     const { hours } = congReport.report_data;
-    const credit =
-      hours.credit.approved > 0 ? hours.credit.approved : hours.credit.value;
+    const credit = effectiveCreditHours(
+      hours.field_service,
+      rawCreditHours(hours.credit)
+    );
 
     return { hours: hours.field_service + credit, hasReport: true };
   }

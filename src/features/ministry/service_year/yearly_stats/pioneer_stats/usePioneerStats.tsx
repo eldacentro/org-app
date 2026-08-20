@@ -1,3 +1,7 @@
+import {
+  monthlyCreditedTotal,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
@@ -115,18 +119,13 @@ const usePioneerStats = (year: string) => {
 
       if (!isFR) continue;
 
-      let totalHours = report.report_data.hours.field_service;
-
-      const approved = report.report_data.hours.credit.approved;
-
-      if (approved > 0) {
-        totalHours += approved;
-      }
-
-      if (approved === 0) {
-        const value = report.report_data.hours.credit.value;
-        totalHours += value;
-      }
+      // CON EL TOPE DEL MES: la predicación cuenta entera, y el crédito solo
+      // lo que quepa hasta 55. Sin esto, un mes de 60 horas con 8 de crédito
+      // sumaba 68 al balance cuando de verdad suma 60. Ver `credit_hours.ts`.
+      const totalHours = monthlyCreditedTotal(
+        report.report_data.hours.field_service,
+        rawCreditHours(report.report_data.hours.credit)
+      );
 
       balance += totalHours - 50;
     }
@@ -139,18 +138,16 @@ const usePioneerStats = (year: string) => {
       if (!isFR) continue;
 
       if (typeof report.report_data.hours.field_service === 'number') {
-        totalHours = report.report_data.hours.field_service as number;
-
-        const approved = report.report_data.hours.credit['approved'] as number;
-
-        if (approved > 0) {
-          totalHours += approved;
-        }
-
-        if (approved === 0) {
-          const value = report.report_data.hours.credit['value'] as number;
-          totalHours += value;
-        }
+        // Mismo tope que en el bloque de arriba.
+        totalHours = monthlyCreditedTotal(
+          report.report_data.hours.field_service as number,
+          rawCreditHours(
+            report.report_data.hours.credit as {
+              value?: number;
+              approved?: number;
+            }
+          )
+        );
       }
 
       if (report.report_data.hours.field_service.monthly) {
