@@ -224,29 +224,6 @@ export const executeRetentionPurge = async (today = new Date()) => {
     await dbFieldServiceReportsBulkSave(updated);
   }
 
-  if (false) {
-    const updated = plan.reportsToDelete.map(({ report }) => {
-      const r = structuredClone(report);
-      r.report_data._deleted = true;
-      r.report_data.updatedAt = NOW;
-      // Y `rev`, o la lápida no sale de este dispositivo.
-      //
-      // El servidor compara los informes por `rev`, NO por `updatedAt`: el
-      // `updatedAt` de esta tabla viaja cifrado y el servidor no puede leerlo,
-      // así que `rev` es su copia en claro. Sellar uno y no el otro deja una
-      // lápida con fecha vieja a ojos del servidor, que se queda con SU copia
-      // viva y la rechaza.
-      //
-      // Consecuencia real: la purga no se propagaba a la congregación, y cada
-      // dispositivo de administrador la repetía por su cuenta y volvía a
-      // anunciar «norma de conservación aplicada» — que es justo lo que se
-      // estaba viendo aparecer de vez en cuando sin venir a cuento.
-      r.report_data.rev = NOW;
-      return r;
-    });
-    await dbFieldServiceReportsBulkSave(updated);
-  }
-
   if (plan.enrollmentsToDelete.length > 0) {
     const byPerson = new Map<string, PersonType>();
     for (const { person, enrollmentId } of plan.enrollmentsToDelete) {
