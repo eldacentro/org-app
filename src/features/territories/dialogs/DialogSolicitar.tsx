@@ -63,6 +63,25 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
     [campaigns]
   );
 
+  /**
+   * Las que están corriendo HOY.
+   *
+   * Mientras una campaña está en marcha no se reparten territorios normales:
+   * toda la congregación trabaja los de la campaña. Así que en esos días no se
+   * ofrece elegir — pedir uno normal sería pedir algo que nadie va a dar.
+   *
+   * Es distinto de una campaña ya creada que empieza dentro de dos semanas:
+   * esos días de en medio son normales, y ahí sí se elige.
+   */
+  const campanasEnMarcha = useMemo(
+    () =>
+      campanasAbiertas.filter((c) =>
+        isCampaignRunning(c.fechaInicio, c.fechaFin)
+      ),
+    [campanasAbiertas]
+  );
+
+  const enCampana = campanasEnMarcha.length > 0;
   const campanaElegida = campanasAbiertas.find((c) => c.id === campaignId);
 
   useEffect(() => {
@@ -71,12 +90,14 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
     setZoneId(null);
 
-    // Con una campaña abierta, viene marcada: es lo que se pide casi siempre
-    // mientras dura. La que todavía no ha empezado también, pero diciéndolo
-    // debajo ("todavía no ha empezado") — si lo que quiere es un territorio
-    // corriente para estos días de en medio, lo desmarca de un toque.
-    setCampaignId(campanasAbiertas[0]?.id ?? null);
-  }, [open, campanasAbiertas]);
+    // En campaña, la campaña y punto. Fuera de ella, la próxima viene marcada
+    // igualmente —es lo que se pide casi siempre— pero diciendo debajo que
+    // todavía no ha empezado, para que quien quiera un territorio corriente
+    // para estos días lo desmarque de un toque.
+    setCampaignId(
+      (enCampana ? campanasEnMarcha[0] : campanasAbiertas[0])?.id ?? null
+    );
+  }, [open, campanasAbiertas, campanasEnMarcha, enCampana]);
 
   /** La solicitud pendiente de quien está mirando, si tiene alguna. */
   const miSolicitud = pendingRequests.find((r) => r.personUid === uid);
@@ -303,13 +324,16 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           </>
         ) : (
           <>
-            {/* ¿Para la campaña o normal? Solo aparece si hay alguna campaña
+            {/* Para la campaña o normal. Solo aparece si hay alguna campaña
                 sin terminar — el resto del año esto no existe.
 
-                Se pregunta en vez de deducirlo de la fecha porque no es lo
-                mismo: puede haber una campaña creada que empieza dentro de
-                quince días, y en esos quince días lo que se pide es un
-                territorio corriente. */}
+                Y solo se ELIGE cuando de verdad hay algo que elegir: mientras
+                una campaña está en marcha, toda la congregación trabaja los
+                territorios de la campaña y no se reparten normales, así que
+                ahí no se ofrece la opción — se dice y ya. La elección tiene
+                sentido en los días de en medio: una campaña creada que empieza
+                dentro de dos semanas no convierte esas dos semanas en
+                campaña. */}
             {campanasAbiertas.length > 0 && (
               <Box sx={{ mb: 2 }}>
                 <Typography
@@ -319,30 +343,52 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                 >
                   Para
                 </Typography>
+
                 {/* La campaña PRIMERO: mientras dura es lo que se pide casi
                     siempre, y es lo que viene marcado.
 
-                    Con una sola campaña abierta el chip dice "Campaña" a
-                    secas — el nombre entero no cabe bien y además está
-                    escrito justo debajo, con sus fechas. Con dos o más sí
-                    hace falta el nombre para poder distinguirlas. */}
-                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
-                  {campanasAbiertas.map((c) => (
-                    <FilterChip
-                      key={c.id}
-                      label={
-                        campanasAbiertas.length === 1 ? 'Campaña' : c.nombre
-                      }
-                      selected={campaignId === c.id}
-                      onClick={() => setCampaignId(c.id)}
-                    />
-                  ))}
-                  <FilterChip
-                    label="Normal"
-                    selected={campaignId === null}
-                    onClick={() => setCampaignId(null)}
-                  />
-                </Stack>
+                    Con una sola campaña el chip dice "Campaña" a secas — el
+                    nombre entero no cabe bien y además está escrito justo
+                    debajo, con sus fechas. Con dos o más sí hace falta el
+                    nombre para poder distinguirlas. */}
+                {enCampana && campanasEnMarcha.length === 1 ? (
+                  // Una sola campaña en marcha: no hay nada que elegir. Una
+                  // ficha solitaria que no se puede desmarcar sería una
+                  // elección de mentira.
+                  <Typography
+                    className="body-small-semibold"
+                    color="var(--ink)"
+                    sx={{ display: 'block' }}
+                  >
+                    La campaña {campanasEnMarcha[0].nombre}
+                  </Typography>
+                ) : (
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
+                    {(enCampana ? campanasEnMarcha : campanasAbiertas).map(
+                      (c) => (
+                        <FilterChip
+                          key={c.id}
+                          label={
+                            (enCampana ? campanasEnMarcha : campanasAbiertas)
+                              .length === 1
+                              ? 'Campaña'
+                              : c.nombre
+                          }
+                          selected={campaignId === c.id}
+                          onClick={() => setCampaignId(c.id)}
+                        />
+                      )
+                    )}
+                    {/* En campaña no se ofrece: no se reparten normales. */}
+                    {!enCampana && (
+                      <FilterChip
+                        label="Normal"
+                        selected={campaignId === null}
+                        onClick={() => setCampaignId(null)}
+                      />
+                    )}
+                  </Stack>
+                )}
 
                 {/* Las fechas de la campaña elegida, y si todavía no ha
                     empezado se dice — que es justo el caso en el que a lo
