@@ -317,7 +317,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                   color="var(--ink-3)"
                   sx={{ display: 'block', mb: 0.75 }}
                 >
-                  ¿Para qué lo pides?
+                  Motivo
                 </Typography>
                 {/* La campaña PRIMERO: mientras dura es lo que se pide casi
                     siempre, y es lo que viene marcado.
@@ -338,7 +338,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                     />
                   ))}
                   <FilterChip
-                    label="Territorio normal"
+                    label="Predicación normal"
                     selected={campaignId === null}
                     onClick={() => setCampaignId(null)}
                   />
@@ -389,7 +389,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                   color="var(--ink-3)"
                   sx={{ display: 'block', mb: 0.75 }}
                 >
-                  ¿De alguna zona en particular?
+                  Zona
                 </Typography>
                 <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
                   <TagChip
