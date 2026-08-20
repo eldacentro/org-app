@@ -131,6 +131,16 @@ export type TerritoryRequest = {
   personUid: string;
   /** Nota libre del publicador (ej. "prefiero rural"). */
   nota?: string;
+  /**
+   * La campaña para la que se pide, si el publicador lo indicó.
+   *
+   * Lo elige él al solicitar, no se deduce de la fecha: puede haber una
+   * campaña abierta que todavía no ha empezado y el hermano querer un
+   * territorio normal para estas dos semanas de en medio. Con esto el
+   * responsable lo sabe antes de asignar y el asignador le ofrece
+   * directamente los territorios de esa campaña.
+   */
+  campaignId?: string;
   createdAt: string;
   /** person_uid del responsable que la atendió — al rellenarse desaparece
    *  para los demás responsables (patrón vistoPor de Documentos). */

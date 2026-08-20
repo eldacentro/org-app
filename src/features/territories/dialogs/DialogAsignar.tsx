@@ -35,6 +35,7 @@ import {
   territoriesState,
   territoryAssignmentsState,
   territoriesLoadingState,
+  territoryCampaignsState,
   territoryPendingRequestsState,
   territorySettingsState,
 } from '@states/territories';
@@ -87,6 +88,16 @@ const DialogAsignar = ({
   const coSpouseName = useAtomValue(COSpouseNameState);
   const settings = useAtomValue(territorySettingsState);
   const territories = useAtomValue(territoriesState);
+  const campaigns = useAtomValue(territoryCampaignsState);
+
+  /**
+   * La campaña de esta asignación, si la hay. Con ella el selector se abre
+   * mostrando solo los territorios que la campaña incluye — que es lo que
+   * ahorra el rodeo por Estadísticas.
+   */
+  const campanaDeLaAsignacion = campaignId
+    ? campaigns.find((c) => c.id === campaignId)
+    : undefined;
   const resolveName = usePersonName();
   const allAssignments = useAtomValue(territoryAssignmentsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
@@ -535,6 +546,8 @@ const DialogAsignar = ({
                 value={territoryId}
                 onChange={setTerritoryId}
                 cargando={cargandoTerritorios}
+                campaignTerritoryIds={campanaDeLaAsignacion?.territoryIds}
+                campaignName={campanaDeLaAsignacion?.nombre}
               />
             </Box>
           )}

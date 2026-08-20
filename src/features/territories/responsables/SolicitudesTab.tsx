@@ -4,7 +4,9 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import { useConfirm } from '@components/confirm_dialog';
 import { congIDState, userLocalUIDState } from '@states/settings';
+import Badge from '@components/badge';
 import {
+  territoryCampaignsState,
   territoryPendingRequestsState,
   territoriesLoadingState,
 } from '@states/territories';
@@ -26,6 +28,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   const loading = useAtomValue(territoriesLoadingState);
   const uid = useAtomValue(userLocalUIDState);
   const pending = useAtomValue(territoryPendingRequestsState);
+  const campaigns = useAtomValue(territoryCampaignsState);
   const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
   const { confirm, ConfirmDialogNode } = useConfirm();
@@ -67,12 +70,32 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                 spacing={2}
               >
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    className="body-regular-semibold"
-                    color="var(--ink)"
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                   >
-                    {resolveName(req.personUid)} pidió un territorio
-                  </Typography>
+                    <Typography
+                      className="body-regular-semibold"
+                      color="var(--ink)"
+                    >
+                      {resolveName(req.personUid)} pidió un territorio
+                    </Typography>
+                    {/* Para qué lo pidió. Se sabe ANTES de abrir el asignador
+                        —que ya se abre acotado a esa campaña— porque cambia lo
+                        que hay que darle. */}
+                    {req.campaignId && (
+                      <Badge
+                        size="small"
+                        color="accent"
+                        text={
+                          campaigns.find((c) => c.id === req.campaignId)
+                            ?.nombre ?? 'Campaña'
+                        }
+                      />
+                    )}
+                  </Stack>
                   <Typography
                     className="label-small-regular"
                     color="var(--ink-3)"

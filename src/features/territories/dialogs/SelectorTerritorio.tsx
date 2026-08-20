@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
@@ -36,6 +36,17 @@ type Props = {
   onChange: (territoryId: string | null) => void;
   /** Se está cargando la lista todavía. */
   cargando?: boolean;
+  /**
+   * Territorios incluidos en la campaña para la que se está asignando.
+   *
+   * Cuando llega, el selector se abre mostrando SOLO esos, con un interruptor
+   * para ver todos. Es el atajo que evita el rodeo de siempre: mirar en
+   * Estadísticas cuáles llevan más sin trabajarse, apuntarlos y volver aquí a
+   * buscarlos uno a uno.
+   */
+  campaignTerritoryIds?: string[];
+  /** Nombre de esa campaña, para rotular el interruptor. */
+  campaignName?: string;
 };
 
 /** «hace 3 meses», «hace 12 días», «sin registro». */
@@ -59,7 +70,13 @@ const antiguedad = (t: Territory): number =>
     ? (Date.now() - new Date(t.lastWorkedAt).getTime()) / 86_400_000
     : Number.MAX_SAFE_INTEGER;
 
-const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
+const SelectorTerritorio = ({
+  value,
+  onChange,
+  cargando = false,
+  campaignTerritoryIds,
+  campaignName,
+}: Props) => {
   const territories = useAtomValue(territoriesState);
   const zonas = useAtomValue(territoryZonesSortedState);
   const asignados = useAtomValue(territoryAssignedIdsState);
@@ -73,6 +90,21 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
   const [zonaAbierta, setZonaAbierta] = useState<string | null>(null);
   const [orden, setOrden] = useState<Orden>('numero');
 
+  const hayCampana = (campaignTerritoryIds?.length ?? 0) > 0;
+  // Empieza acotado a la campaña, que es a lo que se viene cuando se asigna
+  // por una solicitud de campaña. Se puede salir de ahí: a veces no queda
+  // ninguno libre de la campaña y hay que dar otro.
+  const [soloCampana, setSoloCampana] = useState(hayCampana);
+
+  useEffect(() => {
+    setSoloCampana(hayCampana);
+  }, [hayCampana]);
+
+  const idsCampana = useMemo(
+    () => new Set(campaignTerritoryIds ?? []),
+    [campaignTerritoryIds]
+  );
+
   const elegido = useMemo(
     () => territories.find((t) => t.id === value) ?? null,
     [territories, value]
@@ -83,12 +115,13 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
     const mapa = new Map<string, Territory[]>();
     for (const t of territories) {
       if (asignados.has(t.id)) continue;
+      if (soloCampana && !idsCampana.has(t.id)) continue;
       const lista = mapa.get(t.zoneId) ?? [];
       lista.push(t);
       mapa.set(t.zoneId, lista);
     }
     return mapa;
-  }, [territories, asignados]);
+  }, [territories, asignados, soloCampana, idsCampana]);
 
   const listaZona = useMemo(() => {
     if (!zonaAbierta) return [];
@@ -155,6 +188,28 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
     );
   }
 
+  /** Campaña sí o no, encima de todo: manda sobre qué zonas se ven siquiera. */
+  const rielCampana = hayCampana ? (
+    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '6px' }}>
+      <FilterChip
+        label={campaignName ? `De ${campaignName}` : 'De la campaña'}
+        selected={soloCampana}
+        onClick={() => {
+          setSoloCampana(true);
+          setZonaAbierta(null);
+        }}
+      />
+      <FilterChip
+        label="Todos"
+        selected={!soloCampana}
+        onClick={() => {
+          setSoloCampana(false);
+          setZonaAbierta(null);
+        }}
+      />
+    </Stack>
+  ) : null;
+
   // ── nivel 1: las zonas ──
   if (!zonaAbierta) {
     const conLibres = zonas.filter(
@@ -163,17 +218,23 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
 
     if (conLibres.length === 0) {
       return (
-        <Typography
-          className="body-small-regular"
-          sx={{ color: 'var(--ink-2)', py: 2 }}
-        >
-          No hay ningún territorio libre ahora mismo.
-        </Typography>
+        <Stack spacing={1.5}>
+          {rielCampana}
+          <Typography
+            className="body-small-regular"
+            sx={{ color: 'var(--ink-2)', py: 1 }}
+          >
+            {soloCampana
+              ? 'No queda ningún territorio libre de la campaña. Puedes ver todos.'
+              : 'No hay ningún territorio libre ahora mismo.'}
+          </Typography>
+        </Stack>
       );
     }
 
     return (
       <Stack spacing={1}>
+        {rielCampana}
         {conLibres.map((z) => {
           const n = (libresPorZona.get(z.id) ?? []).length;
           return (
@@ -241,6 +302,7 @@ const SelectorTerritorio = ({ value, onChange, cargando = false }: Props) => {
 
   return (
     <Stack spacing={1.5}>
+      {rielCampana}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Button
           variant="tertiary"

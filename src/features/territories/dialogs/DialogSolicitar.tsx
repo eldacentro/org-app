@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -10,9 +10,15 @@ import { deleteRequest, saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import {
+  territoryCampaignsState,
   territoryPendingRequestsState,
   territorySettingsState,
 } from '@states/territories';
+import FilterChip from '@components/filter_chip';
+import {
+  formatTerritoryDate,
+  isCampaignRunning,
+} from '@services/app/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import { getTerritoryManagersUids } from '../utils/managers';
@@ -32,14 +38,42 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
 
+  const campaigns = useAtomValue(territoryCampaignsState);
+
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
+  /** Campaña elegida, o null para "territorio normal". */
+  const [campaignId, setCampaignId] = useState<string | null>(null);
+
+  /**
+   * Las campañas que todavía no han terminado, la que antes empiece primero.
+   * Una campaña 'pasada' no se ofrece: pedir para algo que ya acabó no
+   * significa nada.
+   */
+  const campanasAbiertas = useMemo(
+    () =>
+      campaigns
+        .filter((c) => c.estado !== 'pasada')
+        .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio)),
+    [campaigns]
+  );
+
+  const campanaElegida = campanasAbiertas.find((c) => c.id === campaignId);
 
   useEffect(() => {
-    if (open) {
-      setNota('');
-    }
-  }, [open]);
+    if (!open) return;
+    setNota('');
+
+    // Se preselecciona SOLO la campaña que está corriendo hoy. Una que está
+    // creada pero empieza dentro de quince días no se marca sola: durante esos
+    // quince días lo normal es querer un territorio corriente, y marcarla por
+    // él le haría pedir para la campaña sin darse cuenta. Si de verdad la
+    // quiere, la elige.
+    const enMarcha = campanasAbiertas.find((c) =>
+      isCampaignRunning(c.fechaInicio, c.fechaFin)
+    );
+    setCampaignId(enMarcha?.id ?? null);
+  }, [open, campanasAbiertas]);
 
   /** La solicitud pendiente de quien está mirando, si tiene alguna. */
   const miSolicitud = pendingRequests.find((r) => r.personUid === uid);
@@ -87,6 +121,7 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
         id: crypto.randomUUID(),
         personUid: uid,
         nota: nota.trim() || undefined,
+        campaignId: campaignId ?? undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -264,6 +299,66 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
           </>
         ) : (
           <>
+            {/* ¿Para la campaña o normal? Solo aparece si hay alguna campaña
+                sin terminar — el resto del año esto no existe.
+
+                Se pregunta en vez de deducirlo de la fecha porque no es lo
+                mismo: puede haber una campaña creada que empieza dentro de
+                quince días, y en esos quince días lo que se pide es un
+                territorio corriente. */}
+            {campanasAbiertas.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  className="label-small-semibold"
+                  color="var(--ink-3)"
+                  sx={{ display: 'block', mb: 0.75 }}
+                >
+                  ¿Para qué lo pides?
+                </Typography>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: '6px' }}>
+                  <FilterChip
+                    label="Territorio normal"
+                    selected={campaignId === null}
+                    onClick={() => setCampaignId(null)}
+                  />
+                  {campanasAbiertas.map((c) => (
+                    <FilterChip
+                      key={c.id}
+                      label={c.nombre}
+                      selected={campaignId === c.id}
+                      onClick={() => setCampaignId(c.id)}
+                    />
+                  ))}
+                </Stack>
+
+                {/* Las fechas de la campaña elegida, y si todavía no ha
+                    empezado se dice — que es justo el caso en el que a lo
+                    mejor no la quiere. */}
+                {campanaElegida && (
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-2)"
+                    sx={{ display: 'block', mt: 0.75 }}
+                  >
+                    Del{' '}
+                    {formatTerritoryDate(
+                      campanaElegida.fechaInicio,
+                      settings.dateFormat
+                    )}{' '}
+                    al{' '}
+                    {formatTerritoryDate(
+                      campanaElegida.fechaFin,
+                      settings.dateFormat
+                    )}
+                    {!isCampaignRunning(
+                      campanaElegida.fechaInicio,
+                      campanaElegida.fechaFin
+                    ) && ' · todavía no ha empezado'}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
             <Typography
               className="label-small-semibold"
               color="var(--ink-3)"

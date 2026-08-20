@@ -163,6 +163,12 @@ const TerritoriesPage = () => {
               territory: null,
               defaultPersonUid: req.personUid,
               requestId: req.id,
+              // Si la pidió para una campaña, la asignación nace de campaña y
+              // el selector se abre ya acotado a los territorios de esa
+              // campaña. Sin esto había que acordarse de marcarlo a mano y de
+              // buscar cuáles eran.
+              isCampaign: Boolean(req.campaignId),
+              campaignId: req.campaignId,
             })
           }
           onAsignarCampana={(t, campaignId) =>
