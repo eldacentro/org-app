@@ -1,3 +1,7 @@
+import {
+  monthlyCreditedTotal,
+  rawCreditHours,
+} from '@services/app/credit_hours';
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { currentServiceYear } from '@utils/date';
@@ -57,17 +61,14 @@ const usePioneerBalance = () => {
 
         if (!isFRMonth) continue;
 
-        let totalHours = report.report_data.hours.field_service;
-
-        const approved = report.report_data.hours.credit.approved;
-
-        if (approved > 0) {
-          totalHours += approved;
-        }
-
-        if (approved === 0) {
-          totalHours += report.report_data.hours.credit.value;
-        }
+        // CON EL TOPE DEL MES: la predicación cuenta entera y el crédito solo
+        // lo que quepa hasta 55. Este balance es el que mira el comité de
+        // servicio, así que sumar el crédito en bruto le daba de más. Ver
+        // `credit_hours.ts`.
+        const totalHours = monthlyCreditedTotal(
+          report.report_data.hours.field_service,
+          rawCreditHours(report.report_data.hours.credit)
+        );
 
         balance += totalHours - 50;
       }

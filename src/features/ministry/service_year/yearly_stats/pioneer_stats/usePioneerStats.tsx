@@ -1,4 +1,5 @@
 import {
+  hoursOfEither,
   monthlyCreditedTotal,
   rawCreditHours,
 } from '@services/app/credit_hours';
@@ -137,32 +138,22 @@ const usePioneerStats = (year: string) => {
 
       if (!isFR) continue;
 
-      if (typeof report.report_data.hours.field_service === 'number') {
-        // Mismo tope que en el bloque de arriba.
-        totalHours = monthlyCreditedTotal(
-          report.report_data.hours.field_service as number,
-          rawCreditHours(
-            report.report_data.hours.credit as {
-              value?: number;
-              approved?: number;
-            }
-          )
-        );
-      }
+      // Las dos formas: número en los informes de la congregación, y
+      // {daily, monthly} en los que manda el propio hermano. Antes esto se
+      // calculaba en dos bloques y el segundo PISABA al primero, así que en un
+      // informe con la forma de día a día el crédito se perdía entero. Ahora se
+      // normalizan los dos campos y se topa una sola vez.
+      const campo = hoursOfEither(report.report_data.hours.field_service);
 
-      if (report.report_data.hours.field_service.monthly) {
-        const daily = report.report_data.hours.field_service.daily;
-        const [hoursDaily, minutesDaily] = daily.split(':').map(Number);
-        const totalDaily = hoursDaily * 60 + (minutesDaily || 0);
+      const credito =
+        rawCreditHours(
+          report.report_data.hours.credit as {
+            value?: number;
+            approved?: number;
+          }
+        ) || hoursOfEither(report.report_data.hours.credit);
 
-        const monthly = report.report_data.hours.field_service.monthly;
-        const [hoursMonthly, minutesMonthly] = monthly.split(':').map(Number);
-        const totalMonthly = hoursMonthly * 60 + (minutesMonthly || 0);
-
-        const finalValue = totalDaily + totalMonthly;
-        const minutesRemain = finalValue % 60;
-        totalHours = (finalValue - minutesRemain) / 60;
-      }
+      totalHours = monthlyCreditedTotal(campo, credito);
 
       balance += totalHours - 50;
     }

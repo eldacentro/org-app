@@ -1,5 +1,6 @@
 import {
   effectiveCreditHours,
+  hoursOfEither,
   rawCreditHours,
 } from '@services/app/credit_hours';
 import { useMemo } from 'react';
@@ -264,36 +265,21 @@ const useMinistryYearlyRecord = (year: string) => {
 
       if (!cuenta) return acc;
 
-      // Mismo tope que arriba, y con el mismo criterio de qué campo manda.
-      const campo = current.report_data.hours.field_service;
+      // El campo y el crédito pueden venir como número o como {daily, monthly}
+      // según de qué informe se trate. Se normalizan LOS DOS antes de topar: si
+      // solo se mirara la forma de número, el crédito de los informes con la
+      // otra forma se sumaría sin tope, o se perdería entero.
+      const campo = hoursOfEither(current.report_data.hours.field_service);
 
-      if (typeof campo === 'number') {
-        acc += effectiveCreditHours(
-          campo,
-          rawCreditHours(
-            current.report_data.hours.credit as {
-              value?: number;
-              approved?: number;
-            }
-          )
-        );
-      }
+      const credito =
+        rawCreditHours(
+          current.report_data.hours.credit as {
+            value?: number;
+            approved?: number;
+          }
+        ) || hoursOfEither(current.report_data.hours.credit);
 
-      if (current.report_data.hours.credit.monthly) {
-        const daily = current.report_data.hours.credit.daily;
-        const [hoursDaily, minutesDaily] = daily.split(':').map(Number);
-        const totalDaily = hoursDaily * 60 + (minutesDaily || 0);
-
-        const monthly = current.report_data.hours.credit.monthly;
-        const [hoursMonthly, minutesMonthly] = monthly.split(':').map(Number);
-        const totalMonthly = hoursMonthly * 60 + (minutesMonthly || 0);
-
-        const finalValue = totalDaily + totalMonthly;
-        const minutesRemain = finalValue % 60;
-        const hoursValue = (finalValue - minutesRemain) / 60;
-
-        acc += hoursValue;
-      }
+      acc += effectiveCreditHours(campo, credito);
 
       return acc;
     }, 0);

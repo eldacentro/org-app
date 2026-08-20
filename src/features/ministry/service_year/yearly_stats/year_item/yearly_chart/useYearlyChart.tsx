@@ -1,5 +1,6 @@
 import {
   effectiveCreditHours,
+  monthlyCreditedTotal,
   rawCreditHours,
 } from '@services/app/credit_hours';
 import { useMemo } from 'react';
@@ -62,12 +63,16 @@ const getMonthData = (
   if (userReport) {
     const { hours } = userReport.report_data;
 
+    // Con el tope del mes, igual que en el informe de la congregación: el
+    // crédito solo rellena hasta 55. Antes se sumaba entero y el gráfico
+    // enseñaba meses más altos de lo que de verdad contaban.
+    const campo = dailyMonthlyToHours(
+      hours.field_service.daily,
+      hours.field_service.monthly
+    );
+
     return {
-      hours:
-        dailyMonthlyToHours(
-          hours.field_service.daily,
-          hours.field_service.monthly
-        ) + creditToHours(hours.credit),
+      hours: monthlyCreditedTotal(campo, creditToHours(hours.credit)),
       hasReport: true,
     };
   }

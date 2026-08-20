@@ -74,3 +74,34 @@ export const rawCreditHours = (credit: {
 
   return credit?.value ?? 0;
 };
+
+/**
+ * Las horas de un campo que puede venir de dos formas.
+ *
+ * En los informes de la congregación las horas son un número. En los que manda
+ * el propio hermano (S-4) pueden ser `{ daily, monthly }` con formato `h:mm`,
+ * porque ahí se apuntan día a día. Y hay informes viejos con la forma antigua.
+ *
+ * Tenerlo en un solo sitio evita el fallo que ya se coló una vez: mirar solo la
+ * forma de número y, sin darse cuenta, dejar fuera —o sin topar— el crédito de
+ * los informes que usan la otra.
+ */
+export const hoursOfEither = (value: unknown): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+  if (!value || typeof value !== 'object') return 0;
+
+  const v = value as { daily?: string; monthly?: string };
+
+  const minutos = (texto?: string) => {
+    if (typeof texto !== 'string' || texto.length === 0) return 0;
+
+    const [h, m] = texto.split(':').map(Number);
+
+    return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+  };
+
+  const total = minutos(v.daily) + minutos(v.monthly);
+
+  return (total - (total % 60)) / 60;
+};

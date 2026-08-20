@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   effectiveCreditHours,
+  hoursOfEither,
   monthlyCreditedTotal,
   rawCreditHours,
 } from './credit_hours';
@@ -94,5 +95,34 @@ describe('el caso real de Claudia (año de servicio 2025-2026)', () => {
 
     expect(bruto).toBe(35);
     expect(real).toBe(14);
+  });
+});
+
+describe('las dos formas en que vienen las horas', () => {
+  it('un número se toma tal cual', () => {
+    expect(hoursOfEither(42)).toBe(42);
+  });
+
+  it('día a día y mensual se suman y se pasan a horas', () => {
+    // 2:30 apuntadas día a día más 1:45 del mes = 4:15 → 4 horas.
+    expect(hoursOfEither({ daily: '2:30', monthly: '1:45' })).toBe(4);
+  });
+
+  it('lo vacío o raro no rompe', () => {
+    expect(hoursOfEither({ daily: '', monthly: '' })).toBe(0);
+    expect(hoursOfEither(undefined)).toBe(0);
+    expect(hoursOfEither('lo que sea')).toBe(0);
+  });
+
+  it('el crédito apuntado día a día TAMBIÉN se topa', () => {
+    // EL AGUJERO QUE ESTO CIERRA: al topar solo la forma de número, el crédito
+    // de los informes que el hermano apunta día a día se sumaba entero, sin
+    // tope — o se perdía, según el caso.
+    const campo = hoursOfEither(50);
+    const credito = hoursOfEither({ daily: '10:00', monthly: '0:00' });
+
+    expect(credito).toBe(10);
+    expect(effectiveCreditHours(campo, credito)).toBe(5);
+    expect(monthlyCreditedTotal(campo, credito)).toBe(55);
   });
 });
