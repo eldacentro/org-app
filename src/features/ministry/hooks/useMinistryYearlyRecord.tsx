@@ -219,21 +219,36 @@ const useMinistryYearlyRecord = (year: string) => {
 
   const hours_credit = useMemo(() => {
     const congTotal = yearlyCongReports.reduce((acc, current) => {
-      const isFR = personIsEnrollmentActive(
-        person,
-        'FR',
-        current.report_data.report_date
-      );
+      // TAMBIÉN LOS AUXILIARES, no solo los regulares.
+      //
+      // Antes solo contaba con `FR`, y eso abría un agujero silencioso: la
+      // aplicación DEJA apuntar horas de crédito a un precursor auxiliar —hay
+      // dos casos reales, 24 y 30 horas de LDC en abril de 2026— y luego no las
+      // enseñaba en ninguna parte. El secretario las escribía y desaparecían.
+      //
+      // Sea cual sea la norma sobre a quién le cuentan, aceptar un dato y
+      // tirarlo sin decir nada no puede estar bien: o se cuenta, o no se debería
+      // poder escribir.
+      const cuenta =
+        personIsEnrollmentActive(
+          person,
+          'FR',
+          current.report_data.report_date
+        ) ||
+        personIsEnrollmentActive(person, 'AP', current.report_data.report_date);
 
-      if (!isFR) return acc;
+      if (!cuenta) return acc;
 
       return acc + current.report_data.hours.credit.approved;
     }, 0);
 
     const userTotal = yearlyUserReports.reduce((acc, current) => {
-      const isFR = personIsEnrollmentActive(person, 'FR', current.report_date);
+      // Mismo criterio que arriba.
+      const cuenta =
+        personIsEnrollmentActive(person, 'FR', current.report_date) ||
+        personIsEnrollmentActive(person, 'AP', current.report_date);
 
-      if (!isFR) return acc;
+      if (!cuenta) return acc;
 
       if (current.report_data.hours.credit['approved']) {
         const approved = current.report_data.hours.credit['approved'] as number;
