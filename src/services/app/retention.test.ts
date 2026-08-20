@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import {
+  buildReportTombstone,
   computeRetentionPlan,
   retentionWindowStart,
   serviceYearStartOf,
@@ -60,6 +61,40 @@ const buildReport = (uid: string, month: string): CongFieldServiceReportType =>
 // 15 de enero de 2026 → año de servicio en curso 2025/09–2026/08,
 // anterior 2024/09–2025/08. Se conserva desde 2024/09.
 const TODAY = new Date('2026-01-15T12:00:00Z');
+
+describe('la lápida de un informe borrado', () => {
+  // Este fallo no se ve: la purga se aplica, avisa de que ha limpiado, y no sale
+  // del dispositivo. Cada administrador la repite por su cuenta y vuelve a
+  // anunciar «norma de conservación aplicada» sin venir a cuento.
+  const informe = {
+    report_id: 'r1',
+    report_data: {
+      _deleted: false,
+      updatedAt: '2024-01-01T00:00:00.000Z',
+      rev: '2024-01-01T00:00:00.000Z',
+      report_date: '2023/10',
+      person_uid: 'p1',
+    },
+  } as unknown as CongFieldServiceReportType;
+
+  it('sella `rev` además de `updatedAt`', () => {
+    // El servidor compara los informes por `rev`, NO por `updatedAt` — ese viaja
+    // cifrado y no lo puede leer. Sin sellarlo, el servidor se queda con su
+    // copia viva y la lápida no llega a la congregación.
+    const t = buildReportTombstone(informe, '2026-08-20T10:00:00.000Z');
+
+    expect(t.report_data._deleted).toBe(true);
+    expect(t.report_data.updatedAt).toBe('2026-08-20T10:00:00.000Z');
+    expect(t.report_data.rev).toBe('2026-08-20T10:00:00.000Z');
+  });
+
+  it('no toca el informe que recibe', () => {
+    buildReportTombstone(informe, '2026-08-20T10:00:00.000Z');
+
+    expect(informe.report_data._deleted).toBe(false);
+    expect(informe.report_data.rev).toBe('2024-01-01T00:00:00.000Z');
+  });
+});
 
 describe('límites del año de servicio', () => {
   it('septiembre abre año de servicio nuevo', () => {

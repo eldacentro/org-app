@@ -56,7 +56,11 @@ export const retentionWindowStart = (today: Date) => {
 export type RetentionPlan = {
   reportsToDelete: { report: CongFieldServiceReportType; name: string }[];
   attendanceToDelete: MeetingAttendanceType[];
-  enrollmentsToDelete: { person: PersonType; enrollmentId: string; name: string }[];
+  enrollmentsToDelete: {
+    person: PersonType;
+    enrollmentId: string;
+    name: string;
+  }[];
 };
 
 export const computeRetentionPlan = (
@@ -95,7 +99,8 @@ export const computeRetentionPlan = (
     if (!person) continue;
 
     const pd = person.person_data;
-    const name = `${pd.person_firstname.value} ${pd.person_lastname.value}`.trim();
+    const name =
+      `${pd.person_firstname.value} ${pd.person_lastname.value}`.trim();
 
     const hasOpen = (hist: { _deleted: boolean; end_date: string | null }[]) =>
       (hist ?? []).some((h) => !h._deleted && !h.end_date);
@@ -130,7 +135,9 @@ export const computeRetentionPlan = (
         allowedFrom = serviceYearStartOf(last);
         allowedToSYOnly = allowedFrom;
       }
-    } else if ((pd.publisher_unbaptized?.history ?? []).some((h) => !h._deleted)) {
+    } else if (
+      (pd.publisher_unbaptized?.history ?? []).some((h) => !h._deleted)
+    ) {
       // No bautizado inactivo: no se conserva
       allowedFrom = NEVER;
     } else {
@@ -171,6 +178,35 @@ export const computeRetentionPlan = (
   return plan;
 };
 
+/**
+ * La lápida de un informe: borrado, y con las DOS fechas al día.
+ *
+ * `rev` no es un adorno: el servidor compara los informes por ÉL y no por
+ * `updatedAt`, porque el `updatedAt` de esta tabla viaja cifrado y el servidor
+ * no puede leerlo. `rev` es su copia en claro.
+ *
+ * Sellar uno y no el otro deja una lápida que, a ojos del servidor, no es más
+ * nueva que nada: se queda con SU copia viva y la rechaza. Y eso no falla a la
+ * vista — la purga se aplica en el dispositivo, avisa de que ha limpiado, y no
+ * sale de ahí. Así que cada dispositivo de administrador la repite por su
+ * cuenta y vuelve a anunciar «norma de conservación aplicada» sin venir a
+ * cuento. Es exactamente lo que se estaba viendo aparecer de vez en cuando.
+ *
+ * Vive aparte y sin Dexie para poder comprobarse sola.
+ */
+export const buildReportTombstone = (
+  report: CongFieldServiceReportType,
+  now: string
+): CongFieldServiceReportType => {
+  const r = structuredClone(report);
+
+  r.report_data._deleted = true;
+  r.report_data.updatedAt = now;
+  r.report_data.rev = now;
+
+  return r;
+};
+
 export const executeRetentionPurge = async (today = new Date()) => {
   const persons = await appDb.persons.toArray();
   const reports = await appDb.cong_field_service_reports.toArray();
@@ -181,10 +217,31 @@ export const executeRetentionPurge = async (today = new Date()) => {
   const NOW = new Date().toISOString();
 
   if (plan.reportsToDelete.length > 0) {
+    const updated = plan.reportsToDelete.map(({ report }) =>
+      buildReportTombstone(report, NOW)
+    );
+
+    await dbFieldServiceReportsBulkSave(updated);
+  }
+
+  if (false) {
     const updated = plan.reportsToDelete.map(({ report }) => {
       const r = structuredClone(report);
       r.report_data._deleted = true;
       r.report_data.updatedAt = NOW;
+      // Y `rev`, o la lápida no sale de este dispositivo.
+      //
+      // El servidor compara los informes por `rev`, NO por `updatedAt`: el
+      // `updatedAt` de esta tabla viaja cifrado y el servidor no puede leerlo,
+      // así que `rev` es su copia en claro. Sellar uno y no el otro deja una
+      // lápida con fecha vieja a ojos del servidor, que se queda con SU copia
+      // viva y la rechaza.
+      //
+      // Consecuencia real: la purga no se propagaba a la congregación, y cada
+      // dispositivo de administrador la repetía por su cuenta y volvía a
+      // anunciar «norma de conservación aplicada» — que es justo lo que se
+      // estaba viendo aparecer de vez en cuando sin venir a cuento.
+      r.report_data.rev = NOW;
       return r;
     });
     await dbFieldServiceReportsBulkSave(updated);
@@ -193,8 +250,7 @@ export const executeRetentionPurge = async (today = new Date()) => {
   if (plan.enrollmentsToDelete.length > 0) {
     const byPerson = new Map<string, PersonType>();
     for (const { person, enrollmentId } of plan.enrollmentsToDelete) {
-      const p =
-        byPerson.get(person.person_uid) ?? structuredClone(person);
+      const p = byPerson.get(person.person_uid) ?? structuredClone(person);
       const e = p.person_data.enrollments.find((x) => x.id === enrollmentId);
       if (e) {
         e._deleted = true;
@@ -238,7 +294,11 @@ export const triggerRetentionPurge = async (isAdmin: boolean) => {
 
     localStorage.setItem(RETENTION_CHECK_KEY, todayKey);
 
-    if (result.reports > 0 || result.attendanceMonths > 0 || result.enrollments > 0) {
+    if (
+      result.reports > 0 ||
+      result.attendanceMonths > 0 ||
+      result.enrollments > 0
+    ) {
       console.info(
         '[retención] purga aplicada:',
         JSON.stringify({
