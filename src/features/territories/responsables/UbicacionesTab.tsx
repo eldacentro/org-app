@@ -4,9 +4,9 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import SearchBar from '@components/search_bar';
 import FilterChip from '@components/filter_chip';
 import EmptyState from '@components/empty_state';
+import PanelToolbar, { RielChips } from './PanelToolbar';
 import { IconDelete, IconInfo } from '@components/icons';
 import { useConfirm } from '@components/confirm_dialog';
 import { TerritoryCard } from '@features/territories/ui';
@@ -172,29 +172,12 @@ const UbicacionesTab = ({ onView }: Props) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {ConfirmDialogNode}
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          padding: '16px',
-          borderRadius: 'var(--shape-lg)',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
-          boxShadow: 'var(--small-card-shadow)',
-        }}
+      <PanelToolbar
+        busqueda={busqueda}
+        onBuscar={setBusqueda}
+        placeholder="Buscar por dirección o territorio"
       >
-        <SearchBar
-          placeholder="Buscar por dirección o territorio"
-          value={busqueda}
-          onSearch={(valor: string) => setBusqueda(valor)}
-        />
-
-        <Stack
-          direction="row"
-          alignItems="center"
-          sx={{ flexWrap: 'wrap', gap: '6px' }}
-        >
+        <RielChips>
           {FILTROS.map((f) => (
             <FilterChip
               key={f.valor}
@@ -207,8 +190,8 @@ const UbicacionesTab = ({ onView }: Props) => {
               onClick={() => setFiltro(f.valor)}
             />
           ))}
-        </Stack>
-      </Box>
+        </RielChips>
+      </PanelToolbar>
 
       {filas.length === 0 ? (
         <EmptyState

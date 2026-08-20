@@ -6,6 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
+import PanelToolbar, { RielChips } from './PanelToolbar';
 import { TerritoryCard } from '@features/territories/ui';
 import { congIDState, shortDateFormatState } from '@states/settings';
 import {
@@ -127,18 +128,20 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
         recibe no necesita cuenta, así que conviene repasarlos de vez en cuando.
       </Typography>
 
-      <Stack direction="row" spacing={1}>
-        <FilterChip
-          label={`Activos (${liveCount})`}
-          selected={filter === 'live'}
-          onClick={() => setFilter('live')}
-        />
-        <FilterChip
-          label="Todos"
-          selected={filter === 'all'}
-          onClick={() => setFilter('all')}
-        />
-      </Stack>
+      <PanelToolbar>
+        <RielChips>
+          <FilterChip
+            label={`Activos (${liveCount})`}
+            selected={filter === 'live'}
+            onClick={() => setFilter('live')}
+          />
+          <FilterChip
+            label="Todos"
+            selected={filter === 'all'}
+            onClick={() => setFilter('all')}
+          />
+        </RielChips>
+      </PanelToolbar>
 
       {/* Un fallo de la escucha NO es "no hay enlaces": podría haber enlaces
           vivos que nadie podría anular desde aquí. */}

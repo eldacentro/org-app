@@ -9,7 +9,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
-import SearchField from '@components/textfield';
+import PanelToolbar, { RielChips } from './PanelToolbar';
 import { IconDelete } from '@components/icons';
 import {
   TerritoryCard,
@@ -442,31 +442,29 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {ConfirmDialogNode}
 
-      <Box sx={{ maxWidth: 400 }}>
-        <SearchField
-          label="Buscar por territorio o publicador..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </Box>
-
-      <Stack direction="row" spacing={1}>
-        <FilterChip
-          label="Todos"
-          selected={filter === 'all'}
-          onClick={() => setFilter('all')}
-        />
-        <FilterChip
-          label="Asignados"
-          selected={filter === 'assigned'}
-          onClick={() => setFilter('assigned')}
-        />
-        <FilterChip
-          label="Sin asignar"
-          selected={filter === 'unassigned'}
-          onClick={() => setFilter('unassigned')}
-        />
-      </Stack>
+      <PanelToolbar
+        busqueda={search}
+        onBuscar={setSearch}
+        placeholder="Buscar por territorio o publicador"
+      >
+        <RielChips>
+          <FilterChip
+            label="Todos"
+            selected={filter === 'all'}
+            onClick={() => setFilter('all')}
+          />
+          <FilterChip
+            label="Asignados"
+            selected={filter === 'assigned'}
+            onClick={() => setFilter('assigned')}
+          />
+          <FilterChip
+            label="Sin asignar"
+            selected={filter === 'unassigned'}
+            onClick={() => setFilter('unassigned')}
+          />
+        </RielChips>
+      </PanelToolbar>
 
       {!loading && !hasAnyResults && (
         <Typography className="body-small-regular" color="var(--ink-2)">

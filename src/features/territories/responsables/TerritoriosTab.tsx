@@ -5,11 +5,11 @@ import Badge from '@components/badge';
 import Button from '@components/button';
 import Checkbox from '@components/checkbox';
 import MenuItem from '@components/menuitem';
-import SearchBar from '@components/search_bar';
 import IconButton from '@components/icon_button';
 import FilterChip from '@components/filter_chip';
 import Accordion from '@components/accordion';
 import EmptyState from '@components/empty_state';
+import PanelToolbar, { RielChips } from './PanelToolbar';
 import accentSurface from '@components/accent_surface';
 import {
   IconAdd,
@@ -56,27 +56,6 @@ const ESTADO_FILTROS: { valor: EstadoFiltro; texto: string }[] = [
   { valor: 'asignado', texto: 'Asignados' },
   { valor: 'descanso', texto: 'En descanso' },
 ];
-
-/**
- * Una fila de fichas de filtro.
- *
- * En el móvil se desliza en una sola línea en vez de partirse: con cuatro
- * estados y seis etiquetas, envolviendo se comía media pantalla y dejaba los
- * territorios —que son a lo que se viene— fuera de la vista. Los chips llegan
- * hasta el borde de la tarjeta (margen negativo + relleno) para que se vea que
- * la fila sigue. De tableta para arriba caben todos y envuelven como siempre.
- */
-const rielSx = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  flexWrap: { mobile: 'nowrap', tablet600: 'wrap' },
-  overflowX: { mobile: 'auto', tablet600: 'visible' },
-  margin: { mobile: '0 -16px', tablet600: 0 },
-  padding: { mobile: '0 16px', tablet600: 0 },
-  scrollbarWidth: 'none',
-  '&::-webkit-scrollbar': { display: 'none' },
-} as const;
 
 type ZoneSectionProps = {
   zone: TerritoryZone;
@@ -496,36 +475,15 @@ const TerritoriosTab = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* ── Buscar, filtrar y gestionar ─────────────────────────────── */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          padding: '16px',
-          borderRadius: 'var(--shape-lg)',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
-          boxShadow: 'var(--small-card-shadow)',
-        }}
-      >
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={1.5}
-          sx={{ width: '100%' }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <SearchBar
-              placeholder="Buscar por número o nombre"
-              value={busqueda}
-              onSearch={(valor: string) => setBusqueda(valor)}
-            />
-          </Box>
-
-          {/* Zonas, Etiquetas, Añadir e Importar ocupaban la mejor franja de
-              la pantalla para usarse unas pocas veces al año. Recogidas aquí,
-              siguen a un toque de distancia. */}
-          {tablet600Up ? (
+      <PanelToolbar
+        busqueda={busqueda}
+        onBuscar={setBusqueda}
+        placeholder="Buscar por número o nombre"
+        accion={
+          /* Zonas, Etiquetas, Añadir e Importar ocupaban la mejor franja de
+             la pantalla para usarse unas pocas veces al año. Recogidas aquí,
+             siguen a un toque de distancia. */
+          tablet600Up ? (
             <Button
               variant="tertiary"
               disableAutoStretch
@@ -558,13 +516,32 @@ const TerritoriosTab = ({
             >
               <IconMore width={20} height={20} color="var(--accent-dark)" />
             </IconButton>
-          )}
-        </Stack>
-
+          )
+        }
+        pie={
+          filtrando ? (
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+            >
+              <Typography className="label-small-medium" color="var(--ink-2)">
+                {visibles === 1
+                  ? `1 territorio de ${territories.length}`
+                  : `${visibles} territorios de ${territories.length}`}
+              </Typography>
+              <Button variant="small" onClick={limpiar} disableAutoStretch>
+                Quitar filtros
+              </Button>
+            </Stack>
+          ) : null
+        }
+      >
         {/* Estado y etiquetas son dos filtros distintos, así que van en dos
             filas. Juntos en una sola, la fila se partía por donde cupiera y
             la línea divisoria acababa en medio de la nada. */}
-        <Box sx={rielSx}>
+        <RielChips>
           {ESTADO_FILTROS.map((f) => (
             <FilterChip
               key={f.valor}
@@ -573,10 +550,10 @@ const TerritoriosTab = ({
               onClick={() => setEstado(f.valor)}
             />
           ))}
-        </Box>
+        </RielChips>
 
         {tags.length > 0 && (
-          <Box sx={rielSx}>
+          <RielChips>
             {tags.map((tag) => (
               <TagChip
                 key={tag.id}
@@ -586,27 +563,9 @@ const TerritoriosTab = ({
                 onClick={() => toggleEtiqueta(tag.id)}
               />
             ))}
-          </Box>
+          </RielChips>
         )}
-
-        {filtrando && (
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={1}
-          >
-            <Typography className="label-small-medium" color="var(--ink-2)">
-              {visibles === 1
-                ? `1 territorio de ${territories.length}`
-                : `${visibles} territorios de ${territories.length}`}
-            </Typography>
-            <Button variant="small" onClick={limpiar} disableAutoStretch>
-              Quitar filtros
-            </Button>
-          </Stack>
-        )}
-      </Box>
+      </PanelToolbar>
 
       {/* ── Selección múltiple ──────────────────────────────────────── */}
       {selectionMode && (

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
-import TextField from '@components/textfield';
+import PanelToolbar, { RielChips } from './PanelToolbar';
 import FilterChip from '@components/filter_chip';
 import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
@@ -102,31 +102,29 @@ const HistorialTab = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box sx={{ maxWidth: 400 }}>
-        <TextField
-          label="Buscar por publicador o territorio..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </Box>
-
-      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        <FilterChip
-          label="Todo"
-          selected={filtro === 'todo'}
-          onClick={() => setFiltro('todo')}
-        />
-        <FilterChip
-          label={`En curso (${enCurso})`}
-          selected={filtro === 'en_curso'}
-          onClick={() => setFiltro('en_curso')}
-        />
-        <FilterChip
-          label="Devueltos"
-          selected={filtro === 'devueltos'}
-          onClick={() => setFiltro('devueltos')}
-        />
-      </Stack>
+      <PanelToolbar
+        busqueda={search}
+        onBuscar={setSearch}
+        placeholder="Buscar por publicador o territorio"
+      >
+        <RielChips>
+          <FilterChip
+            label="Todo"
+            selected={filtro === 'todo'}
+            onClick={() => setFiltro('todo')}
+          />
+          <FilterChip
+            label={`En curso (${enCurso})`}
+            selected={filtro === 'en_curso'}
+            onClick={() => setFiltro('en_curso')}
+          />
+          <FilterChip
+            label="Devueltos"
+            selected={filtro === 'devueltos'}
+            onClick={() => setFiltro('devueltos')}
+          />
+        </RielChips>
+      </PanelToolbar>
 
       {filtrados.length === 0 ? (
         <Typography className="body-small-regular" color="var(--ink-2)">
