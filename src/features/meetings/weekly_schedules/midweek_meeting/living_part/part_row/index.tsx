@@ -21,7 +21,10 @@ const PartRow = (props: PartRowProps) => {
     <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
       <PrimaryFieldContainer>
         {props.timings?.[props.type.toString()] && (
-          <PartTiming time={props.timings[props.type.toString()]} />
+          <PartTiming
+            time={props.timings[props.type.toString()]}
+            partKey={props.type.toString()}
+          />
         )}
 
         <MeetingPart

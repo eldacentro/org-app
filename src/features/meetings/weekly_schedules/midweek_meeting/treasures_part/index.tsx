@@ -41,7 +41,10 @@ const TreasuresPart = (props: TreasuresPartProps) => {
             >
               <PrimaryFieldContainer>
                 {props.timings?.tgw_talk && (
-                  <PartTiming time={props.timings.tgw_talk} />
+                  <PartTiming
+                    time={props.timings.tgw_talk}
+                    partKey="tgw_talk"
+                  />
                 )}
                 <MeetingPart
                   week={props.week}
@@ -70,7 +73,10 @@ const TreasuresPart = (props: TreasuresPartProps) => {
             >
               <PrimaryFieldContainer>
                 {props.timings?.tgw_gems && (
-                  <PartTiming time={props.timings.tgw_gems} />
+                  <PartTiming
+                    time={props.timings.tgw_gems}
+                    partKey="tgw_gems"
+                  />
                 )}
                 <MeetingPart
                   week={props.week}
@@ -100,7 +106,10 @@ const TreasuresPart = (props: TreasuresPartProps) => {
           >
             <PrimaryFieldContainer>
               {props.timings?.tgw_bible_reading && (
-                <PartTiming time={props.timings.tgw_bible_reading} />
+                <PartTiming
+                  time={props.timings.tgw_bible_reading}
+                  partKey="tgw_bible_reading"
+                />
               )}
 
               <MeetingPart

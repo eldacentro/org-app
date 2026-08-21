@@ -13,6 +13,7 @@ import NoSchedule from '../no_schedule';
 import SiblingAssignment from '../../sibling_assignments';
 import WeekScheduleHeader from '../week_schedule_header';
 import WeekChipStrip from '../week_chip_strip';
+import MeetingRunBar from '../meeting_run';
 import Typography from '@components/typography';
 import JwLibraryLink from '@components/jw_library_link';
 import useWeekJwLibraryLink from '../useWeekJwLibraryLink';
@@ -208,6 +209,13 @@ const MidweekContainer = ({
                 </SiblingAssignment>
               ))}
             </Stack>
+          )}
+
+          {/* Seguir la reunión en directo. Se pinta sola solo para los ancianos
+              y solo cuando hay programa que seguir; para el resto de la
+              congregación esta página no cambia en nada. */}
+          {week && (!isDraft || isMidweekEditor) && (
+            <MeetingRunBar week={week} dataView={dataView ?? 'main'} />
           )}
         </Box>
       )}

@@ -20,6 +20,7 @@ import PartTiming from '../part_timing';
 import SongSource from '@features/meetings/song_source';
 import TreasuresPart from './treasures_part';
 import Typography from '@components/typography';
+import { MeetingRunScope } from '../meeting_run/scope';
 import {
   MIDWEEK_FULL,
   MIDWEEK_WITH_LIVING,
@@ -65,147 +66,157 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
   const weekTypeBadge = WEEK_TYPE_BADGE_CONFIG[weekType];
 
   return (
-    <Stack spacing="16px">
-      {/* El tipo de semana y "tienes N asignaciones" son etiquetas de la
+    /* De qué semana es este programa. Sin esto, seguir la reunión de esta
+       semana pintaría también los relojitos de las demás y los del grupo de
+       otro idioma, que llevan sus propias horas. */
+    <MeetingRunScope week={week} dataView={props.dataView ?? 'main'}>
+      <Stack spacing="16px">
+        {/* El tipo de semana y "tienes N asignaciones" son etiquetas de la
           semana entera, no parte del programa: van sueltas arriba. */}
-      {(weekTypeBadge || myAssignmentsTotal) && (
-        <PrimaryFieldContainer
-          sx={{
-            display: 'flex',
-            alignItems: tabletUp ? 'center' : 'unset',
-            gap: tabletUp ? '16px' : '4px',
-            flexDirection: tabletUp ? 'row' : 'column',
-          }}
-        >
-          {weekTypeBadge && (
-            <Badge
-              text={t(weekTypeBadge.textKey)}
-              color={weekTypeBadge.color}
-              size="medium"
-              multiLine
-              filled={false}
-              icon={weekTypeBadge.icon}
-              sx={{ width: 'fit-content' }}
-            />
-          )}
-
-          {myAssignmentsTotal && <AssignmentBadge count={myAssignmentsTotal} />}
-        </PrimaryFieldContainer>
-      )}
-
-      {noMeetingInfo.value && <Typography>{noMeetingInfo.event}</Typography>}
-
-      {!noMeetingInfo.value && (
-        <>
-          {/* La apertura: quién dirige y con qué se empieza. Ver `PlainCard`. */}
-          <PlainCard>
-            <DoubleFieldContainer
-              sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-            >
-              {/* La columna izquierda solo existe para alinear con las filas que
-                  sí llevan hora y canción. En móvil no hay dos columnas, así
-                  que vacía solo mete un hueco encima del nombre. */}
-              {laptopUp && <PrimaryFieldContainer />}
-
-              <SecondaryFieldContainer
-                sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
-              >
-                <PersonComponent
-                  label={`${t('tr_chairman')}:`}
-                  week={week}
-                  assignment="MM_Chairman_A"
-                  dataView={props.dataView}
-                  color="var(--midweek-meeting)"
-                />
-              </SecondaryFieldContainer>
-            </DoubleFieldContainer>
-
-            {MIDWEEK_FULL.includes(weekType) && showAuxCounselor && (
-              <DoubleFieldContainer
-                sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-              >
-                {laptopUp && <PrimaryFieldContainer />}
-
-                <SecondaryFieldContainer
-                  sx={{
-                    maxWidth: laptopUp ? '360px' : '100%',
-                    gap: 'unset',
-                  }}
-                >
-                  <PersonComponent
-                    week={week}
-                    label={`${t('tr_auxClass')}:`}
-                    assignment="MM_Chairman_B"
-                    dataView={props.dataView}
-                    color="var(--midweek-meeting)"
-                  />
-
-                  <AuxClassGroup week={week} />
-                </SecondaryFieldContainer>
-              </DoubleFieldContainer>
+        {(weekTypeBadge || myAssignmentsTotal) && (
+          <PrimaryFieldContainer
+            sx={{
+              display: 'flex',
+              alignItems: tabletUp ? 'center' : 'unset',
+              gap: tabletUp ? '16px' : '4px',
+              flexDirection: tabletUp ? 'row' : 'column',
+            }}
+          >
+            {weekTypeBadge && (
+              <Badge
+                text={t(weekTypeBadge.textKey)}
+                color={weekTypeBadge.color}
+                size="medium"
+                multiLine
+                filled={false}
+                icon={weekTypeBadge.icon}
+                sx={{ width: 'fit-content' }}
+              />
             )}
 
-            {MIDWEEK_FULL.includes(weekType) && (
+            {myAssignmentsTotal && (
+              <AssignmentBadge count={myAssignmentsTotal} />
+            )}
+          </PrimaryFieldContainer>
+        )}
+
+        {noMeetingInfo.value && <Typography>{noMeetingInfo.event}</Typography>}
+
+        {!noMeetingInfo.value && (
+          <>
+            {/* La apertura: quién dirige y con qué se empieza. Ver `PlainCard`. */}
+            <PlainCard>
               <DoubleFieldContainer
                 sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
               >
-                <PrimaryFieldContainer>
-                  {partTimings?.pgm_start && (
-                    <PartTiming time={partTimings.pgm_start} />
-                  )}
+                {/* La columna izquierda solo existe para alinear con las filas que
+                  sí llevan hora y canción. En móvil no hay dos columnas, así
+                  que vacía solo mete un hueco encima del nombre. */}
+                {laptopUp && <PrimaryFieldContainer />}
 
-                  <SongSource
-                    meeting="midweek"
-                    week={week}
-                    type="opening"
-                    dataView={props.dataView}
-                  />
-                </PrimaryFieldContainer>
                 <SecondaryFieldContainer
                   sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
                 >
                   <PersonComponent
-                    label={`${t('tr_prayer')}:`}
+                    label={`${t('tr_chairman')}:`}
                     week={week}
+                    assignment="MM_Chairman_A"
                     dataView={props.dataView}
-                    assignment={
-                      !openingPrayerLinked
-                        ? 'MM_OpeningPrayer'
-                        : openingPrayerLinked
-                    }
                     color="var(--midweek-meeting)"
                   />
                 </SecondaryFieldContainer>
               </DoubleFieldContainer>
+
+              {MIDWEEK_FULL.includes(weekType) && showAuxCounselor && (
+                <DoubleFieldContainer
+                  sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+                >
+                  {laptopUp && <PrimaryFieldContainer />}
+
+                  <SecondaryFieldContainer
+                    sx={{
+                      maxWidth: laptopUp ? '360px' : '100%',
+                      gap: 'unset',
+                    }}
+                  >
+                    <PersonComponent
+                      week={week}
+                      label={`${t('tr_auxClass')}:`}
+                      assignment="MM_Chairman_B"
+                      dataView={props.dataView}
+                      color="var(--midweek-meeting)"
+                    />
+
+                    <AuxClassGroup week={week} />
+                  </SecondaryFieldContainer>
+                </DoubleFieldContainer>
+              )}
+
+              {MIDWEEK_FULL.includes(weekType) && (
+                <DoubleFieldContainer
+                  sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+                >
+                  <PrimaryFieldContainer>
+                    {partTimings?.pgm_start && (
+                      <PartTiming
+                        time={partTimings.pgm_start}
+                        partKey="pgm_start"
+                      />
+                    )}
+
+                    <SongSource
+                      meeting="midweek"
+                      week={week}
+                      type="opening"
+                      dataView={props.dataView}
+                    />
+                  </PrimaryFieldContainer>
+                  <SecondaryFieldContainer
+                    sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+                  >
+                    <PersonComponent
+                      label={`${t('tr_prayer')}:`}
+                      week={week}
+                      dataView={props.dataView}
+                      assignment={
+                        !openingPrayerLinked
+                          ? 'MM_OpeningPrayer'
+                          : openingPrayerLinked
+                      }
+                      color="var(--midweek-meeting)"
+                    />
+                  </SecondaryFieldContainer>
+                </DoubleFieldContainer>
+              )}
+            </PlainCard>
+
+            {MIDWEEK_WITH_TREASURES.includes(weekType) && (
+              <TreasuresPart
+                week={week}
+                timings={partTimings}
+                dataView={props.dataView}
+              />
             )}
-          </PlainCard>
 
-          {MIDWEEK_WITH_TREASURES.includes(weekType) && (
-            <TreasuresPart
-              week={week}
-              timings={partTimings}
-              dataView={props.dataView}
-            />
-          )}
+            {MIDWEEK_WITH_STUDENTS.includes(weekType) && (
+              <MinistryPart
+                week={week}
+                timings={partTimings}
+                dataView={props.dataView}
+              />
+            )}
 
-          {MIDWEEK_WITH_STUDENTS.includes(weekType) && (
-            <MinistryPart
-              week={week}
-              timings={partTimings}
-              dataView={props.dataView}
-            />
-          )}
-
-          {MIDWEEK_WITH_LIVING.includes(weekType) && (
-            <LivingPart
-              week={week}
-              timings={partTimings}
-              dataView={props.dataView}
-            />
-          )}
-        </>
-      )}
-    </Stack>
+            {MIDWEEK_WITH_LIVING.includes(weekType) && (
+              <LivingPart
+                week={week}
+                timings={partTimings}
+                dataView={props.dataView}
+              />
+            )}
+          </>
+        )}
+      </Stack>
+    </MeetingRunScope>
   );
 };
 

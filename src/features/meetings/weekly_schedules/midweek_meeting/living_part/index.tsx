@@ -40,7 +40,10 @@ const LivingPart = (props: LivingPartProps) => {
         >
           <PrimaryFieldContainer>
             {props.timings?.lc_middle_song && (
-              <PartTiming time={props.timings.lc_middle_song} />
+              <PartTiming
+                time={props.timings.lc_middle_song}
+                partKey="lc_middle_song"
+              />
             )}
 
             <SongSource
@@ -70,7 +73,9 @@ const LivingPart = (props: LivingPartProps) => {
             sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
           >
             <PrimaryFieldContainer>
-              {props.timings?.cbs && <PartTiming time={props.timings.cbs} />}
+              {props.timings?.cbs && (
+                <PartTiming time={props.timings.cbs} partKey="cbs" />
+              )}
 
               <MeetingPart
                 week={props.week}
@@ -108,7 +113,7 @@ const LivingPart = (props: LivingPartProps) => {
           >
             <PrimaryFieldContainer>
               {props.timings?.co_talk && (
-                <PartTiming time={props.timings.co_talk} />
+                <PartTiming time={props.timings.co_talk} partKey="co_talk" />
               )}
               <COTalk
                 color="var(--living-as-christians)"
