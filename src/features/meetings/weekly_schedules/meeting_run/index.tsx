@@ -156,7 +156,7 @@ const MeetingRunBar = ({
   }
 
   const pasado = !!parteActual && restante < 0;
-  const previsto = parteActual ? parteActual.minutes * 60 : 0;
+  const previsto = parteActual ? parteActual.seconds : 0;
   const avance =
     presentando || previsto === 0 ? 0 : Math.min(1, transcurrido / previsto);
 
@@ -202,16 +202,22 @@ const MeetingRunBar = ({
         zIndex: 5,
       }}
     >
+      {/* Presentando y en marcha tienen que distinguirse de un vistazo, no
+          leyendo: de pie en la plataforma no se lee. Presentando, la tarjeta va
+          teñida de azul y con el borde de acento; en marcha es blanca como el
+          resto de la página. */}
       <Box
         sx={{
           borderRadius: 'var(--shape-lg)',
-          border: '1px solid var(--line)',
-          backgroundColor: 'var(--card)',
+          border: `1px solid ${presentando ? 'var(--accent-350)' : 'var(--line)'}`,
+          backgroundColor: presentando ? 'var(--accent-100)' : 'var(--card)',
           boxShadow: 'var(--shadow-md)',
           padding: '12px 14px',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
+          transition:
+            'background-color var(--motion-medium) var(--ease-standard), border-color var(--motion-medium) var(--ease-standard)',
         }}
       >
         {/* Cuánto lleva la parte que está sonando. Se pone naranja al pasarse,
@@ -220,7 +226,7 @@ const MeetingRunBar = ({
           sx={{
             height: '3px',
             borderRadius: 'var(--shape-full)',
-            backgroundColor: 'var(--grey-200)',
+            backgroundColor: presentando ? 'transparent' : 'var(--grey-200)',
             overflow: 'hidden',
           }}
         >
@@ -241,6 +247,16 @@ const MeetingRunBar = ({
             La barra está pegada abajo, así que un título largo la hace crecer
             hacia ARRIBA: no empuja nada ni tapa el botón. Dos renglones como
             mucho — a partir de ahí es leer, no mirar de reojo. */}
+        {presentando && (
+          <Typography
+            className="label-small-semibold"
+            color="var(--accent-dark)"
+            sx={{ letterSpacing: '0.06em', marginBottom: '-6px' }}
+          >
+            PRESENTANDO
+          </Typography>
+        )}
+
         <Typography
           className="body-small-semibold"
           sx={{
@@ -341,16 +357,6 @@ const MeetingRunBar = ({
                 ? `+${reloj(restante)}`
                 : reloj(restante)}
           </Typography>
-
-          {presentando && (
-            <Typography
-              className="label-small-regular"
-              color="var(--ink-3)"
-              sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-            >
-              presentando
-            </Typography>
-          )}
 
           <Box sx={{ flex: 1, minWidth: 0 }} />
 

@@ -49,13 +49,41 @@ export const MIDWEEK_RUN_ORDER = [
 
 export type MeetingRunPartKey = (typeof MIDWEEK_RUN_ORDER)[number];
 
-/** Una parte del programa, con la hora a la que TENÍA que empezar. */
+/**
+ * Un PASO de la reunión.
+ *
+ * Casi siempre es una parte del programa tal cual. Pero un hueco puede llevar
+ * dos cosas seguidas —la canción y la oración del principio— y entonces son dos
+ * pasos que comparten el mismo relojito: por eso `key` y `badgeKey` no siempre
+ * coinciden.
+ */
 export type MeetingRunPart = {
+  /** Clave única del paso. */
   key: string;
-  /** Hora prevista de inicio, en 24 h («20:11»). */
-  start: string;
-  /** Minutos previstos, deducidos de cuándo empieza la siguiente. */
-  minutes: number;
+  /** Qué relojito del programa se ilumina. Dos pasos pueden compartirlo. */
+  badgeKey: string;
+  /** La hora prevista del HUECO, para pintar ese relojito. */
+  slotStart: string;
+  /** Minuto del día en que debía empezar ESTE paso. Admite decimales. */
+  startMinutes: number;
+  /** Lo que debía durar ESTE paso, en segundos. */
+  seconds: number;
+  /**
+   * Si quien preside tiene que presentarla antes de que arranque el reloj.
+   *
+   * Las canciones, las oraciones y sus propias palabras no se presentan: ahí no
+   * hay nadie a quien anunciar, y pedir dos toques sería estorbar.
+   */
+  presented: boolean;
+  /**
+   * Si se pasa sola al terminar.
+   *
+   * Solo la canción, y solo cuando jw.org ha dicho cuánto dura: es el único
+   * sitio del programa donde se sabe de antemano. Adivinarlo en cualquier otro
+   * sería peor que no hacer nada — pasaría de parte mientras el hermano sigue
+   * hablando.
+   */
+  autoAdvance: boolean;
 };
 
 /** Lo que se guarda mientras la reunión está en marcha. */
@@ -106,6 +134,16 @@ export type MeetingRunRecord = {
    * así que en cuanto esto se comparta entre dispositivos tiene que viajar
    * cifrado con la llave maestra, como las notas de Territorios.
    */
+  /**
+   * Lo que dura la canción del principio, en segundos, en el momento de
+   * arrancar.
+   *
+   * Se guarda con la reunión y no se vuelve a mirar: los pasos se numeran por
+   * posición, así que si un teléfono partiera el hueco de «canción y oración» y
+   * otro no, el que mira vería una parte distinta de la que va. Guardándolo,
+   * todos montan la misma lista aunque uno tenga las duraciones y el otro no.
+   */
+  songSeconds?: number;
   notes?: Record<string, string>;
 };
 
@@ -210,8 +248,41 @@ export const minutesOfDay = (timestamp: number): number => {
  * Una parte que dura cero es una parte que esa semana no existe: cuando falta
  * material, el cálculo original le da a la siguiente la misma hora que a ella.
  */
+/**
+ * Los pasos que NO se presentan.
+ *
+ * Una canción no se anuncia, una oración tampoco, y las palabras del presidente
+ * son suyas. Pedir dos toques en esos sitios sería estorbar por sistema.
+ */
+const SIN_PRESENTAR = new Set([
+  'pgm_start',
+  'pgm_start_song',
+  'pgm_start_prayer',
+  'opening_comments',
+  'lc_middle_song',
+  'concluding_comments',
+]);
+
+/**
+ * Lo mínimo que tiene que quedar para la oración al partir el hueco.
+ *
+ * Si la canción se comiera casi todo el hueco, partirlo daría un paso de diez
+ * segundos que solo sirve para tener que pulsar otra vez.
+ */
+const MINIMO_ORACION_SEGUNDOS = 45;
+
 export const buildMidweekRunParts = (
-  timing: Partial<Record<MeetingRunPartKey, string>>
+  timing: Partial<Record<MeetingRunPartKey, string>>,
+  opciones?: {
+    /**
+     * Lo que dura de verdad la canción del principio, según jw.org.
+     *
+     * Con eso, el hueco de «canción y oración» se parte en dos pasos y el de la
+     * canción se pasa solo al terminar: es el único sitio del programa donde se
+     * sabe de antemano cuánto va a durar algo.
+     */
+    cancionInicialSegundos?: number;
+  }
 ): MeetingRunPart[] => {
   if (!timing) return [];
 
@@ -231,7 +302,50 @@ export const buildMidweekRunParts = (
 
     if (minutes <= 0) continue;
 
-    parts.push({ key, start, minutes });
+    const startMinutes = timeToMinutes(start);
+    const seconds = minutes * 60;
+
+    const cancion = opciones?.cancionInicialSegundos;
+
+    const partible =
+      key === 'pgm_start' &&
+      !!cancion &&
+      cancion > 0 &&
+      seconds - cancion >= MINIMO_ORACION_SEGUNDOS;
+
+    if (partible) {
+      parts.push({
+        key: 'pgm_start_song',
+        badgeKey: key,
+        slotStart: start,
+        startMinutes,
+        seconds: cancion,
+        presented: false,
+        autoAdvance: true,
+      });
+
+      parts.push({
+        key: 'pgm_start_prayer',
+        badgeKey: key,
+        slotStart: start,
+        startMinutes: startMinutes + cancion / 60,
+        seconds: seconds - cancion,
+        presented: false,
+        autoAdvance: false,
+      });
+
+      continue;
+    }
+
+    parts.push({
+      key,
+      badgeKey: key,
+      slotStart: start,
+      startMinutes,
+      seconds,
+      presented: !SIN_PRESENTAR.has(key),
+      autoAdvance: false,
+    });
   }
 
   return parts;
@@ -257,13 +371,14 @@ export const runDrift = ({
 }): number => {
   if (!part) return 0;
 
-  const finPrevisto = timeToMinutes(part.start) + part.minutes;
+  const previstos = part.seconds / 60;
+  const finPrevisto = part.startMinutes + previstos;
 
   if (!Number.isFinite(finPrevisto)) return 0;
 
   const transcurrido = Math.max(0, (now - partStartedAt) / 60000);
   const finProyectado =
-    minutesOfDay(partStartedAt) + Math.max(transcurrido, part.minutes);
+    minutesOfDay(partStartedAt) + Math.max(transcurrido, previstos);
 
   return Math.round(finProyectado - finPrevisto);
 };
@@ -307,21 +422,35 @@ export const buildMeetingRunView = ({
     };
   }
 
+  /**
+   * Se pinta por RELOJITO, no por paso.
+   *
+   * Un hueco puede llevar dos pasos —la canción y la oración— y solo tiene un
+   * relojito: mientras se esté en cualquiera de los dos, ese relojito está «en
+   * curso». Iterando pasos, el segundo sobreescribía al primero y el hueco se
+   * apagaba a mitad.
+   */
   parts.forEach((part, index) => {
-    if (index < run.index) {
-      status[part.key] = 'done';
-      return;
+    const previo = status[part.badgeKey];
+
+    const propio: MeetingRunStatus =
+      index < run.index ? 'done' : index === run.index ? 'current' : 'upcoming';
+
+    // Manda el estado más «vivo» de los pasos de ese hueco.
+    if (previo === 'current') return;
+    if (previo === 'upcoming' && propio === 'done') return;
+
+    status[part.badgeKey] = propio;
+
+    // Con el desplazamiento COMPLETO, no con el desfase: el relojito tiene que
+    // decir a qué hora va a pasar la cosa DE VERDAD. El desfase es otra cosa —lo
+    // que se está alargando— y es lo que decide si se pinta de naranja.
+    if (propio === 'upcoming' && run.drift !== 0) {
+      shifted[part.badgeKey] = formatTime(shiftTime(part.slotStart, run.drift));
     }
 
-    if (index === run.index) {
-      status[part.key] = 'current';
-      return;
-    }
-
-    status[part.key] = 'upcoming';
-
-    if (run.drift !== 0) {
-      shifted[part.key] = formatTime(shiftTime(part.start, run.drift));
+    if (propio !== 'upcoming') {
+      delete shifted[part.badgeKey];
     }
   });
 

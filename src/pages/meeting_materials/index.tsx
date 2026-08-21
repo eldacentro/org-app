@@ -10,6 +10,7 @@ import Badge from '@components/badge';
 import useMeetingMaterialsPage from './useMeetingMaterialsPage';
 import ImportRow from '@features/meeting_materials/import_row';
 import SongsImport from '@features/meeting_materials/songs_import';
+import SongDurations from '@features/meeting_materials/song_durations';
 import ImportTalks from '@features/meeting_materials/public_talks/import_talks';
 import {
   EstadoReunion,
@@ -437,6 +438,8 @@ const MeetingMaterials = () => {
             Guía y La Atalaya, y hasta hoy se importaban —cuando se podía— en
             otra parte o en ninguna. */}
         <SongsImport />
+
+        <SongDurations />
 
         {isPublicTalkCoordinator && <ImportTalks variant="row" />}
       </Stack>

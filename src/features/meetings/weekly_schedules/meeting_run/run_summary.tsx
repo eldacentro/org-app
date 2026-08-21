@@ -20,6 +20,16 @@ import Typography from '@components/typography';
  */
 const MARGEN_SEGUNDOS = 30;
 
+/**
+ * Lo que TENÍA que durar, dicho como se pueda leer de un vistazo.
+ *
+ * Casi todas las partes duran minutos redondos y ahí «de 10 min» se lee mejor
+ * que «de 10:00». Pero la canción dura 2:20, y redondearla a «2 min» sería decir
+ * que se pasó veinte segundos cuando terminó a su hora.
+ */
+const duracionPrevista = (segundos: number) =>
+  segundos % 60 === 0 ? `${segundos / 60} min` : reloj(segundos);
+
 const reloj = (segundos: number) => {
   const total = Math.abs(Math.round(segundos));
 
@@ -104,7 +114,7 @@ const MeetingRunSummary = ({
         <Stack divider={<Divider color="var(--grey-200)" />}>
           {cronometradas.map((part) => {
             const duro = run.actual[part.key];
-            const previsto = part.minutes * 60;
+            const previsto = part.seconds;
             const sePaso = duro - previsto >= MARGEN_SEGUNDOS;
             const nota = run.notes?.[part.key];
 
@@ -159,7 +169,7 @@ const MeetingRunSummary = ({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    de {part.minutes} min
+                    de {duracionPrevista(part.seconds)}
                   </Typography>
 
                   {!soloLectura && (

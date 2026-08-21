@@ -45,6 +45,11 @@ import {
   writeMeetingRun,
   type MeetingRunRecord,
 } from '@services/app/meeting_run';
+import {
+  fetchSongDurations,
+  readSongDurations,
+  songDurationsStale,
+} from '@services/app/song_durations';
 import { meetingRunViewState } from '@states/meeting_run';
 import { buildRunPartsInfo } from './run_parts';
 
@@ -131,6 +136,44 @@ const useMidweekRun = ({
     return subscribeMeetingRun(congId, week, dataView, masterKey, setRemoto);
   }, [conectado, congId, week, dataView, masterKey]);
 
+  const [local, setLocal] = useState<MeetingRunRecord | null>(null);
+
+  // Al cambiar de semana o de grupo se recupera lo que hubiera guardado de esa
+  // semana, no lo que se estuviera mirando antes.
+  useEffect(() => {
+    setLocal(readMeetingRun(week, dataView));
+  }, [week, dataView]);
+
+  /**
+   * Lo que dura la canción del principio, según jw.org.
+   *
+   * Se refrescan solas cuando llevan más de un mes guardadas: los cánticos no
+   * cambian a menudo, pero cuando sale uno nuevo nadie va a acordarse de venir a
+   * pulsar un botón. Si no se pueden traer, no pasa nada: el hueco de la canción
+   * y la oración se queda entero, como estaba.
+   */
+  const [duraciones, setDuraciones] = useState(() => readSongDurations(lang));
+
+  useEffect(() => {
+    const guardadas = readSongDurations(lang);
+
+    setDuraciones(guardadas);
+
+    if (!songDurationsStale(guardadas)) return;
+
+    fetchSongDurations(lang).then((nuevas) => {
+      if (nuevas) setDuraciones(nuevas);
+    });
+  }, [lang]);
+
+  const duracionCancionInicial = useMemo(() => {
+    const numero = Number(source?.midweek_meeting?.song_first?.[lang]);
+
+    if (!Number.isFinite(numero) || numero <= 0) return undefined;
+
+    return duraciones?.seconds?.[numero];
+  }, [source, lang, duraciones]);
+
   /**
    * Las horas SIEMPRE en formato de 24, no las que se ven en pantalla.
    *
@@ -159,11 +202,27 @@ const useMidweekRun = ({
       // asamblea, de congreso o sin reunión.
       if (!timing?.pgm_end) return [];
 
-      return buildMidweekRunParts(timing);
+      // La duración que MANDA es la que se guardó al arrancar: los pasos se
+      // numeran por posición, así que si un teléfono partiera el hueco y otro no,
+      // el que mira vería una parte distinta de la que va.
+      const cancionInicialSegundos =
+        remoto?.songSeconds ?? local?.songSeconds ?? duracionCancionInicial;
+
+      return buildMidweekRunParts(timing, { cancionInicialSegundos });
     } catch {
       return [];
     }
-  }, [isElder, remoto, schedule, source, dataView, lang, pgmStart]);
+  }, [
+    isElder,
+    remoto,
+    local,
+    duracionCancionInicial,
+    schedule,
+    source,
+    dataView,
+    lang,
+    pgmStart,
+  ]);
 
   const info = useMemo(() => {
     if (!schedule || parts.length === 0) return {};
@@ -188,14 +247,6 @@ const useMidweekRun = ({
     },
     [use24]
   );
-
-  const [local, setLocal] = useState<MeetingRunRecord | null>(null);
-
-  // Al cambiar de semana o de grupo se recupera lo que hubiera guardado de esa
-  // semana, no lo que se estuviera mirando antes.
-  useEffect(() => {
-    setLocal(readMeetingRun(week, dataView));
-  }, [week, dataView]);
 
   /**
    * La lleva otro: se ve, no se toca.
@@ -415,11 +466,20 @@ const useMidweekRun = ({
       index: 0,
       // La reunión empieza con la canción: ahí no hay nada que presentar.
       runningAt: arranque,
+      songSeconds: duracionCancionInicial,
       actual: {},
       drift,
       offset: cerca ? 0 : drift,
     });
-  }, [soloLectura, guardar, week, dataView, parts, pgmStart]);
+  }, [
+    soloLectura,
+    guardar,
+    week,
+    dataView,
+    parts,
+    pgmStart,
+    duracionCancionInicial,
+  ]);
 
   const siguiente = useCallback(() => {
     if (soloLectura || !run || run.finishedAt) return;
@@ -448,9 +508,10 @@ const useMidweekRun = ({
       actual,
       index: proximo,
       partStartedAt: ahora,
-      // Se pasa a PRESENTARLA. El cronómetro de la parte no arranca hasta que
-      // se le da a «Empezar», que es cuando el hermano toma la palabra.
-      runningAt: undefined,
+      // Se pasa a PRESENTARLA: el cronómetro no arranca hasta «Empezar», que es
+      // cuando el hermano toma la palabra. Una canción o una oración no se
+      // presentan, así que esas arrancan solas.
+      runningAt: parts[proximo].presented ? undefined : ahora,
       drift: runDrift({
         part: parts[proximo],
         partStartedAt: ahora,
@@ -458,6 +519,26 @@ const useMidweekRun = ({
       }),
     });
   }, [soloLectura, run, parts, guardar]);
+
+  /**
+   * La canción se pasa sola a la oración.
+   *
+   * Es el único paso del programa cuya duración se sabe de antemano —jw.org la
+   * publica—, así que es el único donde pasar solo no es adivinar. En cualquier
+   * otro sería peor que no hacer nada: cambiaría de parte mientras el hermano
+   * sigue hablando.
+   */
+  useEffect(() => {
+    if (soloLectura || !run || run.finishedAt || !run.runningAt) return;
+
+    const parte = parts[run.index];
+
+    if (!parte?.autoAdvance) return;
+
+    if (now - run.runningAt < parte.seconds * 1000) return;
+
+    siguiente();
+  }, [now, run, parts, soloLectura, siguiente]);
 
   /**
    * Deshacer.
@@ -628,7 +709,7 @@ const useMidweekRun = ({
   // reloj todavía no corre.
   const esperando = !!run && !run.finishedAt && run.partStartedAt > now;
 
-  const restante = parteActual ? parteActual.minutes * 60 - transcurrido : 0;
+  const restante = parteActual ? parteActual.seconds - transcurrido : 0;
 
   return {
     /**

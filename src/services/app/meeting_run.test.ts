@@ -100,7 +100,9 @@ describe('la lista de partes', () => {
 
   it('la duración se deduce de cuándo empieza la siguiente', () => {
     const parts = buildMidweekRunParts(SEMANA_NORMAL);
-    const porClave = Object.fromEntries(parts.map((p) => [p.key, p.minutes]));
+    const porClave = Object.fromEntries(
+      parts.map((p) => [p.key, p.seconds / 60])
+    );
 
     expect(porClave.pgm_start).toBe(5); // canción y oración
     expect(porClave.opening_comments).toBe(1);
@@ -133,6 +135,107 @@ describe('la lista de partes', () => {
   });
 });
 
+describe('la canción y la oración, cada una por su lado', () => {
+  it('el hueco se parte en dos pasos que comparten relojito', () => {
+    // «Canción 77 y oración» es un solo hueco de 5 minutos en el programa. Como
+    // jw.org dice que la canción dura 2:20, se puede saber cuándo toca pasar a
+    // la oración sin que nadie pulse nada.
+    const parts = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionInicialSegundos: 140,
+    });
+
+    const cancion = parts[0];
+    const oracion = parts[1];
+
+    expect(cancion.key).toBe('pgm_start_song');
+    expect(oracion.key).toBe('pgm_start_prayer');
+
+    expect(cancion.badgeKey).toBe('pgm_start');
+    expect(oracion.badgeKey).toBe('pgm_start');
+
+    expect(cancion.seconds).toBe(140);
+    expect(oracion.seconds).toBe(160); // los 5 minutos menos la canción
+  });
+
+  it('la oración empieza donde termina la canción', () => {
+    const [cancion, oracion] = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionInicialSegundos: 140,
+    });
+
+    expect(oracion.startMinutes - cancion.startMinutes).toBeCloseTo(140 / 60);
+  });
+
+  it('si la canción se come el hueco entero, NO se parte', () => {
+    // Partirlo daría un paso de diez segundos que solo sirve para tener que
+    // pulsar otra vez.
+    const parts = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionInicialSegundos: 280,
+    });
+
+    expect(parts[0].key).toBe('pgm_start');
+  });
+
+  it('sin saber lo que dura, se queda como estaba', () => {
+    expect(buildMidweekRunParts(SEMANA_NORMAL)[0].key).toBe('pgm_start');
+    expect(
+      buildMidweekRunParts(SEMANA_NORMAL, { cancionInicialSegundos: 0 })[0].key
+    ).toBe('pgm_start');
+  });
+
+  it('el relojito del hueco sigue «en curso» en los DOS pasos', () => {
+    // Iterando pasos sin más, el segundo pisaba al primero y el hueco se
+    // apagaba a mitad de la canción.
+    const parts = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionInicialSegundos: 140,
+    });
+
+    const base: MeetingRunRecord = {
+      weekOf: '2026/08/17',
+      dataView: 'main',
+      startedAt: instante(19, 45),
+      partStartedAt: instante(19, 45),
+      index: 0,
+      actual: {},
+      drift: 0,
+    };
+
+    const enCancion = buildMeetingRunView({
+      run: base,
+      parts,
+      formatTime: (t) => t,
+    });
+    const enOracion = buildMeetingRunView({
+      run: { ...base, index: 1 },
+      parts,
+      formatTime: (t) => t,
+    });
+
+    expect(enCancion.status.pgm_start).toBe('current');
+    expect(enOracion.status.pgm_start).toBe('current');
+  });
+});
+
+describe('qué hay que presentar y qué no', () => {
+  const porClave = Object.fromEntries(
+    buildMidweekRunParts(SEMANA_NORMAL).map((p) => [p.key, p.presented])
+  );
+
+  it('las asignaciones se presentan', () => {
+    expect(porClave.tgw_talk).toBe(true);
+    expect(porClave.tgw_bible_reading).toBe(true);
+    expect(porClave.ayf_part1).toBe(true);
+    expect(porClave.cbs).toBe(true);
+  });
+
+  it('las canciones y las palabras del presidente, no', () => {
+    // Pedir dos toques ahí sería estorbar: no hay a nadie a quien anunciar.
+    expect(porClave.pgm_start).toBe(false);
+    expect(porClave.lc_middle_song).toBe(false);
+    expect(porClave.opening_comments).toBe(false);
+    expect(porClave.concluding_comments).toBe(false);
+  });
+});
+
 describe('el reloj', () => {
   it('va y vuelve', () => {
     expect(timeToMinutes('20:11')).toBe(1211);
@@ -158,7 +261,15 @@ describe('el reloj', () => {
 
 describe('cuánto tarde va la reunión', () => {
   // La lectura de la Biblia: tenía que ir de 20:11 a 20:16.
-  const lectura = { key: 'tgw_bible_reading', start: '20:11', minutes: 5 };
+  const lectura = {
+    key: 'tgw_bible_reading',
+    badgeKey: 'tgw_bible_reading',
+    slotStart: '20:11',
+    startMinutes: 20 * 60 + 11,
+    seconds: 5 * 60,
+    presented: true,
+    autoAdvance: false,
+  };
 
   it('empezada a su hora y sin pasarse, no hay desfase', () => {
     const drift = runDrift({
