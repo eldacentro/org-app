@@ -64,8 +64,23 @@ export type MeetingRunRecord = {
   dataView: string;
   /** Cuándo se pulsó «Seguir la reunión». */
   startedAt: number;
-  /** Cuándo empezó la parte que está sonando ahora. */
+  /**
+   * Cuándo se pasó a la parte que está sonando ahora.
+   *
+   * Es cuando quien preside EMPIEZA A PRESENTARLA, no cuando el hermano empieza
+   * a hablar. Y así tiene que ser para el desfase: el hueco del programa
+   * incluye la presentación, así que si presentar se alarga, la reunión va
+   * tarde de verdad.
+   */
   partStartedAt: number;
+  /**
+   * Cuándo empezó la parte de verdad, ya presentada.
+   *
+   * Sin esto, la presentación y los consejos de después se le sumaban a alguna
+   * parte —a la de antes o a la de después, según cuándo se pulsara—, y el
+   * tiempo apuntado a un estudiante no era el suyo. Vacío mientras se presenta.
+   */
+  runningAt?: number;
   /** Índice dentro de la lista de partes. */
   index: number;
   /** Lo que duró de verdad cada parte terminada, en segundos. */

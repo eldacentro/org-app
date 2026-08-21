@@ -5,15 +5,6 @@ import Dialog from '@components/dialog';
 import Typography from '@components/typography';
 
 /**
- * Los atajos.
- *
- * De pie en la plataforma no se escribe. Estas cuatro son las cosas que un
- * presidente apunta de verdad de una parte; para lo demás está el campo de
- * texto, que sigue estando.
- */
-const ATAJOS = ['Se pasó de tiempo', 'Muy bien', 'Volumen', 'Lectura'];
-
-/**
  * Apuntar algo de una parte.
  *
  * No es una nota sobre la persona: es sobre ESTA parte de ESTA semana. La misma
@@ -42,17 +33,6 @@ const NoteDialog = ({
     if (open) setTexto(value ?? '');
   }, [open, value]);
 
-  const añadirAtajo = (atajo: string) => {
-    setTexto((previo) => {
-      const base = previo.trim();
-
-      if (base.length === 0) return atajo;
-      if (base.includes(atajo)) return base;
-
-      return `${base}. ${atajo}`;
-    });
-  };
-
   return (
     <Dialog open={open} onClose={onClose}>
       <Typography className="h2" sx={{ color: 'var(--ink)', mb: '4px' }}>
@@ -66,31 +46,6 @@ const NoteDialog = ({
           ? `${person} · solo lo ven los ancianos`
           : 'Solo lo ven los ancianos'}
       </Typography>
-
-      <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', mb: '12px' }}>
-        {ATAJOS.map((atajo) => (
-          <Box
-            key={atajo}
-            component="button"
-            type="button"
-            onClick={() => añadirAtajo(atajo)}
-            sx={{
-              appearance: 'none',
-              font: 'inherit',
-              cursor: 'pointer',
-              padding: '6px 12px',
-              borderRadius: 'var(--shape-full)',
-              border: '1px solid var(--line)',
-              backgroundColor: 'var(--card)',
-              '&:hover': { backgroundColor: 'var(--accent-100)' },
-            }}
-          >
-            <Typography className="label-small-medium" color="var(--ink-2)">
-              {atajo}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
 
       <TextField
         multiline

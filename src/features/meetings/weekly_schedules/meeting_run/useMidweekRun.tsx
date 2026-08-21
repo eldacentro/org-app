@@ -25,9 +25,12 @@ import {
   type SharedMeetingRun,
 } from '@services/firebase/meeting_run';
 import {
+  schedulesGetData,
   schedulesMidweekData,
   schedulesMidweekGetTiming,
 } from '@services/app/schedules';
+import { ASSIGNMENT_PATH } from '@constants/index';
+import { AssignmentCongregation } from '@definition/schedules';
 import {
   ANCLA_MINUTOS,
   buildMeetingRunView,
@@ -44,6 +47,22 @@ import {
 } from '@services/app/meeting_run';
 import { meetingRunViewState } from '@states/meeting_run';
 import { buildRunPartsInfo } from './run_parts';
+
+/**
+ * Lo que es de la reunión, sin lo que es del reparto de mando.
+ *
+ * El documento que viaja lleva además quién la lleva y cuándo se escribió; eso
+ * no forma parte de la reunión y no tiene por qué guardarse en el teléfono.
+ */
+const soloLoDeLaReunion = (compartida: SharedMeetingRun): MeetingRunRecord => {
+  const copia: Partial<SharedMeetingRun> = { ...compartida };
+
+  delete copia.ownerUid;
+  delete copia.ownerName;
+  delete copia.updatedAt;
+
+  return copia as MeetingRunRecord;
+};
 
 /**
  * Seguir la reunión de entre semana en directo.
@@ -185,9 +204,35 @@ const useMidweekRun = ({
    * propósito: el que preside puede no tener el móvil a mano, o puede
    * presidir alguien que no estaba en el programa. Quien arranca, manda.
    */
-  const ajeno = remoto && remoto.ownerUid !== userUID ? remoto : null;
+  const ajeno = useMemo(() => {
+    if (!remoto || remoto.ownerUid === userUID) return null;
+
+    // Las notas de OTRO solo se enseñan si la congregación lo ha activado. Bajan
+    // igualmente (van cifradas y quien las escribió las necesita en sus otros
+    // dispositivos), pero aquí se quedan fuera.
+    if (compartirNotas) return remoto;
+
+    return { ...remoto, notes: {} };
+  }, [remoto, userUID, compartirNotas]);
+
   const soloLectura = !!ajeno;
   const run = ajeno ?? local;
+
+  /**
+   * La misma persona, otro teléfono.
+   *
+   * Quien empieza la reunión en el móvil y luego abre la aplicación en la
+   * tableta tiene que encontrarse su reunión, con sus notas, y poder seguir
+   * desde ahí. Se adopta una sola vez: en cuanto hay algo local, manda lo local.
+   */
+  useEffect(() => {
+    if (!remoto || remoto.ownerUid !== userUID || local) return;
+
+    const propio = soloLoDeLaReunion(remoto);
+
+    setLocal(propio);
+    writeMeetingRun(propio);
+  }, [remoto, userUID, local]);
 
   const nombrePropio = useMemo(() => {
     const persona = persons.find((record) => record.person_uid === userUID);
@@ -368,6 +413,8 @@ const useMidweekRun = ({
       startedAt: arranque,
       partStartedAt: arranque,
       index: 0,
+      // La reunión empieza con la canción: ahí no hay nada que presentar.
+      runningAt: arranque,
       actual: {},
       drift,
       offset: cerca ? 0 : drift,
@@ -382,7 +429,11 @@ const useMidweekRun = ({
     const encurso = parts[run.index];
 
     if (encurso) {
-      actual[encurso.key] = Math.round((ahora - run.partStartedAt) / 1000);
+      // Desde que arrancó la parte, no desde que se empezó a presentar: la
+      // presentación y los consejos no son tiempo del hermano.
+      const desde = run.runningAt ?? run.partStartedAt;
+
+      actual[encurso.key] = Math.round((ahora - desde) / 1000);
     }
 
     const proximo = run.index + 1;
@@ -397,6 +448,9 @@ const useMidweekRun = ({
       actual,
       index: proximo,
       partStartedAt: ahora,
+      // Se pasa a PRESENTARLA. El cronómetro de la parte no arranca hasta que
+      // se le da a «Empezar», que es cuando el hermano toma la palabra.
+      runningAt: undefined,
       drift: runDrift({
         part: parts[proximo],
         partStartedAt: ahora,
@@ -436,6 +490,7 @@ const useMidweekRun = ({
       actual,
       index: run.index - 1,
       partStartedAt,
+      runningAt: partStartedAt,
       drift: runDrift({ part: anterior, partStartedAt, now: Date.now() }),
     });
   }, [soloLectura, run, parts, guardar]);
@@ -455,6 +510,7 @@ const useMidweekRun = ({
     guardar({
       ...run,
       partStartedAt: ahora,
+      runningAt: ahora,
       drift: runDrift({
         part: parts[run.index],
         partStartedAt: ahora,
@@ -462,6 +518,19 @@ const useMidweekRun = ({
       }),
     });
   }, [soloLectura, run, parts, guardar]);
+
+  /**
+   * El hermano toma la palabra: arranca el cronómetro de la parte.
+   *
+   * Lo que ha pasado desde que se pulsó «Siguiente» era la presentación, y no
+   * se le apunta a nadie. Sí cuenta para el desfase de la reunión, porque el
+   * hueco del programa la incluye.
+   */
+  const empezarParte = useCallback(() => {
+    if (soloLectura || !run || run.finishedAt) return;
+
+    guardar({ ...run, runningAt: Date.now() });
+  }, [soloLectura, run, guardar]);
 
   /**
    * Apuntar algo de una parte.
@@ -489,6 +558,23 @@ const useMidweekRun = ({
     [soloLectura, run, guardar]
   );
 
+  /**
+   * Tomar el control de una reunión que lleva otro.
+   *
+   * Hace falta de verdad: si al que la lleva se le queda el móvil sin batería a
+   * mitad de reunión, sin esto nadie más puede seguirla y se queda congelada
+   * para toda la congregación. Se conserva todo lo que llevaba —en qué parte
+   * va, lo que duró cada una— y solo cambia de manos.
+   *
+   * Las notas del anterior NO se heredan aunque estuvieran compartidas: son
+   * suyas, y quien toma el control empieza las suyas.
+   */
+  const tomarControl = useCallback(() => {
+    if (!ajeno) return;
+
+    guardar({ ...soloLoDeLaReunion(ajeno), notes: {} });
+  }, [ajeno, guardar]);
+
   const descartar = useCallback(() => {
     if (soloLectura) return;
 
@@ -502,14 +588,40 @@ const useMidweekRun = ({
    * cómo funciona esto un rato antes, o el día después. `empezar` ya se encarga
    * de que arrancarlo lejos de la hora no anuncie un retraso inventado.
    */
+  /**
+   * Si quien mira es el presidente de esta semana.
+   *
+   * Solo cambia el texto del botón: para él es «Empezar presidencia», que es lo
+   * que va a hacer; para el resto de ancianos es «Seguir la reunión», que es
+   * mirar. No da ni quita permisos — cualquier anciano puede llevarla, porque
+   * puede presidir alguien que no estaba en el programa.
+   */
+  const esPresidente = useMemo(() => {
+    if (!schedule || !userUID) return false;
+
+    const asignado = schedulesGetData(
+      schedule,
+      ASSIGNMENT_PATH.MM_Chairman_A,
+      dataView
+    ) as AssignmentCongregation;
+
+    return asignado?.value === userUID;
+  }, [schedule, dataView, userUID]);
+
   const enHorario = useMemo(() => {
     return formatDate(getWeekDate(), 'yyyy/MM/dd') === week;
   }, [week]);
 
   const parteActual = run ? parts[run.index] : undefined;
 
+  /** La parte todavía no ha arrancado: quien preside la está presentando. */
+  const presentando = !!run && !run.finishedAt && !run.runningAt;
+
   const transcurrido = run
-    ? Math.max(0, Math.floor((now - run.partStartedAt) / 1000))
+    ? Math.max(
+        0,
+        Math.floor((now - (run.runningAt ?? run.partStartedAt)) / 1000)
+      )
     : 0;
 
   // Se pulsó antes de la hora: la primera parte está anclada al futuro y el
@@ -526,6 +638,7 @@ const useMidweekRun = ({
      */
     disponible: (isElder || soloLectura) && parts.length >= 3,
     enHorario,
+    esPresidente,
     /** La lleva otro: se ve, no se toca. */
     soloLectura,
     esAnciano: isElder,
@@ -538,12 +651,15 @@ const useMidweekRun = ({
     transcurrido,
     restante,
     esperando,
+    presentando,
     horaInicio: formatTime(pgmStart),
     desfase: runVivo ? runDesfase(runVivo) : 0,
     empezar,
     siguiente,
     atras,
     reiniciar,
+    empezarParte,
+    tomarControl,
     anotar,
     descartar,
     formatTime,

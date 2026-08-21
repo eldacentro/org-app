@@ -8,6 +8,7 @@ import {
 } from '@components/icons';
 import Button from '@components/button';
 import IconButton from '@components/icon_button';
+import { useConfirm } from '@components/confirm_dialog';
 import Typography from '@components/typography';
 import useMidweekRun from './useMidweekRun';
 import MeetingRunSummary from './run_summary';
@@ -40,6 +41,7 @@ const MeetingRunBar = ({
   const {
     disponible,
     esAnciano,
+    esPresidente,
     soloLectura,
     quienLaLleva,
     enHorario,
@@ -50,15 +52,20 @@ const MeetingRunBar = ({
     transcurrido,
     restante,
     esperando,
+    presentando,
     horaInicio,
     desfase,
     empezar,
     siguiente,
     atras,
     reiniciar,
+    empezarParte,
+    tomarControl,
     anotar,
     descartar,
   } = useMidweekRun({ week, dataView });
+
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   const [notaAbierta, setNotaAbierta] = useState(false);
   const [notaDe, setNotaDe] = useState<string | null>(null);
@@ -107,7 +114,7 @@ const MeetingRunBar = ({
             className="label-small-semibold"
             color="var(--accent-main)"
           >
-            Seguir la reunión
+            {esPresidente ? 'Empezar presidencia' : 'Seguir la reunión'}
           </Typography>
         </Box>
       </Box>
@@ -150,12 +157,25 @@ const MeetingRunBar = ({
 
   const pasado = !!parteActual && restante < 0;
   const previsto = parteActual ? parteActual.minutes * 60 : 0;
-  const avance = previsto > 0 ? Math.min(1, transcurrido / previsto) : 0;
+  const avance =
+    presentando || previsto === 0 ? 0 : Math.min(1, transcurrido / previsto);
 
   const actual = parteActual ? info[parteActual.key] : undefined;
 
-  const tieneNota =
-    !!parteActual && (run.notes?.[parteActual.key]?.length ?? 0) > 0;
+  /**
+   * De qué parte se apunta la nota.
+   *
+   * Mientras se presenta la siguiente, de la que ACABA de terminar: es
+   * justamente cuando quien preside quiere apuntar algo del estudiante que se
+   * baja de la plataforma, y cuando está dando el consejo. Con la parte en
+   * marcha, de esa.
+   */
+  const parteNotable =
+    presentando && run.index > 0 ? parts[run.index - 1] : parteActual;
+
+  const notaActual = parteNotable ? run.notes?.[parteNotable.key] : undefined;
+
+  const tieneNota = (notaActual?.length ?? 0) > 0;
 
   // Corto a propósito: en un móvil esta línea comparte sitio con el nombre de
   // quien tiene la parte, y «La reunión va 2 minutos por delante» se partía en
@@ -163,13 +183,16 @@ const MeetingRunBar = ({
   //
   // Pulsado antes de la hora, todavía no hay desfase que contar: lo único útil
   // que se puede decir es a qué hora arranca.
+  // «va 1 min antes» no se entendía: ¿antes de qué? Retraso y adelanto sí se
+  // entienden solos, y son las palabras que ya usa cualquiera hablando de una
+  // reunión.
   const estado = esperando
     ? `empieza a las ${horaInicio}`
     : desfase === 0
-      ? 'va en hora'
+      ? 'en hora'
       : desfase > 0
-        ? `va ${desfase} min tarde`
-        : `va ${-desfase} min antes`;
+        ? `${desfase} min de retraso`
+        : `${-desfase} min de adelanto`;
 
   return (
     <Box
@@ -261,14 +284,75 @@ const MeetingRunBar = ({
           </Typography>
         </Box>
 
+        {/* La nota, a la vista. Antes había que volver a abrir el lápiz para
+            saber qué habías escrito. */}
+        {tieneNota && (
+          <Box
+            sx={{
+              marginTop: '-4px',
+              padding: '6px 10px',
+              borderRadius: 'var(--shape-sm)',
+              backgroundColor: 'var(--accent-100)',
+            }}
+          >
+            {/* Mientras se presenta la siguiente, la nota es de la parte que
+                acaba de terminar: sin decirlo, se leería como si fuera de la
+                que se anuncia arriba. */}
+            {parteNotable !== parteActual && (
+              <Typography className="label-small-semibold" color="var(--ink-3)">
+                {info[parteNotable.key]?.label}
+              </Typography>
+            )}
+
+            <Typography
+              className="label-small-regular"
+              color="var(--ink-2)"
+              sx={{
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: 2,
+                overflow: 'hidden',
+              }}
+            >
+              {notaActual}
+            </Typography>
+          </Box>
+        )}
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* Mientras se presenta, el reloj cuenta la presentación —apagado,
+              porque ese tiempo no se le apunta a nadie— y arranca de cero al
+              darle a «Empezar». Sí cuenta para el retraso de la reunión, que es
+              lo que dice la línea de arriba. */}
           <Typography
             className="h2"
-            color={pasado ? 'var(--orange-main)' : 'var(--ink)'}
-            sx={{ flex: 1, minWidth: 0, fontVariantNumeric: 'tabular-nums' }}
+            color={
+              presentando
+                ? 'var(--ink-3)'
+                : pasado
+                  ? 'var(--orange-main)'
+                  : 'var(--ink)'
+            }
+            sx={{ flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}
           >
-            {pasado ? `+${reloj(restante)}` : reloj(restante)}
+            {presentando
+              ? reloj(transcurrido)
+              : pasado
+                ? `+${reloj(restante)}`
+                : reloj(restante)}
           </Typography>
+
+          {presentando && (
+            <Typography
+              className="label-small-regular"
+              color="var(--ink-3)"
+              sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+            >
+              presentando
+            </Typography>
+          )}
+
+          <Box sx={{ flex: 1, minWidth: 0 }} />
 
           {/* La lleva otro: aquí no hay nada que pulsar, solo hace falta saber
               quién es para no ponerse dos a llevarla. */}
@@ -290,7 +374,7 @@ const MeetingRunBar = ({
 
           {/* Poner a cero esta parte: se pulsa «Siguiente» antes de que el
               hermano llegue al micrófono más veces de las que uno cree. */}
-          {!soloLectura && (
+          {!soloLectura && !presentando && (
             <IconButton
               onClick={reiniciar}
               aria-label="Poner a cero el reloj de esta parte"
@@ -341,28 +425,51 @@ const MeetingRunBar = ({
           {!soloLectura && (
             <Button
               variant="main"
-              onClick={siguiente}
+              onClick={presentando ? empezarParte : siguiente}
               disableAutoStretch
-              sx={{ flexShrink: 0, padding: '8px 16px', marginLeft: '4px' }}
+              sx={{ flexShrink: 0, padding: '8px 14px', marginLeft: '2px' }}
             >
-              Siguiente
+              {presentando ? 'Empezar' : 'Siguiente'}
+            </Button>
+          )}
+
+          {/* Si al que la lleva se le queda el móvil sin batería, sin esto la
+              reunión se queda congelada para toda la congregación. */}
+          {soloLectura && (
+            <Button
+              variant="tertiary"
+              disableAutoStretch
+              sx={{ flexShrink: 0, padding: '6px 12px' }}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Tomar el control',
+                  message: `A partir de ahora la llevarías tú y ${quienLaLleva || 'quien la lleva ahora'} pasaría a solo mirar. Se conserva todo lo que va apuntado.`,
+                  confirmLabel: 'Tomar el control',
+                });
+
+                if (ok) tomarControl();
+              }}
+            >
+              Tomar el control
             </Button>
           )}
         </Box>
 
-        {parteActual && !soloLectura && (
+        {parteNotable && !soloLectura && (
           <NoteDialog
             open={notaAbierta}
-            label={actual?.label ?? 'Esta parte'}
-            person={actual?.person}
-            value={run.notes?.[parteActual.key]}
+            label={info[parteNotable.key]?.label ?? 'Esta parte'}
+            person={info[parteNotable.key]?.person}
+            value={notaActual}
             onClose={() => setNotaAbierta(false)}
             onSave={(texto) => {
-              anotar(parteActual.key, texto);
+              anotar(parteNotable.key, texto);
               setNotaAbierta(false);
             }}
           />
         )}
+
+        {ConfirmDialogNode}
       </Box>
     </Box>
   );

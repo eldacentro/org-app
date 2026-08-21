@@ -36,7 +36,16 @@ export const buildRunPartsInfo = (
     info[key] = { label, person: limpio(person), student };
   };
 
-  poner('pgm_start', limpio(data.song_first), data.opening_prayer_name);
+  // La canción no la «hace» nadie: quien sale ahí es el que echa la oración, y
+  // sin decirlo parecía que la canción era suya. El hueco del programa son los
+  // dos juntos.
+  const cancionPrimera = limpio(data.song_first);
+
+  poner(
+    'pgm_start',
+    cancionPrimera ? `${cancionPrimera} y oración` : 'Canción y oración',
+    data.opening_prayer_name ? `Oración: ${data.opening_prayer_name}` : ''
+  );
   poner('opening_comments', t('tr_openingComments'), data.chairman_A_name);
 
   poner('tgw_talk', limpio(data.tgw_talk_src), data.tgw_talk_name);
