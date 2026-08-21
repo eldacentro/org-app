@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
-import { formatDate, generateDateFromTime, getWeekDate } from '@utils/date';
+import { formatDate, generateDateFromTime } from '@utils/date';
 import { schedulesState } from '@states/schedules';
 import { sourcesState } from '@states/sources';
 import {
@@ -26,6 +26,7 @@ import {
 } from '@services/firebase/meeting_run';
 import {
   schedulesGetData,
+  schedulesGetMeetingDate,
   schedulesMidweekData,
   schedulesMidweekGetTiming,
 } from '@services/app/schedules';
@@ -352,12 +353,20 @@ const useMidweekRun = ({
    * reunión no hace falta ningún temporizador.
    */
   useEffect(() => {
-    if (!enMarcha) return;
+    // Sin reunión el reloj sigue corriendo, despacio: es lo que hace que la
+    // pastilla salga sola al llegar la hora sin tener que recargar la página.
+    if (!enMarcha) {
+      if (!isElder) return;
+
+      const lento = setInterval(() => setNow(Date.now()), 30000);
+
+      return () => clearInterval(lento);
+    }
 
     const id = setInterval(() => setNow(Date.now()), soloLectura ? 5000 : 1000);
 
     return () => clearInterval(id);
-  }, [enMarcha, soloLectura]);
+  }, [enMarcha, soloLectura, isElder]);
 
   /**
    * El desfase se guarda, no se calcula al vuelo en cada relojito.
@@ -692,13 +701,6 @@ const useMidweekRun = ({
   }, [soloLectura, guardar]);
 
   /**
-   * Cuándo se ofrece empezar: en la semana en curso, y punto.
-   *
-   * Sin condición de hora. Antes había una y dejaba fuera lo más obvio: mirar
-   * cómo funciona esto un rato antes, o el día después. `empezar` ya se encarga
-   * de que arrancarlo lejos de la hora no anuncie un retraso inventado.
-   */
-  /**
    * Si quien mira es el presidente de esta semana.
    *
    * Solo cambia el texto del botón: para él es «Empezar presidencia», que es lo
@@ -718,9 +720,34 @@ const useMidweekRun = ({
     return asignado?.value === userUID;
   }, [schedule, dataView, userUID]);
 
+  /**
+   * Cuándo se ofrece empezar: el día de la reunión y a su hora.
+   *
+   * Desde cinco minutos antes —lo que se tarda en llegar a la plataforma— y
+   * hasta tres horas después. Antes salía toda la semana, y eso era para poder
+   * probarlo: en el uso de verdad es un botón que estorba seis días de cada
+   * siete en una página que se mira a diario.
+   *
+   * Que se ofrezca solo aquí no encierra a nadie: una reunión ya empezada se
+   * sigue viendo siempre, la lleve uno mismo o la lleve otro.
+   */
   const enHorario = useMemo(() => {
-    return formatDate(getWeekDate(), 'yyyy/MM/dd') === week;
-  }, [week]);
+    const { date } = schedulesGetMeetingDate({
+      week,
+      meeting: 'midweek',
+      dataView,
+    });
+
+    if (date !== formatDate(new Date(now), 'yyyy/MM/dd')) return false;
+
+    const prevista = timeToMinutes(pgmStart);
+
+    if (!Number.isFinite(prevista)) return false;
+
+    const ahora = minutesOfDay(now);
+
+    return ahora >= prevista - 5 && ahora <= prevista + 180;
+  }, [week, dataView, pgmStart, now]);
 
   const parteActual = run ? parts[run.index] : undefined;
 

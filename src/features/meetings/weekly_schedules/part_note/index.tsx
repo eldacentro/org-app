@@ -93,7 +93,7 @@ const PartNote = ({ partKey }: { partKey: string }) => {
             className="label-small-semibold"
             color="var(--accent-main)"
           >
-            Apuntar algo
+            Notas
           </Typography>
         </Box>
       )}
