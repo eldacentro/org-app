@@ -40,6 +40,7 @@ const MeetingRunSummary = ({
   onReopen,
   onDiscard,
   onNote,
+  soloLectura,
 }: {
   run: MeetingRunRecord;
   parts: MeetingRunPart[];
@@ -47,6 +48,8 @@ const MeetingRunSummary = ({
   onReopen: VoidFunction;
   onDiscard: VoidFunction;
   onNote: (partKey: string) => void;
+  /** La reunión la llevó otro: aquí solo se mira. */
+  soloLectura?: boolean;
 }) => {
   const cronometradas = parts.filter(
     (part) => typeof run.actual[part.key] === 'number'
@@ -108,12 +111,12 @@ const MeetingRunSummary = ({
             return (
               <Box key={part.key} sx={{ padding: '8px 0' }}>
                 <Box
-                  onClick={() => onNote(part.key)}
+                  onClick={soloLectura ? undefined : () => onNote(part.key)}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    cursor: 'pointer',
+                    cursor: soloLectura ? 'default' : 'pointer',
                   }}
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -159,7 +162,9 @@ const MeetingRunSummary = ({
                     de {part.minutes} min
                   </Typography>
 
-                  <IconEdit width={16} height={16} color="var(--ink-3)" />
+                  {!soloLectura && (
+                    <IconEdit width={16} height={16} color="var(--ink-3)" />
+                  )}
                 </Box>
 
                 {/* La nota, si la hay. Sangrada y en pequeño: es un apunte de
@@ -184,14 +189,16 @@ const MeetingRunSummary = ({
         </Stack>
       )}
 
-      <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-        <Button variant="secondary" onClick={onDiscard} disableAutoStretch>
-          Borrar
-        </Button>
-        <Button variant="tertiary" onClick={onReopen} disableAutoStretch>
-          Reanudar
-        </Button>
-      </Box>
+      {!soloLectura && (
+        <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <Button variant="secondary" onClick={onDiscard} disableAutoStretch>
+            Borrar
+          </Button>
+          <Button variant="tertiary" onClick={onReopen} disableAutoStretch>
+            Reanudar
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

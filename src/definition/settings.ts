@@ -170,6 +170,12 @@ export type SettingsType = {
        * se ha comportado siempre.
        */
       lc_special_parts_assigned: { value: boolean; updatedAt: string };
+      /**
+       * Si las notas que apunta quien preside la reunión las ven los demás
+       * ancianos. Apagado por defecto: una nota escrita a toda prisa en la
+       * plataforma no es un informe.
+       */
+      chairman_notes_shared?: { value: boolean; updatedAt: string };
     }[];
     weekend_meeting: {
       type: string;

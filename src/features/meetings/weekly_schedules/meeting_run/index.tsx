@@ -39,6 +39,9 @@ const MeetingRunBar = ({
 }) => {
   const {
     disponible,
+    esAnciano,
+    soloLectura,
+    quienLaLleva,
     enHorario,
     run,
     parts,
@@ -60,7 +63,9 @@ const MeetingRunBar = ({
   const [notaAbierta, setNotaAbierta] = useState(false);
   const [notaDe, setNotaDe] = useState<string | null>(null);
 
-  if (!disponible) return null;
+  // Un publicador no ve barra ninguna. Lo suyo son los relojitos del programa,
+  // que se pintan solos desde `PartTiming` con lo que publica quien la lleva.
+  if (!disponible || !esAnciano) return null;
 
   // Sin nada empezado, solo se ofrece el día de la reunión y a su hora.
   if (!run) {
@@ -121,11 +126,12 @@ const MeetingRunBar = ({
           onReopen={atras}
           onDiscard={descartar}
           onNote={setNotaDe}
+          soloLectura={soloLectura}
         />
 
         {/* Terminada la reunión también se puede apuntar: es cuando de verdad
             hay tiempo de escribir, y todavía te acuerdas. */}
-        {parteNota && (
+        {parteNota && !soloLectura && (
           <NoteDialog
             open
             label={info[parteNota.key]?.label ?? 'Esta parte'}
@@ -264,61 +270,87 @@ const MeetingRunBar = ({
             {pasado ? `+${reloj(restante)}` : reloj(restante)}
           </Typography>
 
+          {/* La lleva otro: aquí no hay nada que pulsar, solo hace falta saber
+              quién es para no ponerse dos a llevarla. */}
+          {soloLectura && (
+            <Typography
+              className="label-small-regular"
+              color="var(--ink-3)"
+              sx={{
+                flexShrink: 1,
+                minWidth: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {quienLaLleva ? `La lleva ${quienLaLleva}` : 'La lleva otro'}
+            </Typography>
+          )}
+
           {/* Poner a cero esta parte: se pulsa «Siguiente» antes de que el
               hermano llegue al micrófono más veces de las que uno cree. */}
-          <IconButton
-            onClick={reiniciar}
-            aria-label="Poner a cero el reloj de esta parte"
-            sx={{ flexShrink: 0, padding: '6px' }}
-          >
-            <IconRefresh width={20} height={20} color="var(--ink-3)" />
-          </IconButton>
+          {!soloLectura && (
+            <IconButton
+              onClick={reiniciar}
+              aria-label="Poner a cero el reloj de esta parte"
+              sx={{ flexShrink: 0, padding: '6px' }}
+            >
+              <IconRefresh width={20} height={20} color="var(--ink-3)" />
+            </IconButton>
+          )}
 
           {/* En la primera parte no hay a dónde volver, así que la flecha
               deshace lo único que se ha hecho: haberla empezado. Sin esto, un
               toque sin querer obligaba a recorrer el programa entero para
               quitarse la barra de encima. */}
-          <IconButton
-            onClick={run.index > 0 ? atras : descartar}
-            aria-label={
-              run.index > 0
-                ? 'Volver a la parte anterior'
-                : 'Dejar de seguir la reunión'
-            }
-            sx={{ flexShrink: 0, padding: '6px' }}
-          >
-            <IconArrowBack width={20} height={20} color="var(--ink-3)" />
-          </IconButton>
+          {!soloLectura && (
+            <IconButton
+              onClick={run.index > 0 ? atras : descartar}
+              aria-label={
+                run.index > 0
+                  ? 'Volver a la parte anterior'
+                  : 'Dejar de seguir la reunión'
+              }
+              sx={{ flexShrink: 0, padding: '6px' }}
+            >
+              <IconArrowBack width={20} height={20} color="var(--ink-3)" />
+            </IconButton>
+          )}
 
           {/* Apuntar algo de la parte que está sonando. Al lado del reloj y no
               escondido en la lista: si hay que buscarlo, no se usa. */}
-          <IconButton
-            onClick={() => setNotaAbierta(true)}
-            aria-label="Apuntar algo de esta parte"
-            sx={{
-              flexShrink: 0,
-              padding: '6px',
-              backgroundColor: tieneNota ? 'var(--accent-200)' : undefined,
-            }}
-          >
-            <IconEdit
-              width={20}
-              height={20}
-              color={tieneNota ? 'var(--accent-dark)' : 'var(--ink-3)'}
-            />
-          </IconButton>
+          {!soloLectura && (
+            <IconButton
+              onClick={() => setNotaAbierta(true)}
+              aria-label="Apuntar algo de esta parte"
+              sx={{
+                flexShrink: 0,
+                padding: '6px',
+                backgroundColor: tieneNota ? 'var(--accent-200)' : undefined,
+              }}
+            >
+              <IconEdit
+                width={20}
+                height={20}
+                color={tieneNota ? 'var(--accent-dark)' : 'var(--ink-3)'}
+              />
+            </IconButton>
+          )}
 
-          <Button
-            variant="main"
-            onClick={siguiente}
-            disableAutoStretch
-            sx={{ flexShrink: 0, padding: '8px 16px', marginLeft: '4px' }}
-          >
-            Siguiente
-          </Button>
+          {!soloLectura && (
+            <Button
+              variant="main"
+              onClick={siguiente}
+              disableAutoStretch
+              sx={{ flexShrink: 0, padding: '8px 16px', marginLeft: '4px' }}
+            >
+              Siguiente
+            </Button>
+          )}
         </Box>
 
-        {parteActual && (
+        {parteActual && !soloLectura && (
           <NoteDialog
             open={notaAbierta}
             label={actual?.label ?? 'Esta parte'}

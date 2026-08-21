@@ -228,6 +228,7 @@ export const dbAppSettingsBuildTest = async () => {
         person: { value: '', updatedAt: '' },
       },
       lc_special_parts_assigned: { value: false, updatedAt: '' },
+      chairman_notes_shared: { value: false, updatedAt: '' },
     },
   ];
 

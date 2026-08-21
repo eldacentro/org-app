@@ -406,6 +406,17 @@ export const midweekMeetingLCSpecialPartsAssignedState = atom((get) => {
   );
 });
 
+export const midweekMeetingChairmanNotesSharedState = atom((get) => {
+  const settings = get(settingsState);
+  const dataView = get(userDataViewState);
+
+  return (
+    settings.cong_settings.midweek_meeting.find(
+      (record) => record.type === dataView
+    )?.chairman_notes_shared?.value ?? false
+  );
+});
+
 export const midweekMeetingWeekdayState = atom((get) => {
   const settings = get(settingsState);
   const dataView = get(userDataViewState);
