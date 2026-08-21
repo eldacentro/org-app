@@ -41,6 +41,7 @@ const MeetingRunBar = ({
     restante,
     esperando,
     horaInicio,
+    desfase,
     empezar,
     siguiente,
     atras,
@@ -114,8 +115,6 @@ const MeetingRunBar = ({
   const avance = previsto > 0 ? Math.min(1, transcurrido / previsto) : 0;
 
   const actual = parteActual ? info[parteActual.key] : undefined;
-
-  const desfase = run.drift;
 
   // Corto a propósito: en un móvil esta línea comparte sitio con el nombre de
   // quien tiene la parte, y «La reunión va 2 minutos por delante» se partía en
@@ -240,16 +239,21 @@ const MeetingRunBar = ({
             <IconRefresh width={20} height={20} color="var(--ink-3)" />
           </IconButton>
 
-          {/* En la primera parte no se enseña: no hay a dónde volver. */}
-          {run.index > 0 && (
-            <IconButton
-              onClick={atras}
-              aria-label="Volver a la parte anterior"
-              sx={{ flexShrink: 0, padding: '6px' }}
-            >
-              <IconArrowBack width={20} height={20} color="var(--ink-3)" />
-            </IconButton>
-          )}
+          {/* En la primera parte no hay a dónde volver, así que la flecha
+              deshace lo único que se ha hecho: haberla empezado. Sin esto, un
+              toque sin querer obligaba a recorrer el programa entero para
+              quitarse la barra de encima. */}
+          <IconButton
+            onClick={run.index > 0 ? atras : descartar}
+            aria-label={
+              run.index > 0
+                ? 'Volver a la parte anterior'
+                : 'Dejar de seguir la reunión'
+            }
+            sx={{ flexShrink: 0, padding: '6px' }}
+          >
+            <IconArrowBack width={20} height={20} color="var(--ink-3)" />
+          </IconButton>
 
           <Button
             variant="main"

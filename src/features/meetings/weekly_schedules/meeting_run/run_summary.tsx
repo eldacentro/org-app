@@ -1,5 +1,9 @@
 import { Box, Stack } from '@mui/material';
-import { MeetingRunPart, MeetingRunRecord } from '@services/app/meeting_run';
+import {
+  MeetingRunPart,
+  MeetingRunRecord,
+  runDesfase,
+} from '@services/app/meeting_run';
 import { MeetingRunPartInfo } from './run_parts';
 import Badge from '@components/badge';
 import Button from '@components/button';
@@ -45,7 +49,7 @@ const MeetingRunSummary = ({
     (part) => typeof run.actual[part.key] === 'number'
   );
 
-  const desfase = run.drift;
+  const desfase = runDesfase(run);
 
   return (
     <Box

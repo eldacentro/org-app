@@ -72,6 +72,17 @@ export type MeetingRunRecord = {
   actual: Record<string, number>;
   /** Minutos de desfase con el programa; negativo si se va por delante. */
   drift: number;
+  /**
+   * Lo que ya estaba desplazada la reunión al arrancarla.
+   *
+   * Vale 0 en el caso normal —se le da al botón a la hora de la reunión— y solo
+   * se llena cuando se arranca lejos de esa hora: probando un viernes por la
+   * tarde una reunión que fue ayer, o retomándola con mucho retraso. Sirve para
+   * separar dos cosas que no son la misma: DESDE DÓNDE empezó la reunión, que
+   * no es culpa de nadie, y cuánto se está alargando ahora, que es lo único que
+   * hay que mirar mientras se preside.
+   */
+  offset?: number;
   finishedAt?: number;
 };
 
@@ -109,6 +120,19 @@ export const RUN_STALE_MS = 6 * 60 * 60 * 1000;
  * por delante y correr las horas de todo el programa a un sitio absurdo.
  */
 export const DRIFT_ABANDONADA = 60;
+
+/**
+ * Cuánto se puede empezar lejos de la hora prevista sin que cuente como retraso.
+ *
+ * Dentro de este margen, arrancar tarde ES ir tarde y así se dice. Más allá, lo
+ * que pasa es que no se está en la reunión —se está probando, o retomándola
+ * horas después—, y entonces el programa empieza cuando se pulsa el botón.
+ */
+export const ANCLA_MINUTOS = 15;
+
+/** El desfase que hay que enseñar: el que se ha acumulado, sin el de partida. */
+export const runDesfase = (run: MeetingRunRecord): number =>
+  run.drift - (run.offset ?? 0);
 
 /** «20:11» → 1211. Devuelve NaN si la cadena no es una hora. */
 export const timeToMinutes = (time: string): number => {
@@ -241,6 +265,11 @@ export const buildMeetingRunView = ({
 
   const finished = !!run.finishedAt;
 
+  // Ojo con los dos números: las horas se corren con el desplazamiento COMPLETO
+  // —es la hora a la que va a pasar cada cosa de verdad—, pero lo que se pinta
+  // de naranja es solo lo que se está alargando ahora.
+  const desfase = runDesfase(run);
+
   // Terminada la reunión, el programa vuelve a verse como siempre. Dejar todos
   // los relojitos apagados haría que la página pareciera desactivada el resto
   // de la semana; lo que pasó ya lo cuenta el resumen de abajo.
@@ -250,7 +279,7 @@ export const buildMeetingRunView = ({
       dataView: run.dataView,
       status,
       shifted,
-      drift: run.drift,
+      drift: desfase,
       finished,
     };
   }
@@ -278,7 +307,7 @@ export const buildMeetingRunView = ({
     dataView: run.dataView,
     status,
     shifted,
-    drift: run.drift,
+    drift: desfase,
     finished,
   };
 };

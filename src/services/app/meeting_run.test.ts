@@ -5,6 +5,7 @@ import {
   DRIFT_ABANDONADA,
   minutesToTime,
   readMeetingRun,
+  runDesfase,
   runDrift,
   shiftTime,
   timeToMinutes,
@@ -235,6 +236,48 @@ describe('cuánto tarde va la reunión', () => {
         now: instante(20, 12),
       })
     ).toBe(0);
+  });
+});
+
+describe('arrancar lejos de la hora de la reunión', () => {
+  /**
+   * Probar la aplicación un viernes por la tarde una reunión que fue el jueves,
+   * o retomarla horas después. Sin esto, la barra anunciaba «va 331 minutos por
+   * delante» y no había forma de verla funcionar fuera de la hora exacta.
+   */
+  const run: MeetingRunRecord = {
+    weekOf: '2026/08/17',
+    dataView: 'main',
+    startedAt: instante(17, 30),
+    partStartedAt: instante(17, 30),
+    index: 0,
+    actual: {},
+    drift: -135,
+    offset: -135,
+  };
+
+  it('lo que ya estaba desplazado al empezar no cuenta como desfase', () => {
+    expect(runDesfase(run)).toBe(0);
+  });
+
+  it('lo que se alargue A PARTIR de ahí sí cuenta', () => {
+    expect(runDesfase({ ...run, drift: -131 })).toBe(4);
+  });
+
+  it('en el caso normal no hay desplazamiento y el desfase es el de siempre', () => {
+    expect(runDesfase({ ...run, drift: 3, offset: 0 })).toBe(3);
+    expect(runDesfase({ ...run, drift: 3, offset: undefined })).toBe(3);
+  });
+
+  it('las horas de las partes se corren con el desplazamiento COMPLETO', () => {
+    // Los dos números son distintos a propósito: al hermano se le dice que la
+    // reunión va en hora, pero los relojitos tienen que decir cuándo va a pasar
+    // cada cosa DE VERDAD, no la hora del programa impreso.
+    const parts = buildMidweekRunParts(SEMANA_NORMAL);
+    const view = buildMeetingRunView({ run, parts, formatTime: (t) => t });
+
+    expect(view.drift).toBe(0);
+    expect(view.shifted.tgw_talk).toBe('17:36'); // 19:51 menos 135 minutos
   });
 });
 

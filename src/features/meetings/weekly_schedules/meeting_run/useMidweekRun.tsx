@@ -14,12 +14,14 @@ import {
   schedulesMidweekGetTiming,
 } from '@services/app/schedules';
 import {
+  ANCLA_MINUTOS,
   buildMeetingRunView,
   buildMidweekRunParts,
   clearMeetingRun,
   DRIFT_ABANDONADA,
   minutesOfDay,
   readMeetingRun,
+  runDesfase,
   runDrift,
   timeToMinutes,
   writeMeetingRun,
@@ -182,7 +184,7 @@ const useMidweekRun = ({
 
     // Se quedó abierta (o cambió la hora de la reunión por debajo). Se da por
     // terminada con el último desfase bueno en vez de enseñar un disparate.
-    if (Math.abs(drift) > DRIFT_ABANDONADA) {
+    if (Math.abs(drift - (run.offset ?? 0)) > DRIFT_ABANDONADA) {
       guardar({ ...run, finishedAt: Date.now() });
       return;
     }
@@ -206,19 +208,34 @@ const useMidweekRun = ({
   /**
    * Empezar a seguir la reunión.
    *
-   * Si se pulsa unos minutos ANTES de la hora, la primera parte no empieza al
-   * pulsar: empieza a su hora. Si no, adelantarse a darle al botón se leería
-   * como que la reunión va adelantada y correría hacia atrás las horas de todo
-   * lo que queda.
+   * Tres casos, y el de en medio es el normal:
+   *
+   * - Unos minutos ANTES de la hora: la primera parte no empieza al pulsar,
+   *   empieza a su hora. Adelantarse a darle al botón mientras se prepara la
+   *   sala no puede leerse como que la reunión va adelantada.
+   * - A la hora o algo tarde: cuenta desde ya, y ese retraso ES retraso.
+   * - Lejos de la hora: entonces no se está en la reunión —se está probando, o
+   *   retomándola horas después—, así que el programa empieza cuando se pulsa.
+   *   Las horas de las partes se corren a donde van a pasar de verdad, pero no
+   *   se anuncia un retraso de dos horas que no es de nadie.
    */
   const empezar = useCallback(() => {
     const ahora = Date.now();
     const prevista = timeToMinutes(pgmStart);
-    const adelanto = Number.isFinite(prevista)
-      ? Math.max(0, prevista - minutesOfDay(ahora))
+    const diferencia = Number.isFinite(prevista)
+      ? minutesOfDay(ahora) - prevista
       : 0;
 
+    const cerca = Math.abs(diferencia) <= ANCLA_MINUTOS;
+    const adelanto = cerca && diferencia < 0 ? -diferencia : 0;
+
     const arranque = ahora + Math.round(adelanto * 60000);
+
+    const drift = runDrift({
+      part: parts[0],
+      partStartedAt: arranque,
+      now: ahora,
+    });
 
     guardar({
       weekOf: week,
@@ -227,7 +244,8 @@ const useMidweekRun = ({
       partStartedAt: arranque,
       index: 0,
       actual: {},
-      drift: runDrift({ part: parts[0], partStartedAt: arranque, now: ahora }),
+      drift,
+      offset: cerca ? 0 : drift,
     });
   }, [guardar, week, dataView, parts, pgmStart]);
 
@@ -323,25 +341,15 @@ const useMidweekRun = ({
   const descartar = useCallback(() => guardar(null), [guardar]);
 
   /**
-   * Cuándo se ofrece empezar.
+   * Cuándo se ofrece empezar: en la semana en curso, y punto.
    *
-   * En la semana en curso, y hasta tres horas después de la hora de la reunión.
-   * Se para ahí porque arrancarlo a las once de la noche daría un desfase de
-   * horas y correría el programa entero a un sitio absurdo.
-   *
-   * Antes de la hora sí se deja, y a propósito: `empezar` ancla la primera
-   * parte a la hora prevista, así que darle al botón mientras se prepara la
-   * sala no adelanta nada — la barra se queda esperando a que llegue la hora.
+   * Sin condición de hora. Antes había una y dejaba fuera lo más obvio: mirar
+   * cómo funciona esto un rato antes, o el día después. `empezar` ya se encarga
+   * de que arrancarlo lejos de la hora no anuncie un retraso inventado.
    */
   const enHorario = useMemo(() => {
-    if (formatDate(getWeekDate(), 'yyyy/MM/dd') !== week) return false;
-
-    const prevista = timeToMinutes(pgmStart);
-
-    if (!Number.isFinite(prevista)) return false;
-
-    return minutesOfDay(now) <= prevista + 180;
-  }, [week, pgmStart, now]);
+    return formatDate(getWeekDate(), 'yyyy/MM/dd') === week;
+  }, [week]);
 
   const parteActual = run ? parts[run.index] : undefined;
 
@@ -368,6 +376,7 @@ const useMidweekRun = ({
     restante,
     esperando,
     horaInicio: formatTime(pgmStart),
+    desfase: run ? runDesfase(run) : 0,
     empezar,
     siguiente,
     atras,
