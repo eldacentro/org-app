@@ -656,6 +656,35 @@ const useMidweekRun = ({
     guardar({ ...soloLoDeLaReunion(ajeno), notes: {} });
   }, [ajeno, guardar]);
 
+  /**
+   * Apuntar desde el programa, donde se ve el relojito y no el paso.
+   *
+   * Un hueco partido —la canción y la oración— tiene dos pasos y un solo
+   * recuadro, que enseña las dos notas juntas. Al editarlo desde ahí se guarda
+   * lo que se ve en el primer paso y se quita del otro: lo que se lee es lo que
+   * se edita, sin duplicados escondidos.
+   */
+  const anotarPorRelojito = useCallback(
+    (badgeKey: string, texto: string) => {
+      if (soloLectura || !run) return;
+
+      const pasos = parts.filter((part) => part.badgeKey === badgeKey);
+
+      if (pasos.length === 0) return;
+
+      const notes = { ...(run.notes ?? {}) };
+
+      for (const paso of pasos) delete notes[paso.key];
+
+      const limpio = texto.trim();
+
+      if (limpio.length > 0) notes[pasos[0].key] = limpio;
+
+      guardar({ ...run, notes });
+    },
+    [soloLectura, run, parts, guardar]
+  );
+
   const descartar = useCallback(() => {
     if (soloLectura) return;
 
@@ -742,6 +771,7 @@ const useMidweekRun = ({
     empezarParte,
     tomarControl,
     anotar,
+    anotarPorRelojito,
     descartar,
     formatTime,
   };

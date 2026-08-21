@@ -16,6 +16,7 @@ const NoteDialog = ({
   person,
   value,
   onSave,
+  onDelete,
   onClose,
 }: {
   open: boolean;
@@ -23,6 +24,8 @@ const NoteDialog = ({
   person?: string;
   value?: string;
   onSave: (texto: string) => void;
+  /** Solo cuando ya hay algo escrito: borrar lo que no existe no es una acción. */
+  onDelete?: VoidFunction;
   onClose: VoidFunction;
 }) => {
   const [texto, setTexto] = useState(value ?? '');
@@ -60,17 +63,31 @@ const NoteDialog = ({
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           gap: '8px',
           mt: '16px',
         }}
       >
-        <Button variant="tertiary" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button variant="main" onClick={() => onSave(texto)}>
-          Guardar
-        </Button>
+        {/* Borrar va al otro lado, separada de guardar: es lo que manda el
+            sistema de diseño para una acción destructiva que convive con el
+            pie normal, y aquí además evita darle sin querer. */}
+        {onDelete ? (
+          <Button variant="secondary" color="red" onClick={onDelete}>
+            Borrar
+          </Button>
+        ) : (
+          <Box />
+        )}
+
+        <Box sx={{ display: 'flex', gap: '8px' }}>
+          <Button variant="tertiary" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="main" onClick={() => onSave(texto)}>
+            Guardar
+          </Button>
+        </Box>
       </Box>
     </Dialog>
   );

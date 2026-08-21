@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSetAtom } from 'jotai';
 import { Box } from '@mui/material';
 import {
   IconArrowBack,
@@ -10,6 +11,7 @@ import Button from '@components/button';
 import IconButton from '@components/icon_button';
 import { useConfirm } from '@components/confirm_dialog';
 import Typography from '@components/typography';
+import { meetingRunNoteEditorState } from '@states/meeting_run';
 import useMidweekRun from './useMidweekRun';
 import MeetingRunSummary from './run_summary';
 import NoteDialog from './note_dialog';
@@ -62,8 +64,25 @@ const MeetingRunBar = ({
     empezarParte,
     tomarControl,
     anotar,
+    anotarPorRelojito,
     descartar,
   } = useMidweekRun({ week, dataView });
+
+  /**
+   * Se abre el paso para que los recuadros del programa puedan editar.
+   *
+   * Solo cuando hay reunión empezada y se lleva desde aquí: sin eso no hay
+   * dónde guardar una nota, y al que solo mira no se le ofrece escribir.
+   */
+  const setEditor = useSetAtom(meetingRunNoteEditorState);
+
+  const puedeAnotar = !!run && !soloLectura && esAnciano;
+
+  useEffect(() => {
+    setEditor(puedeAnotar ? { anotar: anotarPorRelojito, info } : null);
+
+    return () => setEditor(null);
+  }, [puedeAnotar, anotarPorRelojito, info, setEditor]);
 
   const { confirm, ConfirmDialogNode } = useConfirm();
 
