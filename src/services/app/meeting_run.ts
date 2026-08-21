@@ -516,11 +516,23 @@ export const readMeetingRun = (
 
     if (!parsed || typeof parsed.startedAt !== 'number') return null;
 
-    // Una reunión que se quedó abierta ayer no vale para nada: el desfase que
-    // saldría de compararla con la hora de hoy sería una barbaridad.
+    /**
+     * Una reunión que se quedó abierta se DA POR TERMINADA, no se tira.
+     *
+     * Lo primero que hice fue borrarla, y eso se llevaba por delante las notas y
+     * los tiempos de quien no llegó a pulsar en la última parte —que es
+     * justamente el caso más probable: la reunión acaba, se guarda el móvil, y
+     * al abrirlo al día siguiente ya no había nada—. Lo único que había que
+     * evitar era enseñar un desfase absurdo, y para eso basta con cerrarla.
+     */
     if (!parsed.finishedAt && now - parsed.startedAt > RUN_STALE_MS) {
-      clearMeetingRun(weekOf, dataView);
-      return null;
+      // La hora en que empezó la última parte: no se sabe cuándo terminó, pero
+      // es lo último que se sabe de verdad.
+      const cerrada = { ...parsed, finishedAt: parsed.partStartedAt };
+
+      writeMeetingRun(cerrada);
+
+      return cerrada;
     }
 
     return parsed;

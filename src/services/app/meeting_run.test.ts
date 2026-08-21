@@ -7,6 +7,8 @@ import {
   readMeetingRun,
   runDesfase,
   runDrift,
+  RUN_STALE_MS,
+  writeMeetingRun,
   shiftTime,
   timeToMinutes,
   type MeetingRunRecord,
@@ -464,8 +466,113 @@ describe('cómo se pinta el programa', () => {
   });
 });
 
+describe('una reunión que se quedó abierta', () => {
+  /**
+   * Un almacenamiento de mentira, porque esto corre en Node.
+   *
+   * Merece la pena montarlo: lo que se comprueba aquí es que NO se pierdan las
+   * notas, y eso solo se ve llamando a la función de verdad.
+   */
+  const montarAlmacen = () => {
+    const datos = new Map<string, string>();
+
+    globalThis.localStorage = {
+      getItem: (k: string) => datos.get(k) ?? null,
+      setItem: (k: string, v: string) => void datos.set(k, v),
+      removeItem: (k: string) => void datos.delete(k),
+      clear: () => datos.clear(),
+      key: () => null,
+      length: 0,
+    } as unknown as Storage;
+
+    return datos;
+  };
+
+  const abierta: MeetingRunRecord = {
+    weekOf: '2026/08/17',
+    dataView: 'main',
+    startedAt: instante(19, 45),
+    partStartedAt: instante(20, 30),
+    index: 4,
+    actual: { tgw_talk: 610 },
+    drift: 2,
+    notes: { tgw_talk: 'Muy bien preparado' },
+  };
+
+  it('se da por terminada, y NO se tira con las notas dentro', () => {
+    // Lo primero que hice fue borrarla, y eso se llevaba por delante las notas y
+    // los tiempos de quien no llegó a pulsar en la última parte — que es el caso
+    // más probable: la reunión acaba, se guarda el móvil, y al abrirlo al día
+    // siguiente no había nada. Lo único que había que evitar era enseñar un
+    // desfase absurdo, y para eso basta con cerrarla.
+    montarAlmacen();
+    writeMeetingRun(abierta);
+
+    const leida = readMeetingRun(
+      abierta.weekOf,
+      abierta.dataView,
+      abierta.startedAt + RUN_STALE_MS + 1000
+    );
+
+    expect(leida?.notes).toEqual({ tgw_talk: 'Muy bien preparado' });
+    expect(leida?.actual).toEqual({ tgw_talk: 610 });
+    expect(leida?.finishedAt).toBe(abierta.partStartedAt);
+  });
+
+  it('y queda cerrada en el almacenamiento, no solo en la respuesta', () => {
+    // Si solo se cerrara al vuelo, la siguiente lectura volvería a encontrarse
+    // una reunión abierta y a recalcular un desfase de horas.
+    const datos = montarAlmacen();
+    writeMeetingRun(abierta);
+
+    readMeetingRun(
+      abierta.weekOf,
+      abierta.dataView,
+      abierta.startedAt + RUN_STALE_MS + 1000
+    );
+
+    const guardada = JSON.parse(
+      datos.get('meetingRun:2026/08/17:main') as string
+    );
+
+    expect(guardada.finishedAt).toBe(abierta.partStartedAt);
+  });
+
+  it('recién empezada no se toca', () => {
+    montarAlmacen();
+    writeMeetingRun(abierta);
+
+    const leida = readMeetingRun(
+      abierta.weekOf,
+      abierta.dataView,
+      abierta.startedAt + 60_000
+    );
+
+    expect(leida?.finishedAt).toBeUndefined();
+  });
+});
+
 describe('lo que se guarda', () => {
   it('sin almacenamiento no se rompe nada, simplemente no hay reunión guardada', () => {
+    // Un navegador con el almacenamiento capado, o en modo privado. No es un
+    // error que enseñar: es que no hay reunión guardada.
+    const previo = globalThis.localStorage;
+
+    delete (globalThis as { localStorage?: Storage }).localStorage;
+
     expect(readMeetingRun('2026/08/17', 'main')).toBeNull();
+    expect(() =>
+      writeMeetingRun({
+        weekOf: '2026/08/17',
+        dataView: 'main',
+        startedAt: 0,
+        partStartedAt: 0,
+        index: 0,
+        actual: {},
+        drift: 0,
+      })
+    ).not.toThrow();
+
+    globalThis.localStorage = previo;
   });
 });

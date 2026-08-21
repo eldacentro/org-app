@@ -24,11 +24,16 @@ import { MeetingRunRecord } from '@services/app/meeting_run';
  * falta escribir nada cada segundo. Y no es información delicada: es la misma
  * que ve cualquiera mirando la plataforma.
  *
- * LAS NOTAS NO VIAJAN salvo que se pida. Apagado —que es como viene—, se
- * quedan en el teléfono de quien las escribe y no salen de ahí. Encendido, se
- * suben CIFRADAS con la llave maestra: las reglas de Firestore dejan leer a
- * cualquier usuario autenticado de la congregación, así que lo que hace que
- * solo las lean los ancianos es el cifrado, no el permiso.
+ * LAS NOTAS SÍ VIAJAN, siempre y cifradas con la llave maestra, para que quien
+ * las escribe se las encuentre en sus otros dispositivos. Lo que decide el
+ * ajuste de la congregación es si se le ENSEÑAN a los demás ancianos, y eso lo
+ * aplica la aplicación al leerlas, no el cifrado.
+ *
+ * Conviene decirlo claro: con la llave maestra en la mano, un anciano podría
+ * abrirlas aunque el ajuste esté apagado. Es el mismo nivel de confianza que el
+ * resto de la aplicación —las reglas de Firestore comprueban que haya sesión,
+ * no el cargo—, pero no es lo mismo que «no salen del teléfono». Frente a un
+ * publicador sí es hermético: sin llave maestra no hay nada que leer.
  */
 
 export type SharedMeetingRun = MeetingRunRecord & {
@@ -113,26 +118,20 @@ export const publishMeetingRun = async ({
   congId,
   run,
   masterKey,
-  shareNotes,
   ownerUid,
   ownerName,
 }: {
   congId: string;
   run: MeetingRunRecord;
   masterKey: string;
-  /** Lo dice el ajuste de la congregación, no el dispositivo. */
-  shareNotes: boolean;
   ownerUid: string;
   ownerName: string;
 }) => {
-  // La decisión de subir o no las notas se toma AQUÍ, en el único sitio por el
-  // que pueden salir del dispositivo. Dejársela a quien llama abriría la puerta
-  // a que un sitio nuevo se olvide de mirarla.
   await setDoc(
     runDoc(congId, run.weekOf, run.dataView),
     sinIndefinidos({
       ...run,
-      notes: shareNotes ? cifrarNotas(run.notes, masterKey) : {},
+      notes: cifrarNotas(run.notes, masterKey),
       ownerUid,
       ownerName,
       updatedAt: new Date().toISOString(),

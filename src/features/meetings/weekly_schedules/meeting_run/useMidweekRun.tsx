@@ -318,7 +318,6 @@ const useMidweekRun = ({
             congId,
             run: next,
             masterKey,
-            shareNotes: compartirNotas,
             ownerUid: userUID,
             ownerName: nombrePropio,
           })
@@ -328,16 +327,7 @@ const useMidweekRun = ({
         console.error('No se pudo publicar la reunión en directo:', error)
       );
     },
-    [
-      week,
-      dataView,
-      conectado,
-      congId,
-      masterKey,
-      compartirNotas,
-      userUID,
-      nombrePropio,
-    ]
+    [week, dataView, conectado, congId, masterKey, userUID, nombrePropio]
   );
 
   const enMarcha = !!run && !run.finishedAt;
