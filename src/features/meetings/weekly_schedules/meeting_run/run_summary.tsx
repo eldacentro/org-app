@@ -37,7 +37,7 @@ const reloj = (segundos: number) => {
 };
 
 /**
- * Cómo fue la reunión, una vez terminada.
+ * Las notas de presidencia: cómo fue la reunión, una vez terminada.
  *
  * Es lo único que queda guardado, y solo de esa semana y en ese teléfono. No es
  * una nota de examen ni un historial de nadie: es para que quien preside pueda
@@ -87,7 +87,7 @@ const MeetingRunSummary = ({
           gap: '12px',
         }}
       >
-        <Typography className="h4">Cómo fue la reunión</Typography>
+        <Typography className="h4">Notas de presidencia</Typography>
 
         <Badge
           size="small"
