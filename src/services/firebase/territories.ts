@@ -610,6 +610,7 @@ export const saveAssignmentAndAttendRequest = (
     tx.update(fsDoc(requestsCol(congId), requestId), {
       atendidaPor: attendedBy,
       atendidaAt: new Date().toISOString(),
+      atendidaComo: 'asignada',
     });
   });
 
@@ -1114,11 +1115,14 @@ export const saveRequest = (congId: string, r: TerritoryRequest) =>
 export const atenderRequest = (
   congId: string,
   requestId: string,
-  personUid: string
+  personUid: string,
+  /** Cómo se cerró. Por defecto 'asignada': es de donde más se llama. */
+  como: 'asignada' | 'descartada' = 'asignada'
 ) =>
   updateDoc(fsDoc(requestsCol(congId), requestId), {
     atendidaPor: personUid,
     atendidaAt: new Date().toISOString(),
+    atendidaComo: como,
   });
 
 /**

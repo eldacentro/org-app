@@ -152,6 +152,15 @@ export type TerritoryRequest = {
    *  para los demás responsables (patrón vistoPor de Documentos). */
   atendidaPor?: string;
   atendidaAt?: string;
+  /**
+   * Cómo se cerró: dándole un territorio o descartándola.
+   *
+   * Sin esto solo constaba QUE se atendió, y en el historial una solicitud a
+   * la que se dio territorio y otra que se descartó se veían exactamente
+   * igual. Las solicitudes cerradas antes de este campo no lo traen y se
+   * muestran como "Atendida" a secas.
+   */
+  atendidaComo?: 'asignada' | 'descartada';
 };
 
 /** Aviso dirigido a un publicador (ej. territorio atrasado). Llega al instante
