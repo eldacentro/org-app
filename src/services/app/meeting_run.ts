@@ -160,6 +160,16 @@ export type MeetingRunView = {
   status: Record<string, MeetingRunStatus>;
   /** Solo las partes que quedan, y solo si hay desfase. Ya formateadas. */
   shifted: Record<string, string>;
+  /**
+   * Lo apuntado de cada parte, por relojito.
+   *
+   * Va aquí para poder pintarlo DEBAJO de su parte en el programa, que es donde
+   * se lee sin tener que preguntarse de cuál era. Quién puede verlo lo decide
+   * quien monta esto: al que solo mira le llegan vacías salvo que la
+   * congregación las haya compartido, y al publicador no le llegan nunca —van
+   * cifradas con la llave maestra y sin ella no se abren.
+   */
+  notes: Record<string, string>;
   drift: number;
   finished: boolean;
 };
@@ -401,6 +411,20 @@ export const buildMeetingRunView = ({
   const status: Record<string, MeetingRunStatus> = {};
   const shifted: Record<string, string> = {};
 
+  // Por relojito, no por paso: un hueco partido —la canción y la oración— tiene
+  // uno solo, y si las dos llevan nota se leen juntas debajo de él.
+  const notes: Record<string, string> = {};
+
+  for (const part of parts) {
+    const nota = run.notes?.[part.key];
+
+    if (!nota) continue;
+
+    notes[part.badgeKey] = notes[part.badgeKey]
+      ? `${notes[part.badgeKey]} · ${nota}`
+      : nota;
+  }
+
   const finished = !!run.finishedAt;
 
   // Ojo con los dos números: las horas se corren con el desplazamiento COMPLETO
@@ -417,6 +441,7 @@ export const buildMeetingRunView = ({
       dataView: run.dataView,
       status,
       shifted,
+      notes,
       drift: desfase,
       finished,
     };
@@ -459,6 +484,7 @@ export const buildMeetingRunView = ({
     dataView: run.dataView,
     status,
     shifted,
+    notes,
     drift: desfase,
     finished,
   };

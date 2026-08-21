@@ -12,6 +12,7 @@ import Divider from '@components/divider';
 import MeetingPart from '@features/meetings/meeting_part';
 import MeetingSection from '@features/meetings/meeting_section';
 import PartTiming from '../../part_timing';
+import PartNote from '../../part_note';
 import PersonComponent from '../../person_component';
 import Typography from '@components/typography';
 import {
@@ -65,6 +66,7 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>
+            <PartNote partKey="tgw_talk" />
 
             <Divider color="var(--grey-200)" />
 
@@ -97,73 +99,77 @@ const TreasuresPart = (props: TreasuresPartProps) => {
                 />
               </SecondaryFieldContainer>
             </DoubleFieldContainer>
+            <PartNote partKey="tgw_gems" />
           </>
         )}
 
         {MIDWEEK_WITH_STUDENTS.includes(weekType) && (
-          <DoubleFieldContainer
-            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-          >
-            <PrimaryFieldContainer>
-              {props.timings?.tgw_bible_reading && (
-                <PartTiming
-                  time={props.timings.tgw_bible_reading}
-                  partKey="tgw_bible_reading"
-                />
-              )}
-
-              <MeetingPart
-                week={props.week}
-                type="tgw_bible_reading"
-                color="var(--treasures-from-gods-word)"
-                dataView={props.dataView}
-              />
-            </PrimaryFieldContainer>
-            <SecondaryFieldContainer
-              sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+          <>
+            <DoubleFieldContainer
+              sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
             >
-              <Stack
-                spacing="8px"
-                divider={<Divider color="var(--grey-200)" />}
-              >
-                <Stack spacing="4px">
-                  {showAuxClass && (
-                    <Typography
-                      className="body-small-semibold"
-                      color="var(--grey-350)"
-                    >
-                      {t('tr_mainHall')}
-                    </Typography>
-                  )}
-
-                  <PersonComponent
-                    label={`${t('tr_student')}:`}
-                    week={props.week}
-                    assignment="MM_TGWBibleReading_A"
-                    dataView={props.dataView}
-                    color="var(--treasures-from-gods-word)"
+              <PrimaryFieldContainer>
+                {props.timings?.tgw_bible_reading && (
+                  <PartTiming
+                    time={props.timings.tgw_bible_reading}
+                    partKey="tgw_bible_reading"
                   />
-                </Stack>
-                {showAuxClass && (
+                )}
+
+                <MeetingPart
+                  week={props.week}
+                  type="tgw_bible_reading"
+                  color="var(--treasures-from-gods-word)"
+                  dataView={props.dataView}
+                />
+              </PrimaryFieldContainer>
+              <SecondaryFieldContainer
+                sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+              >
+                <Stack
+                  spacing="8px"
+                  divider={<Divider color="var(--grey-200)" />}
+                >
                   <Stack spacing="4px">
-                    <Typography
-                      className="body-small-semibold"
-                      color="var(--grey-350)"
-                    >
-                      {t('tr_auxClassroom')}
-                    </Typography>
+                    {showAuxClass && (
+                      <Typography
+                        className="body-small-semibold"
+                        color="var(--grey-350)"
+                      >
+                        {t('tr_mainHall')}
+                      </Typography>
+                    )}
+
                     <PersonComponent
                       label={`${t('tr_student')}:`}
                       week={props.week}
-                      assignment="MM_TGWBibleReading_B"
+                      assignment="MM_TGWBibleReading_A"
                       dataView={props.dataView}
                       color="var(--treasures-from-gods-word)"
                     />
                   </Stack>
-                )}
-              </Stack>
-            </SecondaryFieldContainer>
-          </DoubleFieldContainer>
+                  {showAuxClass && (
+                    <Stack spacing="4px">
+                      <Typography
+                        className="body-small-semibold"
+                        color="var(--grey-350)"
+                      >
+                        {t('tr_auxClassroom')}
+                      </Typography>
+                      <PersonComponent
+                        label={`${t('tr_student')}:`}
+                        week={props.week}
+                        assignment="MM_TGWBibleReading_B"
+                        dataView={props.dataView}
+                        color="var(--treasures-from-gods-word)"
+                      />
+                    </Stack>
+                  )}
+                </Stack>
+              </SecondaryFieldContainer>
+            </DoubleFieldContainer>
+            <PartNote partKey="tgw_bible_reading" />
+          </>
         )}
       </Stack>
     </MeetingSection>

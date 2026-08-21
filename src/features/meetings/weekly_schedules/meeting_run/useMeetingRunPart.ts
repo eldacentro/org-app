@@ -23,8 +23,11 @@ export const useMeetingRunPart = (partKey?: string) => {
   }
 
   const status = view.status[partKey] as MeetingRunStatus | undefined;
+  const note = view.notes?.[partKey];
 
-  if (!status) return null;
+  // La nota puede existir sin que el relojito tenga estado: terminada la
+  // reunión el programa vuelve a verse como siempre, pero lo apuntado se queda.
+  if (!status && !note) return null;
 
-  return { status, shifted: view.shifted[partKey], drift: view.drift };
+  return { status, shifted: view.shifted[partKey], note, drift: view.drift };
 };

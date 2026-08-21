@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import {
   DoubleFieldContainer,
   PrimaryFieldContainer,
@@ -8,6 +9,7 @@ import { PartRowProps } from './index.types';
 import usePartRow from './usePartRow';
 import MeetingPart from '@features/meetings/meeting_part';
 import PartTiming from '../../../part_timing';
+import PartNote from '../../../part_note';
 import PersonComponent from '@features/meetings/weekly_schedules/person_component';
 
 const PartRow = (props: PartRowProps) => {
@@ -18,32 +20,36 @@ const PartRow = (props: PartRowProps) => {
   const { lcField } = usePartRow(props);
 
   return (
-    <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
-      <PrimaryFieldContainer>
-        {props.timings?.[props.type.toString()] && (
-          <PartTiming
-            time={props.timings[props.type.toString()]}
-            partKey={props.type.toString()}
-          />
-        )}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
+        <PrimaryFieldContainer>
+          {props.timings?.[props.type.toString()] && (
+            <PartTiming
+              time={props.timings[props.type.toString()]}
+              partKey={props.type.toString()}
+            />
+          )}
 
-        <MeetingPart
-          week={props.week}
-          type={props.type}
-          color="var(--living-as-christians)"
-          dataView={props.dataView}
-        />
-      </PrimaryFieldContainer>
-      <SecondaryFieldContainer sx={{ maxWidth: laptopUp ? '360px' : '100%' }}>
-        <PersonComponent
-          label={`${t('tr_brother')}:`}
-          week={props.week}
-          assignment={lcField}
-          dataView={props.dataView}
-          color="var(--living-as-christians)"
-        />
-      </SecondaryFieldContainer>
-    </DoubleFieldContainer>
+          <MeetingPart
+            week={props.week}
+            type={props.type}
+            color="var(--living-as-christians)"
+            dataView={props.dataView}
+          />
+        </PrimaryFieldContainer>
+        <SecondaryFieldContainer sx={{ maxWidth: laptopUp ? '360px' : '100%' }}>
+          <PersonComponent
+            label={`${t('tr_brother')}:`}
+            week={props.week}
+            assignment={lcField}
+            dataView={props.dataView}
+            color="var(--living-as-christians)"
+          />
+        </SecondaryFieldContainer>
+      </DoubleFieldContainer>
+
+      <PartNote partKey={props.type.toString()} />
+    </Box>
   );
 };
 

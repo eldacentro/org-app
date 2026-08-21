@@ -16,6 +16,7 @@ import MeetingPart from '@features/meetings/meeting_part';
 import MeetingSection from '@features/meetings/meeting_section';
 import PartRow from './part_row';
 import PartTiming from '../../part_timing';
+import PartNote from '../../part_note';
 import PersonComponent from '../../person_component';
 import SongSource from '@features/meetings/song_source';
 
@@ -58,6 +59,8 @@ const LivingPart = (props: LivingPartProps) => {
           />
         </DoubleFieldContainer>
 
+        <PartNote partKey="lc_middle_song" />
+
         {parts.map((part) => (
           <PartRow
             key={part}
@@ -69,70 +72,76 @@ const LivingPart = (props: LivingPartProps) => {
         ))}
 
         {showCBS && (
-          <DoubleFieldContainer
-            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-          >
-            <PrimaryFieldContainer>
-              {props.timings?.cbs && (
-                <PartTiming time={props.timings.cbs} partKey="cbs" />
-              )}
-
-              <MeetingPart
-                week={props.week}
-                type="lc_cbs"
-                color="var(--living-as-christians)"
-                dataView={props.dataView}
-              />
-            </PrimaryFieldContainer>
-            <SecondaryFieldContainer
-              sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+          <>
+            <DoubleFieldContainer
+              sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
             >
-              <Stack>
-                <PersonComponent
-                  label={`${t('tr_conductor')}:`}
+              <PrimaryFieldContainer>
+                {props.timings?.cbs && (
+                  <PartTiming time={props.timings.cbs} partKey="cbs" />
+                )}
+
+                <MeetingPart
                   week={props.week}
-                  assignment="MM_LCCBSConductor"
-                  dataView={props.dataView}
+                  type="lc_cbs"
                   color="var(--living-as-christians)"
-                />
-                <PersonComponent
-                  label={`${t('tr_reader')}:`}
-                  week={props.week}
-                  assignment="MM_LCCBSReader"
                   dataView={props.dataView}
-                  color="var(--living-as-christians)"
                 />
-              </Stack>
-            </SecondaryFieldContainer>
-          </DoubleFieldContainer>
+              </PrimaryFieldContainer>
+              <SecondaryFieldContainer
+                sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+              >
+                <Stack>
+                  <PersonComponent
+                    label={`${t('tr_conductor')}:`}
+                    week={props.week}
+                    assignment="MM_LCCBSConductor"
+                    dataView={props.dataView}
+                    color="var(--living-as-christians)"
+                  />
+                  <PersonComponent
+                    label={`${t('tr_reader')}:`}
+                    week={props.week}
+                    assignment="MM_LCCBSReader"
+                    dataView={props.dataView}
+                    color="var(--living-as-christians)"
+                  />
+                </Stack>
+              </SecondaryFieldContainer>
+            </DoubleFieldContainer>
+            <PartNote partKey="cbs" />
+          </>
         )}
 
         {weekType === Week.CO_VISIT && (
-          <DoubleFieldContainer
-            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-          >
-            <PrimaryFieldContainer>
-              {props.timings?.co_talk && (
-                <PartTiming time={props.timings.co_talk} partKey="co_talk" />
-              )}
-              <COTalk
-                color="var(--living-as-christians)"
-                week={props.week}
-                meeting="midweek"
-              />
-            </PrimaryFieldContainer>
-            <SecondaryFieldContainer
-              sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+          <>
+            <DoubleFieldContainer
+              sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
             >
-              <PersonComponent
-                label={`${t('tr_brother')}:`}
-                week={props.week}
-                assignment="MM_CircuitOverseer"
-                dataView={props.dataView}
-                color="var(--living-as-christians)"
-              />
-            </SecondaryFieldContainer>
-          </DoubleFieldContainer>
+              <PrimaryFieldContainer>
+                {props.timings?.co_talk && (
+                  <PartTiming time={props.timings.co_talk} partKey="co_talk" />
+                )}
+                <COTalk
+                  color="var(--living-as-christians)"
+                  week={props.week}
+                  meeting="midweek"
+                />
+              </PrimaryFieldContainer>
+              <SecondaryFieldContainer
+                sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+              >
+                <PersonComponent
+                  label={`${t('tr_brother')}:`}
+                  week={props.week}
+                  assignment="MM_CircuitOverseer"
+                  dataView={props.dataView}
+                  color="var(--living-as-christians)"
+                />
+              </SecondaryFieldContainer>
+            </DoubleFieldContainer>
+            <PartNote partKey="co_talk" />
+          </>
         )}
 
         {MIDWEEK_FULL.includes(weekType) && (

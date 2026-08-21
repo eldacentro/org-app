@@ -300,41 +300,6 @@ const MeetingRunBar = ({
           </Typography>
         </Box>
 
-        {/* La nota, a la vista. Antes había que volver a abrir el lápiz para
-            saber qué habías escrito. */}
-        {tieneNota && (
-          <Box
-            sx={{
-              marginTop: '-4px',
-              padding: '6px 10px',
-              borderRadius: 'var(--shape-sm)',
-              backgroundColor: 'var(--accent-100)',
-            }}
-          >
-            {/* Mientras se presenta la siguiente, la nota es de la parte que
-                acaba de terminar: sin decirlo, se leería como si fuera de la
-                que se anuncia arriba. */}
-            {parteNotable !== parteActual && (
-              <Typography className="label-small-semibold" color="var(--ink-3)">
-                {info[parteNotable.key]?.label}
-              </Typography>
-            )}
-
-            <Typography
-              className="label-small-regular"
-              color="var(--ink-2)"
-              sx={{
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 2,
-                overflow: 'hidden',
-              }}
-            >
-              {notaActual}
-            </Typography>
-          </Box>
-        )}
-
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {/* Mientras se presenta, el reloj cuenta la presentación —apagado,
               porque ese tiempo no se le apunta a nadie— y arranca de cero al

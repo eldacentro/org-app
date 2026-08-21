@@ -1,4 +1,4 @@
-import { Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import {
   DoubleFieldContainer,
   PrimaryFieldContainer,
@@ -13,6 +13,7 @@ import MeetingPart from '@features/meetings/meeting_part';
 import PersonComponent from '@features/meetings/weekly_schedules/person_component';
 import Typography from '@components/typography';
 import PartTiming from '../../../part_timing';
+import PartNote from '../../../part_note';
 
 const PartRow = (props: PartRowProps) => {
   const { t } = useAppTranslation();
@@ -23,71 +24,40 @@ const PartRow = (props: PartRowProps) => {
     usePartRow(props);
 
   return (
-    <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
-      <PrimaryFieldContainer>
-        {props.timings?.[props.type.toString()] && (
-          <PartTiming
-            time={props.timings[props.type.toString()]}
-            partKey={props.type.toString()}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
+        <PrimaryFieldContainer>
+          {props.timings?.[props.type.toString()] && (
+            <PartTiming
+              time={props.timings[props.type.toString()]}
+              partKey={props.type.toString()}
+            />
+          )}
+
+          <MeetingPart
+            week={props.week}
+            type={props.type}
+            color="var(--apply-yourself-to-the-field-ministry)"
+            dataView={props.dataView}
           />
-        )}
-
-        <MeetingPart
-          week={props.week}
-          type={props.type}
-          color="var(--apply-yourself-to-the-field-ministry)"
-          dataView={props.dataView}
-        />
-      </PrimaryFieldContainer>
-      <SecondaryFieldContainer sx={{ maxWidth: laptopUp ? '360px' : '100%' }}>
-        <Stack spacing="8px" divider={<Divider color="var(--grey-200)" />}>
-          <Stack spacing="4px">
-            {showAuxClass && ayfType !== AssignmentCode.MM_Discussion && (
-              <Typography
-                className="body-small-semibold"
-                color="var(--grey-350)"
-              >
-                {t('tr_mainHall')}
-              </Typography>
-            )}
-
-            <Stack>
-              <PersonComponent
-                label={`${ayfType === AssignmentCode.MM_Discussion ? t('tr_brother') : t('tr_student')}:`}
-                week={props.week}
-                assignment={studentField.main_hall.student}
-                dataView={props.dataView}
-                color="var(--apply-yourself-to-the-field-ministry)"
-              />
-
-              {showAssistant && (
-                <PersonComponent
-                  label={`${t('tr_assistant')}:`}
-                  week={props.week}
-                  assignment={studentField.main_hall.assistant}
-                  dataView={props.dataView}
-                  color="var(--apply-yourself-to-the-field-ministry)"
-                />
-              )}
-            </Stack>
-          </Stack>
-
-          {showAuxClass && (
+        </PrimaryFieldContainer>
+        <SecondaryFieldContainer sx={{ maxWidth: laptopUp ? '360px' : '100%' }}>
+          <Stack spacing="8px" divider={<Divider color="var(--grey-200)" />}>
             <Stack spacing="4px">
-              {ayfType !== AssignmentCode.MM_Discussion && (
+              {showAuxClass && ayfType !== AssignmentCode.MM_Discussion && (
                 <Typography
                   className="body-small-semibold"
                   color="var(--grey-350)"
                 >
-                  {t('tr_auxClassroom')}
+                  {t('tr_mainHall')}
                 </Typography>
               )}
 
               <Stack>
                 <PersonComponent
-                  label={`${t('tr_student')}:`}
+                  label={`${ayfType === AssignmentCode.MM_Discussion ? t('tr_brother') : t('tr_student')}:`}
                   week={props.week}
-                  assignment={studentField.aux_class.student}
+                  assignment={studentField.main_hall.student}
                   dataView={props.dataView}
                   color="var(--apply-yourself-to-the-field-ministry)"
                 />
@@ -96,17 +66,52 @@ const PartRow = (props: PartRowProps) => {
                   <PersonComponent
                     label={`${t('tr_assistant')}:`}
                     week={props.week}
-                    assignment={studentField.aux_class.assistant}
+                    assignment={studentField.main_hall.assistant}
                     dataView={props.dataView}
                     color="var(--apply-yourself-to-the-field-ministry)"
                   />
                 )}
               </Stack>
             </Stack>
-          )}
-        </Stack>
-      </SecondaryFieldContainer>
-    </DoubleFieldContainer>
+
+            {showAuxClass && (
+              <Stack spacing="4px">
+                {ayfType !== AssignmentCode.MM_Discussion && (
+                  <Typography
+                    className="body-small-semibold"
+                    color="var(--grey-350)"
+                  >
+                    {t('tr_auxClassroom')}
+                  </Typography>
+                )}
+
+                <Stack>
+                  <PersonComponent
+                    label={`${t('tr_student')}:`}
+                    week={props.week}
+                    assignment={studentField.aux_class.student}
+                    dataView={props.dataView}
+                    color="var(--apply-yourself-to-the-field-ministry)"
+                  />
+
+                  {showAssistant && (
+                    <PersonComponent
+                      label={`${t('tr_assistant')}:`}
+                      week={props.week}
+                      assignment={studentField.aux_class.assistant}
+                      dataView={props.dataView}
+                      color="var(--apply-yourself-to-the-field-ministry)"
+                    />
+                  )}
+                </Stack>
+              </Stack>
+            )}
+          </Stack>
+        </SecondaryFieldContainer>
+      </DoubleFieldContainer>
+
+      <PartNote partKey={props.type.toString()} />
+    </Box>
   );
 };
 

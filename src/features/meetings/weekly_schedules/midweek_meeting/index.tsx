@@ -17,6 +17,7 @@ import LivingPart from './living_part';
 import MinistryPart from './ministry_part';
 import PersonComponent from '../person_component';
 import PartTiming from '../part_timing';
+import PartNote from '../part_note';
 import SongSource from '@features/meetings/song_source';
 import TreasuresPart from './treasures_part';
 import Typography from '@components/typography';
@@ -188,6 +189,8 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
                   </SecondaryFieldContainer>
                 </DoubleFieldContainer>
               )}
+
+              <PartNote partKey="pgm_start" />
             </PlainCard>
 
             {MIDWEEK_WITH_TREASURES.includes(weekType) && (
