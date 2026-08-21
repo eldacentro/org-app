@@ -7,7 +7,7 @@ import {
 } from './song_durations';
 
 /**
- * Las duraciones de los cánticos.
+ * Las duraciones de los canciones.
  *
  * La respuesta es de jw.org y no la controlamos: lo que se comprueba aquí es que
  * un cambio de formato al otro lado se traduzca en «no hay duraciones» —y que la
@@ -40,7 +40,7 @@ const RESPUESTA = {
 };
 
 describe('leer la respuesta de jw.org', () => {
-  it('saca el número y los segundos de cada cántico', () => {
+  it('saca el número y los segundos de cada canción', () => {
     const seconds = parseSongDurations(RESPUESTA);
 
     expect(seconds[1]).toBe(141);
@@ -108,7 +108,7 @@ describe('cuándo se vuelven a pedir', () => {
     ).toBe(false);
   });
 
-  it('pasado el mes, sí — que si sale un cántico nuevo nadie va a venir a pulsar un botón', () => {
+  it('pasado el mes, sí — que si sale una canción nuevo nadie va a venir a pulsar un botón', () => {
     expect(
       songDurationsStale(
         {

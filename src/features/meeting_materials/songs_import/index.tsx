@@ -5,7 +5,7 @@ import ImportRow from '@features/meeting_materials/import_row';
 /**
  * Importar el cancionero desde un `.jwpub`.
  *
- * El hallazgo que da sentido a esto: los cánticos NO se actualizan solos. No
+ * El hallazgo que da sentido a esto: las canciones NO se actualizan solas. No
  * llegan por la API ni por la sincronización — salen de
  * `src/locales/{idioma}/songs.json`, que viaja dentro de la aplicación y solo
  * cambia cuando se publica una versión nueva. Si eso deja de mantenerse aguas
@@ -38,7 +38,7 @@ const SongsImport = () => {
 
       <ImportRow
         titulo="Importar el cancionero desde archivo .jwpub"
-        descripcion="Los cánticos no llegan por la sincronización: vienen dentro de la aplicación. Esta es la única forma de ponerlos al día sin esperar a una versión nueva."
+        descripcion="Las canciones no llegan por la sincronización: vienen dentro de la aplicación. Esta es la única forma de ponerlas al día sin esperar a una versión nueva."
         isBusy={isParsing}
         onClick={handleOpenFilePicker}
       />
@@ -47,8 +47,8 @@ const SongsImport = () => {
         <JwpubReportDialog
           open={Boolean(report)}
           report={report}
-          entidadSingular="cántico"
-          entidadPlural="cánticos"
+          entidadSingular="canción"
+          entidadPlural="canciones"
           publicationTitle={pendingImport.publicationTitle}
           aviso={pendingImport.aviso}
           isSaving={isSaving}

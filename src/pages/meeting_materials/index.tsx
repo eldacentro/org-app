@@ -545,8 +545,8 @@ const MeetingMaterials = () => {
         <TarjetaLista
           rotulo="Cancionero"
           total={cancionero.total}
-          singular="cántico"
-          plural="cánticos"
+          singular="canción"
+          plural="canciones"
           importado={cancionero.importado}
           importadoEl={
             cancionero.importado ? cancionero.importadoEl : undefined

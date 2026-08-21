@@ -1,5 +1,5 @@
 /**
- * Cuánto dura cada cántico, según jw.org.
+ * Cuánto dura cada canción, según jw.org.
  *
  * El cancionero `.jwpub` NO lo trae —comprobado abriendo el archivo: 163 vídeos
  * y ninguna columna de duración—, pero la interfaz de medios de jw.org sí, y en
@@ -25,7 +25,7 @@ export const songDurationsUrl = (langCode: string) =>
 export type SongDurations = {
   /** Código de idioma de JW Library ('S', 'E'…). */
   langCode: string;
-  /** Número de cántico → segundos. */
+  /** Número de canción → segundos. */
   seconds: Record<number, number>;
   /** Cuándo se pidieron, en ISO. */
   fetchedAt: string;
@@ -34,7 +34,7 @@ export type SongDurations = {
 /**
  * Cada cuánto se vuelven a pedir solas.
  *
- * Un mes: los cánticos no cambian a menudo, pero cuando sale uno nuevo nadie va
+ * Un mes: los canciones no cambian a menudo, pero cuando sale una nueva nadie va
  * a acordarse de venir a pulsar un botón.
  */
 export const SONG_DURATIONS_STALE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -42,7 +42,7 @@ export const SONG_DURATIONS_STALE_MS = 30 * 24 * 60 * 60 * 1000;
 const CLAVE = 'songDurations';
 
 /**
- * Sacar el número de cántico y su duración de la respuesta.
+ * Sacar el número de canción y su duración de la respuesta.
  *
  * `naturalKey` viene como `pub-sjjm_S_77_VIDEO`. Se lee de ahí y no del título
  * («77. Que reine la paz») porque el título está traducido y su formato depende

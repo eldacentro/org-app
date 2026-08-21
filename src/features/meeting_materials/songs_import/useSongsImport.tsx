@@ -188,8 +188,8 @@ const useSongsImport = () => {
         header: 'Cancionero importado',
         message:
           report.changes.length === 1
-            ? 'Se actualizó 1 cántico.'
-            : `Se actualizaron ${report.changes.length} cánticos.`,
+            ? 'Se actualizó 1 canción.'
+            : `Se actualizaron ${report.changes.length} canciones.`,
         severity: 'success',
       });
     } catch (error) {
