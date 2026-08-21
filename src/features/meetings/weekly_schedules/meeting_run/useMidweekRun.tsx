@@ -338,6 +338,32 @@ const useMidweekRun = ({
     });
   }, [run, parts, guardar]);
 
+  /**
+   * Apuntar algo de una parte.
+   *
+   * Se guarda por clave de parte, no por persona: la misma persona puede tener
+   * dos partes la misma semana y no son el mismo comentario. Una nota vacía
+   * borra la que hubiera, que es lo que espera cualquiera que borre el texto y
+   * le dé a guardar.
+   */
+  const anotar = useCallback(
+    (partKey: string, texto: string) => {
+      if (!run) return;
+
+      const notes = { ...(run.notes ?? {}) };
+      const limpio = texto.trim();
+
+      if (limpio.length === 0) {
+        delete notes[partKey];
+      } else {
+        notes[partKey] = limpio;
+      }
+
+      guardar({ ...run, notes });
+    },
+    [run, guardar]
+  );
+
   const descartar = useCallback(() => guardar(null), [guardar]);
 
   /**
@@ -381,6 +407,7 @@ const useMidweekRun = ({
     siguiente,
     atras,
     reiniciar,
+    anotar,
     descartar,
     formatTime,
   };

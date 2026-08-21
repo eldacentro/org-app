@@ -84,6 +84,14 @@ export type MeetingRunRecord = {
    */
   offset?: number;
   finishedAt?: number;
+  /**
+   * Lo que quien preside apuntó de cada parte, por clave de parte.
+   *
+   * Es lo único de aquí que puede ser delicado —«se pasó», «se le oía mal»—,
+   * así que en cuanto esto se comparta entre dispositivos tiene que viajar
+   * cifrado con la llave maestra, como las notas de Territorios.
+   */
+  notes?: Record<string, string>;
 };
 
 export type MeetingRunStatus = 'done' | 'current' | 'upcoming';

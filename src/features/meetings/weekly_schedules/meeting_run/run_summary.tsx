@@ -5,6 +5,7 @@ import {
   runDesfase,
 } from '@services/app/meeting_run';
 import { MeetingRunPartInfo } from './run_parts';
+import { IconEdit } from '@components/icons';
 import Badge from '@components/badge';
 import Button from '@components/button';
 import Divider from '@components/divider';
@@ -38,12 +39,14 @@ const MeetingRunSummary = ({
   info,
   onReopen,
   onDiscard,
+  onNote,
 }: {
   run: MeetingRunRecord;
   parts: MeetingRunPart[];
   info: Record<string, MeetingRunPartInfo>;
   onReopen: VoidFunction;
   onDiscard: VoidFunction;
+  onNote: (partKey: string) => void;
 }) => {
   const cronometradas = parts.filter(
     (part) => typeof run.actual[part.key] === 'number'
@@ -100,59 +103,81 @@ const MeetingRunSummary = ({
             const duro = run.actual[part.key];
             const previsto = part.minutes * 60;
             const sePaso = duro - previsto >= MARGEN_SEGUNDOS;
+            const nota = run.notes?.[part.key];
 
             return (
-              <Box
-                key={part.key}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '8px 0',
-                }}
-              >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    className="body-small-regular"
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {info[part.key]?.label ?? part.key}
-                  </Typography>
-
-                  {info[part.key]?.person?.length > 0 && (
-                    <Typography
-                      className="label-small-regular"
-                      color="var(--ink-3)"
-                    >
-                      {info[part.key].person}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Typography
-                  className="body-small-semibold"
-                  color={sePaso ? 'var(--orange-dark)' : 'var(--ink-2)'}
-                  sx={{ fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
-                >
-                  {reloj(duro)}
-                </Typography>
-
-                <Typography
-                  className="label-small-regular"
-                  color="var(--ink-3)"
+              <Box key={part.key} sx={{ padding: '8px 0' }}>
+                <Box
+                  onClick={() => onNote(part.key)}
                   sx={{
-                    flexShrink: 0,
-                    width: '62px',
-                    textAlign: 'right',
-                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer',
                   }}
                 >
-                  de {part.minutes} min
-                </Typography>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      className="body-small-regular"
+                      sx={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {info[part.key]?.label ?? part.key}
+                    </Typography>
+
+                    {info[part.key]?.person?.length > 0 && (
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-3)"
+                      >
+                        {info[part.key].person}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Typography
+                    className="body-small-semibold"
+                    color={sePaso ? 'var(--orange-dark)' : 'var(--ink-2)'}
+                    sx={{ fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
+                  >
+                    {reloj(duro)}
+                  </Typography>
+
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-3)"
+                    sx={{
+                      flexShrink: 0,
+                      width: '62px',
+                      textAlign: 'right',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    de {part.minutes} min
+                  </Typography>
+
+                  <IconEdit width={16} height={16} color="var(--ink-3)" />
+                </Box>
+
+                {/* La nota, si la hay. Sangrada y en pequeño: es un apunte de
+                  quien presidía, no una fila más de la tabla. */}
+                {nota && (
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--ink-2)"
+                    sx={{
+                      marginTop: '6px',
+                      padding: '6px 10px',
+                      borderRadius: 'var(--shape-sm)',
+                      backgroundColor: 'var(--accent-100)',
+                    }}
+                  >
+                    {nota}
+                  </Typography>
+                )}
               </Box>
             );
           })}

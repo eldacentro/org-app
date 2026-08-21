@@ -1,10 +1,17 @@
+import { useState } from 'react';
 import { Box } from '@mui/material';
-import { IconArrowBack, IconPlay, IconRefresh } from '@components/icons';
+import {
+  IconArrowBack,
+  IconEdit,
+  IconPlay,
+  IconRefresh,
+} from '@components/icons';
 import Button from '@components/button';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
 import useMidweekRun from './useMidweekRun';
 import MeetingRunSummary from './run_summary';
+import NoteDialog from './note_dialog';
 
 /** Segundos a «m:ss», siempre en positivo. */
 const reloj = (segundos: number) => {
@@ -46,8 +53,12 @@ const MeetingRunBar = ({
     siguiente,
     atras,
     reiniciar,
+    anotar,
     descartar,
   } = useMidweekRun({ week, dataView });
+
+  const [notaAbierta, setNotaAbierta] = useState(false);
+  const [notaDe, setNotaDe] = useState<string | null>(null);
 
   if (!disponible) return null;
 
@@ -99,14 +110,35 @@ const MeetingRunBar = ({
   }
 
   if (run.finishedAt) {
+    const parteNota = parts.find((part) => part.key === notaDe);
+
     return (
-      <MeetingRunSummary
-        run={run}
-        parts={parts}
-        info={info}
-        onReopen={atras}
-        onDiscard={descartar}
-      />
+      <>
+        <MeetingRunSummary
+          run={run}
+          parts={parts}
+          info={info}
+          onReopen={atras}
+          onDiscard={descartar}
+          onNote={setNotaDe}
+        />
+
+        {/* Terminada la reunión también se puede apuntar: es cuando de verdad
+            hay tiempo de escribir, y todavía te acuerdas. */}
+        {parteNota && (
+          <NoteDialog
+            open
+            label={info[parteNota.key]?.label ?? 'Esta parte'}
+            person={info[parteNota.key]?.person}
+            value={run.notes?.[parteNota.key]}
+            onClose={() => setNotaDe(null)}
+            onSave={(texto) => {
+              anotar(parteNota.key, texto);
+              setNotaDe(null);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -115,6 +147,9 @@ const MeetingRunBar = ({
   const avance = previsto > 0 ? Math.min(1, transcurrido / previsto) : 0;
 
   const actual = parteActual ? info[parteActual.key] : undefined;
+
+  const tieneNota =
+    !!parteActual && (run.notes?.[parteActual.key]?.length ?? 0) > 0;
 
   // Corto a propósito: en un móvil esta línea comparte sitio con el nombre de
   // quien tiene la parte, y «La reunión va 2 minutos por delante» se partía en
@@ -255,6 +290,24 @@ const MeetingRunBar = ({
             <IconArrowBack width={20} height={20} color="var(--ink-3)" />
           </IconButton>
 
+          {/* Apuntar algo de la parte que está sonando. Al lado del reloj y no
+              escondido en la lista: si hay que buscarlo, no se usa. */}
+          <IconButton
+            onClick={() => setNotaAbierta(true)}
+            aria-label="Apuntar algo de esta parte"
+            sx={{
+              flexShrink: 0,
+              padding: '6px',
+              backgroundColor: tieneNota ? 'var(--accent-200)' : undefined,
+            }}
+          >
+            <IconEdit
+              width={20}
+              height={20}
+              color={tieneNota ? 'var(--accent-dark)' : 'var(--ink-3)'}
+            />
+          </IconButton>
+
           <Button
             variant="main"
             onClick={siguiente}
@@ -264,6 +317,20 @@ const MeetingRunBar = ({
             Siguiente
           </Button>
         </Box>
+
+        {parteActual && (
+          <NoteDialog
+            open={notaAbierta}
+            label={actual?.label ?? 'Esta parte'}
+            person={actual?.person}
+            value={run.notes?.[parteActual.key]}
+            onClose={() => setNotaAbierta(false)}
+            onSave={(texto) => {
+              anotar(parteActual.key, texto);
+              setNotaAbierta(false);
+            }}
+          />
+        )}
       </Box>
     </Box>
   );
