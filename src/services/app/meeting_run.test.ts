@@ -217,6 +217,49 @@ describe('la canción y la oración, cada una por su lado', () => {
   });
 });
 
+describe('la canción del medio', () => {
+  it('dura lo que dura, no los cinco minutos del hueco', () => {
+    const parts = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionMediaSegundos: 200,
+    });
+
+    const media = parts.find((p) => p.key === 'lc_middle_song');
+
+    expect(media?.seconds).toBe(200);
+    expect(media?.autoAdvance).toBe(true);
+  });
+
+  it('aquí no se parte nada: el hueco es la canción y ya', () => {
+    const claves = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionMediaSegundos: 200,
+    }).map((p) => p.key);
+
+    expect(claves.filter((k) => k.startsWith('lc_middle_song'))).toEqual([
+      'lc_middle_song',
+    ]);
+  });
+
+  it('sin saber lo que dura, se queda el hueco entero y no pasa sola', () => {
+    const media = buildMidweekRunParts(SEMANA_NORMAL).find(
+      (p) => p.key === 'lc_middle_song'
+    );
+
+    expect(media?.seconds).toBe(5 * 60);
+    expect(media?.autoAdvance).toBe(false);
+  });
+
+  it('una duración mayor que el hueco no se cree', () => {
+    // Si jw.org devolviera algo raro, alargar el hueco haría que la reunión
+    // pareciera ir en hora cuando no lo va.
+    const media = buildMidweekRunParts(SEMANA_NORMAL, {
+      cancionMediaSegundos: 900,
+    }).find((p) => p.key === 'lc_middle_song');
+
+    expect(media?.seconds).toBe(5 * 60);
+    expect(media?.autoAdvance).toBe(false);
+  });
+});
+
 describe('qué hay que presentar y qué no', () => {
   const porClave = Object.fromEntries(
     buildMidweekRunParts(SEMANA_NORMAL).map((p) => [p.key, p.presented])

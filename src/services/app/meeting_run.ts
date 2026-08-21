@@ -144,6 +144,8 @@ export type MeetingRunRecord = {
    * todos montan la misma lista aunque uno tenga las duraciones y el otro no.
    */
   songSeconds?: number;
+  /** Lo mismo, para la canción del medio. Ver `songSeconds`. */
+  middleSongSeconds?: number;
   notes?: Record<string, string>;
 };
 
@@ -281,6 +283,17 @@ const SIN_PRESENTAR = new Set([
  */
 const MINIMO_ORACION_SEGUNDOS = 45;
 
+/**
+ * Los segundos de gracia antes de que una canción pase sola.
+ *
+ * La duración que se ENSEÑA es la exacta —3:20 es 3:20, y redondearla solo
+ * mentiría—, pero el cronómetro arranca cuando quien preside anuncia la canción
+ * y el audio empieza unos segundos después. Adelantarse es lo único que puede
+ * salir mal aquí, así que se espera un poco antes de pasar. Si se pulsa
+ * «Siguiente» antes, manda el toque: esto es solo la red de abajo.
+ */
+export const MARGEN_CANCION_SEGUNDOS = 20;
+
 export const buildMidweekRunParts = (
   timing: Partial<Record<MeetingRunPartKey, string>>,
   opciones?: {
@@ -292,6 +305,14 @@ export const buildMidweekRunParts = (
      * sabe de antemano cuánto va a durar algo.
      */
     cancionInicialSegundos?: number;
+    /**
+     * Lo que dura de verdad la canción del medio.
+     *
+     * Aquí no hay nada que partir —el hueco es la canción y ya—, así que solo se
+     * ajusta lo que dura. Lo que sobra del hueco de cinco minutos aparece luego
+     * como adelanto, que es lo que es: tiempo ganado.
+     */
+    cancionMediaSegundos?: number;
   }
 ): MeetingRunPart[] => {
   if (!timing) return [];
@@ -347,14 +368,22 @@ export const buildMidweekRunParts = (
       continue;
     }
 
+    const cancionMedia = opciones?.cancionMediaSegundos;
+
+    const mediaConocida =
+      key === 'lc_middle_song' &&
+      !!cancionMedia &&
+      cancionMedia > 0 &&
+      cancionMedia <= seconds;
+
     parts.push({
       key,
       badgeKey: key,
       slotStart: start,
       startMinutes,
-      seconds,
+      seconds: mediaConocida ? cancionMedia : seconds,
       presented: !SIN_PRESENTAR.has(key),
-      autoAdvance: false,
+      autoAdvance: mediaConocida,
     });
   }
 

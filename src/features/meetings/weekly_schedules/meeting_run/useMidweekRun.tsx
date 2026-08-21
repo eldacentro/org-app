@@ -35,6 +35,7 @@ import { AssignmentCongregation } from '@definition/schedules';
 import {
   ANCLA_MINUTOS,
   buildMeetingRunView,
+  MARGEN_CANCION_SEGUNDOS,
   buildMidweekRunParts,
   clearMeetingRun,
   DRIFT_ABANDONADA,
@@ -167,13 +168,26 @@ const useMidweekRun = ({
     });
   }, [lang]);
 
-  const duracionCancionInicial = useMemo(() => {
-    const numero = Number(source?.midweek_meeting?.song_first?.[lang]);
+  const duracionDeCancion = useCallback(
+    (numero: unknown) => {
+      const n = Number(numero);
 
-    if (!Number.isFinite(numero) || numero <= 0) return undefined;
+      if (!Number.isFinite(n) || n <= 0) return undefined;
 
-    return duraciones?.seconds?.[numero];
-  }, [source, lang, duraciones]);
+      return duraciones?.seconds?.[n];
+    },
+    [duraciones]
+  );
+
+  const duracionCancionInicial = useMemo(
+    () => duracionDeCancion(source?.midweek_meeting?.song_first?.[lang]),
+    [source, lang, duracionDeCancion]
+  );
+
+  const duracionCancionMedia = useMemo(
+    () => duracionDeCancion(source?.midweek_meeting?.song_middle?.[lang]),
+    [source, lang, duracionDeCancion]
+  );
 
   /**
    * Las horas SIEMPRE en formato de 24, no las que se ven en pantalla.
@@ -209,7 +223,15 @@ const useMidweekRun = ({
       const cancionInicialSegundos =
         remoto?.songSeconds ?? local?.songSeconds ?? duracionCancionInicial;
 
-      return buildMidweekRunParts(timing, { cancionInicialSegundos });
+      const cancionMediaSegundos =
+        remoto?.middleSongSeconds ??
+        local?.middleSongSeconds ??
+        duracionCancionMedia;
+
+      return buildMidweekRunParts(timing, {
+        cancionInicialSegundos,
+        cancionMediaSegundos,
+      });
     } catch {
       return [];
     }
@@ -218,6 +240,7 @@ const useMidweekRun = ({
     remoto,
     local,
     duracionCancionInicial,
+    duracionCancionMedia,
     schedule,
     source,
     dataView,
@@ -466,6 +489,7 @@ const useMidweekRun = ({
       // La reunión empieza con la canción: ahí no hay nada que presentar.
       runningAt: arranque,
       songSeconds: duracionCancionInicial,
+      middleSongSeconds: duracionCancionMedia,
       actual: {},
       drift,
       offset: cerca ? 0 : drift,
@@ -478,6 +502,7 @@ const useMidweekRun = ({
     parts,
     pgmStart,
     duracionCancionInicial,
+    duracionCancionMedia,
   ]);
 
   const siguiente = useCallback(() => {
@@ -534,7 +559,15 @@ const useMidweekRun = ({
 
     if (!parte?.autoAdvance) return;
 
-    if (now - run.runningAt < parte.seconds * 1000) return;
+    // Con unos segundos de gracia: lo que se enseña es la duración exacta, pero
+    // el cronómetro arranca cuando se anuncia la canción y el audio empieza
+    // después. Pulsar «Siguiente» antes gana siempre; esto es la red de abajo.
+    if (
+      now - run.runningAt <
+      (parte.seconds + MARGEN_CANCION_SEGUNDOS) * 1000
+    ) {
+      return;
+    }
 
     siguiente();
   }, [now, run, parts, soloLectura, siguiente]);

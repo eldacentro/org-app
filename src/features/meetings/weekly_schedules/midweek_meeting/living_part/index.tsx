@@ -36,30 +36,36 @@ const LivingPart = (props: LivingPartProps) => {
       alwaysExpanded
     >
       <Stack spacing="8px" divider={<Divider color="var(--grey-200)" />}>
-        <DoubleFieldContainer
-          sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
-        >
-          <PrimaryFieldContainer>
-            {props.timings?.lc_middle_song && (
-              <PartTiming
-                time={props.timings.lc_middle_song}
-                partKey="lc_middle_song"
+        {/* El recuadro de nota va DENTRO del mismo hijo del Stack, no suelto:
+            el Stack pinta un separador entre cada hijo, y uno más —aunque no
+            pinte nada, como le pasa a un publicador— dejaba dos rayas debajo de
+            la canción del medio en vez de una. */}
+        <>
+          <DoubleFieldContainer
+            sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+          >
+            <PrimaryFieldContainer>
+              {props.timings?.lc_middle_song && (
+                <PartTiming
+                  time={props.timings.lc_middle_song}
+                  partKey="lc_middle_song"
+                />
+              )}
+
+              <SongSource
+                meeting="midweek"
+                week={props.week}
+                type="middle"
+                dataView={props.dataView}
               />
-            )}
-
-            <SongSource
-              meeting="midweek"
-              week={props.week}
-              type="middle"
-              dataView={props.dataView}
+            </PrimaryFieldContainer>
+            <SecondaryFieldContainer
+              sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
             />
-          </PrimaryFieldContainer>
-          <SecondaryFieldContainer
-            sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
-          />
-        </DoubleFieldContainer>
+          </DoubleFieldContainer>
 
-        <PartNote partKey="lc_middle_song" />
+          <PartNote partKey="lc_middle_song" />
+        </>
 
         {parts.map((part) => (
           <PartRow
