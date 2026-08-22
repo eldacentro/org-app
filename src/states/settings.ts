@@ -584,6 +584,17 @@ export const weekendMeetingShowMonthlyWarningState = atom((get) => {
   );
 });
 
+export const weekendMeetingPublicTalkRepeatMonthsState = atom((get) => {
+  const settings = get(settingsState);
+  const dataView = get(userDataViewState);
+
+  return (
+    settings.cong_settings.weekend_meeting.find(
+      (record) => record.type === dataView
+    )?.public_talk_repeat_notice_months?.value ?? 12
+  );
+});
+
 export const weekendMeetingTimeState = atom((get) => {
   const settings = get(settingsState);
   const dataView = get(userDataViewState);

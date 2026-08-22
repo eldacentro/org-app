@@ -193,6 +193,15 @@ export type SettingsType = {
         value: boolean;
         updatedAt: string;
       };
+      /**
+       * Meses por debajo de los cuales se avisa de que un bosquejo ya se dio.
+       * 0 = no avisar. Lo decide la congregación porque cada una tiene su
+       * costumbre sobre cuánto debe pasar.
+       */
+      public_talk_repeat_notice_months?: {
+        value: number;
+        updatedAt: string;
+      };
       outgoing_talks_schedule_public: {
         value: boolean;
         updatedAt: string;

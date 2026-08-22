@@ -5,6 +5,7 @@ import DayTime from '@features/congregation/settings/meeting_settings/weekend/da
 import AssignmentPreferences from '@features/congregation/settings/meeting_settings/weekend/assignment_preferences';
 import Divider from '@components/divider';
 import MonthlyWarning from '@features/congregation/settings/meeting_settings/weekend/monthly_warning';
+import RepeatNotice from '@features/congregation/settings/meeting_settings/weekend/repeat_notice';
 import QuickSettings from '@features/quick_settings';
 import SongsWeekend from '@features/congregation/settings/meeting_forms/songs_weekend';
 import StudyConductor from '@features/congregation/settings/meeting_settings/weekend/study_conductor';
@@ -35,6 +36,8 @@ const QuickSettingsWeekendMeeting = ({
 
         <Stack spacing="16px">
           <MonthlyWarning />
+
+          <RepeatNotice />
         </Stack>
 
         <Stack spacing="16px">

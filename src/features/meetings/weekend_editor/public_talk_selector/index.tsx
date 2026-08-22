@@ -21,6 +21,7 @@ const PublicTalkSelector = ({
   const { talkType } = usePublicTalkTypeSelector(week);
 
   const {
+    repeatNotice,
     talks,
     selectedTalk,
     handleTalkChange,
@@ -172,6 +173,20 @@ const PublicTalkSelector = ({
           </Box>
         )}
       </Box>
+
+      {/* El mismo aviso amarillo que ya usa el selector de hermano cuando
+          alguien repite: mismo sitio —debajo del campo—, mismo color y mismo
+          tamaño, para que se lea como lo que es y no como algo nuevo que hay
+          que aprender. */}
+      {repeatNotice.length > 0 && (
+        <Typography
+          className="label-small-regular"
+          color="var(--orange-dark)"
+          sx={{ padding: '4px 16px 0 16px' }}
+        >
+          {repeatNotice}
+        </Typography>
+      )}
     </Box>
   );
 };

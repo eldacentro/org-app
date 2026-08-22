@@ -251,6 +251,10 @@ export const dbAppSettingsBuildTest = async () => {
         value: true,
         updatedAt: new Date().toISOString(),
       },
+      public_talk_repeat_notice_months: {
+        value: 12,
+        updatedAt: '',
+      },
       substitute_w_study_conductor_displayed: {
         value: true,
         updatedAt: new Date().toISOString(),
