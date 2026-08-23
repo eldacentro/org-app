@@ -37,6 +37,8 @@ const ConfirmImport = (props: ConfirmImportProps) => {
     cong_settings,
     user_settings,
     upcoming_events,
+    other_modules,
+    territories,
   } = useConfirmImport(props);
 
   return (
@@ -248,6 +250,41 @@ const ConfirmImport = (props: ConfirmImportProps) => {
                     color="var(--accent-dark)"
                   >
                     {t('tr_upcomingEvents')}
+                  </Typography>
+                }
+              />
+
+              {/* Los territorios y el resto de módulos. Van al final porque son
+                  los que casi nadie toca por separado, no porque importen
+                  menos: hasta ahora sencillamente no se importaban. */}
+              <Checkbox
+                checked={selected.territories}
+                disabled={territories === 0}
+                onChange={(_, checked) =>
+                  handleSelectData('territories', checked)
+                }
+                label={
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--accent-dark)"
+                  >
+                    Territorios (zonas, campañas, asignaciones y ajustes)
+                  </Typography>
+                }
+              />
+
+              <Checkbox
+                checked={selected.other_modules}
+                disabled={other_modules === 0}
+                onChange={(_, checked) =>
+                  handleSelectData('other_modules', checked)
+                }
+                label={
+                  <Typography
+                    className="body-small-regular"
+                    color="var(--accent-dark)"
+                  >
+                    Exhibidores, salidas, departamentos y demás módulos
                   </Typography>
                 }
               />

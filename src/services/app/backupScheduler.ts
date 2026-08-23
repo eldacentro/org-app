@@ -1,4 +1,9 @@
 import appDb from '@db/appDb';
+import {
+  copiaTraeRegistro,
+  tablasQueTraeLaCopia,
+  type TablaLista,
+} from './backup_payload';
 import backupsDb from '@db/backupsDb';
 import { googleDriveUploadBackup } from './googleDriveBackup';
 import { fetchTerritoryBackupData } from '@services/firebase/territories';
@@ -29,11 +34,56 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
   const upcomingEvents = await appDb.upcoming_events.toArray();
   const limpiezaConfigArray = await appDb.limpieza_config.toArray();
   const limpiezaConfig = limpiezaConfigArray[0];
-  const evacuacionConfig = await appDb.evacuacion_config.get('1') ?? null;
+  const evacuacionConfig = (await appDb.evacuacion_config.get('1')) ?? null;
 
-  // Territory data lives in Firestore (real-time sync via onSnapshot); read it
-  // directly here so the backup captures the authoritative server state.
-  const territories = congId ? await fetchTerritoryBackupData(congId) : null;
+  // LOS MÓDULOS QUE FALTABAN.
+  //
+  // Había DOS generadores de copia y cada uno se dejaba fuera cosas distintas:
+  // este (el de Drive y las copias locales) no traía ninguno de estos ocho, y el
+  // de la descarga manual no traía territorios. Según por dónde se guardara, la
+  // copia era una u otra — y las dos parecían completas.
+  const [
+    exhibitors,
+    serviceOutings,
+    departmentsSchedule,
+    responsabilidades,
+    circuitOverseerVisits,
+    publicTalksOverride,
+    songsOverride,
+    delegatedFieldServiceReports,
+  ] = await Promise.all([
+    appDb.exhibitors.toArray(),
+    appDb.service_outings.toArray(),
+    appDb.departments_schedule.toArray(),
+    appDb.responsabilidades.toArray(),
+    appDb.circuit_overseer_visits.toArray(),
+    appDb.public_talks_override.toArray(),
+    appDb.songs_override.toArray(),
+    appDb.delegated_field_service_reports.toArray(),
+  ]);
+
+  /**
+   * Los territorios viven en Firestore, no en la base local, así que se leen del
+   * servidor para que la copia lleve el estado bueno.
+   *
+   * Y si el servidor no contesta, la copia SIGUE saliendo. Sin este `try`, un
+   * corte de red o una sesión caducada dejaban sin copia ninguna —ni personas,
+   * ni informes, ni programas—, que es muchísimo peor que una copia sin
+   * territorios. Quien llama puede notarlo mirando si viene la clave.
+   */
+  let territories: Awaited<ReturnType<typeof fetchTerritoryBackupData>> | null =
+    null;
+
+  if (congId) {
+    try {
+      territories = await fetchTerritoryBackupData(congId);
+    } catch (error) {
+      console.error(
+        'No se pudieron leer los territorios para la copia:',
+        error
+      );
+    }
+  }
 
   const handleGetSettings = () => {
     if (!settings) return null;
@@ -84,6 +134,14 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
       week_type: handleGetWeekTypes(),
       limpieza_config: limpiezaConfig,
       evacuacion_config: evacuacionConfig,
+      exhibitors,
+      service_outings: serviceOutings,
+      departments_schedule: departmentsSchedule,
+      responsabilidades,
+      circuit_overseer_visits: circuitOverseerVisits,
+      public_talks_override: publicTalksOverride,
+      songs_override: songsOverride,
+      delegated_field_service_reports: delegatedFieldServiceReports,
       ...(territories ? { territories } : {}),
     },
   };
@@ -121,86 +179,85 @@ export const restoreFromPayload = async (payload: any): Promise<void> => {
 
   const { data } = payload;
 
-  // Clear existing primary tables (Dexie operations are transaction-safe)
-  await appDb.transaction('rw', [
-    appDb.persons,
-    appDb.app_settings,
-    appDb.branch_cong_analysis,
-    appDb.branch_field_service_reports,
-    appDb.cong_field_service_reports,
-    appDb.field_service_groups,
-    appDb.meeting_attendance,
-    appDb.sched,
-    appDb.sources,
-    appDb.speakers_congregations,
-    appDb.visiting_speakers,
-    appDb.user_field_service_reports,
-    appDb.user_bible_studies,
-    appDb.upcoming_events,
-    appDb.limpieza_config,
-    appDb.evacuacion_config,
-  ], async () => {
-    await appDb.persons.clear();
-    await appDb.branch_cong_analysis.clear();
-    await appDb.branch_field_service_reports.clear();
-    await appDb.cong_field_service_reports.clear();
-    await appDb.field_service_groups.clear();
-    await appDb.meeting_attendance.clear();
-    await appDb.sched.clear();
-    await appDb.sources.clear();
-    await appDb.speakers_congregations.clear();
-    await appDb.visiting_speakers.clear();
-    await appDb.user_field_service_reports.clear();
-    await appDb.user_bible_studies.clear();
-    await appDb.upcoming_events.clear();
-    await appDb.limpieza_config.clear();
-    await appDb.evacuacion_config.clear();
+  /**
+   * LO QUE LA COPIA NO TRAE, NO SE TOCA.
+   *
+   * Antes esto empezaba vaciando quince tablas y las rellenaba después, así que
+   * un archivo al que le faltara una la dejaba VACÍA: una copia vieja, una hecha
+   * a mano para corregir cuatro registros, o una generada antes de que el módulo
+   * existiera. Y no se nota al momento — se nota semanas después, cuando alguien
+   * abre ese módulo y no hay nada.
+   *
+   * Ahora se mira primero qué trae (`tablasQueTraeLaCopia`) y solo eso se
+   * rehace. Traer una tabla VACÍA sí cuenta: una congregación puede no tener
+   * ningún exhibidor, y esa copia lo está diciendo.
+   */
+  const tablas = tablasQueTraeLaCopia(data);
 
-    // Populate data
-    if (data.persons) await appDb.persons.bulkAdd(data.persons);
-    if (data.branch_cong_analysis) await appDb.branch_cong_analysis.bulkAdd(data.branch_cong_analysis);
-    if (data.branch_field_service_reports) await appDb.branch_field_service_reports.bulkAdd(data.branch_field_service_reports);
-    if (data.cong_field_service_reports) await appDb.cong_field_service_reports.bulkAdd(data.cong_field_service_reports);
-    if (data.field_service_groups) await appDb.field_service_groups.bulkAdd(data.field_service_groups);
-    if (data.meeting_attendance) await appDb.meeting_attendance.bulkAdd(data.meeting_attendance);
-    // LA FECHA DEL REGISTRO SE RENUEVA AL RESTAURAR. Restaurar es decir «esto
-    // es lo bueno», y desde que el servidor fusiona semana a semana comparando
-    // esa fecha, una copia con las fechas del día que se hizo perdería contra lo
-    // que hay ahora — que es justo lo que se quiere sustituir. Sin esto, el
-    // botón de pánico deja de reponer nada: se restaura en el móvil y no sale.
-    //
-    // Solo la de la RAÍZ. Las de cada campo se dejan como venían: son las que
-    // usa la fusión fina del cliente, y reescribirlas sería decidir por el resto
-    // de dispositivos en cosas que la copia no tiene por qué saber.
-    if (data.sched) {
-      const ahora = new Date().toISOString();
+  const tabla = (nombre: TablaLista) =>
+    appDb.table(nombre) as unknown as {
+      clear: () => Promise<void>;
+      bulkPut: (rows: unknown[]) => Promise<unknown>;
+    };
 
-      await appDb.sched.bulkAdd(
-        data.sched.map((record) => ({ ...record, updatedAt: ahora }))
-      );
-    }
-    if (data.sources) await appDb.sources.bulkAdd(data.sources);
-    if (data.speakers_congregations) await appDb.speakers_congregations.bulkAdd(data.speakers_congregations);
-    if (data.visiting_speakers) await appDb.visiting_speakers.bulkAdd(data.visiting_speakers);
-    if (data.user_field_service_reports) await appDb.user_field_service_reports.bulkAdd(data.user_field_service_reports);
-    if (data.user_bible_studies) await appDb.user_bible_studies.bulkAdd(data.user_bible_studies);
-    if (data.upcoming_events) await appDb.upcoming_events.bulkAdd(data.upcoming_events);
+  await appDb.transaction(
+    'rw',
+    [
+      ...tablas.map((nombre) => appDb.table(nombre)),
+      appDb.app_settings,
+      appDb.limpieza_config,
+      appDb.evacuacion_config,
+    ],
+    async () => {
+      for (const nombre of tablas) {
+        const filas = data[nombre] as unknown[];
 
-    if (data.app_settings) {
-      await appDb.app_settings.clear();
-      await appDb.app_settings.add(data.app_settings);
-    }
-    
-    if (data.limpieza_config) {
-      await appDb.limpieza_config.clear();
-      await appDb.limpieza_config.add(data.limpieza_config);
-    }
+        await tabla(nombre).clear();
 
-    if (data.evacuacion_config) {
-      await appDb.evacuacion_config.clear();
-      await appDb.evacuacion_config.put({ ...data.evacuacion_config, id: '1' });
+        if (filas.length === 0) continue;
+
+        // LA FECHA DEL REGISTRO SE RENUEVA AL RESTAURAR. Restaurar es decir
+        // «esto es lo bueno», y desde que el servidor fusiona semana a semana
+        // comparando esa fecha, una copia con las fechas del día que se hizo
+        // perdería contra lo que hay ahora — que es justo lo que se quiere
+        // sustituir. Sin esto, el botón de pánico deja de reponer nada: se
+        // restaura en el móvil y no sale.
+        //
+        // Solo la de la RAÍZ. Las de cada campo se dejan como venían: son las
+        // que usa la fusión fina del cliente, y reescribirlas sería decidir por
+        // el resto de dispositivos en cosas que la copia no tiene por qué saber.
+        const aGuardar =
+          nombre === 'sched'
+            ? filas.map((record) => ({
+                ...(record as object),
+                updatedAt: new Date().toISOString(),
+              }))
+            : filas;
+
+        // `bulkPut` y no `bulkAdd`: si algo hubiera sobrevivido al vaciado, un
+        // `bulkAdd` reventaría la restauración entera por una clave repetida.
+        await tabla(nombre).bulkPut(aGuardar);
+      }
+
+      if (copiaTraeRegistro(data, 'app_settings')) {
+        await appDb.app_settings.clear();
+        await appDb.app_settings.add(data.app_settings);
+      }
+
+      if (copiaTraeRegistro(data, 'limpieza_config')) {
+        await appDb.limpieza_config.clear();
+        await appDb.limpieza_config.add(data.limpieza_config);
+      }
+
+      if (copiaTraeRegistro(data, 'evacuacion_config')) {
+        await appDb.evacuacion_config.clear();
+        await appDb.evacuacion_config.put({
+          ...data.evacuacion_config,
+          id: '1',
+        });
+      }
     }
-  });
+  );
 };
 
 // Scheduler function executed on startup for admins
@@ -262,7 +319,10 @@ export const triggerAutoBackup = async (isAdmin: boolean, congId?: string) => {
     await googleDriveUploadBackup(payload);
 
     // 4. Update the last backup timestamp in localStorage
-    localStorage.setItem(STORAGE_KEYS.LAST_AUTO_BACKUP, now.getTime().toString());
+    localStorage.setItem(
+      STORAGE_KEYS.LAST_AUTO_BACKUP,
+      now.getTime().toString()
+    );
     console.log('Automated hybrid backup completed successfully.');
   } catch (error) {
     console.error('Automated backup scheduler failed:', error);

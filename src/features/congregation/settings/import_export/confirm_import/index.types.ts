@@ -29,7 +29,17 @@ export type ImportFieldType =
   | 'weekend_history'
   | 'cong_settings'
   | 'user_settings'
-  | 'upcoming_events';
+  | 'upcoming_events'
+  /**
+   * Todo lo que no tiene casilla propia: Exhibidores, Salidas de predicación,
+   * Departamentos, limpieza, evacuación, responsabilidades, visitas del
+   * superintendente, los ajustes de discursos y canciones y los informes
+   * delegados. Nueve casillas más para módulos que se restauran siempre juntos
+   * habrían sido nueve preguntas que nadie sabe contestar por separado.
+   */
+  | 'other_modules'
+  /** Los territorios viven en Firestore y se restauran por su cuenta. */
+  | 'territories';
 
 export type ImportChoiceType = Record<ImportFieldType, boolean>;
 

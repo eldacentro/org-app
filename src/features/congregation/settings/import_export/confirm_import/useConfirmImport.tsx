@@ -17,6 +17,26 @@ import { meetingAttendanceState } from '@states/meeting_attendance';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
 import { personsAllState } from '@states/persons';
 import { BackupOrganizedType } from '@definition/backup';
+import { congIDState } from '@states/settings';
+import { restaurarTerritorios } from '@services/firebase/territoriesRestore';
+
+/**
+ * Los módulos que no tienen casilla propia y se restauran juntos.
+ *
+ * Todos son tablas locales de una sola pieza: no se fusionan ni se comparan
+ * registro a registro, se vuelcan tal como vienen. Por eso pueden compartir
+ * casilla; los de arriba no, porque cada uno tiene sus propias reglas.
+ */
+const OTROS_MODULOS = [
+  'exhibitors',
+  'service_outings',
+  'departments_schedule',
+  'responsabilidades',
+  'circuit_overseer_visits',
+  'public_talks_override',
+  'songs_override',
+  'delegated_field_service_reports',
+] as const;
 import { PersonType } from '@definition/person';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
@@ -88,6 +108,7 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
   const localAttendances = useAtomValue(meetingAttendanceState);
   const localPersons = useAtomValue(personsAllState);
   const localCongReports = useAtomValue(congFieldServiceReportsState);
+  const congId = useAtomValue(congIDState);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selected, setSelected] = useState<ImportChoiceType>({
@@ -102,11 +123,48 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     cong_settings: false,
     user_settings: false,
     upcoming_events: false,
+    other_modules: false,
+    territories: false,
   });
 
   const backupContents = useMemo(() => {
     return JSON.parse(backupFileContents);
   }, [backupFileContents]);
+
+  /**
+   * Cuántos registros trae la copia de los módulos que no tienen casilla propia.
+   *
+   * Se cuentan juntos porque se restauran juntos: nueve casillas para
+   * Exhibidores, Salidas, Departamentos, limpieza, evacuación,
+   * responsabilidades, visitas del superintendente, los ajustes de discursos y
+   * canciones y los informes delegados serían nueve preguntas que nadie sabe
+   * contestar por separado.
+   */
+  const other_modules = useMemo(() => {
+    const data = (backupContents as BackupOrganizedType)?.data;
+
+    if (!data) return 0;
+
+    return OTROS_MODULOS.reduce((total, tabla) => {
+      const filas = data[tabla];
+
+      return total + (Array.isArray(filas) ? filas.length : 0);
+    }, 0);
+  }, [backupContents]);
+
+  /** Cuántos documentos de territorios trae (zonas, campañas, ajustes…). */
+  const territories = useMemo(() => {
+    const datos = (backupContents as BackupOrganizedType)?.data?.[
+      'territories'
+    ] as Record<string, unknown[]> | undefined;
+
+    if (!datos || typeof datos !== 'object') return 0;
+
+    return Object.values(datos).reduce(
+      (total, filas) => total + (Array.isArray(filas) ? filas.length : 0),
+      0
+    );
+  }, [backupContents]);
 
   const persons = useMemo(() => {
     try {
@@ -543,6 +601,14 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
           data.user_settings = true;
         }
 
+        if (other_modules > 0) {
+          data.other_modules = true;
+        }
+
+        if (territories > 0) {
+          data.territories = true;
+        }
+
         return data;
       });
     }
@@ -790,6 +856,44 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
         await appDb.upcoming_events.bulkPut(data.upcoming_events);
       }
 
+      /**
+       * Los módulos que se restauran juntos.
+       *
+       * Se AÑADEN, no se sustituyen: esta pantalla es la de combinar un archivo
+       * con lo que ya hay, y vaciar una tabla porque el archivo traiga otra
+       * cosa es exactamente el destrozo que se quiere evitar. Para volver a un
+       * estado completo está la restauración desde una copia local, que sí
+       * rehace las tablas que el archivo trae.
+       *
+       * Una tabla que el archivo no traiga no se toca. Traerla vacía tampoco
+       * borra nada: se escriben cero registros y ya.
+       */
+      if (selected.other_modules && backupFileType === 'Organized') {
+        for (const tabla of OTROS_MODULOS) {
+          const filas = backup.data[tabla];
+
+          if (!Array.isArray(filas) || filas.length === 0) continue;
+
+          await appDb.table(tabla).bulkPut(filas);
+        }
+      }
+
+      /**
+       * Los territorios van por su cuenta: viven en Firestore, no en la base
+       * local, y su restauración ya sabe no borrar nada —repone lo que falta,
+       * corrige lo que cambió y deja intacto lo que se creó después—.
+       */
+      if (selected.territories && backupFileType === 'Organized' && congId) {
+        const datos = backup.data['territories'] as Record<
+          string,
+          Record<string, unknown>[]
+        >;
+
+        if (datos && typeof datos === 'object') {
+          await restaurarTerritorios(congId, datos);
+        }
+      }
+
       displaySnackNotification({
         severity: 'success',
         header: t('tr_importDataCompleted'),
@@ -848,6 +952,8 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
     cong_settings,
     user_settings,
     upcoming_events,
+    other_modules,
+    territories,
   };
 };
 
