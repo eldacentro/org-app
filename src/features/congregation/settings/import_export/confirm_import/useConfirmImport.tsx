@@ -869,12 +869,32 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
        * borra nada: se escriben cero registros y ya.
        */
       if (selected.other_modules && backupFileType === 'Organized') {
+        const fallaron: string[] = [];
+
         for (const tabla of OTROS_MODULOS) {
           const filas = backup.data[tabla];
 
           if (!Array.isArray(filas) || filas.length === 0) continue;
 
-          await appDb.table(tabla).bulkPut(filas);
+          // Cada tabla por su cuenta. Un archivo viejo puede traer filas que ya
+          // no encajan —la de exhibidores, por ejemplo, se guarda por semana y
+          // no por identificador—, y sin esto UNA fila mala tiraba la
+          // importación entera con un error de IndexedDB en crudo, dejando
+          // fuera también las tablas buenas que venían detrás.
+          try {
+            await appDb.table(tabla).bulkPut(filas);
+          } catch (error) {
+            console.error(`No se pudo importar la tabla ${tabla}:`, error);
+            fallaron.push(tabla);
+          }
+        }
+
+        if (fallaron.length > 0) {
+          displaySnackNotification({
+            severity: 'error',
+            header: 'Parte de los módulos no se ha podido importar',
+            message: `El resto sí. No encajaron: ${fallaron.join(', ')}. Suele pasar con archivos antiguos.`,
+          });
         }
       }
 
@@ -890,7 +910,21 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
         >;
 
         if (datos && typeof datos === 'object') {
-          await restaurarTerritorios(congId, datos);
+          // Los territorios van al servidor, así que aquí falla lo que falla
+          // siempre: la red o la sesión. Que no se lleve por delante lo que ya
+          // se ha escrito en la base local.
+          try {
+            await restaurarTerritorios(congId, datos);
+          } catch (error) {
+            console.error('No se pudieron restaurar los territorios:', error);
+
+            displaySnackNotification({
+              severity: 'error',
+              header: 'Los territorios no se han restaurado',
+              message:
+                'El resto de los datos sí. Comprueba la conexión y vuelve a importar solo los territorios.',
+            });
+          }
         }
       }
 
