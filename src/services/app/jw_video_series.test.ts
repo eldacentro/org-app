@@ -6,6 +6,7 @@ import {
   seriesUrl,
   episodeUrl,
   SERIES_STALE_MS,
+  lankDesdeMediaKey,
 } from './jw_video_series';
 
 /**
@@ -169,5 +170,40 @@ describe('a dónde se piden', () => {
     expect(seriesUrl('S', 'SeriesGoodNews')).toContain(
       '/v1/categories/S/SeriesGoodNews'
     );
+  });
+});
+
+describe('lankDesdeMediaKey', () => {
+  it('quita el idioma', () => {
+    expect(lankDesdeMediaKey('pub-gnj_S_2_VIDEO', 'S')).toBe('pub-gnj_2_VIDEO');
+    expect(lankDesdeMediaKey('pub-gnj_E_2_VIDEO', 'E')).toBe('pub-gnj_2_VIDEO');
+  });
+
+  it('aguanta un símbolo con guiones y cifras', () => {
+    // Contando posiciones esto se rompería con el primer símbolo que traiga un
+    // guion bajo; por eso se busca el trozo que ES el idioma.
+    expect(lankDesdeMediaKey('pub-jwb-136_S_6_VIDEO', 'S')).toBe(
+      'pub-jwb-136_6_VIDEO'
+    );
+    expect(lankDesdeMediaKey('pub-jwbvod26_S_3_VIDEO', 'S')).toBe(
+      'pub-jwbvod26_3_VIDEO'
+    );
+  });
+
+  it('con códigos de idioma de varias letras', () => {
+    expect(lankDesdeMediaKey('pub-gnj_CHS_2_VIDEO', 'CHS')).toBe(
+      'pub-gnj_2_VIDEO'
+    );
+  });
+
+  it('no se lleva por delante el símbolo aunque se llame como el idioma', () => {
+    expect(lankDesdeMediaKey('S_S_2_VIDEO', 'S')).toBe('S_2_VIDEO');
+  });
+
+  it('sin encontrar el idioma no se inventa nada', () => {
+    expect(lankDesdeMediaKey('pub-gnj_E_2_VIDEO', 'S')).toBe('');
+    expect(lankDesdeMediaKey('cualquier-cosa', 'S')).toBe('');
+    expect(lankDesdeMediaKey('', 'S')).toBe('');
+    expect(lankDesdeMediaKey('pub-gnj_S_2_VIDEO', '')).toBe('');
   });
 });

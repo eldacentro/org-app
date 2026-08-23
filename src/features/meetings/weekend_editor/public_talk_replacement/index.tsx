@@ -1,7 +1,11 @@
 import { Box, TextField } from '@mui/material';
 import { PublicTalkReplacementCongregation } from '@definition/schedules';
-import { episodeUrl } from '@services/app/jw_video_series';
+import {
+  episodeUrl,
+  lankDesdeMediaKey,
+} from '@services/app/jw_video_series';
 import useReplacement from './useReplacement';
+import Button from '@components/button';
 import MenuItem from '@components/menuitem';
 import Select from '@components/select';
 import Typography from '@components/typography';
@@ -44,6 +48,17 @@ const PublicTalkReplacement = ({
   const episodioElegido = episodios.find(
     (record) => record.key === value?.media_key
   );
+
+  /**
+   * El identificador con el que se le pregunta a jw.org.
+   *
+   * Normalmente sale de la lista de episodios. Si esa lista no está —jw.org no
+   * contestó, o es la primera vez en este teléfono— se saca del propio
+   * `media_key` que hay guardado en el programa: si no, el botón de traer la
+   * descripción no llegaba a salir justo el día que hace falta.
+   */
+  const lank =
+    episodioElegido?.lank ?? lankDesdeMediaKey(value?.media_key ?? '', lang);
 
   const handleTipo = (nuevo: string) => {
     if (nuevo !== 'video') return onChange(null);
@@ -151,6 +166,43 @@ const PublicTalkReplacement = ({
               }
             />
 
+            {/* Traerla a mano cuando el episodio ya estaba puesto.
+                *
+                * Existe porque la descripción solo llega sola al ELEGIR el
+                * episodio, y todo lo programado antes de que esto existiera se
+                * quedaba con el hueco en blanco sin manera de pedirla salvo
+                * volver a elegir el mismo episodio, que no se le ocurre a
+                * nadie.
+                *
+                * Y es un botón, y no algo que pase solo al abrir la página,
+                * porque guardar aquí ESCRIBE EN EL PROGRAMA: si el mes ya está
+                * publicado, rellenarla sola encendería el aviso de «has
+                * cambiado cosas desde que publicaste» sin que nadie haya
+                * tocado nada. En esta aplicación el programa no se cambia
+                * solo; se avisa y decide una persona. Elegir un episodio ya es
+                * cambiar el programa, así que ahí sí viene sola. */}
+            {!readOnly && lank && !value?.description && (
+              <Box sx={{ padding: '8px 16px 0' }}>
+                <Button
+                  variant="small"
+                  disabled={estadoDescripcion === 'trayendo'}
+                  onClick={() =>
+                    pedirDescripcion(lank, (texto) =>
+                      onChange({
+                        ...(value as NonNullable<Valor>),
+                        kind: 'video',
+                        description: texto,
+                      })
+                    )
+                  }
+                >
+                  {estadoDescripcion === 'trayendo'
+                    ? 'Buscándola…'
+                    : 'Traer la descripción de jw.org'}
+                </Button>
+              </Box>
+            )}
+
             {/* La descripción la trae la aplicación al elegir el episodio,
                 pero pasando por nuestro servidor: jw.org la publica en la
                 página del vídeo y no manda la cabecera que dejaría pedírsela
@@ -179,10 +231,10 @@ const PublicTalkReplacement = ({
                   : 'El título, la duración, la portada y la descripción los trae la aplicación de jw.org. Puedes cambiar este texto.'}
               </Typography>
 
-              {episodioElegido?.lank && (
+              {lank && (
                 <Box
                   component="a"
-                  href={episodeUrl(episodioElegido.lank, lang)}
+                  href={episodeUrl(lank, lang)}
                   target="_blank"
                   rel="noreferrer"
                   sx={{ textDecoration: 'none', whiteSpace: 'nowrap' }}

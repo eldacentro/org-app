@@ -205,3 +205,36 @@ export const fetchSeriesEpisodes = async (
 /** La página del episodio en jw.org, en el idioma de la congregación. */
 export const episodeUrl = (lank: string, langCode: string) =>
   `https://www.jw.org/open?lank=${encodeURIComponent(lank)}&wtlocale=${encodeURIComponent(langCode)}`;
+
+/**
+ * El identificador sin idioma, a partir del que sí lo lleva.
+ *
+ * `pub-gnj_S_2_VIDEO` → `pub-gnj_2_VIDEO`.
+ *
+ * Hace falta porque en el programa se guarda el que LLEVA idioma (`media_key`)
+ * y para preguntarle nada a jw.org hace falta el que NO lo lleva. Normalmente se
+ * saca de la lista de episodios, que trae los dos; esto es para cuando esa lista
+ * no está —jw.org no contestó ese día, o es la primera vez en ese teléfono—, que
+ * si no el botón de traer la descripción no llegaba ni a salir.
+ *
+ * Se quita el trozo que ES el código de idioma, no «el segundo trozo»: el
+ * símbolo de la publicación lleva guiones y cifras dentro
+ * (`pub-jwb-136_S_6_VIDEO`) y contar posiciones se rompería con el primero que
+ * traiga un guion bajo. Sin encontrarlo se devuelve cadena vacía: preferimos no
+ * enseñar el botón antes que enseñarlo y que pregunte por algo inventado.
+ */
+export const lankDesdeMediaKey = (mediaKey: string, langCode: string) => {
+  if (!mediaKey || !langCode) return '';
+
+  const trozos = mediaKey.split('_');
+
+  // Desde el 1: el trozo 0 es el símbolo de la publicación y nunca es el idioma.
+  const donde = trozos.findIndex(
+    (trozo, indice) =>
+      indice > 0 && trozo.toUpperCase() === langCode.toUpperCase()
+  );
+
+  if (donde === -1) return '';
+
+  return [...trozos.slice(0, donde), ...trozos.slice(donde + 1)].join('_');
+};
