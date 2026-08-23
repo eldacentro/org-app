@@ -34,20 +34,38 @@ const PublicTalk = (props: PublicTalkProps) => {
       <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
         <PrimaryFieldContainer>
           <Stack spacing="4px" padding="2px 0px">
-            <Stack spacing="8px" direction="row" alignItems="center">
-              {props.timings?.public_talk && (
-                <PartTiming time={props.timings.public_talk} />
-              )}
+            {/* Con un episodio esta línea entera sobra: el rótulo, porque la
+                banda de la sección ya dice DISCURSO PÚBLICO justo encima y
+                debajo viene el título del episodio —se leían tres veces las
+                mismas dos palabras—, y la hora porque se va DENTRO de la
+                tarjeta: aquí se quedaba sola encima de la portada, sin nada a
+                lo que pegarse. */}
+            {!replacement && (
+              <Stack spacing="8px" direction="row" alignItems="center">
+                {props.timings?.public_talk && (
+                  <PartTiming time={props.timings.public_talk} />
+                )}
 
-              <Typography className="h4" color="var(--weekend-meeting)">
-                {t('tr_publicTalk')}
-              </Typography>
-            </Stack>
+                <Typography className="h4" color="var(--weekend-meeting)">
+                  {t('tr_publicTalk')}
+                </Typography>
+              </Stack>
+            )}
 
             {/* En la semana de la visita, el hueco puede llevar un episodio en
                 vez del discurso. Se enseña con su portada: no es un dato del
                 programa, es lo que va a pasar en la reunión. */}
-            {replacement && <TalkReplacementCard replacement={replacement} />}
+            {replacement && (
+              <TalkReplacementCard
+                replacement={replacement}
+                mostrarSustitucion={false}
+                timing={
+                  props.timings?.public_talk ? (
+                    <PartTiming time={props.timings.public_talk} />
+                  ) : null
+                }
+              />
+            )}
 
             {!replacement && talkTitle && (
               <Stack spacing="8px" direction="row" alignItems="center">

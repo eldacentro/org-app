@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Box, Collapse } from '@mui/material';
 import { PublicTalkReplacementCongregation } from '@definition/schedules';
 import { IconInfo } from '@components/icons';
@@ -19,22 +19,39 @@ import Typography from '@components/typography';
  */
 const TalkReplacementCard = ({
   replacement,
+  mostrarSustitucion = true,
+  timing,
 }: {
   replacement: NonNullable<PublicTalkReplacementCongregation['value']>;
+  /**
+   * La hora a la que empieza, si la vista la tiene.
+   *
+   * Va DENTRO de la tarjeta y no encima porque encima se quedaba sola sobre la
+   * portada, sin nada a lo que pegarse. Aquí se pone a la izquierda del título,
+   * que es donde va la hora en todas las demás partes del programa.
+   */
+  timing?: ReactNode;
+  /**
+   * Escribir «En lugar del discurso público» debajo del título.
+   *
+   * Hace falta donde esto sustituye a una fila que decía «Discurso público» y no
+   * queda nada que lo diga —la pestaña de la visita—, y sobra donde la propia
+   * banda de la sección ya lo pone en grande, que es la reunión de fin de
+   * semana: allí se leía «DISCURSO PÚBLICO» y justo debajo «en lugar del
+   * discurso público», lo mismo dos veces.
+   */
+  mostrarSustitucion?: boolean;
 }) => {
   const [abierta, setAbierta] = useState(false);
 
   const hayDescripcion = (replacement.description ?? '').trim().length > 0;
 
   return (
-    <Box
-      sx={{
-        borderRadius: 'var(--shape-md)',
-        border: '1px solid var(--line)',
-        backgroundColor: 'var(--card)',
-        overflow: 'hidden',
-      }}
-    >
+    // Sin fondo, sin borde y sin sombra A PROPÓSITO: los dos sitios donde se usa
+    // esto ya están dentro de una tarjeta, y un recuadro idéntico dentro de otro
+    // es el doble anidado que el sistema de diseño prohíbe (§8). La portada
+    // redondeada y el texto debajo agrupan de sobra sin pintar un marco.
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {replacement.image && (
         <Box
           component="img"
@@ -46,18 +63,23 @@ const TalkReplacementCard = ({
             display: 'block',
             aspectRatio: '16 / 9',
             objectFit: 'cover',
+            // La redondea ella misma: ya no hay contenedor con `overflow:
+            // hidden` que se la recorte.
+            borderRadius: 'var(--shape-md)',
           }}
         />
       )}
 
       <Box
         sx={{
-          padding: '12px 14px',
+          padding: '8px 2px 0',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '10px',
         }}
       >
+        {timing}
+
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {replacement.series_name && (
             <Typography
@@ -72,7 +94,10 @@ const TalkReplacementCard = ({
           <Typography className="h4">{replacement.title}</Typography>
 
           <Typography className="label-small-regular" color="var(--ink-3)">
-            {['En lugar del discurso público', replacement.duration]
+            {[
+              mostrarSustitucion && 'En lugar del discurso público',
+              replacement.duration,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </Typography>
@@ -93,7 +118,7 @@ const TalkReplacementCard = ({
         <Typography
           className="body-small-regular"
           color="var(--ink-2)"
-          sx={{ padding: '0 14px 14px' }}
+          sx={{ padding: '6px 2px 0' }}
         >
           {replacement.description}
         </Typography>
