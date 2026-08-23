@@ -119,21 +119,33 @@ const DialogAsignar = ({
     );
 
   /**
-   * ¿Esta asignación cuenta como de campaña?
+   * ¿Esta asignación cuenta como de campaña, y de cuál?
    *
    * Lo dice el territorio que se acabe eligiendo, no el sitio desde el que se
    * abrió el diálogo: si estamos en campaña y se da uno de los suyos, va
    * marcado como de campaña —que es lo que pone la "(C)" en el S-13—; si el
    * responsable se sale a "Todos" y da uno corriente, se registra corriente.
+   *
+   * Las dos cosas salen JUNTAS de aquí a propósito. Separadas se podían
+   * separar de verdad, y una asignación marcada de campaña pero sin id de
+   * campaña no la cerraría nadie al finalizarla: `closeCampaign` busca por
+   * `campaignId`, así que se quedaría abierta para siempre luciendo una "(C)"
+   * que ya no significa nada.
    */
-  const esDeCampana = (territoryId: string | null | undefined): boolean =>
-    isCampaign ||
-    Boolean(
-      territoryId && campanaDeLaAsignacion?.territoryIds.includes(territoryId)
-    );
+  const marcaDeCampana = (
+    territoryId: string | null | undefined
+  ): { isCampaign: boolean; campaignId: string | undefined } => {
+    const id = campanaDeLaAsignacion?.id ?? campaignId;
+    const es =
+      isCampaign ||
+      Boolean(
+        territoryId && campanaDeLaAsignacion?.territoryIds.includes(territoryId)
+      );
 
-  const campaignIdEfectivo = (territoryId: string | null | undefined) =>
-    esDeCampana(territoryId) ? campanaDeLaAsignacion?.id : undefined;
+    return es && id
+      ? { isCampaign: true, campaignId: id }
+      : { isCampaign: false, campaignId: undefined };
+  };
   const resolveName = usePersonName();
   const allAssignments = useAtomValue(territoryAssignmentsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
@@ -262,8 +274,7 @@ const DialogAsignar = ({
               dueAt: computeDueAt(now, settings.daysUntilOverdue),
               returnedAt: null,
               status: 'asignado',
-              isCampaign: esDeCampana(t.id),
-              campaignId: campaignIdEfectivo(t.id),
+              ...marcaDeCampana(t.id),
               notas: nota.trim() || undefined,
               assignedBy: currentUid || undefined,
               updatedAt: now,
@@ -423,8 +434,7 @@ const DialogAsignar = ({
         // match documents where the field is simply absent.
         returnedAt: null,
         status: 'asignado',
-        isCampaign: esDeCampana(effectiveTerritory.id),
-        campaignId: campaignIdEfectivo(effectiveTerritory.id),
+        ...marcaDeCampana(effectiveTerritory.id),
         notas: nota.trim() || undefined,
         assignedBy: currentUid || undefined,
         updatedAt: now,

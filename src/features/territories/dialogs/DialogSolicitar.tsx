@@ -132,6 +132,22 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   /** La solicitud pendiente de quien está mirando, si tiene alguna. */
   const miSolicitud = pendingRequests.find((r) => r.personUid === uid);
 
+  /**
+   * Al cambiar de "Para", la zona elegida puede dejar de tener nada.
+   *
+   * Pasa de verdad: se elige Salinas con "Normal" —donde sí quedan libres— y
+   * luego se cambia a "Campaña", donde puede que la campaña no incluya ningún
+   * Salinas. La preferencia se quedaba puesta y viajaba una solicitud
+   * imposible de cumplir. Aquí se suelta y se dice por qué.
+   */
+  useEffect(() => {
+    if (!zoneId) return;
+    if ((libresPorZona.get(zoneId) ?? 0) > 0) return;
+
+    setZonaSinNada(zonas.find((z) => z.id === zoneId)?.nombre ?? null);
+    setZoneId(null);
+  }, [libresPorZona, zoneId, zonas]);
+
   const handleRetirar = async () => {
     if (!miSolicitud) return;
     setSaving(true);
