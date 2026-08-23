@@ -20,7 +20,9 @@ const SpeakersList = ({
 }: SpeakersListType) => {
   const { t } = useAppTranslation();
 
-  const { mobile400Down } = useBreakpoints();
+  // El mismo corte que la fila: donde los discursos pasan a ir DEBAJO del
+  // nombre, ya no hay dos columnas que rotular. Ver `speaker_row_view`.
+  const { tablet600Down } = useBreakpoints();
 
   /**
    * Quién puede corregir los discursos de un orador de fuera. Se pregunta UNA
@@ -75,7 +77,7 @@ const SpeakersList = ({
           siguiente sincronización. Ver `viewList`. */}
       {viewList.length > 0 && (
         <Box>
-          {!mobile400Down && (
+          {!tablet600Down && (
             <Box
               sx={{
                 padding: '8px',

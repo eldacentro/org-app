@@ -1,12 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import {
-  circuitosDeLaLista,
+  apuntarSinSuerte,
   congregacionesIncompletas,
   emparejarPorNombre,
-  filtrarPorCircuito,
+  faltasPorIntentar,
+  olvidarIntentos,
   ordenarPorNombre,
-  SIN_CIRCUITO,
+  type FaltaEnCongregacion,
 } from './speakers_congregations';
 
 const cong = (nombre: string, circuito = ''): SpeakersCongregationsType =>
@@ -63,79 +64,6 @@ describe('ordenarPorNombre', () => {
 
   it('aguanta una congregación sin nombre', () => {
     expect(() => ordenarPorNombre([cong(''), cong('Elda')])).not.toThrow();
-  });
-});
-
-describe('circuitosDeLaLista', () => {
-  it('los da una sola vez y ordenados', () => {
-    const lista = [
-      cong('Elche - Sur', 'ESP-Alicante-04A'),
-      cong('Elda - Norte', 'ESP-Alicante-03A'),
-      cong('Elche - Centro', 'ESP-Alicante-04A'),
-    ];
-
-    expect(circuitosDeLaLista(lista)).toEqual([
-      'ESP-Alicante-03A',
-      'ESP-Alicante-04A',
-    ]);
-  });
-
-  it('pone al final el cajón de las que no tienen circuito', () => {
-    const lista = [cong('Sin nada'), cong('Elda - Norte', 'ESP-Alicante-03A')];
-
-    expect(circuitosDeLaLista(lista)).toEqual([
-      'ESP-Alicante-03A',
-      SIN_CIRCUITO,
-    ]);
-  });
-
-  it('no inventa ese cajón si todas tienen circuito', () => {
-    const lista = [cong('Elda - Norte', 'ESP-Alicante-03A')];
-
-    expect(circuitosDeLaLista(lista)).toEqual(['ESP-Alicante-03A']);
-  });
-
-  it('un circuito escrito con espacios de más es el mismo circuito', () => {
-    const lista = [
-      cong('Una', ' ESP-Alicante-03A '),
-      cong('Otra', 'ESP-Alicante-03A'),
-    ];
-
-    expect(circuitosDeLaLista(lista)).toEqual(['ESP-Alicante-03A']);
-  });
-
-  it('un circuito que son solo espacios cuenta como sin circuito', () => {
-    expect(circuitosDeLaLista([cong('Una', '   ')])).toEqual([SIN_CIRCUITO]);
-  });
-});
-
-describe('filtrarPorCircuito', () => {
-  const lista = [
-    cong('Elda - Norte', 'ESP-Alicante-03A'),
-    cong('Elche - Sur', 'ESP-Alicante-04A'),
-    cong('Suelta'),
-  ];
-
-  it('sin filtro, todas', () => {
-    expect(filtrarPorCircuito(lista, '')).toHaveLength(3);
-  });
-
-  it('filtra por circuito', () => {
-    expect(nombres(filtrarPorCircuito(lista, 'ESP-Alicante-04A'))).toEqual([
-      'Elche - Sur',
-    ]);
-  });
-
-  it('el cajón de las que no tienen circuito trae solo esas', () => {
-    expect(nombres(filtrarPorCircuito(lista, SIN_CIRCUITO))).toEqual([
-      'Suelta',
-    ]);
-  });
-
-  it('un circuito que no está en la lista no devuelve nada, no todas', () => {
-    // El fallo fácil aquí es tratar «no encontrado» como «sin filtro» y
-    // enseñarlas todas: parecería que el filtro no hace nada.
-    expect(filtrarPorCircuito(lista, 'ESP-Madrid-01A')).toHaveLength(0);
   });
 });
 
@@ -247,5 +175,88 @@ describe('emparejarPorNombre con respuestas raras', () => {
         { congName: 'Elda - Centro' },
       ])
     ).toEqual({ congName: 'Elda - Centro' });
+  });
+});
+
+/**
+ * Betel no pertenece a ningún circuito, así que buscarle uno no va a dar nada
+ * nunca — y la tira se quedaba pidiéndolo para siempre.
+ */
+describe('lo que ya se intentó y no dio nada', () => {
+  const falta = (
+    id: string,
+    faltaNumero = true,
+    faltaCircuito = true
+  ): FaltaEnCongregacion => ({
+    id,
+    nombre: id,
+    faltaNumero,
+    faltaCircuito,
+  });
+
+  beforeEach(() => {
+    const almacen = new Map<string, string>();
+
+    // `localStorage` no existe en Node, y estas funciones tienen que
+    // sobrevivirlo: por eso leen a través de `globalThis`.
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k: string) => almacen.get(k) ?? null,
+        setItem: (k: string, v: string) => almacen.set(k, v),
+        removeItem: (k: string) => almacen.delete(k),
+      },
+    });
+
+    olvidarIntentos();
+  });
+
+  it('al principio se pregunta por todas', () => {
+    const faltas = [falta('betel'), falta('elda')];
+
+    expect(faltasPorIntentar(faltas)).toHaveLength(2);
+  });
+
+  it('lo apuntado deja de preguntarse', () => {
+    apuntarSinSuerte([falta('betel')]);
+
+    expect(faltasPorIntentar([falta('betel'), falta('elda')])).toEqual([
+      falta('elda'),
+    ]);
+  });
+
+  it('si cambia lo que falta, se vuelve a preguntar', () => {
+    // Se buscó cuando le faltaban las dos cosas. Si mañana solo le falta el
+    // circuito, es otra situación y merece otro intento.
+    apuntarSinSuerte([falta('betel', true, true)]);
+
+    expect(faltasPorIntentar([falta('betel', false, true)])).toHaveLength(1);
+  });
+
+  it('olvidar los intentos los devuelve todos', () => {
+    apuntarSinSuerte([falta('betel')]);
+    olvidarIntentos();
+
+    expect(faltasPorIntentar([falta('betel')])).toHaveLength(1);
+  });
+
+  it('un almacén con basura dentro no rompe la pantalla', () => {
+    globalThis.localStorage.setItem(
+      'speakers-congregations-sin-suerte',
+      'esto no es json'
+    );
+
+    expect(() => faltasPorIntentar([falta('betel')])).not.toThrow();
+    expect(faltasPorIntentar([falta('betel')])).toHaveLength(1);
+  });
+
+  it('sin almacén ninguno tampoco rompe', () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: undefined,
+    });
+
+    expect(() => apuntarSinSuerte([falta('betel')])).not.toThrow();
+    expect(faltasPorIntentar([falta('betel')])).toHaveLength(1);
   });
 });

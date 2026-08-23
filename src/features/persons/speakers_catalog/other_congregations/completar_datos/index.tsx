@@ -49,15 +49,20 @@ const CompletarDatos = () => {
             width: '100%',
           }}
         >
-          <Typography
-            component="span"
-            className="body-regular"
-            sx={{ color: 'var(--orange-dark)' }}
-          >
-            {incompletas.length === 1
-              ? 'A 1 congregación le falta el número o el circuito.'
-              : `A ${incompletas.length} congregaciones les falta el número o el circuito.`}
-          </Typography>
+          {/* El titular solo mientras quede algo que preguntar. Al terminar
+              una búsqueda que no encontró nada, las miradas se apuntan y esto
+              se quedaría en «A 0 congregaciones les falta…». */}
+          {incompletas.length > 0 && (
+            <Typography
+              component="span"
+              className="body-regular"
+              sx={{ color: 'var(--orange-dark)' }}
+            >
+              {incompletas.length === 1
+                ? 'A 1 congregación le falta el número o el circuito.'
+                : `A ${incompletas.length} congregaciones les falta el número o el circuito.`}
+            </Typography>
+          )}
 
           {!hallazgos && (
             <Button
@@ -101,7 +106,9 @@ const CompletarDatos = () => {
           >
             {`Sin encontrar: ${perdidas
               .map((hallazgo) => hallazgo.nombre)
-              .join(', ')}. Escríbelos a mano desde el lápiz de cada una.`}
+              .join(
+                ', '
+              )}. No se vuelve a avisar de estas; si hace falta, escríbelo a mano desde el lápiz de cada una.`}
           </Typography>
         )}
 
@@ -132,8 +139,10 @@ const CompletarDatos = () => {
               {guardando ? 'Guardando…' : 'Guardar lo encontrado'}
             </Button>
 
+            {/* Sin nada que guardar, este es el único botón: entonces no es
+                «ahora no», es «ya lo he visto». */}
             <Button variant="small" color="orange" onClick={handleDescartar}>
-              Ahora no
+              {encontradas.length === 0 ? 'Entendido' : 'Ahora no'}
             </Button>
           </Box>
         )}

@@ -11,8 +11,10 @@ import { apiJwCongregationNumberGet } from '@services/api/app';
 import { dbSpeakersCongregationsUpdate } from '@services/dexie/speakers_congregations';
 import { displaySnackNotification } from '@services/states/app';
 import {
+  apuntarSinSuerte,
   congregacionesIncompletas,
   emparejarPorNombre,
+  faltasPorIntentar,
 } from '@services/app/speakers_congregations';
 
 /**
@@ -70,9 +72,23 @@ const useCompletar = () => {
   const [guardando, setGuardando] = useState(false);
   const [hallazgos, setHallazgos] = useState<Hallazgo[] | null>(null);
 
+  /**
+   * Cuántas veces se ha buscado ya. Cambiarlo obliga a recalcular `incompletas`,
+   * que es lo que hace desaparecer la tira en cuanto se apunta lo que no dio
+   * nada — si no, seguiría ahí hasta recargar la página.
+   */
+  const [intentos, setIntentos] = useState(0);
+
   const incompletas = useMemo(
-    () => congregacionesIncompletas(congregaciones),
-    [congregaciones]
+    () => {
+      void intentos;
+
+      // Las que ya se buscaron sin suerte no se vuelven a pedir: Betel no
+      // pertenece a ningún circuito y nunca va a tener uno. Ver
+      // `faltasPorIntentar`.
+      return faltasPorIntentar(congregacionesIncompletas(congregaciones));
+    },
+    [congregaciones, intentos]
   );
 
   const encontradas = (hallazgos ?? []).filter((h) => !h.sinSuerte);
@@ -148,6 +164,20 @@ const useCompletar = () => {
           sinSuerte: !numero && !circuito,
         });
       }
+
+      // Lo que no dio nada se apunta para no volver a preguntarlo. Se hace aquí
+      // y no al guardar, porque de estas justamente no hay nada que guardar: si
+      // esperáramos al botón de guardar, quien mira y cierra volvería a ver el
+      // mismo aviso mañana.
+      apuntarSinSuerte(
+        incompletas.filter((falta) =>
+          resultados.some(
+            (hallazgo) => hallazgo.id === falta.id && hallazgo.sinSuerte
+          )
+        )
+      );
+
+      setIntentos((valor) => valor + 1);
 
       setHallazgos(resultados);
     } catch (error) {

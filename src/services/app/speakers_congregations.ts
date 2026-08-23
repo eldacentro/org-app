@@ -1,15 +1,12 @@
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 
 /**
- * Ordenar y filtrar las congregaciones del catálogo de oradores.
+ * Ordenar y completar las congregaciones del catálogo de oradores.
  *
  * Aparte de la pantalla porque son decisiones que se prueban solas y que se
  * equivocan en silencio: un orden que no es el que se espera no da error, solo
  * hace que no encuentres lo que buscas.
  */
-
-/** Sin circuito apuntado. No es un circuito más: es la falta de uno. */
-export const SIN_CIRCUITO = '__sin__';
 
 /**
  * Por nombre, como se busca con el dedo.
@@ -26,53 +23,6 @@ export const ordenarPorNombre = (lista: SpeakersCongregationsType[]) =>
       { numeric: true, sensitivity: 'base' }
     )
   );
-
-/**
- * Los circuitos que hay en esa lista, para poder filtrar por ellos.
- *
- * Las que no llevan circuito apuntado no se tiran: se juntan bajo
- * `SIN_CIRCUITO` y salen al final. Sin eso, filtrar las escondería sin decir
- * nada, y son justo las que hay que revisar.
- */
-export const circuitosDeLaLista = (lista: SpeakersCongregationsType[]) => {
-  const circuitos = new Set<string>();
-  let hayHuerfanas = false;
-
-  for (const cong of lista) {
-    const circuito = (cong.cong_data.cong_circuit.value || '').trim();
-
-    if (circuito.length === 0) {
-      hayHuerfanas = true;
-      continue;
-    }
-
-    circuitos.add(circuito);
-  }
-
-  const ordenados = [...circuitos].sort((a, b) =>
-    a.localeCompare(b, 'es', { numeric: true, sensitivity: 'base' })
-  );
-
-  return hayHuerfanas ? [...ordenados, SIN_CIRCUITO] : ordenados;
-};
-
-/** Las de ese circuito. Cadena vacía = todas, que es como empieza el filtro. */
-export const filtrarPorCircuito = (
-  lista: SpeakersCongregationsType[],
-  circuito: string
-) => {
-  if (!circuito) return lista;
-
-  if (circuito === SIN_CIRCUITO) {
-    return lista.filter(
-      (cong) => (cong.cong_data.cong_circuit.value || '').trim().length === 0
-    );
-  }
-
-  return lista.filter(
-    (cong) => (cong.cong_data.cong_circuit.value || '').trim() === circuito
-  );
-};
 
 /** Qué le falta a una congregación del catálogo. */
 export type FaltaEnCongregacion = {
@@ -151,4 +101,68 @@ export const emparejarPorNombre = <T extends { congName: string }>(
   );
 
   return iguales.length === 1 ? iguales[0] : null;
+};
+
+/**
+ * Lo que ya se intentó buscar y no dio nada.
+ *
+ * EL CASO QUE ESTO ARREGLA: Betel. No pertenece a ningún circuito, así que por
+ * mucho que se busque nunca va a tener uno — y la tira de «a 1 congregación le
+ * falta el número o el circuito» se quedaba ahí para siempre, pidiendo algo que
+ * no existe. Un aviso que no se puede atender enseña a no mirar los avisos.
+ *
+ * Se guarda EN EL DISPOSITIVO y no en la congregación a propósito: no es un dato
+ * de nadie, es «ya he pulsado el botón y no salió nada». No merece viajar por la
+ * sincronización ni ocupar un campo nuevo en una tabla cifrada.
+ *
+ * La marca lleva dentro QUÉ faltaba. Si mañana alguien le borra el número a esa
+ * congregación, la situación es otra y se vuelve a preguntar: así esto silencia
+ * un caso concreto, no una congregación para siempre.
+ */
+const YA_INTENTADAS = 'speakers-congregations-sin-suerte';
+
+/** La huella de un hueco concreto en una congregación concreta. */
+export const huellaDeFalta = (falta: FaltaEnCongregacion) =>
+  `${falta.id}:${falta.faltaNumero ? 'n' : ''}${falta.faltaCircuito ? 'c' : ''}`;
+
+const leerIntentadas = (): string[] => {
+  try {
+    const guardado = globalThis.localStorage?.getItem(YA_INTENTADAS);
+
+    const lista = guardado ? JSON.parse(guardado) : [];
+
+    return Array.isArray(lista) ? lista.filter((x) => typeof x === 'string') : [];
+  } catch {
+    // Un almacén ilegible no puede impedir usar la pantalla: se empieza de cero.
+    return [];
+  }
+};
+
+/** Apunta que estas se buscaron y no salió nada. */
+export const apuntarSinSuerte = (faltas: FaltaEnCongregacion[]) => {
+  if (faltas.length === 0) return;
+
+  try {
+    const todas = new Set([...leerIntentadas(), ...faltas.map(huellaDeFalta)]);
+
+    globalThis.localStorage?.setItem(YA_INTENTADAS, JSON.stringify([...todas]));
+  } catch {
+    // Sin poder apuntarlo, la tira volverá a avisar. Es molesto, no grave.
+  }
+};
+
+/** Las que todavía tiene sentido preguntar. */
+export const faltasPorIntentar = (faltas: FaltaEnCongregacion[]) => {
+  const intentadas = new Set(leerIntentadas());
+
+  return faltas.filter((falta) => !intentadas.has(huellaDeFalta(falta)));
+};
+
+/** Para las pruebas y para cuando alguien quiera volver a empezar. */
+export const olvidarIntentos = () => {
+  try {
+    globalThis.localStorage?.removeItem(YA_INTENTADAS);
+  } catch {
+    // nada que hacer
+  }
 };

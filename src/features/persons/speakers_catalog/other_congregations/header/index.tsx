@@ -1,6 +1,6 @@
 import { Box, IconButton } from '@mui/material';
 import { IconCheck, IconDelete, IconEdit, IconExpand } from '@components/icons';
-import { useAppTranslation, useBreakpoints, useCurrentUser } from '@hooks/index';
+import { useBreakpoints, useCurrentUser } from '@hooks/index';
 import { IncomingCongregationHeaderType } from './index.types';
 import useHeader from './useHeader';
 import Typography from '@components/typography';
@@ -12,11 +12,8 @@ const IncomingCongregationHeader = ({
   onEditModeChange,
   cong_name,
   cong_number,
-  cong_circuit,
   onDelete,
 }: IncomingCongregationHeaderType) => {
-  const { t } = useAppTranslation();
-
   const { laptopDown } = useBreakpoints();
 
   const { isPublicTalkCoordinator } = useCurrentUser();
@@ -69,31 +66,6 @@ const IncomingCongregationHeader = ({
             </Typography>
           )}
 
-          {/* El circuito, solo en «Otras congregaciones»: allí se mezclan y es
-              el dato que falta para saber de dónde viene cada una. En «Tu
-              circuito» no se pinta, que allí sería la misma etiqueta en todas
-              las filas.
-
-              Con el mismo dibujo gris que el número y con la palabra
-              «Circuito:» delante, exactamente igual que la cabecera gemela de
-              «Tu congregación»: sin la palabra, dos chapas seguidas con un
-              número dentro no se distinguen. Y en gris y no en azul porque el
-              tinte azul es el dibujo de LO ELEGIDO —lo llevan los chips del
-              filtro de aquí arriba—, y esto no se elige: es un dato. */}
-          {cong_circuit && (
-            <Typography
-              className="body-small-semibold"
-              color="var(--grey-400)"
-              sx={{
-                borderRadius: 'var(--shape-xs)',
-                padding: '2px 8px',
-                backgroundColor: 'var(--grey-150)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {t('tr_circuit', { circuitNumber: cong_circuit })}
-            </Typography>
-          )}
         </Box>
         {tablet600Down && (
           <IconButton

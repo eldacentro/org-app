@@ -15,7 +15,17 @@ const SpeakerRowView = ({
 }: SpeakerReadOnlyViewType) => {
   const { t } = useAppTranslation();
 
-  const { mobile400Down, laptopDown, tabletDown } = useBreakpoints();
+  /**
+   * Debajo del nombre, no al lado.
+   *
+   * Al lado, el nombre se lleva 215px fijos y a los discursos les queda lo que
+   * sobra: en un móvil eso es tan poco que «32, 100, 132, 187» se parte en
+   * cuatro renglones, uno por número, y de paso empuja los botones fuera de la
+   * fila. El corte estaba en 400px, que no lo veía ningún teléfono de hoy.
+   */
+  const { tablet600Down, laptopDown, tabletDown } = useBreakpoints();
+
+  const apilado = tablet600Down;
 
   const {
     talks,
@@ -77,17 +87,18 @@ const SpeakerRowView = ({
         <Box
           sx={{
             display: 'flex',
-            alignItems: mobile400Down ? 'flex-start' : 'center',
-            gap: '8px',
-            flexDirection: mobile400Down ? 'column' : 'row',
+            alignItems: apilado ? 'flex-start' : 'center',
+            gap: apilado ? '2px' : '8px',
+            flexDirection: apilado ? 'column' : 'row',
+            minWidth: 0,
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography
               className="body-small-regular"
               sx={{
-                minWidth: mobile400Down ? 'unset' : '215px',
-                width: mobile400Down ? 'unset' : '215px',
+                minWidth: apilado ? 'unset' : '215px',
+                width: apilado ? 'unset' : '215px',
               }}
             >
               {buildPersonFullname(
@@ -102,13 +113,16 @@ const SpeakerRowView = ({
               </Typography>
             )}
           </Box>
-          {/* La marca va DEBAJO de los números, no al lado.
-              Al lado le robaba el ancho a la lista y «38, 108, 189» se partía
-              en tres renglones, uno por número, empujando el lápiz fuera de la
-              fila. Debajo es además donde ya vive la nota del hermano, así que
-              se lee igual que lo demás. */}
+          {/* La marca de corregido va DEBAJO de los números, no al lado: al
+              lado le robaba el ancho a la lista y los partía en un renglón por
+              número. Debajo es además donde ya vive la nota del hermano. */}
           <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <Typography className="body-small-semibold">{talks}</Typography>
+            <Typography
+              className="body-small-semibold"
+              color={apilado ? 'var(--ink-3)' : undefined}
+            >
+              {talks}
+            </Typography>
 
             {correccion && (
               <Typography
