@@ -166,6 +166,19 @@ export type IncomingCongregationResponseType = {
   cong_id?: string;
   cong_name: string;
   country_code: string;
+  /**
+   * El número de congregación.
+   *
+   * Opcional porque no siempre se sabe: el buscador de congregaciones NO lo
+   * devuelve —lo trae jw.org aparte, ver `apiJwCongregationNumberGet`— y
+   * añadiendo a mano se escribe o no.
+   *
+   * Antes no existía este campo, y ahí estaba el fallo: el formulario de añadir
+   * a mano PEDÍA el número, lo exigía para dejar continuar... y luego no tenía
+   * dónde ponerlo, así que se tiraba. Todas las congregaciones añadidas a mano
+   * se quedaban sin número.
+   */
+  cong_number?: string;
   cong_circuit: string;
   cong_location: { address: string; lat: number; lng: number };
   midweek_meeting: {

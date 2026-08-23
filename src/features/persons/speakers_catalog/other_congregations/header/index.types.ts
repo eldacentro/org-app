@@ -5,5 +5,7 @@ export type IncomingCongregationHeaderType = {
   onEditModeChange: VoidFunction;
   cong_name: string;
   cong_number: string;
+  /** El circuito, si toca enseñarlo. Ver `showCircuit`. */
+  cong_circuit?: string;
   onDelete: VoidFunction;
 };

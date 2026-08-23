@@ -68,3 +68,44 @@ export const apiJwVideoDescriptionGet = async (lank: string) => {
 
   return (data?.description as string) || '';
 };
+
+/**
+ * El número de una congregación, a partir del identificador que da el buscador.
+ *
+ * El buscador de congregaciones devuelve nombre, dirección, horarios,
+ * coordenadas y circuito, pero NO el número — y sin él una congregación del
+ * catálogo se queda sin su etiqueta. jw.org sí lo publica, y el identificador
+ * que devuelve el buscador es el mismo que usa jw.org, así que no hay que
+ * emparejar nombres.
+ *
+ * Va por nuestro servidor por lo mismo que la descripción de los vídeos: jw.org
+ * no deja pedírselo desde el navegador.
+ *
+ * Cadena vacía = jw.org no lo conoce. No es un fallo: se escribe a mano, que es
+ * lo que se hacía siempre.
+ */
+export const apiJwCongregationNumberGet = async (guid: string) => {
+  const { apiHost, appVersion: appversion } = await apiDefault();
+
+  if (apiHost === '' || !guid) return '';
+
+  const res = await apiFetch(
+    `${apiHost}api/v3/public/jw-congregation-number?guid=${encodeURIComponent(guid)}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        appclient: 'organized',
+        appversion,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  if (res.status !== 200) {
+    throw new Error(data?.message || 'JW_FETCH_FAILED');
+  }
+
+  return (data?.number as string) || '';
+};

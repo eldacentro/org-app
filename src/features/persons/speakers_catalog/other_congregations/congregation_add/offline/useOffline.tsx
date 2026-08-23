@@ -10,6 +10,7 @@ import { removeSecondsFromTime } from '@utils/date';
 import { isTest } from '@constants/index';
 import { congNameState } from '@states/settings';
 import { weekdayFromApi } from '@services/app/meeting_month';
+import { apiJwCongregationNumberGet } from '@services/api/app';
 
 const useOffline = (
   onCongregationChange: (value: IncomingCongregationResponseType) => void
@@ -36,6 +37,7 @@ const useOffline = (
       cong_location: { address: value.address, ...value.location },
       cong_name: value.congName,
       cong_id: '',
+      cong_number: '',
       country_code: country?.countryCode,
       midweek_meeting: {
         weekday: { value: weekdayFromApi(value.midweekMeetingTime?.weekday) },
@@ -48,6 +50,24 @@ const useOffline = (
     };
 
     onCongregationChange(obj);
+
+    // Y a por el número, que el buscador no lo trae y jw.org sí. Se pide con el
+    // identificador que ya viene en el resultado —es el mismo que usa jw.org—,
+    // así que no hay que emparejar nombres parecidos.
+    //
+    // Va aparte y no se espera: la congregación ya está elegida y se puede
+    // seguir rellenando el resto mientras tanto. Si jw.org no contesta, se
+    // queda sin número y se escribe a mano, que es lo de siempre; por eso el
+    // fallo se traga en silencio en vez de interrumpir con un aviso.
+    if (value.congGuid) {
+      apiJwCongregationNumberGet(value.congGuid)
+        .then((numero) => {
+          if (!numero) return;
+
+          onCongregationChange({ ...obj, cong_number: numero });
+        })
+        .catch(() => undefined);
+    }
   };
 
   const handleCongNameChange = (value: string) => setCongNameTmp(value);
@@ -74,6 +94,10 @@ const useOffline = (
           cong_name: congNameTmp,
           cong_id: '',
           country_code: '',
+          // El número que se acaba de escribir. Antes se pedía aquí, se exigía
+          // para poder continuar... y se tiraba: el objeto no lo llevaba. Por
+          // eso las congregaciones añadidas a mano salían sin número.
+          cong_number: congNumberTmp,
           cong_circuit: congCircuitTmp,
           cong_location: { address: '', lat: 0, lng: 0 },
           midweek_meeting: { weekday: { value: 2 }, time: { value: '18:00' } },

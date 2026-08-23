@@ -15,6 +15,7 @@ const IncomingCongregation = ({
   congregation,
   currentExpanded,
   onChangeCurrentExpanded,
+  showCircuit,
 }: IncomingCongregationType) => {
   const { t } = useAppTranslation();
 
@@ -48,6 +49,9 @@ const IncomingCongregation = ({
       <IncomingCongregationHeader
         cong_name={congregation.cong_data.cong_name.value}
         cong_number={congregation.cong_data.cong_number.value}
+        cong_circuit={
+          showCircuit ? congregation.cong_data.cong_circuit.value : undefined
+        }
         editMode={isEditMode}
         expanded={isExpanded}
         onEditModeChange={handleToggleEdit}

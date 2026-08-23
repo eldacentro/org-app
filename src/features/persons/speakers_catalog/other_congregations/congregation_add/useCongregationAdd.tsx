@@ -150,7 +150,18 @@ const useCongregationAdd = (onClose: VoidFunction) => {
         _deleted: { value: false, updatedAt: '' },
         id: crypto.randomUUID(),
         cong_data: {
-          cong_number: { value: '', updatedAt: '' },
+          // El número que venga: lo escribió quien la añadió a mano, o lo
+          // trajo jw.org al elegirla en el buscador. Estaba clavado a cadena
+          // vacía, así que ninguna congregación añadida aquí tenía número —ni
+          // siquiera las que lo habían escrito.
+          //
+          // Vacío y no `undefined`: en una tabla que se sincroniza cifrada, un
+          // `undefined` desaparece al empaquetar y el campo nunca llega a
+          // borrarse en los demás dispositivos.
+          cong_number: {
+            value: incomingCongregation.cong_number || '',
+            updatedAt: new Date().toISOString(),
+          },
           cong_id: incomingCongregation.cong_id || '',
           cong_location: {
             ...incomingCongregation.cong_location,
