@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import { useAppTranslation } from '@hooks/index';
 import useOtherCongregations from './useOtherCongregations';
+import CompletarDatos from './completar_datos';
 import CongregationAdd from './congregation_add';
 import IncomingCongregation from './congregation_item';
 import CountBadge from '@components/count_badge';
@@ -38,6 +39,11 @@ const OtherCongregations = () => {
       {isAdding && (
         <CongregationAdd open={isAdding} onClose={handleIsAddingClose} />
       )}
+
+      {/* Arriba del todo y fuera de las dos secciones: los huecos pueden estar
+          en cualquiera de las dos, y repetir la tira en cada una sería decir lo
+          mismo dos veces. */}
+      <CompletarDatos />
 
       {/* Tu Circuito Section */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
