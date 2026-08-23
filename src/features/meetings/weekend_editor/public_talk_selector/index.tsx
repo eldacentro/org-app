@@ -21,7 +21,7 @@ const PublicTalkSelector = ({
   const { talkType } = usePublicTalkTypeSelector(week);
 
   const {
-    repeatNotice,
+    repeatNotices,
     talks,
     selectedTalk,
     handleTalkChange,
@@ -178,15 +178,16 @@ const PublicTalkSelector = ({
           alguien repite: mismo sitio —debajo del campo—, mismo color y mismo
           tamaño, para que se lea como lo que es y no como algo nuevo que hay
           que aprender. */}
-      {repeatNotice.length > 0 && (
+      {repeatNotices.map((aviso) => (
         <Typography
+          key={aviso}
           className="label-small-regular"
           color="var(--orange-dark)"
           sx={{ padding: '4px 16px 0 16px' }}
         >
-          {repeatNotice}
+          {aviso}
         </Typography>
-      )}
+      ))}
     </Box>
   );
 };

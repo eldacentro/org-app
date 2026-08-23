@@ -35,6 +35,7 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
     handleOpenQuickAdd,
     handleCloseQuickAdd,
     handleSpeakerCreated,
+    congregacionDelOrador,
   } = useVisitingSpeaker(props);
 
   return (
@@ -120,6 +121,21 @@ const VisitingSpeaker = (props: PersonSelectorType) => {
         styleIcon={false}
         clearIcon={<IconClose width={20} height={20} />}
       />
+
+      {/* De qué congregación es. Es lo que hay que mirar al cuadrar el fin de
+          semana —para no repetir congregación dos domingos seguidos y para
+          saber a quién llamar—, y hasta ahora obligaba a irse al catálogo de
+          oradores a buscarlo. Debajo del campo y en gris, igual que los demás
+          textos de apoyo del editor. */}
+      {congregacionDelOrador.length > 0 && (
+        <Typography
+          className="label-small-regular"
+          color="var(--grey-350)"
+          sx={{ padding: '4px 16px 0 16px' }}
+        >
+          {congregacionDelOrador}
+        </Typography>
+      )}
 
       {inputValue.length > 0 && !value && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

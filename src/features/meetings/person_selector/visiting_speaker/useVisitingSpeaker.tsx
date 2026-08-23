@@ -17,6 +17,7 @@ import {
   schedulesSaveAssignment,
 } from '@services/app/schedules';
 import { incomingSpeakersState } from '@states/visiting_speakers';
+import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 import { personSchema } from '@services/dexie/schema';
 import { ASSIGNMENT_PATH } from '@constants/index';
 import { AssignmentCongregation } from '@definition/schedules';
@@ -40,6 +41,7 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
   const schedules = useAtomValue(schedulesState);
   const incomingSpeakers = useAtomValue(incomingSpeakersState);
+  const congregaciones = useAtomValue(speakersCongregationsActiveState);
   const dataView = useAtomValue(userDataViewState);
 
   const [inputValue, setInputValue] = useState('');
@@ -117,6 +119,37 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
 
     return person || null;
   }, [defaultValue, options]);
+
+  /**
+   * De qué congregación es el orador elegido.
+   *
+   * Es el dato que hay que mirar al cuadrar un fin de semana —para no repetir
+   * congregación dos domingos seguidos, y para saber a quién llamar— y hasta
+   * ahora obligaba a irse al catálogo de oradores a buscarlo.
+   *
+   * Sale de `incomingSpeakers` y no de las opciones del desplegable porque esas
+   * se construyen desde el esquema de persona, que no tiene congregación: es un
+   * orador de FUERA, y esa parte solo la sabe el catálogo.
+   *
+   * Cadena vacía si no se sabe —un orador escrito a mano libre no tiene
+   * congregación ninguna—, y entonces no se enseña nada: mejor un hueco que un
+   * rótulo vacío.
+   */
+  const congregacionDelOrador = useMemo(() => {
+    if (!value?.person_uid) return '';
+
+    const orador = incomingSpeakers.find(
+      (record) => record.person_uid === value.person_uid
+    );
+
+    const congId = orador?.speaker_data.cong_id;
+
+    if (!congId) return '';
+
+    const congregacion = congregaciones.find((record) => record.id === congId);
+
+    return congregacion?.cong_data.cong_name.value || '';
+  }, [value, incomingSpeakers, congregaciones]);
 
   const handleSaveAssignment = async (value: PersonOptionsType) => {
     isSavingRef.current = true;
@@ -215,6 +248,7 @@ const useVisitingSpeaker = ({ week, assignment, talk }: PersonSelectorType) => {
 
   return {
     options,
+    congregacionDelOrador,
     handleSaveAssignment,
     value,
     inputValue,

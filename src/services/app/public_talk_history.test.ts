@@ -3,7 +3,9 @@ import { SourceWeekType } from '@definition/sources';
 import {
   mesesEntreSemanas,
   publicTalkLastGiven,
+  publicTalkNextScheduled,
   publicTalkRepeatNotice,
+  publicTalkUpcomingNotice,
 } from './public_talk_history';
 
 /**
@@ -147,6 +149,136 @@ describe('si hay que avisar', () => {
         dataView: 'main',
         week: '2026/08/17',
         mesesAviso: 6,
+      })
+    ).toBeNull();
+  });
+});
+
+/**
+ * Se programa noviembre antes que septiembre —pasa constantemente, porque el
+ * orador de noviembre confirma antes—, y al llegar a septiembre el aviso de «ya
+ * se dio» no dice nada: mirando hacia atrás no hay nada. El choque está delante.
+ */
+describe('publicTalkNextScheduled', () => {
+  const fuentes = (pares: [string, number][]) =>
+    pares.map(([weekOf, talk]) => semana(weekOf, talk));
+
+  it('encuentra el que está puesto más adelante', () => {
+    const sources = fuentes([
+      ['2026/09/14', 0],
+      ['2026/11/16', 38],
+    ]);
+
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+      })
+    ).toBe('2026/11/16');
+  });
+
+  it('coge el más CERCANO de los que vienen', () => {
+    const sources = fuentes([
+      ['2027/03/15', 38],
+      ['2026/11/16', 38],
+    ]);
+
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+      })
+    ).toBe('2026/11/16');
+  });
+
+  it('no mira hacia atrás: para eso está el otro', () => {
+    const sources = fuentes([['2026/04/13', 38]]);
+
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+      })
+    ).toBeNull();
+  });
+
+  it('la propia semana no cuenta como «más adelante»', () => {
+    // Si no, elegir un discurso se avisaría a sí mismo.
+    const sources = fuentes([['2026/09/14', 38]]);
+
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+      })
+    ).toBeNull();
+  });
+
+  it('sin discurso o sin semana no dice nada', () => {
+    const sources = fuentes([['2026/11/16', 38]]);
+
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 0,
+        dataView: 'main',
+        week: '2026/09/14',
+      })
+    ).toBeNull();
+    expect(
+      publicTalkNextScheduled({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '',
+      })
+    ).toBeNull();
+  });
+});
+
+describe('publicTalkUpcomingNotice', () => {
+  const sources = [semana('2026/11/16', 38)];
+
+  it('avisa si cae dentro del plazo de la congregación', () => {
+    expect(
+      publicTalkUpcomingNotice({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+        mesesAviso: 12,
+      })
+    ).toEqual({ weekOf: '2026/11/16', meses: 2 });
+  });
+
+  it('calla si está más lejos que el plazo', () => {
+    expect(
+      publicTalkUpcomingNotice({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+        mesesAviso: 1,
+      })
+    ).toBeNull();
+  });
+
+  it('con el aviso apagado no dice nada', () => {
+    expect(
+      publicTalkUpcomingNotice({
+        sources,
+        talkNumber: 38,
+        dataView: 'main',
+        week: '2026/09/14',
+        mesesAviso: 0,
       })
     ).toBeNull();
   });

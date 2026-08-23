@@ -20,6 +20,20 @@ import { SourceWeekType } from '@definition/sources';
 /** Las semanas van como `2026/08/17`, así que se ordenan como texto. */
 const esAnterior = (semana: string, referencia: string) => semana < referencia;
 
+const esPosterior = (semana: string, referencia: string) => semana > referencia;
+
+/** El discurso que tiene puesto esa semana, o 0. */
+const discursoDeLaSemana = (
+  source: SourceWeekType,
+  dataView: string
+): number => {
+  const asignado = source.weekend_meeting?.public_talk?.find(
+    (record) => record.type === dataView
+  )?.value;
+
+  return Number(asignado) || 0;
+};
+
 /**
  * Los meses que han pasado entre dos semanas, redondeando hacia abajo.
  *
@@ -62,16 +76,49 @@ export const publicTalkLastGiven = ({
   for (const source of sources) {
     if (!esAnterior(source.weekOf, week)) continue;
 
-    const asignado = source.weekend_meeting?.public_talk?.find(
-      (record) => record.type === dataView
-    )?.value;
-
-    if (Number(asignado) !== talkNumber) continue;
+    if (discursoDeLaSemana(source, dataView) !== talkNumber) continue;
 
     if (!ultima || source.weekOf > ultima) ultima = source.weekOf;
   }
 
   return ultima;
+};
+
+/**
+ * La próxima vez que ese discurso YA ESTÁ PUESTO, después de esta semana.
+ *
+ * EL CASO QUE ESTO CUBRE: se programa noviembre antes que septiembre —pasa
+ * constantemente, porque el orador de noviembre confirma antes—, y al llegar a
+ * septiembre el aviso de «ya se dio» no dice nada, porque mirando hacia atrás no
+ * hay nada. El choque está delante.
+ *
+ * Se coge la MÁS CERCANA de las que vienen: es la que decide si hay problema.
+ * Una a dos años vista no cambia nada aunque exista.
+ */
+export const publicTalkNextScheduled = ({
+  sources,
+  talkNumber,
+  dataView,
+  week,
+}: {
+  sources: SourceWeekType[];
+  talkNumber: number;
+  dataView: string;
+  week: string;
+}): string | null => {
+  if (!talkNumber || !week) return null;
+
+  let proxima: string | null = null;
+
+  for (const source of sources) {
+    if (!esPosterior(source.weekOf, week)) continue;
+
+    if (discursoDeLaSemana(source, dataView) !== talkNumber) continue;
+
+    if (!proxima || source.weekOf < proxima) proxima = source.weekOf;
+  }
+
+  return proxima;
 };
 
 /**
@@ -105,4 +152,43 @@ export const publicTalkRepeatNotice = ({
   if (meses >= mesesAviso) return null;
 
   return { weekOf: ultima, meses };
+};
+
+/**
+ * Si hay que avisar de que este discurso YA ESTÁ PUESTO más adelante.
+ *
+ * Mismo umbral que el aviso de «ya se dio», y a propósito: la congregación dice
+ * cuántos meses tienen que pasar entre una vez y otra, y esa regla no cambia
+ * porque la otra vez caiga antes o después. Lo único que cambia es que esta
+ * todavía se puede mover.
+ */
+export const publicTalkUpcomingNotice = ({
+  sources,
+  talkNumber,
+  dataView,
+  week,
+  mesesAviso,
+}: {
+  sources: SourceWeekType[];
+  talkNumber: number;
+  dataView: string;
+  week: string;
+  mesesAviso: number;
+}): { weekOf: string; meses: number } | null => {
+  if (!mesesAviso || mesesAviso <= 0) return null;
+
+  const proxima = publicTalkNextScheduled({
+    sources,
+    talkNumber,
+    dataView,
+    week,
+  });
+
+  if (!proxima) return null;
+
+  const meses = mesesEntreSemanas(week, proxima);
+
+  if (meses >= mesesAviso) return null;
+
+  return { weekOf: proxima, meses };
 };

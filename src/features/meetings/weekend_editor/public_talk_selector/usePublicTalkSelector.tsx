@@ -18,7 +18,10 @@ import {
   weekendSongSelectorOpenState,
 } from '@states/schedules';
 import { dbSchedUpdate } from '@services/dexie/schedules';
-import { publicTalkRepeatNotice } from '@services/app/public_talk_history';
+import {
+  publicTalkRepeatNotice,
+  publicTalkUpcomingNotice,
+} from '@services/app/public_talk_history';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 
 const usePublicTalkSelector = (week: string, schedule_id?: string) => {
@@ -123,41 +126,71 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
   ]);
 
   /**
-   * «Ya se dio el 14 de abril de 2026 (hace 4 meses)».
+   * Los avisos de que este discurso se repite, hacia atrás y hacia delante.
+   *
+   * Hacia atrás: «Ya se dio el 14 de abril de 2026 (hace 4 meses)».
+   * Hacia delante: «Ya está puesto para el 16 de noviembre (dentro de 2 meses)».
+   *
+   * El de delante hace falta porque los meses no se programan en orden: el
+   * orador de noviembre confirma antes que el de septiembre, así que noviembre
+   * se llena primero. Al llegar a septiembre, mirar solo hacia atrás no
+   * encuentra nada y el choque está delante.
+   *
+   * Pueden salir los dos a la vez —se dio en abril y está puesto en noviembre—,
+   * y entonces se dicen los dos: son dos hechos distintos.
    *
    * Solo para el discurso que se da AQUÍ. Los salientes los dan hermanos
    * nuestros en otras congregaciones, y que uno se repita allí no dice nada
    * sobre lo que ha oído esta.
    */
-  const repeatNotice = useMemo(() => {
-    if (schedule_id || !selectedTalk?.talk_number) return '';
+  const repeatNotices = useMemo(() => {
+    if (schedule_id || !selectedTalk?.talk_number) return [];
 
-    const aviso = publicTalkRepeatNotice({
+    const comun = {
       sources,
       talkNumber: selectedTalk.talk_number,
       dataView,
       week,
       mesesAviso,
-    });
+    };
 
-    if (!aviso) return '';
-
-    const fecha =
+    const fechaDe = (weekOf: string) =>
       schedulesGetMeetingDate({
-        week: aviso.weekOf,
+        week: weekOf,
         meeting: 'weekend',
         key: 'tr_longDateWithYearLocale',
         dataView,
-      }).locale || aviso.weekOf;
+      }).locale || weekOf;
 
-    const cuando =
-      aviso.meses === 0
-        ? 'hace menos de un mes'
-        : aviso.meses === 1
-          ? 'hace 1 mes'
-          : `hace ${aviso.meses} meses`;
+    const avisos: string[] = [];
 
-    return `Ya se dio el ${fecha} (${cuando})`;
+    const pasado = publicTalkRepeatNotice(comun);
+
+    if (pasado) {
+      const cuando =
+        pasado.meses === 0
+          ? 'hace menos de un mes'
+          : pasado.meses === 1
+            ? 'hace 1 mes'
+            : `hace ${pasado.meses} meses`;
+
+      avisos.push(`Ya se dio el ${fechaDe(pasado.weekOf)} (${cuando})`);
+    }
+
+    const futuro = publicTalkUpcomingNotice(comun);
+
+    if (futuro) {
+      const cuando =
+        futuro.meses === 0
+          ? 'dentro de menos de un mes'
+          : futuro.meses === 1
+            ? 'dentro de 1 mes'
+            : `dentro de ${futuro.meses} meses`;
+
+      avisos.push(`Ya está puesto para el ${fechaDe(futuro.weekOf)} (${cuando})`);
+    }
+
+    return avisos;
   }, [schedule_id, selectedTalk, sources, dataView, week, mesesAviso]);
 
   const handleOpenCatalog = () => setOpenCatalog(true);
@@ -250,7 +283,7 @@ const usePublicTalkSelector = (week: string, schedule_id?: string) => {
   }, [source, dataView, talks, schedule, schedule_id]);
 
   return {
-    repeatNotice,
+    repeatNotices,
     talks,
     selectedTalk,
     handleTalkChange,
