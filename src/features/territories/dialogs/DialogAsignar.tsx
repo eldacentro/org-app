@@ -48,7 +48,11 @@ import {
 } from '@services/firebase/territories';
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
-import { computeDueAt, territoryLabel } from '@services/app/territories';
+import {
+  computeDueAt,
+  isCampaignRunning,
+  territoryLabel,
+} from '@services/app/territories';
 
 type Props = {
   open: boolean;
@@ -94,13 +98,42 @@ const DialogAsignar = ({
   const campaigns = useAtomValue(territoryCampaignsState);
 
   /**
-   * La campaña de esta asignación, si la hay. Con ella el selector se abre
-   * mostrando solo los territorios que la campaña incluye — que es lo que
-   * ahorra el rodeo por Estadísticas.
+   * La campaña que manda en esta asignación.
+   *
+   * Primero la que venga dicha (se entra desde una solicitud marcada de
+   * campaña, o desde la propia pestaña Campañas). Y si no viene ninguna, la
+   * que esté EN MARCHA hoy: durante una campaña se reparten los territorios
+   * de la campaña, así que ofrecer los 130 sería ofrecer lo que no se va a
+   * dar. Esto además arregla las solicitudes viejas —las que se enviaron
+   * antes de que existiera el "Para: Campaña"— que no traen campaña escrita y
+   * llegaban aquí sin filtrar nada.
+   *
+   * Con ella el selector se abre mostrando solo los territorios que la
+   * campaña incluye, con un "Todos" al lado para salirse.
    */
-  const campanaDeLaAsignacion = campaignId
-    ? campaigns.find((c) => c.id === campaignId)
-    : undefined;
+  const campanaDeLaAsignacion =
+    (campaignId ? campaigns.find((c) => c.id === campaignId) : undefined) ??
+    campaigns.find(
+      (c) =>
+        c.estado !== 'pasada' && isCampaignRunning(c.fechaInicio, c.fechaFin)
+    );
+
+  /**
+   * ¿Esta asignación cuenta como de campaña?
+   *
+   * Lo dice el territorio que se acabe eligiendo, no el sitio desde el que se
+   * abrió el diálogo: si estamos en campaña y se da uno de los suyos, va
+   * marcado como de campaña —que es lo que pone la "(C)" en el S-13—; si el
+   * responsable se sale a "Todos" y da uno corriente, se registra corriente.
+   */
+  const esDeCampana = (territoryId: string | null | undefined): boolean =>
+    isCampaign ||
+    Boolean(
+      territoryId && campanaDeLaAsignacion?.territoryIds.includes(territoryId)
+    );
+
+  const campaignIdEfectivo = (territoryId: string | null | undefined) =>
+    esDeCampana(territoryId) ? campanaDeLaAsignacion?.id : undefined;
   const resolveName = usePersonName();
   const allAssignments = useAtomValue(territoryAssignmentsState);
   const pendingRequests = useAtomValue(territoryPendingRequestsState);
@@ -229,8 +262,8 @@ const DialogAsignar = ({
               dueAt: computeDueAt(now, settings.daysUntilOverdue),
               returnedAt: null,
               status: 'asignado',
-              isCampaign,
-              campaignId,
+              isCampaign: esDeCampana(t.id),
+              campaignId: campaignIdEfectivo(t.id),
               notas: nota.trim() || undefined,
               assignedBy: currentUid || undefined,
               updatedAt: now,
@@ -390,8 +423,8 @@ const DialogAsignar = ({
         // match documents where the field is simply absent.
         returnedAt: null,
         status: 'asignado',
-        isCampaign,
-        campaignId,
+        isCampaign: esDeCampana(effectiveTerritory.id),
+        campaignId: campaignIdEfectivo(effectiveTerritory.id),
         notas: nota.trim() || undefined,
         assignedBy: currentUid || undefined,
         updatedAt: now,
@@ -512,7 +545,7 @@ const DialogAsignar = ({
         <Typography className="h2" sx={{ mb: 2, color: 'var(--ink)' }}>
           {isBulk
             ? `Asignar ${bulkTerritories!.length} territorios`
-            : `Asignar territorio${isCampaign ? ' (campaña)' : ''}`}
+            : `Asignar territorio${campanaDeLaAsignacion ? ' (campaña)' : ''}`}
         </Typography>
 
         <Stack spacing={2}>
