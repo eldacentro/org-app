@@ -98,36 +98,6 @@ export type CircuitVisitType = {
   published?: boolean;
 
   /**
-   * Lo que SUSTITUYE al discurso público del fin de semana, si es que algo lo
-   * sustituye. Ausente = el discurso público de siempre.
-   *
-   * Sale de un caso real: en la visita se puede proyectar un episodio de una
-   * serie en vez del discurso. Se guarda en la visita y no en el programa
-   * porque es una decisión de ESA visita, y cuando la visita se borra se va con
-   * ella.
-   *
-   * Opcional a propósito: las visitas creadas antes de que esto existiera no lo
-   * traen, y su ausencia significa lo correcto.
-   */
-  public_talk_replacement?: {
-    /** `video` = un episodio de jw.org; `other` = cualquier otra cosa, a mano. */
-    kind: 'video' | 'other';
-    /** Clave del episodio en jw.org (`pub-gnj_S_2_VIDEO`). Solo en `video`. */
-    media_key?: string;
-    /** Cómo se llama la serie, para poder decirlo sin volver a pedir nada. */
-    series_name?: string;
-    title: string;
-    /** La portada, tal como la sirve jw.org. */
-    image?: string;
-    duration?: string;
-    /**
-     * De qué va. Se escribe a mano: jw.org no la sirve por ninguna vía, solo
-     * está en la página web.
-     */
-    description?: string;
-  };
-
-  /**
    * CUÁNDO se publicó por última vez (ISO-8601 UTC), para poder avisar de que
    * la visita se ha tocado DESPUÉS de publicarla: la congregación ya vio la
    * versión anterior. Con `published` a secas —un booleano suelto— no había

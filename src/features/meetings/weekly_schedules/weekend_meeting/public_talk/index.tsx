@@ -14,13 +14,15 @@ import MeetingSection from '@features/meetings/meeting_section';
 import PartTiming from '../../part_timing';
 import PersonComponent from '../../person_component';
 import Typography from '@components/typography';
+import TalkReplacementCard from '../../talk_replacement_card';
 
 const PublicTalk = (props: PublicTalkProps) => {
   const { t } = useAppTranslation();
 
   const { laptopUp } = useBreakpoints();
 
-  const { showSecondSpeaker, talkTitle, handleCopyTalk } = usePublicTalk(props);
+  const { showSecondSpeaker, talkTitle, handleCopyTalk, replacement } =
+    usePublicTalk(props);
 
   return (
     <MeetingSection
@@ -42,7 +44,12 @@ const PublicTalk = (props: PublicTalkProps) => {
               </Typography>
             </Stack>
 
-            {talkTitle && (
+            {/* En la semana de la visita, el hueco puede llevar un episodio en
+                vez del discurso. Se enseña con su portada: no es un dato del
+                programa, es lo que va a pasar en la reunión. */}
+            {replacement && <TalkReplacementCard replacement={replacement} />}
+
+            {!replacement && talkTitle && (
               <Stack spacing="8px" direction="row" alignItems="center">
                 <Typography
                   className="h4"
@@ -86,7 +93,10 @@ const PublicTalk = (props: PublicTalkProps) => {
             </Stack>
           )}
 
-          {props.week_type === Week.CO_VISIT && (
+          {/* Con un episodio no se enseña «Hermano»: el vídeo no lo da nadie. El
+              superintendente sigue apareciendo donde sí habla, en el discurso de
+              servicio. */}
+          {props.week_type === Week.CO_VISIT && !replacement && (
             <PersonComponent
               label={`${t('tr_brother')}:`}
               week={props.week}

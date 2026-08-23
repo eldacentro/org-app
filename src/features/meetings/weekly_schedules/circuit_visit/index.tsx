@@ -2,8 +2,9 @@ import { ReactNode } from 'react';
 import { DIAS_ES_DESDE_DOMINGO, MESES_ES } from '@utils/nombres_fecha';
 import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { schedulesState } from '@states/schedules';
 import Typography from '@components/typography';
-import ReplacementCard from './replacement_card';
+import TalkReplacementCard from '../talk_replacement_card';
 import {
   IconCircuitOverseer,
   IconPodium,
@@ -120,6 +121,7 @@ const CircuitVisitWeek = ({
   const outingsList = useAtomValue(serviceOutingsListState);
   const outingsSettings = useAtomValue(serviceOutingsSettingsState);
   const sources = useAtomValue(sourcesState);
+  const schedules = useAtomValue(schedulesState);
   const setJumpToWeek = useSetAtom(jumpToWeekState);
 
   if (!visit) return null;
@@ -138,7 +140,9 @@ const CircuitVisitWeek = ({
   };
 
   const weekRecord = outingsList.find((r) => r.weekOf === visit.weekOf);
+
   const weekSource = sources.find((s) => s.weekOf === visit.weekOf);
+  const weekSchedule = schedules.find((s) => s.weekOf === visit.weekOf);
 
   const weekSlots = deriveWeekOutingSlots(
     outingsSettings,
@@ -171,12 +175,21 @@ const CircuitVisitWeek = ({
 
   /**
    * Lo que sustituye al discurso público esa semana, si es que algo lo
-   * sustituye. Sin título no se enseña nada: una ficha con el hueco vacío
-   * confunde más que la fila de siempre.
+   * sustituye.
+   *
+   * Se lee del PROGRAMA, no de la visita: lo decide quien programa el fin de
+   * semana, que muchas veces no es anciano y no puede ni entrar aquí. Esta
+   * pestaña solo lo refleja.
+   *
+   * Sin título no se enseña nada: una ficha con el hueco vacío confunde más que
+   * la fila de siempre.
    */
-  const sustituto = visit.public_talk_replacement?.title?.trim()
-    ? visit.public_talk_replacement
-    : undefined;
+  const valorSustituto =
+    weekSchedule?.weekend_meeting?.public_talk_replacement?.find(
+      (record) => record.type === 'main'
+    )?.value;
+
+  const sustituto = valorSustituto?.title?.trim() ? valorSustituto : undefined;
 
   // La fecha real de cada reunión (incluye el salto a martes de la semana de
   // la visita), con el mismo formato largo que el rango de arriba: mezclar
@@ -319,7 +332,7 @@ const CircuitVisitWeek = ({
               discurso público. Va antes que el de servicio porque es el orden
               en que pasan las cosas en la reunión. */}
           {sustituto ? (
-            <ReplacementCard replacement={sustituto} />
+            <TalkReplacementCard replacement={sustituto} />
           ) : (
             <Fila etiqueta="Discurso público" valor={publicTalk} />
           )}

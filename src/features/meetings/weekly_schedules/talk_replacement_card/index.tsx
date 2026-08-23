@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, Collapse } from '@mui/material';
-import { CircuitVisitType } from '@definition/circuit_visit';
+import { PublicTalkReplacementCongregation } from '@definition/schedules';
 import { IconInfo } from '@components/icons';
 import IconButton from '@components/icon_button';
 import Typography from '@components/typography';
@@ -17,10 +17,10 @@ import Typography from '@components/typography';
  * tarjeta empujaría todo lo demás fuera de la pantalla. Quien la quiera, la
  * abre.
  */
-const ReplacementCard = ({
+const TalkReplacementCard = ({
   replacement,
 }: {
-  replacement: NonNullable<CircuitVisitType['public_talk_replacement']>;
+  replacement: NonNullable<PublicTalkReplacementCongregation['value']>;
 }) => {
   const [abierta, setAbierta] = useState(false);
 
@@ -102,4 +102,4 @@ const ReplacementCard = ({
   );
 };
 
-export default ReplacementCard;
+export default TalkReplacementCard;

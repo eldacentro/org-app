@@ -43,6 +43,8 @@ import SiblingAssignment from '../sibling_assignments';
 import SongSelector from './song_selector';
 import SongSource from '../song_source';
 import TalkTitleSolo from './talk_title_solo';
+import PublicTalkReplacement from './public_talk_replacement';
+import useReplacementSchedule from './public_talk_replacement/useSchedule';
 import Typography from '@components/typography';
 import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
@@ -89,6 +91,13 @@ const WeekendEditor = () => {
     speaker1Name,
     weekendMeetingTime,
   } = useWeekendEditor();
+
+  /**
+   * Lo que sustituye al discurso público en la semana de la visita. Vive en el
+   * programa, no en la visita: ver `useReplacementSchedule`.
+   */
+  const { value: replacement, save: saveReplacement } =
+    useReplacementSchedule(selectedWeek);
 
   const { talkType } = usePublicTalkTypeSelector(selectedWeek);
 
@@ -302,60 +311,83 @@ const WeekendEditor = () => {
                         />
                       )}
 
+                      {/* En la semana de la visita, el hueco del discurso
+                          público puede llevar otra cosa —hoy, un episodio de
+                          una serie de jw.org—. Se decide AQUÍ y no en la página
+                          de la visita, que es solo para ancianos y que además
+                          guarda en una tabla que solo ellos pueden subir. */}
                       {weekType === Week.CO_VISIT && (
-                        <TalkTitleSolo
-                          type="co_public_talk"
-                          week={selectedWeek}
-                          readOnly={!isPublicTalkCoordinator}
-                        />
+                        <>
+                          <PublicTalkReplacement
+                            value={replacement}
+                            onChange={saveReplacement}
+                            readOnly={!isPublicTalkCoordinator}
+                          />
+
+                          {/* Con vídeo no hay título que escribir: lo pone el
+                              propio episodio. */}
+                          {replacement?.kind !== 'video' && (
+                            <TalkTitleSolo
+                              type="co_public_talk"
+                              week={selectedWeek}
+                              readOnly={!isPublicTalkCoordinator}
+                            />
+                          )}
+                        </>
                       )}
                     </PrimaryFieldContainer>
 
                     <SecondaryFieldContainer
                       sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
                     >
-                      <PersonSelector
-                        readOnly={!isPublicTalkCoordinator}
-                        week={selectedWeek}
-                        label={
-                          showSpeaker2
-                            ? t('tr_firstSpeaker')
-                            : weekType === Week.CO_VISIT
-                              ? t('tr_circuitOverseer')
-                              : t('tr_speaker')
-                        }
-                        type={
-                          weekType === Week.CO_VISIT
-                            ? null
-                            : AssignmentCode.WM_SpeakerSymposium
-                        }
-                        assignment={
-                          weekType === Week.CO_VISIT
-                            ? 'WM_CircuitOverseer'
-                            : 'WM_Speaker_Part1'
-                        }
-                        jwStreamRecording={talkType === 'jwStreamRecording'}
-                        visitingSpeaker={
-                          weekType === Week.NORMAL &&
-                          talkType === 'visitingSpeaker'
-                        }
-                        circuitOverseer={weekType === Week.CO_VISIT}
-                        talk={selectedTalk?.talk_number}
-                        helperNode={
-                          (weekType === Week.NORMAL ||
-                            weekType === Week.PUBLIC_TALK) &&
-                          talkType === 'visitingSpeaker' && (
-                            <Markup
-                              content={t('tr_visitinSpeakerHelpText')}
-                              className="label-small-regular"
-                              color="var(--grey-350)"
-                              anchorClassName="label-small-medium"
-                              anchorClick={handleOpenVisitingSpeakers}
-                              style={{ padding: '4px 16px 0 16px' }}
-                            />
-                          )
-                        }
-                      />
+                      {/* Con un episodio en este hueco no hay a quién asignar:
+                          el vídeo no lo da nadie. El superintendente se sigue
+                          poniendo en el discurso de servicio, que es donde
+                          habla. */}
+                      {replacement?.kind !== 'video' && (
+                        <PersonSelector
+                          readOnly={!isPublicTalkCoordinator}
+                          week={selectedWeek}
+                          label={
+                            showSpeaker2
+                              ? t('tr_firstSpeaker')
+                              : weekType === Week.CO_VISIT
+                                ? t('tr_circuitOverseer')
+                                : t('tr_speaker')
+                          }
+                          type={
+                            weekType === Week.CO_VISIT
+                              ? null
+                              : AssignmentCode.WM_SpeakerSymposium
+                          }
+                          assignment={
+                            weekType === Week.CO_VISIT
+                              ? 'WM_CircuitOverseer'
+                              : 'WM_Speaker_Part1'
+                          }
+                          jwStreamRecording={talkType === 'jwStreamRecording'}
+                          visitingSpeaker={
+                            weekType === Week.NORMAL &&
+                            talkType === 'visitingSpeaker'
+                          }
+                          circuitOverseer={weekType === Week.CO_VISIT}
+                          talk={selectedTalk?.talk_number}
+                          helperNode={
+                            (weekType === Week.NORMAL ||
+                              weekType === Week.PUBLIC_TALK) &&
+                            talkType === 'visitingSpeaker' && (
+                              <Markup
+                                content={t('tr_visitinSpeakerHelpText')}
+                                className="label-small-regular"
+                                color="var(--grey-350)"
+                                anchorClassName="label-small-medium"
+                                anchorClick={handleOpenVisitingSpeakers}
+                                style={{ padding: '4px 16px 0 16px' }}
+                              />
+                            )
+                          }
+                        />
+                      )}
 
                       {showSpeaker2 && (
                         <PersonSelector

@@ -56,7 +56,6 @@ import { buildPersonFullname } from '@utils/common';
 import { personIsElder } from '@services/app/persons';
 import ServiceOutingsMeeting from '@features/meetings/weekly_schedules/service_outings/ServiceOutingsMeeting';
 import { useConfirm } from '@components/confirm_dialog';
-import PublicTalkReplacement from './public_talk_replacement';
 import useCircuitVisitDashboard from './useCircuitVisitDashboard';
 import Card from './shared/Card';
 
@@ -1370,17 +1369,6 @@ const CircuitVisitDashboard = () => {
                 maxDate={new Date(working.date_end)}
               />
             </Stack>
-          </Card>
-
-          {/* Qué se hace en el hueco del discurso público esa semana */}
-          <Card
-            title="Reunión de fin de semana"
-            subtitle="Normalmente el superintendente da los dos discursos. Si esa semana el discurso público se sustituye por otra cosa, dilo aquí."
-          >
-            <PublicTalkReplacement
-              value={working.public_talk_replacement}
-              onChange={(value) => patch({ public_talk_replacement: value })}
-            />
           </Card>
 
           {/* Contabilidad: gestionado aparte */}

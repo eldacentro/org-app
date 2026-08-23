@@ -104,7 +104,19 @@ const usePublicTalk = ({ week, dataView }: PublicTalkProps) => {
     });
   };
 
-  return { showSecondSpeaker, talkTitle, handleCopyTalk };
+  /**
+   * Lo que sustituye al discurso público esa semana, si es que algo lo
+   * sustituye. Lo decide quien programa el fin de semana, en su editor.
+   */
+  const replacement = useMemo(() => {
+    const valor = schedule?.weekend_meeting?.public_talk_replacement?.find(
+      (record) => record.type === dataView
+    )?.value;
+
+    return valor?.title?.trim() ? valor : undefined;
+  }, [schedule, dataView]);
+
+  return { showSecondSpeaker, talkTitle, handleCopyTalk, replacement };
 };
 
 export default usePublicTalk;

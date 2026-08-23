@@ -192,6 +192,36 @@ export type PublicTalkCongregation = {
   updatedAt: string;
 };
 
+/**
+ * Lo que sustituye al discurso público esa semana (hoy: un episodio de una serie
+ * de jw.org). `null` = el discurso público de siempre.
+ *
+ * Vive en el PROGRAMA y no en la visita del superintendente, aunque solo pase en
+ * esas semanas: la tabla de visitas solo la pueden subir ancianos y
+ * administradores, y quien programa los discursos del fin de semana muchas veces
+ * no es anciano. Guardarlo allí se habría quedado en su teléfono sin llegar a
+ * nadie, en silencio.
+ */
+export type PublicTalkReplacementCongregation = {
+  type: string;
+  value: {
+    kind: 'video';
+    /** Clave del episodio en jw.org (`pub-gnj_S_2_VIDEO`). */
+    media_key: string;
+    series_name: string;
+    title: string;
+    /** La portada, tal como la sirve jw.org. */
+    image: string;
+    duration: string;
+    /**
+     * De qué va. Se escribe a mano: jw.org devuelve la descripción VACÍA en
+     * las dos vías de su interfaz de medios — solo está en la página web.
+     */
+    description: string;
+  } | null;
+  updatedAt: string;
+};
+
 export type OutgoingTalkScheduleType = {
   _deleted: boolean;
   updatedAt: string;
@@ -289,6 +319,8 @@ export type SchedWeekType = {
      * coordinador de discursos públicos), aunque vivan en la misma semana.
      */
     outgoing_talks_published?: PublishedCongregation[];
+    /** Ver `PublicTalkReplacementCongregation`. Ausente = discurso público. */
+    public_talk_replacement?: PublicTalkReplacementCongregation[];
   };
 };
 
