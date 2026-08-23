@@ -3,6 +3,7 @@ import { DIAS_ES_DESDE_DOMINGO, MESES_ES } from '@utils/nombres_fecha';
 import { Box, Card, Stack } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
 import Typography from '@components/typography';
+import ReplacementCard from './replacement_card';
 import {
   IconCircuitOverseer,
   IconPodium,
@@ -168,6 +169,15 @@ const CircuitVisitWeek = ({
   const serviceTalk =
     weekSource?.weekend_meeting?.co_talk_title?.service?.src ?? '';
 
+  /**
+   * Lo que sustituye al discurso público esa semana, si es que algo lo
+   * sustituye. Sin título no se enseña nada: una ficha con el hueco vacío
+   * confunde más que la fila de siempre.
+   */
+  const sustituto = visit.public_talk_replacement?.title?.trim()
+    ? visit.public_talk_replacement
+    : undefined;
+
   // La fecha real de cada reunión (incluye el salto a martes de la semana de
   // la visita), con el mismo formato largo que el rango de arriba: mezclar
   // "Julio 28" con "martes 28 de julio" en la misma tarjeta se lee mal.
@@ -300,10 +310,20 @@ const CircuitVisitWeek = ({
           />
 
           <Typography className="body-small-regular" color="var(--grey-400)">
-            El superintendente da los dos discursos de esta reunión.
+            {sustituto
+              ? 'El superintendente da el discurso de servicio de esta reunión.'
+              : 'El superintendente da los dos discursos de esta reunión.'}
           </Typography>
 
-          <Fila etiqueta="Discurso público" valor={publicTalk} />
+          {/* Lo que sustituye al discurso público, cuando esa semana no hay
+              discurso público. Va antes que el de servicio porque es el orden
+              en que pasan las cosas en la reunión. */}
+          {sustituto ? (
+            <ReplacementCard replacement={sustituto} />
+          ) : (
+            <Fila etiqueta="Discurso público" valor={publicTalk} />
+          )}
+
           <Fila etiqueta="Discurso de servicio" valor={serviceTalk} />
 
           <Boton

@@ -18,7 +18,10 @@ export type CircuitVisitMeal = {
   note: string;
 };
 
-export type CircuitVisitCompanionActivity = 'predicacion' | 'revisitas' | 'curso';
+export type CircuitVisitCompanionActivity =
+  | 'predicacion'
+  | 'revisitas'
+  | 'curso';
 
 export type CircuitVisitCompanion = {
   // Clave estable de la salida en service_outings: `${date}_${time}`. NO se usa
@@ -41,9 +44,9 @@ export type CircuitVisitSpecialMeeting = {
 export type CircuitVisitShepherdingVisit = {
   id: string;
   brother: string; // person_uid del hermano visitado
-  elder: string;   // person_uid del anciano que acompaña al CO
-  date: string;    // yyyy/MM/dd
-  time: string;    // HH:mm
+  elder: string; // person_uid del anciano que acompaña al CO
+  date: string; // yyyy/MM/dd
+  time: string; // HH:mm
   note: string;
 };
 
@@ -93,6 +96,36 @@ export type CircuitVisitType = {
    * una asignación de nadie, y ya tiene su propia ventana de dos meses.
    */
   published?: boolean;
+
+  /**
+   * Lo que SUSTITUYE al discurso público del fin de semana, si es que algo lo
+   * sustituye. Ausente = el discurso público de siempre.
+   *
+   * Sale de un caso real: en la visita se puede proyectar un episodio de una
+   * serie en vez del discurso. Se guarda en la visita y no en el programa
+   * porque es una decisión de ESA visita, y cuando la visita se borra se va con
+   * ella.
+   *
+   * Opcional a propósito: las visitas creadas antes de que esto existiera no lo
+   * traen, y su ausencia significa lo correcto.
+   */
+  public_talk_replacement?: {
+    /** `video` = un episodio de jw.org; `other` = cualquier otra cosa, a mano. */
+    kind: 'video' | 'other';
+    /** Clave del episodio en jw.org (`pub-gnj_S_2_VIDEO`). Solo en `video`. */
+    media_key?: string;
+    /** Cómo se llama la serie, para poder decirlo sin volver a pedir nada. */
+    series_name?: string;
+    title: string;
+    /** La portada, tal como la sirve jw.org. */
+    image?: string;
+    duration?: string;
+    /**
+     * De qué va. Se escribe a mano: jw.org no la sirve por ninguna vía, solo
+     * está en la página web.
+     */
+    description?: string;
+  };
 
   /**
    * CUÁNDO se publicó por última vez (ISO-8601 UTC), para poder avisar de que
