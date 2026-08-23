@@ -9,11 +9,27 @@ import { speakersCongregationsActiveState } from './speakers_congregations';
 import { personsState } from './persons';
 import { personIsElder, personIsMS } from '@services/app/persons';
 import { resolveLocalCongId } from '@services/app/visiting_speakers_reconcile';
+import { aplicarCorrecciones } from '@services/app/speaker_overrides';
+import { speakerOverridesState } from './speaker_overrides';
 
 export const visitingSpeakersState = atom<VisitingSpeakerType[]>([]);
 
+/**
+ * Los oradores, ya con las correcciones locales aplicadas.
+ *
+ * Se aplican AQUÍ, en la raíz de la que cuelgan todas las demás, para que las
+ * vea todo lo que enseña oradores: el catálogo, el selector de discurso del fin
+ * de semana y las hojas impresas. Y se aplican al LEER, no al guardar: la tabla
+ * sigue siendo fiel al Sheet del circuito, así que no hay nada que subir ni nada
+ * con lo que pelearse en la sincronización.
+ */
 export const visitingSpeakersActiveState = atom((get) => {
-  const speakers = get(visitingSpeakersState);
+  const correcciones = get(speakerOverridesState);
+  const speakers = aplicarCorrecciones(
+    get(visitingSpeakersState),
+    correcciones
+  );
+
   return speakers.filter((record) => {
     const isDeleted = record._deleted
       ? typeof record._deleted === 'object'

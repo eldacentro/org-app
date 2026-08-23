@@ -1,11 +1,12 @@
 import { Box, IconButton } from '@mui/material';
-import { IconPrepareReport } from '@components/icons';
+import { IconEdit, IconPrepareReport } from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import { buildPersonFullname } from '@utils/common';
 import { SpeakerReadOnlyViewType } from './index.types';
 import useSpeakerRowView from './useSpeakerRowView';
 import Button from '@components/button';
 import SpeakerDetails from '@features/persons/speakers_catalog/speaker_details';
+import TalksFix from '@features/persons/speakers_catalog/talks_fix';
 import Typography from '@components/typography';
 
 const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
@@ -15,6 +16,11 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
 
   const {
     talks,
+    correccion,
+    puedeCorregir,
+    openTalksFix,
+    handleOpenTalksFix,
+    handleCloseTalksFix,
     fullnameOption,
     handleHideDetails,
     handleShowDetails,
@@ -26,6 +32,14 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
 
   return (
     <Box>
+      {openTalksFix && (
+        <TalksFix
+          speaker={speaker}
+          open={openTalksFix}
+          onClose={handleCloseTalksFix}
+        />
+      )}
+
       {openSpeakerDetails && (
         <SpeakerDetails
           onClose={handleCloseSpeakerDetails}
@@ -85,11 +99,37 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
               </Typography>
             )}
           </Box>
-          <Typography className="body-small-semibold">{talks}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Typography className="body-small-semibold">{talks}</Typography>
+
+            {/* Que se vea que esta lista NO es la del circuito: si no, nadie
+                sabría por qué difiere de lo que tienen las demás
+                congregaciones, ni a quién preguntarle. */}
+            {correccion && (
+              <Typography
+                className="label-small-semibold"
+                color="var(--orange-dark)"
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                · corregido aquí
+              </Typography>
+            )}
+          </Box>
         </Box>
 
         {(showDetails || laptopDown) && (
           <>
+            {puedeCorregir && (
+              <IconButton
+                aria-label="Corregir sus discursos"
+                title="Corregir sus discursos"
+                sx={{ padding: 0 }}
+                onClick={handleOpenTalksFix}
+              >
+                <IconEdit width={20} height={20} color="var(--accent-main)" />
+              </IconButton>
+            )}
+
             {!tabletDown && (
               <Button
                 variant="small"

@@ -157,6 +157,17 @@ service cloud.firestore {
     // el E2E sigue intacto). La escribe únicamente el backend con Admin SDK
     // (que ignora estas reglas); ningún cliente puede escribirla, así nadie
     // puede falsificar señales ni provocar tormentas de sync.
+    // ── Correcciones a los discursos de los oradores del circuito ─────────
+    // Los discursos de un orador del circuito los reconstruye el Google Sheets
+    // en cada pasada, así que una corrección guardada en la tabla de oradores
+    // duraría hasta la madrugada siguiente. Viven aquí, donde el Sheet no
+    // llega. Lo que hay dentro son números de bosquejo y una nota de dónde
+    // salió el dato: la misma información que está en una hoja de cálculo que
+    // comparte el circuito entero.
+    match /congregation/{congId}/speaker_overrides/{speakerUid} {
+      allow read, write: if request.auth != null;
+    }
+
     // ── La reunión de entre semana que se está siguiendo en directo ───────
     // Un único documento por semana con en qué parte va y a qué hora empezó.
     // Lo lee toda la congregación a propósito: es lo que hace que los relojitos
