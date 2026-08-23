@@ -7,9 +7,14 @@
  * además se quedaría viejo; jw.org los sirve, y permite pedirlos desde el
  * navegador, igual que las duraciones de las canciones.
  *
- * LO QUE NO SIRVE jw.org: la descripción del episodio («Mire cómo Juan el
- * Bautista prepara el camino…»). Esa solo está en la página web, así que se
- * escribe a mano y es opcional.
+ * LO QUE NO SIRVE jw.org POR AQUÍ: la descripción del episodio. Está en la
+ * página web y la sirve el servidor —así que se ve en el HTML—, pero jw.org NO
+ * manda la cabecera que permitiría a la aplicación pedírsela: el navegador corta
+ * la petición. Traerla obligaría a pasar por nuestro servidor y a leer el HTML
+ * de jw.org, que se rompe en silencio en cuanto rediseñen la página.
+ *
+ * Así que se pega a mano, y para que eso cueste dos toques se guarda `lank`: el
+ * identificador que abre el episodio en jw.org sin depender del idioma.
  */
 
 export type JwSeries = {
@@ -31,6 +36,11 @@ export const SERIES_DISPONIBLES: JwSeries[] = [
 export type JwEpisode = {
   /** `pub-gnj_S_2_VIDEO`. Identifica el episodio y el idioma. */
   key: string;
+  /**
+   * `pub-gnj_2_VIDEO`, sin idioma. Es lo que entiende `jw.org/open?lank=…`, que
+   * lleva a la página del episodio en el idioma que se le pida.
+   */
+  lank: string;
   title: string;
   /** «52m 46s», tal como lo da jw.org. */
   duration: string;
@@ -87,6 +97,7 @@ export const parseSeriesEpisodes = (payload: unknown): JwEpisode[] => {
   for (const item of media) {
     const registro = item as {
       naturalKey?: string;
+      languageAgnosticNaturalKey?: string;
       title?: string;
       durationFormattedMinSec?: string;
       images?: Record<string, Record<string, string>>;
@@ -98,6 +109,7 @@ export const parseSeriesEpisodes = (payload: unknown): JwEpisode[] => {
 
     episodios.push({
       key: registro.naturalKey,
+      lank: registro.languageAgnosticNaturalKey ?? '',
       title: registro.title,
       duration: registro.durationFormattedMinSec ?? '',
       image: mejorPortada(registro.images),
@@ -187,3 +199,7 @@ export const fetchSeriesEpisodes = async (
     return null;
   }
 };
+
+/** La página del episodio en jw.org, en el idioma de la congregación. */
+export const episodeUrl = (lank: string, langCode: string) =>
+  `https://www.jw.org/open?lank=${encodeURIComponent(lank)}&wtlocale=${encodeURIComponent(langCode)}`;

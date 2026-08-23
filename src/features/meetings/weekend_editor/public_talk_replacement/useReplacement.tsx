@@ -42,7 +42,7 @@ const useReplacement = () => {
       .finally(() => setCargando(false));
   }, [lang, serie.key]);
 
-  return { serie, episodios, cargando };
+  return { serie, episodios, cargando, lang };
 };
 
 export default useReplacement;

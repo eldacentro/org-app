@@ -4,6 +4,7 @@ import {
   parseSeriesEpisodes,
   seriesStale,
   seriesUrl,
+  episodeUrl,
   SERIES_STALE_MS,
 } from './jw_video_series';
 
@@ -24,6 +25,7 @@ const RESPUESTA = {
     media: [
       {
         naturalKey: 'pub-gnj_S_1_VIDEO',
+        languageAgnosticNaturalKey: 'pub-gnj_1_VIDEO',
         title: 'Episodio 1: La verdadera luz del mundo',
         durationFormattedMinSec: '1h 11m 1s',
         images: {
@@ -33,6 +35,7 @@ const RESPUESTA = {
       },
       {
         naturalKey: 'pub-gnj_S_2_VIDEO',
+        languageAgnosticNaturalKey: 'pub-gnj_2_VIDEO',
         title: 'Episodio 2: “Este es mi Hijo”',
         durationFormattedMinSec: '52m 46s',
         images: { sqr: { md: 'https://cms-imgp.jw-cdn.org/2_sqr_md.jpg' } },
@@ -48,6 +51,7 @@ describe('leer la serie', () => {
     expect(episodios).toHaveLength(2);
     expect(episodios[1]).toEqual({
       key: 'pub-gnj_S_2_VIDEO',
+      lank: 'pub-gnj_2_VIDEO',
       title: 'Episodio 2: “Este es mi Hijo”',
       duration: '52m 46s',
       image: 'https://cms-imgp.jw-cdn.org/2_sqr_md.jpg',
@@ -112,7 +116,7 @@ describe('cuándo se vuelve a pedir', () => {
   const cache = (fetchedAt: string) => ({
     langCode: 'S',
     seriesKey: 'SeriesGoodNews',
-    episodes: [{ key: 'k', title: 'T', duration: '', image: '' }],
+    episodes: [{ key: 'k', lank: 'l', title: 'T', duration: '', image: '' }],
     fetchedAt,
   });
 
@@ -142,6 +146,21 @@ describe('cuándo se vuelve a pedir', () => {
         ahora
       )
     ).toBe(true);
+  });
+});
+
+describe('el enlace al episodio en jw.org', () => {
+  it('usa la clave SIN idioma y pide el idioma aparte', () => {
+    // `lank` es el identificador que no depende del idioma; el idioma va en
+    // `wtlocale`. Así el enlace lleva a la página en el idioma de la
+    // congregación sin tener que saber cómo se llama allí.
+    expect(episodeUrl('pub-gnj_2_VIDEO', 'S')).toBe(
+      'https://www.jw.org/open?lank=pub-gnj_2_VIDEO&wtlocale=S'
+    );
+  });
+
+  it('sin clave sigue siendo una dirección válida, no un enlace roto a medias', () => {
+    expect(episodeUrl('', 'S')).toContain('lank=&wtlocale=S');
   });
 });
 

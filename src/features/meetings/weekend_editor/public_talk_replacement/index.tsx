@@ -1,5 +1,6 @@
 import { Box, TextField } from '@mui/material';
 import { PublicTalkReplacementCongregation } from '@definition/schedules';
+import { episodeUrl } from '@services/app/jw_video_series';
 import useReplacement from './useReplacement';
 import MenuItem from '@components/menuitem';
 import Select from '@components/select';
@@ -29,9 +30,13 @@ const PublicTalkReplacement = ({
   onChange: (value: Valor) => void;
   readOnly?: boolean;
 }) => {
-  const { serie, episodios, cargando } = useReplacement();
+  const { serie, episodios, cargando, lang } = useReplacement();
 
   const esVideo = value?.kind === 'video';
+
+  const episodioElegido = episodios.find(
+    (record) => record.key === value?.media_key
+  );
 
   const handleTipo = (nuevo: string) => {
     if (nuevo !== 'video') return onChange(null);
@@ -125,19 +130,44 @@ const PublicTalkReplacement = ({
               }
             />
 
-            {/* Por qué se escribe a mano y no la trae la aplicación: jw.org
-                devuelve la descripción VACÍA en las dos vías de su interfaz de
-                medios. El título, la duración y la portada sí los trae. */}
-            <Typography
-              className="label-small-regular"
-              color="var(--ink-3)"
-              sx={{ padding: '4px 16px 0' }}
+            {/* Por qué se escribe a mano y no la trae la aplicación: la
+                descripción está en la página de jw.org, pero jw.org no manda la
+                cabecera que dejaría a la aplicación pedírsela — el navegador
+                corta la petición. Traerla obligaría a pasar por nuestro
+                servidor y a leer el HTML de jw.org, que se rompe en silencio en
+                cuanto rediseñen la página. Así que se pega, y el enlace de
+                debajo la deja a dos toques. */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '8px',
+                flexWrap: 'wrap',
+                padding: '4px 16px 0',
+              }}
             >
-              El título, la duración y la portada los trae la aplicación de
-              jw.org. La descripción no: solo está en la página web, así que hay
-              que pegarla. Es lo que se ve al tocar la «i» en Programas
-              semanales.
-            </Typography>
+              <Typography className="label-small-regular" color="var(--ink-3)">
+                El título, la duración y la portada los trae la aplicación. La
+                descripción hay que pegarla: jw.org no la deja pedir desde aquí.
+              </Typography>
+
+              {episodioElegido?.lank && (
+                <Box
+                  component="a"
+                  href={episodeUrl(episodioElegido.lank, lang)}
+                  target="_blank"
+                  rel="noreferrer"
+                  sx={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  <Typography
+                    className="label-small-semibold"
+                    color="var(--accent-main)"
+                  >
+                    Abrir el episodio en jw.org
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </Box>
         </>
       )}
