@@ -19,6 +19,7 @@ import { personsAllState } from '@states/persons';
 import { BackupOrganizedType } from '@definition/backup';
 import { congIDState } from '@states/settings';
 import { restaurarTerritorios } from '@services/firebase/territoriesRestore';
+import { restaurarCorreccionesOradores } from '@services/firebase/speaker_overrides';
 
 /**
  * Los módulos que no tienen casilla propia y se restauran juntos.
@@ -886,6 +887,20 @@ const useConfirmImport = ({ onClose }: ConfirmImportProps) => {
           } catch (error) {
             console.error(`No se pudo importar la tabla ${tabla}:`, error);
             fallaron.push(tabla);
+          }
+        }
+
+        // Las correcciones a los discursos del circuito viven en Firestore, no
+        // en la base local, pero son «uno más de los demás módulos» para quien
+        // importa: no merecen una casilla propia.
+        const correcciones = backup.data['speaker_overrides'];
+
+        if (congId && Array.isArray(correcciones) && correcciones.length > 0) {
+          try {
+            await restaurarCorreccionesOradores(congId, correcciones);
+          } catch (error) {
+            console.error('No se pudieron restaurar las correcciones:', error);
+            fallaron.push('correcciones de oradores');
           }
         }
 

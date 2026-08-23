@@ -63,6 +63,15 @@ describe('la lista de lo que hay que rehacer', () => {
     expect(tablasQueTraeLaCopia(null)).toEqual([]);
   });
 
+  it('lo que vive en Firestore NO está aquí, y es a propósito', () => {
+    // Territorios y las correcciones de discursos del circuito viajan en la
+    // copia, pero no se restauran vaciando una tabla local: los repone su
+    // propio servicio contra Firestore. Meterlos en esta lista haría que
+    // `restoreFromPayload` buscara una tabla que no existe.
+    expect(TABLAS_LISTA).not.toContain('territories');
+    expect(TABLAS_LISTA).not.toContain('speaker_overrides');
+  });
+
   it('están todos los módulos que la aplicación guarda hoy', () => {
     // Si mañana se añade un módulo y no se mete aquí, su tabla no se
     // restaurará nunca y no lo dirá nadie. Esta cuenta es el recordatorio.

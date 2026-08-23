@@ -43,7 +43,7 @@ const TalksFix = ({
     redundante,
     guardar,
     volverAlSheet,
-  } = useTalksFix(speaker);
+  } = useTalksFix(speaker, open);
 
   const nombre = buildPersonFullname(
     speaker.speaker_data.person_lastname.value,

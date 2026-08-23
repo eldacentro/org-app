@@ -20,6 +20,7 @@ import {
   restaurarTerritorios,
   type ResumenRestauracion,
 } from '@services/firebase/territoriesRestore';
+import { restaurarCorreccionesOradores } from '@services/firebase/speaker_overrides';
 import { displaySnackNotification } from '@services/states/app';
 import { IconBackupOrganized, IconDelete, IconAdd } from '@components/icons';
 import Button from '@components/button';
@@ -182,6 +183,22 @@ const LocalBackupsTab = () => {
     setIsRestoring(true);
     try {
       let resumenFinal = '';
+
+      // Las correcciones a los discursos del circuito viven en Firestore igual
+      // que los territorios, así que viajan con ellos: son lo mismo desde el
+      // punto de vista de quien restaura — «lo que no está en la base local».
+      if (restaurarTerr && congId) {
+        const correcciones = confirmRestore?.data?.data?.speaker_overrides;
+
+        if (Array.isArray(correcciones) && correcciones.length > 0) {
+          try {
+            const n = await restaurarCorreccionesOradores(congId, correcciones);
+            resumenFinal += ` ${n} correcciones de oradores repuestas.`;
+          } catch (err) {
+            console.error('No se pudieron restaurar las correcciones', err);
+          }
+        }
+      }
 
       if (restaurarTerr && territoriosDeLaCopia && congId) {
         const r = await restaurarTerritorios(congId, territoriosDeLaCopia);

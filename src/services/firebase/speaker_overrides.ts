@@ -2,8 +2,10 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   setDoc,
+  writeBatch,
   type DocumentData,
 } from 'firebase/firestore';
 import { firestore } from './index';
@@ -84,3 +86,46 @@ export const subscribeCorreccionesOradores = (
       onUpdate([]);
     }
   );
+
+/**
+ * Las correcciones, para meterlas en la copia de seguridad.
+ *
+ * Viven en Firestore, así que una copia que solo mire la base local se las deja
+ * fuera y nadie se entera — exactamente el agujero que tenían los territorios.
+ */
+export const fetchSpeakerOverridesBackup = async (
+  congId: string
+): Promise<DocumentData[]> => {
+  const snap = await getDocs(overridesCol(congId));
+
+  return snap.docs.map((d) => d.data());
+};
+
+/**
+ * Reponerlas desde una copia.
+ *
+ * NO se vacía nada: se escribe lo que trae la copia y lo que exista ahora y no
+ * esté en ella se queda. Misma decisión que en los territorios — restaurar sirve
+ * para deshacer un estropicio, no para volver el reloj atrás y perder por el
+ * camino una corrección de esta semana.
+ */
+export const restaurarCorreccionesOradores = async (
+  congId: string,
+  correcciones: DocumentData[]
+): Promise<number> => {
+  const validas = (correcciones ?? []).filter(
+    (c) => typeof c?.speakerUid === 'string' && Array.isArray(c?.talks)
+  );
+
+  if (validas.length === 0) return 0;
+
+  const batch = writeBatch(firestore);
+
+  for (const correccion of validas) {
+    batch.set(overrideDoc(congId, correccion.speakerUid as string), correccion);
+  }
+
+  await batch.commit();
+
+  return validas.length;
+};

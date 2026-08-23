@@ -7,6 +7,7 @@ import {
 import backupsDb from '@db/backupsDb';
 import { googleDriveUploadBackup } from './googleDriveBackup';
 import { fetchTerritoryBackupData } from '@services/firebase/territories';
+import { fetchSpeakerOverridesBackup } from '@services/firebase/speaker_overrides';
 
 const STORAGE_KEYS = {
   LAST_AUTO_BACKUP: 'elda_centro_last_auto_backup',
@@ -74,12 +75,28 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
   let territories: Awaited<ReturnType<typeof fetchTerritoryBackupData>> | null =
     null;
 
+  // Las correcciones a los discursos del circuito viven también en Firestore, y
+  // se les aplica el mismo trato: si no se leen aquí, la copia se las deja fuera
+  // y nadie se entera hasta que hacen falta.
+  let speakerOverrides: Awaited<
+    ReturnType<typeof fetchSpeakerOverridesBackup>
+  > | null = null;
+
   if (congId) {
     try {
       territories = await fetchTerritoryBackupData(congId);
     } catch (error) {
       console.error(
         'No se pudieron leer los territorios para la copia:',
+        error
+      );
+    }
+
+    try {
+      speakerOverrides = await fetchSpeakerOverridesBackup(congId);
+    } catch (error) {
+      console.error(
+        'No se pudieron leer las correcciones de oradores para la copia:',
         error
       );
     }
@@ -143,6 +160,7 @@ export const generateBackupPayload = async (congId?: string): Promise<any> => {
       songs_override: songsOverride,
       delegated_field_service_reports: delegatedFieldServiceReports,
       ...(territories ? { territories } : {}),
+      ...(speakerOverrides ? { speaker_overrides: speakerOverrides } : {}),
     },
   };
 };

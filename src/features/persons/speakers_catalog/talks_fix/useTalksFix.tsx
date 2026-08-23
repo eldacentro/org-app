@@ -31,7 +31,7 @@ export const leerNumeros = (texto: string): number[] => {
   return [...new Set(numeros)].sort((a, b) => a - b);
 };
 
-const useTalksFix = (speaker: VisitingSpeakerType) => {
+const useTalksFix = (speaker: VisitingSpeakerType, open: boolean) => {
   const congId = useAtomValue(congIDState);
   const userUID = useAtomValue(userLocalUIDState);
   const persons = useAtomValue(personsState);
@@ -58,12 +58,21 @@ const useTalksFix = (speaker: VisitingSpeakerType) => {
   const [nota, setNota] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  const reiniciar = () => {
+  /**
+   * El campo se rellena al ABRIR, no cada vez que cambia el orador.
+   *
+   * Si dependiera del orador, una sincronización que llegara mientras se
+   * escribe rehace la lista de oradores, el objeto cambia de identidad y el
+   * campo se borraría con lo que llevaras escrito.
+   */
+  useEffect(() => {
+    if (!open) return;
+
     setTexto(discursosVigentes(speaker).join(', '));
     setNota(correccion?.note ?? '');
-  };
-
-  useEffect(reiniciar, [speaker, correccion]);
+    // A propósito solo `open`: rellenar es cosa de abrir el diálogo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const nombrePropio = useMemo(() => {
     const persona = persons.find((record) => record.person_uid === userUID);
