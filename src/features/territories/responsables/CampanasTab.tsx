@@ -6,7 +6,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import { IconDelete } from '@components/icons';
-import { TerritoryCard } from '@features/territories/ui';
+import { TagChip, TerritoryCard } from '@features/territories/ui';
 import { congIDState } from '@states/settings';
 import {
   territoriesState,
@@ -25,7 +25,11 @@ import {
   deleteCampaign,
   closeCampaign,
 } from '@services/firebase/territories';
-import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
+import {
+  formatTerritoryDate,
+  getZoneName,
+  territoryLabel,
+} from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
 import DialogCrearCampana from './DialogCrearCampana';
 import DialogSeleccionarTerritorios from './DialogSeleccionarTerritorios';
@@ -237,6 +241,13 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
         const campTerritories = c.territoryIds
           .map((id) => territories.find((t) => t.id === id))
           .filter((t): t is Territory => Boolean(t));
+        // Cuántos lleva de cada zona, en el orden de las zonas.
+        const porZona = zones
+          .map((zone) => ({
+            zone,
+            n: campTerritories.filter((t) => t.zoneId === zone.id).length,
+          }))
+          .filter(({ n }) => n > 0);
         const isOpen = expanded === c.id;
         const addable = territories.filter(
           (t) => !c.territoryIds.includes(t.id)
@@ -281,6 +292,25 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                       : `${c.territoryIds.length} territorios`}
                   </span>
                 </Typography>
+
+                {/* De cuántos va cada zona, sin abrir la campaña. Es lo que
+                    se mira para saber si está bien repartida —y si falta
+                    meter de alguna— sin tener que contar a mano una lista de
+                    treinta. */}
+                {porZona.length > 0 && (
+                  <Stack
+                    direction="row"
+                    sx={{ flexWrap: 'wrap', gap: '4px', mt: 0.75 }}
+                  >
+                    {porZona.map(({ zone, n }) => (
+                      <TagChip
+                        key={zone.id}
+                        label={`${zone.nombre}: ${n}`}
+                        color={zone.color}
+                      />
+                    ))}
+                  </Stack>
+                )}
               </Box>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
                 <Button
@@ -382,7 +412,10 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                               className="body-small-regular"
                               sx={{ color: 'var(--ink)', fontWeight: 500 }}
                             >
-                              {territoryLabel(t)}
+                              {/* Con la zona delante. Un "1" a secas no dice
+                                  nada cuando hay un 1 en cada una de las tres
+                                  zonas, y esta lista las mezcla. */}
+                              {getZoneName(t.zoneId, zones)} {territoryLabel(t)}
                             </Typography>
                             <Typography
                               className="label-small-regular"

@@ -10,6 +10,8 @@ import { deleteRequest, saveRequest } from '@services/firebase/territories';
 import { responsabilidadesState } from '@states/responsabilidades';
 import { personsState } from '@states/persons';
 import {
+  territoriesState,
+  territoryAssignedIdsState,
   territoryCampaignsState,
   territoryPendingRequestsState,
   territorySettingsState,
@@ -42,6 +44,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
 
   const campaigns = useAtomValue(territoryCampaignsState);
   const zonas = useAtomValue(territoryZonesSortedState);
+  const territorios = useAtomValue(territoriesState);
+  const asignados = useAtomValue(territoryAssignedIdsState);
 
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
@@ -49,6 +53,8 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const [campaignId, setCampaignId] = useState<string | null>(null);
   /** Zona preferida, o null para "cualquiera". */
   const [zoneId, setZoneId] = useState<string | null>(null);
+  /** El aviso de "en esa zona no queda nada", si se toca una zona vacía. */
+  const [zonaSinNada, setZonaSinNada] = useState<string | null>(null);
 
   /**
    * Las campañas que todavía no han terminado, la que antes empiece primero.
@@ -84,11 +90,35 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
   const enCampana = campanasEnMarcha.length > 0;
   const campanaElegida = campanasAbiertas.find((c) => c.id === campaignId);
 
+  /**
+   * Cuántos territorios quedan libres en cada zona AHORA MISMO.
+   *
+   * Cuenta lo que de verdad se le podría dar: si se está pidiendo para una
+   * campaña, solo los que esa campaña incluye. Sin esto se podía pedir "de
+   * Salinas" cuando en Salinas ya se habían repartido todos, y la solicitud
+   * llegaba con una preferencia imposible de cumplir — el responsable la leía,
+   * iba a buscar y no había nada.
+   */
+  const libresPorZona = useMemo(() => {
+    const deLaCampana = campanaElegida
+      ? new Set(campanaElegida.territoryIds)
+      : null;
+
+    const cuenta = new Map<string, number>();
+    for (const t of territorios) {
+      if (asignados.has(t.id)) continue;
+      if (deLaCampana && !deLaCampana.has(t.id)) continue;
+      cuenta.set(t.zoneId, (cuenta.get(t.zoneId) ?? 0) + 1);
+    }
+    return cuenta;
+  }, [territorios, asignados, campanaElegida]);
+
   useEffect(() => {
     if (!open) return;
     setNota('');
 
     setZoneId(null);
+    setZonaSinNada(null);
 
     // En campaña, la campaña y punto. Fuera de ella, la próxima viene marcada
     // igualmente —es lo que se pide casi siempre— pero diciendo debajo que
@@ -442,18 +472,53 @@ const DialogSolicitar = ({ open, onClose }: Props) => {
                     label="Cualquiera"
                     color="var(--ink-3)"
                     selected={zoneId === null}
-                    onClick={() => setZoneId(null)}
+                    onClick={() => {
+                      setZoneId(null);
+                      setZonaSinNada(null);
+                    }}
                   />
-                  {zonas.map((z) => (
-                    <TagChip
-                      key={z.id}
-                      label={z.nombre}
-                      color={z.color}
-                      selected={zoneId === z.id}
-                      onClick={() => setZoneId(z.id)}
-                    />
-                  ))}
+                  {zonas.map((z) => {
+                    const libres = libresPorZona.get(z.id) ?? 0;
+                    return (
+                      <Box
+                        key={z.id}
+                        // Apagada, no escondida: saber que Salinas existe pero
+                        // está sin nada libre es información. Escondiéndola,
+                        // quien la buscaba pensaría que la aplicación se ha
+                        // roto.
+                        sx={{ opacity: libres === 0 ? 0.45 : 1 }}
+                      >
+                        <TagChip
+                          label={z.nombre}
+                          color={z.color}
+                          selected={zoneId === z.id}
+                          onClick={() => {
+                            if (libres === 0) {
+                              // No se elige, se explica. Y se deja como
+                              // estaba: no tiene sentido cambiarle la
+                              // preferencia a una zona que no puede cumplirse.
+                              setZonaSinNada(z.nombre);
+                              return;
+                            }
+                            setZoneId(z.id);
+                            setZonaSinNada(null);
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
                 </Stack>
+
+                {zonaSinNada && (
+                  <Typography
+                    className="label-small-regular"
+                    color="var(--orange-dark)"
+                    sx={{ display: 'block', mt: 0.75 }}
+                  >
+                    En {zonaSinNada} no queda ningún territorio libre ahora
+                    mismo. Elige otra zona o deja «Cualquiera».
+                  </Typography>
+                )}
               </Box>
             )}
 
