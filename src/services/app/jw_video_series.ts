@@ -7,14 +7,16 @@
  * además se quedaría viejo; jw.org los sirve, y permite pedirlos desde el
  * navegador, igual que las duraciones de las canciones.
  *
- * LO QUE NO SIRVE jw.org POR AQUÍ: la descripción del episodio. Está en la
- * página web y la sirve el servidor —así que se ve en el HTML—, pero jw.org NO
- * manda la cabecera que permitiría a la aplicación pedírsela: el navegador corta
- * la petición. Traerla obligaría a pasar por nuestro servidor y a leer el HTML
- * de jw.org, que se rompe en silencio en cuanto rediseñen la página.
+ * LA DESCRIPCIÓN VIENE POR OTRO LADO. Esta interfaz de medios la devuelve
+ * SIEMPRE VACÍA —comprobado en español, inglés y francés, y por las dos rutas
+ * (un vídeo suelto y la serie entera)—; quien la tiene es la página web del
+ * episodio. Y esa no se puede pedir desde el navegador: jw.org no manda la
+ * cabecera que autorizaría a otro sitio a leerla. Así que la pide nuestro
+ * servidor, que entre servidores esa restricción no existe. Ver
+ * `apiJwVideoDescriptionGet` y, en el backend, `services/jw_video`.
  *
- * Así que se pega a mano, y para que eso cueste dos toques se guarda `lank`: el
- * identificador que abre el episodio en jw.org sin depender del idioma.
+ * Para las dos cosas hace falta `lank`: el identificador que abre el episodio en
+ * jw.org sin depender del idioma ni de cómo tengan ordenada la biblioteca.
  */
 
 export type JwSeries = {

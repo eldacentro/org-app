@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { JWLangState } from '@states/settings';
+import { apiJwVideoDescriptionGet } from '@services/api/app';
 import {
   fetchSeriesEpisodes,
   readSeries,
@@ -8,6 +9,9 @@ import {
   SERIES_DISPONIBLES,
   type JwEpisode,
 } from '@services/app/jw_video_series';
+
+/** En qué anda la descripción. */
+export type EstadoDescripcion = 'quieto' | 'trayendo' | 'fallo';
 
 /**
  * Los episodios de la serie, para poder elegir uno.
@@ -25,6 +29,17 @@ const useReplacement = () => {
     () => readSeries(lang, serie.key)?.episodes ?? []
   );
   const [cargando, setCargando] = useState(false);
+  const [estadoDescripcion, setEstadoDescripcion] =
+    useState<EstadoDescripcion>('quieto');
+
+  /**
+   * El último episodio por el que se ha preguntado.
+   *
+   * Se elige uno, y antes de que conteste jw.org se elige otro: si no se mira
+   * esto, la respuesta del primero llega después y pisa la descripción del
+   * segundo. Se ve poco y se entiende menos cuando pasa.
+   */
+  const ultimoPedido = useRef('');
 
   useEffect(() => {
     const guardada = readSeries(lang, serie.key);
@@ -42,7 +57,49 @@ const useReplacement = () => {
       .finally(() => setCargando(false));
   }, [lang, serie.key]);
 
-  return { serie, episodios, cargando, lang };
+  /**
+   * Trae la descripción del episodio y la entrega a quien la pidió.
+   *
+   * Pasa por nuestro servidor: jw.org publica la descripción en la página del
+   * vídeo, pero no manda la cabecera que dejaría a la aplicación pedírsela desde
+   * el navegador. Ver `apiJwVideoDescriptionGet`.
+   *
+   * Devolver cadena vacía NO es un fallo —hay vídeos sin descripción—, y por eso
+   * el estado se queda en «quieto»: no hay nada que reintentar. El estado de
+   * fallo es para cuando no se ha podido ni preguntar.
+   */
+  const pedirDescripcion = useCallback(
+    async (lank: string, aplicar: (texto: string) => void) => {
+      if (!lank) return;
+
+      ultimoPedido.current = lank;
+      setEstadoDescripcion('trayendo');
+
+      try {
+        const texto = await apiJwVideoDescriptionGet(lank);
+
+        if (ultimoPedido.current !== lank) return;
+
+        setEstadoDescripcion('quieto');
+
+        if (texto) aplicar(texto);
+      } catch {
+        if (ultimoPedido.current !== lank) return;
+
+        setEstadoDescripcion('fallo');
+      }
+    },
+    []
+  );
+
+  return {
+    serie,
+    episodios,
+    cargando,
+    lang,
+    estadoDescripcion,
+    pedirDescripcion,
+  };
 };
 
 export default useReplacement;

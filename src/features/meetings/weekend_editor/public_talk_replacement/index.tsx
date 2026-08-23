@@ -30,7 +30,14 @@ const PublicTalkReplacement = ({
   onChange: (value: Valor) => void;
   readOnly?: boolean;
 }) => {
-  const { serie, episodios, cargando, lang } = useReplacement();
+  const {
+    serie,
+    episodios,
+    cargando,
+    lang,
+    estadoDescripcion,
+    pedirDescripcion,
+  } = useReplacement();
 
   const esVideo = value?.kind === 'video';
 
@@ -57,15 +64,25 @@ const PublicTalkReplacement = ({
 
     if (!episodio) return;
 
-    onChange({
-      kind: 'video',
+    const base = {
+      kind: 'video' as const,
       media_key: episodio.key,
       series_name: serie.name,
       title: episodio.title,
       image: episodio.image,
       duration: episodio.duration,
-      description: value?.description ?? '',
-    });
+    };
+
+    // La descripción NO se hereda del episodio anterior. Antes se conservaba, y
+    // cambiar de episodio dejaba debajo el resumen del otro: un texto correcto
+    // en el sitio equivocado, que es lo que menos se mira.
+    onChange({ ...base, description: '' });
+
+    // Y se va a buscar la que toca. Se pide por nuestro servidor porque jw.org
+    // no deja pedírsela desde el navegador; ver `pedirDescripcion`.
+    pedirDescripcion(episodio.lank, (texto) =>
+      onChange({ ...base, description: texto })
+    );
   };
 
   return (
@@ -115,7 +132,11 @@ const PublicTalkReplacement = ({
           <Box>
             <TextField
               label="De qué va (opcional)"
-              placeholder="Pega aquí la descripción del episodio de jw.org"
+              placeholder={
+                estadoDescripcion === 'trayendo'
+                  ? 'Buscándola en jw.org…'
+                  : 'La trae la aplicación al elegir el episodio'
+              }
               value={value?.description ?? ''}
               multiline
               minRows={2}
@@ -130,13 +151,12 @@ const PublicTalkReplacement = ({
               }
             />
 
-            {/* Por qué se escribe a mano y no la trae la aplicación: la
-                descripción está en la página de jw.org, pero jw.org no manda la
-                cabecera que dejaría a la aplicación pedírsela — el navegador
-                corta la petición. Traerla obligaría a pasar por nuestro
-                servidor y a leer el HTML de jw.org, que se rompe en silencio en
-                cuanto rediseñen la página. Así que se pega, y el enlace de
-                debajo la deja a dos toques. */}
+            {/* La descripción la trae la aplicación al elegir el episodio,
+                pero pasando por nuestro servidor: jw.org la publica en la
+                página del vídeo y no manda la cabecera que dejaría pedírsela
+                desde el navegador. Se puede reescribir siempre, y si jw.org no
+                contesta se dice y se pega a mano — el enlace de debajo la deja
+                a dos toques. */}
             <Box
               sx={{
                 display: 'flex',
@@ -146,9 +166,17 @@ const PublicTalkReplacement = ({
                 padding: '4px 16px 0',
               }}
             >
-              <Typography className="label-small-regular" color="var(--ink-3)">
-                El título, la duración y la portada los trae la aplicación. La
-                descripción hay que pegarla: jw.org no la deja pedir desde aquí.
+              <Typography
+                className="label-small-regular"
+                color={
+                  estadoDescripcion === 'fallo'
+                    ? 'var(--orange-dark)'
+                    : 'var(--ink-3)'
+                }
+              >
+                {estadoDescripcion === 'fallo'
+                  ? 'jw.org no ha contestado, así que la descripción no ha venido. Puedes pegarla a mano.'
+                  : 'El título, la duración, la portada y la descripción los trae la aplicación de jw.org. Puedes cambiar este texto.'}
               </Typography>
 
               {episodioElegido?.lank && (
