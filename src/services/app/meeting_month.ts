@@ -2,7 +2,7 @@ import { store } from '@states/index';
 import { meetingExactDateState } from '@states/settings';
 import { schedulesGetMeetingDate } from './schedules';
 import { monthOfDate } from './month_publish';
-import { addDays, formatDate } from '@utils/date';
+import { addDays, formatDate, toComparableDate } from '@utils/date';
 import type { MeetingPublishKey } from './meetings_publish';
 
 /**
@@ -161,4 +161,37 @@ export const outgoingTalkDate = (
   if (!Number.isInteger(dia) || dia < 1 || dia > 7) return '';
 
   return formatDate(addDays(weekOf, Math.min(dia, 6)), 'yyyy/MM/dd');
+};
+
+/**
+ * ¿Esa reunión está todavía por delante?
+ *
+ * El aviso de ausencias de arriba de la página recorre el MES entero, y a
+ * mediados de mes eso incluye reuniones que ya se celebraron. Salía «hay una
+ * asignación en un día que esa persona está fuera — 9 ago» siendo 23 de agosto:
+ * un aviso que no se puede atender, porque ya no hay nada que cambiar. Y un
+ * aviso que no se puede atender es peor que ninguno, porque enseña a no
+ * mirarlos.
+ *
+ * El día de HOY cuenta como «por delante»: la reunión de esta tarde todavía se
+ * puede recolocar.
+ *
+ * Se compara con `toComparableDate` en las dos partes, que deja las fechas en
+ * 'yyyy/MM/dd' —se ordenan como texto— y entiende tanto '2026/08/09' como
+ * '2026-08-09'. Una fecha ilegible se da por buena: callar un aviso real por no
+ * saber leer la fecha es el peor de los dos fallos.
+ */
+export const reunionPorDelante = (
+  fecha: string,
+  hoy: string | Date = new Date()
+): boolean => {
+  const dia = toComparableDate(fecha);
+
+  if (!dia) return true;
+
+  const corte = toComparableDate(hoy);
+
+  if (!corte) return true;
+
+  return dia >= corte;
 };

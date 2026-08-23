@@ -29,6 +29,7 @@ import {
 import {
   meetingDateOfWeek,
   meetingMonthResolver,
+  reunionPorDelante,
 } from '@services/app/meeting_month';
 import { schedulesGetMeetingDate } from '@services/app/schedules';
 import { fmtDiaCorto } from '@utils/nombres_fecha';
@@ -150,6 +151,12 @@ const MeetingPublishNotice = ({
       // Un discurso saliente trae su propio día —el de la congregación que le
       // recibe—, y ese manda sobre el nuestro.
       const cuando = assignee.fecha || meetingDateOfWeek(assignee.weekOf, type);
+
+      // Lo que ya se celebró no se avisa. A mitad de mes el recorrido incluye
+      // reuniones pasadas, y avisar de una ausencia del día 9 siendo 23 es
+      // pedirle a alguien que arregle algo que ya no existe. Ver
+      // `reunionPorDelante`.
+      if (!reunionPorDelante(cuando)) continue;
 
       if (!personIsAwayOn(person, cuando.replace(/\//g, '-'))) continue;
 

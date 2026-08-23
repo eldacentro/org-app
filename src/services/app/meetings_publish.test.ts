@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { SchedWeekType } from '@definition/schedules';
 import { syncFromRemote } from '@services/worker/merge';
-import { outgoingTalkDate, weekdayFromApi } from './meeting_month';
+import {
+  outgoingTalkDate,
+  reunionPorDelante,
+  weekdayFromApi,
+} from './meeting_month';
 import {
   buildOutgoingMonthGaps,
   collectMeetingMonthAssignees,
@@ -1360,5 +1364,48 @@ describe('weekdayFromApi', () => {
     // Las dos mitades de la misma historia: lo que se guarda y lo que se lee.
     // 2026/11/09 es lunes; el domingo de esa semana es el 15.
     expect(outgoingTalkDate('2026/11/09', weekdayFromApi(7))).toBe('2026/11/15');
+  });
+});
+
+/**
+ * El aviso de ausencias mira el MES entero, y a mitad de mes eso arrastra
+ * reuniones ya celebradas. Salía «hay una asignación en un día que esa persona
+ * está fuera — 9 ago» siendo 23 de agosto. Nadie puede arreglar eso, y un aviso
+ * que no se puede atender enseña a no mirar los avisos.
+ */
+describe('reunionPorDelante', () => {
+  const hoy = '2026/08/23';
+
+  it('descarta la reunión que ya se celebró', () => {
+    expect(reunionPorDelante('2026/08/09', hoy)).toBe(false);
+    expect(reunionPorDelante('2026/08/22', hoy)).toBe(false);
+  });
+
+  it('mantiene la de hoy: todavía se puede recolocar', () => {
+    expect(reunionPorDelante('2026/08/23', hoy)).toBe(true);
+  });
+
+  it('mantiene las que quedan del mes', () => {
+    expect(reunionPorDelante('2026/08/26', hoy)).toBe(true);
+    expect(reunionPorDelante('2026/08/30', hoy)).toBe(true);
+    expect(reunionPorDelante('2026/09/02', hoy)).toBe(true);
+  });
+
+  it('entiende el guion y la fecha con hora, que es como llegan de sitios distintos', () => {
+    expect(reunionPorDelante('2026-08-09', hoy)).toBe(false);
+    expect(reunionPorDelante('2026-08-30', hoy)).toBe(true);
+    expect(reunionPorDelante('2026/08/30', new Date(2026, 7, 23))).toBe(true);
+  });
+
+  it('ante una fecha ilegible avisa igual', () => {
+    // Callar un choque real por no saber leer la fecha es el peor de los dos
+    // fallos: el aviso de más se ve y se descarta, el de menos no se ve.
+    expect(reunionPorDelante('', hoy)).toBe(true);
+    expect(reunionPorDelante('yo qué sé', hoy)).toBe(true);
+  });
+
+  it('cruza el año sin comparar mal', () => {
+    expect(reunionPorDelante('2027/01/03', '2026/12/28')).toBe(true);
+    expect(reunionPorDelante('2026/12/20', '2027/01/03')).toBe(false);
   });
 });
