@@ -1,39 +1,23 @@
 import { useState } from 'react';
 import { useAtomValue } from 'jotai';
-import {
-  congNameState,
-  congNumberState,
-  fullnameOptionState,
-} from '@states/settings';
-import { speakersCongregationsActiveState } from '@states/speakers_congregations';
-import { resolveLocalCongId } from '@services/app/visiting_speakers_reconcile';
+import { fullnameOptionState } from '@states/settings';
 import { speakerOverridesState } from '@states/speaker_overrides';
-import { useCurrentUser } from '@hooks/index';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
 
-const useView = (speaker: VisitingSpeakerType) => {
+/**
+ * Una fila del catálogo.
+ *
+ * Aquí NO se pregunta quién eres ni de qué congregación es el orador, y es a
+ * propósito: esta fila se pinta una vez por cada orador, y la congregación tiene
+ * 650. Preguntarlo aquí significaba montar el hook de permisos —que son más de
+ * cien hooks— seiscientas cincuenta veces, y además rompió el orden de los
+ * hooks y tumbó la pantalla. Lo decide la lista que las pinta, una sola vez, y
+ * lo pasa hecho.
+ */
+const useView = (speaker: VisitingSpeakerType, allowTalksFix = false) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const correcciones = useAtomValue(speakerOverridesState);
-  const congregations = useAtomValue(speakersCongregationsActiveState);
-  const congName = useAtomValue(congNameState);
-  const congNumber = useAtomValue(congNumberState);
-  const { isPublicTalkCoordinator, isWeekendEditor } = useCurrentUser();
-
-  /**
-   * Solo se corrige a los de FUERA.
-   *
-   * A los nuestros se les edita la ficha y ya: la lista de correcciones existe
-   * porque el Sheet del circuito reconstruye los discursos de los de fuera en
-   * cada pasada, y eso a los propios no les pasa. A los añadidos a mano
-   * tampoco, que el sync los respeta.
-   */
-  const localCongId = resolveLocalCongId(congregations, congName, congNumber);
-
-  const esDeFuera =
-    !!localCongId &&
-    speaker.speaker_data.cong_id !== localCongId &&
-    !speaker.speaker_data.manual?.value;
 
   const [showDetails, setShowDetails] = useState(false);
   const [openSpeakerDetails, setOpenSpeakerDetails] = useState(false);
@@ -60,7 +44,7 @@ const useView = (speaker: VisitingSpeakerType) => {
     talks,
     correccion,
     /** Quien arma el fin de semana necesita la lista buena; el resto, mirar. */
-    puedeCorregir: esDeFuera && (isPublicTalkCoordinator || isWeekendEditor),
+    puedeCorregir: allowTalksFix,
     openTalksFix,
     handleOpenTalksFix: () => setOpenTalksFix(true),
     handleCloseTalksFix: () => setOpenTalksFix(false),

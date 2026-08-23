@@ -9,7 +9,10 @@ import SpeakerDetails from '@features/persons/speakers_catalog/speaker_details';
 import TalksFix from '@features/persons/speakers_catalog/talks_fix';
 import Typography from '@components/typography';
 
-const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
+const SpeakerRowView = ({
+  speaker,
+  allowTalksFix,
+}: SpeakerReadOnlyViewType) => {
   const { t } = useAppTranslation();
 
   const { mobile400Down, laptopDown, tabletDown } = useBreakpoints();
@@ -28,7 +31,7 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
     handleCloseSpeakerDetails,
     handleOpenSpeakerDetails,
     openSpeakerDetails,
-  } = useSpeakerRowView(speaker);
+  } = useSpeakerRowView(speaker, allowTalksFix);
 
   return (
     <Box>
@@ -99,26 +102,37 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
               </Typography>
             )}
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* La marca va DEBAJO de los números, no al lado.
+              Al lado le robaba el ancho a la lista y «38, 108, 189» se partía
+              en tres renglones, uno por número, empujando el lápiz fuera de la
+              fila. Debajo es además donde ya vive la nota del hermano, así que
+              se lee igual que lo demás. */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <Typography className="body-small-semibold">{talks}</Typography>
 
-            {/* Que se vea que esta lista NO es la del circuito: si no, nadie
-                sabría por qué difiere de lo que tienen las demás
-                congregaciones, ni a quién preguntarle. */}
             {correccion && (
               <Typography
-                className="label-small-semibold"
+                className="label-small-regular"
                 color="var(--orange-dark)"
                 sx={{ whiteSpace: 'nowrap' }}
               >
-                · corregido aquí
+                corregido aquí
               </Typography>
             )}
           </Box>
         </Box>
 
+        {/* Las acciones no se encogen: el lápiz se salía de la fila cuando la
+            lista de discursos ocupaba varias líneas. */}
         {(showDetails || laptopDown) && (
-          <>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0,
+            }}
+          >
             {puedeCorregir && (
               <IconButton
                 aria-label="Corregir sus discursos"
@@ -164,7 +178,7 @@ const SpeakerRowView = ({ speaker }: SpeakerReadOnlyViewType) => {
                 />
               </IconButton>
             )}
-          </>
+          </Box>
         )}
       </Box>
     </Box>

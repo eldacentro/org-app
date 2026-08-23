@@ -1,7 +1,11 @@
 import { Box } from '@mui/material';
 import { IconAdd } from '@components/icons';
 import { SpeakersListType } from './index.types';
-import { useAppTranslation, useBreakpoints } from '@hooks/index';
+import {
+  useAppTranslation,
+  useBreakpoints,
+  useCurrentUser,
+} from '@hooks/index';
 import useSpeakersList from './useSpeakersList';
 import Button from '@components/button';
 import InfoTip from '@components/info_tip';
@@ -17,6 +21,15 @@ const SpeakersList = ({
   const { t } = useAppTranslation();
 
   const { mobile400Down } = useBreakpoints();
+
+  /**
+   * Quién puede corregir los discursos de un orador de fuera. Se pregunta UNA
+   * vez por lista y no una por fila: el hook de permisos son más de cien hooks,
+   * y aquí hay congregaciones con cientos de oradores.
+   */
+  const { isPublicTalkCoordinator, isWeekendEditor } = useCurrentUser();
+
+  const puedeCorregir = isPublicTalkCoordinator || isWeekendEditor;
 
   const {
     handleVisitingSpeakersAdd,
@@ -101,7 +114,11 @@ const SpeakersList = ({
             }}
           >
             {viewList.map((speaker) => (
-              <SpeakerRowView key={speaker.person_uid} speaker={speaker} />
+              <SpeakerRowView
+                key={speaker.person_uid}
+                speaker={speaker}
+                allowTalksFix={puedeCorregir}
+              />
             ))}
           </Box>
         </Box>
