@@ -8,7 +8,11 @@ import Typography from '@components/typography';
 import CountBadge from '@components/count_badge';
 import Tooltip from '@components/tooltip';
 import accentSurface from '@components/accent_surface';
-import { EstadoBadge, TagChip } from '@features/territories/ui';
+import {
+  AbrirTerritorio,
+  EstadoBadge,
+  TagChip,
+} from '@features/territories/ui';
 import { IconCheckCircle, IconInfo } from '@components/icons';
 import {
   territoriesState,
@@ -45,6 +49,7 @@ import { apiSendTerritoryPush } from '@services/api/territories';
 type Props = {
   onAsignar: (t: Territory) => void;
   onEntregar: (a: TerritoryAssignment) => void;
+  onView: (t: Territory) => void;
 };
 
 /** Días que el botón "Notificar" se queda apagado tras enviar un aviso. */
@@ -191,6 +196,7 @@ const NoAsignadoRow = ({
   dateFormat,
   daysUntilReassignable,
   onAsignar,
+  onView,
   showZone,
 }: {
   t: Territory;
@@ -199,6 +205,7 @@ const NoAsignadoRow = ({
   dateFormat: string;
   daysUntilReassignable: number;
   onAsignar: (t: Territory) => void;
+  onView: (t: Territory) => void;
   showZone: boolean;
 }) => {
   const resting = isInCooldown(t, daysUntilReassignable);
@@ -226,7 +233,7 @@ const NoAsignadoRow = ({
         ...(resting ? (accentSurface('var(--grey-400)') as object) : {}),
       }}
     >
-      <Box sx={{ minWidth: 0 }}>
+      <AbrirTerritorio label={territoryLabel(t)} onClick={() => onView(t)}>
         <Stack
           direction="row"
           alignItems="center"
@@ -248,15 +255,20 @@ const NoAsignadoRow = ({
             <TagChip key={tag.id} label={tag.nombre} color={tag.color} />
           ))}
         </Stack>
-        <Typography className="label-small-regular" color="var(--ink-3)">
+        <Typography
+          className="label-small-regular"
+          color="var(--ink-3)"
+          sx={{ display: 'block' }}
+        >
           {t.lastWorkedAt
             ? `Último trabajo: ${formatTerritoryDate(t.lastWorkedAt, dateFormat)}`
             : 'Nunca trabajado'}
         </Typography>
-      </Box>
+      </AbrirTerritorio>
       <Button
         variant="tertiary"
         disableAutoStretch
+        sx={{ flexShrink: 0 }}
         onClick={() => onAsignar(t)}
       >
         Asignar
@@ -275,6 +287,7 @@ const ZoneGroup = ({
   dateFormat,
   daysUntilReassignable,
   onAsignar,
+  onView,
 }: {
   zone: TerritoryZone;
   territories: Territory[];
@@ -282,6 +295,7 @@ const ZoneGroup = ({
   dateFormat: string;
   daysUntilReassignable: number;
   onAsignar: (t: Territory) => void;
+  onView: (t: Territory) => void;
 }) => {
   const [limit, setLimit] = useState(PAGE_SIZE);
   const visible = territories.slice(0, limit);
@@ -334,6 +348,7 @@ const ZoneGroup = ({
             dateFormat={dateFormat}
             daysUntilReassignable={daysUntilReassignable}
             onAsignar={onAsignar}
+            onView={onView}
             showZone={false}
           />
         ))}
@@ -355,7 +370,7 @@ const ZoneGroup = ({
 };
 
 // ─── Tab principal ─────────────────────────────────────────────────────────────
-const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
+const EstadisticasTab = ({ onAsignar, onEntregar, onView }: Props) => {
   const territories = useAtomValue(territoriesState);
   const loading = useAtomValue(territoriesLoadingState);
 
@@ -683,7 +698,10 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                     ...(accentSurface('var(--red-main)') as object),
                   }}
                 >
-                  <Box sx={{ minWidth: 0 }}>
+                  <AbrirTerritorio
+                    label={t ? territoryLabel(t) : 'territorio'}
+                    onClick={() => t && onView(t)}
+                  >
                     <Stack
                       direction="row"
                       alignItems="baseline"
@@ -706,6 +724,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                     <Typography
                       className="label-small-regular"
                       color="var(--ink-3)"
+                      sx={{ display: 'block' }}
                     >
                       Asignado el{' '}
                       {formatTerritoryDate(a.assignedAt, settings.dateFormat)} ·
@@ -714,7 +733,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                         {daysSince(a.assignedAt)} días
                       </strong>
                     </Typography>
-                  </Box>
+                  </AbrirTerritorio>
                   <Stack
                     direction="row"
                     spacing={1}
@@ -800,6 +819,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                 dateFormat={settings.dateFormat}
                 daysUntilReassignable={settings.daysUntilReassignable}
                 onAsignar={onAsignar}
+                onView={onView}
               />
             ))}
           </>
@@ -816,6 +836,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar }: Props) => {
                   dateFormat={settings.dateFormat}
                   daysUntilReassignable={settings.daysUntilReassignable}
                   onAsignar={onAsignar}
+                  onView={onView}
                   showZone={true}
                 />
               ))}

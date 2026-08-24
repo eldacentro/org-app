@@ -1,6 +1,7 @@
 import { displaySnackNotification } from '@services/states/app';
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -477,6 +478,34 @@ const DialogVerTerritorio = ({
   const [uploading, setUploading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
+  // Por estado y no por `useRef`: la hoja vive dentro del Paper del diálogo,
+  // que no está en el DOM hasta que se abre. Con una ref normal, el efecto
+  // corría al montar el componente —cuando todavía no hay nada que medir— y
+  // no volvía a correr nunca: la medida se quedaba en cero y la hoja seguía
+  // cortando los botones igual que antes.
+  const [cabeceraEl, setCabeceraEl] = useState<HTMLDivElement | null>(null);
+  const [accionesEl, setAccionesEl] = useState<HTMLDivElement | null>(null);
+  const [minAlturaHoja, setMinAlturaHoja] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!cabeceraEl) return;
+
+    const medir = () => {
+      // Un dedo de contenido por debajo de las pestañas: sin él la hoja se
+      // queda pegada a los botones y parece que dentro no hay nada.
+      setMinAlturaHoja(
+        cabeceraEl.offsetHeight + (accionesEl?.offsetHeight ?? 0) + 28
+      );
+    };
+
+    medir();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observador = new ResizeObserver(medir);
+    observador.observe(cabeceraEl);
+    if (accionesEl) observador.observe(accionesEl);
+    return () => observador.disconnect();
+  }, [cabeceraEl, accionesEl]);
+
   const zones = useAtomValue(territoryZonesState);
   const allTags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
@@ -715,12 +744,36 @@ const DialogVerTerritorio = ({
   const SHEET_HEIGHTS = ['30vh', '90vh', '76vh'];
   const sheetHeight = SHEET_HEIGHTS[tab];
 
+  // ── El suelo de la hoja ────────────────────────────────────────────────
+  // La cabecera y la barra de botones no encogen (no deben: son lo que se
+  // pulsa), así que en la pestaña Mapa —donde la hoja mide 30vh a propósito
+  // para que se vea el mapa— en un móvil de 6,3" no cabían: 30vh son 256px y
+  // solo la cabecera más los botones ya piden 303. Lo que sobraba se salía
+  // por debajo del `overflow: hidden` y los botones aparecían cortados por la
+  // mitad. En un móvil grande sí cabía, que es por qué esto no se veía.
+  //
+  // Se mide lo que ocupan de verdad (con dos botones o con tres, con o sin
+  // pie) y la hoja no baja de ahí. En un móvil grande el `max()` no cambia
+  // nada: 30vh siguen siendo más.
+
+  // `min(92%, …)` para que en horizontal la hoja no se coma la pantalla
+  // entera empujando su propia cabecera por encima del borde de arriba.
+  const alturaHoja = minAlturaHoja
+    ? `min(92%, max(${sheetHeight}, ${minAlturaHoja}px))`
+    : sheetHeight;
+
   // En vh para animar (consistente con SHEET_HEIGHTS) y en px para pasarle a
   // Leaflet el espacio que debe reservar abajo al encuadrar/centrar el mapa.
   const sheetHeightVh = parseFloat(sheetHeight);
   const sheetHeightPx =
     typeof window !== 'undefined'
-      ? Math.round((sheetHeightVh / 100) * window.innerHeight)
+      ? Math.min(
+          Math.round(0.92 * window.innerHeight),
+          Math.max(
+            Math.round((sheetHeightVh / 100) * window.innerHeight),
+            minAlturaHoja
+          )
+        )
       : 0;
 
   // ── LAYOUT MÓVIL ───────────────────────────────────────────────────────────
@@ -805,7 +858,7 @@ const DialogVerTerritorio = ({
           bottom: 0,
           left: 0,
           right: 0,
-          height: sheetHeight,
+          height: alturaHoja,
           zIndex: 100,
           // 380ms, más que `--motion-medium`, a propósito: una hoja que ocupa media
           // pantalla necesita más recorrido que un color de fondo. La CURVA sí es
@@ -830,106 +883,120 @@ const DialogVerTerritorio = ({
             el propio polígono del mapa. Era la tercera vez que se decía lo
             mismo en la misma pantalla, y la más fea de las tres. */}
 
-        {/* Drag handle pill */}
-        <Box
-          sx={{
-            flexShrink: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            pt: '10px',
-            pb: '6px',
-          }}
-        >
+        {/* Cabecera (asa + identidad + pestañas) en un solo bloque: es lo
+            que se mide para que la hoja nunca sea más baja que su propio
+            contenido fijo. */}
+        <Box ref={setCabeceraEl} sx={{ flexShrink: 0 }}>
+          {/* Drag handle pill */}
           <Box
             sx={{
-              width: 40,
-              height: 4,
-              borderRadius: 'var(--shape-full)',
-              backgroundColor: 'var(--line)',
+              flexShrink: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              pt: '10px',
+              pb: '6px',
             }}
-          />
-        </Box>
-
-        {/* IDENTITY BLOCK */}
-        <Box sx={{ flexShrink: 0, px: 3, pb: '12px' }}>
-          <Stack
-            direction="row"
-            alignItems="flex-start"
-            justifyContent="space-between"
           >
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              {/* Número del territorio */}
-              {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
+            <Box
+              sx={{
+                width: 40,
+                height: 4,
+                borderRadius: 'var(--shape-full)',
+                backgroundColor: 'var(--line)',
+              }}
+            />
+          </Box>
+
+          {/* IDENTITY BLOCK */}
+          <Box sx={{ flexShrink: 0, px: 3, pb: '12px' }}>
+            <Stack
+              direction="row"
+              alignItems="flex-start"
+              justifyContent="space-between"
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {/* Número del territorio */}
+                {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
                   y un peso que no existen en la escala de la app. `h1` es
                   el equivalente que sí está. */}
-              <Typography
-                className="h1"
-                color="var(--ink)"
-                sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  mb: '6px',
-                }}
-              >
-                {label}
-              </Typography>
+                <Typography
+                  className="h1"
+                  color="var(--ink)"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    mb: '6px',
+                  }}
+                >
+                  {label}
+                </Typography>
 
-              {/* Zona + estado */}
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                flexWrap="wrap"
-                gap={0.75}
-              >
-                <Stack direction="row" alignItems="center" spacing={'5px'}>
-                  <Box
-                    sx={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: 'var(--shape-full)',
-                      backgroundColor: color,
-                      boxShadow: `0 0 0 2.5px color-mix(in srgb, ${color} 15%, transparent)`,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <Typography
-                    className="label-small-medium"
-                    color="var(--ink-2)"
-                  >
-                    {zoneName}
-                  </Typography>
+                {/* Zona + estado */}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
+                  gap={0.75}
+                >
+                  <Stack direction="row" alignItems="center" spacing={'5px'}>
+                    <Box
+                      sx={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: 'var(--shape-full)',
+                        backgroundColor: color,
+                        boxShadow: `0 0 0 2.5px color-mix(in srgb, ${color} 15%, transparent)`,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography
+                      className="label-small-medium"
+                      color="var(--ink-2)"
+                    >
+                      {zoneName}
+                    </Typography>
+                  </Stack>
+                  {liveTerritory.numeroViviendas != null && (
+                    <ViviendasTag count={liveTerritory.numeroViviendas} />
+                  )}
+                  {/* Que el territorio sea de campaña se decía SOLO en el
+                    recuadro de asignación de la pestaña Info, y ese recuadro
+                    es solo para responsables: el publicador que lo abría no
+                    veía por ninguna parte que lo que tiene en la mano es un
+                    territorio de campaña. Va arriba, pegado al número, que es
+                    lo que se mira de un vistazo. */}
+                  {relevantAssignment?.isCampaign && (
+                    <Badge size="small" color="accent" text="Campaña" />
+                  )}
+                  {canManage && (
+                    <AssignedBadge
+                      status={assignedStatus}
+                      personName={
+                        relevantAssignment
+                          ? resolveName(relevantAssignment.personUid)
+                          : undefined
+                      }
+                    />
+                  )}
                 </Stack>
-                {liveTerritory.numeroViviendas != null && (
-                  <ViviendasTag count={liveTerritory.numeroViviendas} />
-                )}
-                {canManage && (
-                  <AssignedBadge
-                    status={assignedStatus}
-                    personName={
-                      relevantAssignment
-                        ? resolveName(relevantAssignment.personUid)
-                        : undefined
-                    }
-                  />
-                )}
-              </Stack>
-            </Box>
-          </Stack>
-        </Box>
+              </Box>
+            </Stack>
+          </Box>
 
-        {/* SEGMENTED CONTROL */}
-        <Box sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
-          <SegmentedControl
-            ariaLabel="Vistas del territorio"
-            tabs={['Mapa', 'Imagen', 'Info']}
-            counts={[undefined, undefined, noVisitarCount]}
-            active={tab}
-            onChange={(i) => {
-              setTab(i);
-            }}
-          />
+          {/* SEGMENTED CONTROL */}
+          <Box sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
+            <SegmentedControl
+              ariaLabel="Vistas del territorio"
+              tabs={['Mapa', 'Imagen', 'Info']}
+              counts={[undefined, undefined, noVisitarCount]}
+              active={tab}
+              onChange={(i) => {
+                setTab(i);
+              }}
+            />
+          </Box>
         </Box>
 
         {/* CONTENIDO DINÁMICO (scrollable) */}
@@ -1127,6 +1194,7 @@ const DialogVerTerritorio = ({
         {/* BARRA DE ACCIONES */}
         {(hayAcciones || footer) && (
           <Box
+            ref={setAccionesEl}
             sx={{
               flexShrink: 0,
               px: 3,
@@ -1282,6 +1350,9 @@ const DialogVerTerritorio = ({
             </Box>
             {liveTerritory.numeroViviendas != null && (
               <ViviendasTag count={liveTerritory.numeroViviendas} />
+            )}
+            {relevantAssignment?.isCampaign && (
+              <Badge size="small" color="accent" text="Campaña" />
             )}
             {canManage && (
               <AssignedBadge

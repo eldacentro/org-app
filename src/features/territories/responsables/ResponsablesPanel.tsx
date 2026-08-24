@@ -231,7 +231,11 @@ const ResponsablesPanel = ({
           {
             label: 'Estadísticas',
             Component: (
-              <EstadisticasTab onAsignar={onAsignar} onEntregar={onEntregar} />
+              <EstadisticasTab
+                onAsignar={onAsignar}
+                onEntregar={onEntregar}
+                onView={onView}
+              />
             ),
           },
           {
@@ -313,7 +317,12 @@ const ResponsablesPanel = ({
           },
           {
             label: 'Campañas',
-            Component: <CampanasTab onAsignarCampana={onAsignarCampana} />,
+            Component: (
+              <CampanasTab
+                onAsignarCampana={onAsignarCampana}
+                onView={onView}
+              />
+            ),
           },
           {
             label: 'Importar/Exportar',

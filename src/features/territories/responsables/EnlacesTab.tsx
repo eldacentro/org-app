@@ -180,6 +180,15 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
           const caducado =
             share.expiresAt?.toDate?.() &&
             share.expiresAt.toDate() <= new Date();
+          // Quién tiene el territorio por el que vive este enlace. Si la
+          // asignación ya no está (registro borrado), se cae con elegancia a
+          // la frase de antes.
+          const asignadoA = share.assignmentId
+            ? (() => {
+                const a = assignments.find((x) => x.id === share.assignmentId);
+                return a ? resolveName(a.personUid) : null;
+              })()
+            : null;
           const estado = live
             ? { color: 'green' as const, texto: 'Activo' }
             : share.revoked
@@ -227,9 +236,14 @@ const EnlacesTab = ({ onView }: { onView: (t: Territory) => void }) => {
                     color="var(--ink-2)"
                     sx={{ display: 'block', mt: '4px' }}
                   >
+                    {/* "atado a una asignación" no decía a la de QUIÉN, que
+                        es justo lo que se quiere saber: un enlace atado
+                        caduca cuando ese hermano entrega el territorio. */}
                     Se ve: {describeIncludes(share.includes)} ·{' '}
                     {share.assignmentId
-                      ? 'atado a una asignación'
+                      ? asignadoA
+                        ? `atado a la asignación de ${asignadoA}`
+                        : 'atado a una asignación'
                       : 'sin asignación'}
                   </Typography>
                   <Typography

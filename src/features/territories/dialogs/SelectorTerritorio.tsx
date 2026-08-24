@@ -5,14 +5,15 @@ import Typography from '@components/typography';
 import Button from '@components/button';
 import FilterChip from '@components/filter_chip';
 import { IconArrowBack, IconChevronRight } from '@components/icons';
-import { EstadoBadge } from '@features/territories/ui';
+import { EstadoBadge, TagChip } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignedIdsState,
   territorySettingsState,
+  territoryTagsState,
   territoryZonesSortedState,
 } from '@states/territories';
-import { Territory } from '@definition/territories';
+import { Territory, TerritoryTag } from '@definition/territories';
 import { isInCooldown, territoryLabel } from '@services/app/territories';
 
 /**
@@ -89,6 +90,7 @@ const SelectorTerritorio = ({
   const zonas = useAtomValue(territoryZonesSortedState);
   const asignados = useAtomValue(territoryAssignedIdsState);
   const settings = useAtomValue(territorySettingsState);
+  const tags = useAtomValue(territoryTagsState);
   // `subscribeSettings` reemplaza el objeto entero por lo que haya guardado,
   // así que si el documento de la congregación es antiguo y no trae este
   // campo, llegaría `undefined` y `isInCooldown` calcularía con una fecha
@@ -98,7 +100,11 @@ const SelectorTerritorio = ({
   const [zonaAbierta, setZonaAbierta] = useState<string | null>(
     zonaInicial ?? null
   );
-  const [orden, setOrden] = useState<Orden>('numero');
+  // Por defecto, el que lleva más tiempo sin trabajarse: repartir por número
+  // es lo que hace que unos territorios se pisen tres veces al año y otros no
+  // se toquen nunca. El orden por número sigue estando para buscar uno
+  // concreto, pero deja de ser lo primero que se ofrece.
+  const [orden, setOrden] = useState<Orden>('antiguedad');
 
   const hayCampana = (campaignTerritoryIds?.length ?? 0) > 0;
   // Empieza acotado a la campaña, que es a lo que se viene cuando se asigna
@@ -346,20 +352,25 @@ const SelectorTerritorio = ({
           la pantalla de Estadísticas a mirarlo y volver. */}
       <Stack direction="row" spacing={1}>
         <FilterChip
-          label="Por número"
-          selected={orden === 'numero'}
-          onClick={() => setOrden('numero')}
-        />
-        <FilterChip
           label="Sin trabajar hace más"
           selected={orden === 'antiguedad'}
           onClick={() => setOrden('antiguedad')}
+        />
+        <FilterChip
+          label="Por número"
+          selected={orden === 'numero'}
+          onClick={() => setOrden('numero')}
         />
       </Stack>
 
       <Stack spacing={0.75} sx={{ maxHeight: 260, overflowY: 'auto', pr: 0.5 }}>
         {listaZona.map((t) => {
           const descansando = isInCooldown(t, diasDescanso);
+          // Elegir cuál se da es elegir entre uno grande y uno pequeño; sin
+          // las etiquetas había que salir del diálogo a mirarlo.
+          const misEtiquetas = (t.tags ?? [])
+            .map((id) => tags.find((tag) => tag.id === id))
+            .filter(Boolean) as TerritoryTag[];
           return (
             <Box
               key={t.id}
@@ -383,13 +394,27 @@ const SelectorTerritorio = ({
               }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography
-                  className="body-regular-semibold"
-                  sx={{ color: 'var(--ink)' }}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.5}
+                  sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                 >
-                  {t.numero}
-                  {t.nombre ? ` · ${t.nombre}` : ''}
-                </Typography>
+                  <Typography
+                    className="body-regular-semibold"
+                    sx={{ color: 'var(--ink)' }}
+                  >
+                    {t.numero}
+                    {t.nombre ? ` · ${t.nombre}` : ''}
+                  </Typography>
+                  {misEtiquetas.map((tag) => (
+                    <TagChip
+                      key={tag.id}
+                      label={tag.nombre}
+                      color={tag.color}
+                    />
+                  ))}
+                </Stack>
                 <Typography
                   className="label-small-regular"
                   sx={{ color: 'var(--ink-2)' }}

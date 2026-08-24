@@ -6,18 +6,24 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import { IconDelete } from '@components/icons';
-import { TagChip, TerritoryCard } from '@features/territories/ui';
+import {
+  AbrirTerritorio,
+  TagChip,
+  TerritoryCard,
+} from '@features/territories/ui';
 import { congIDState } from '@states/settings';
 import {
   territoriesState,
   territoryCampaignsState,
   territoryAssignmentsState,
   territoryZonesState,
+  territoryTagsState,
 } from '@states/territories';
 import {
   Territory,
   TerritoryAssignment,
   TerritoryCampaign,
+  TerritoryTag,
 } from '@definition/territories';
 import {
   addCampaignTerritories,
@@ -34,9 +40,11 @@ import { territorySettingsState } from '@states/territories';
 import DialogCrearCampana from './DialogCrearCampana';
 import DialogSeleccionarTerritorios from './DialogSeleccionarTerritorios';
 import { displaySnackNotification } from '@services/states/app';
+import { usePersonName } from '@features/territories/usePersonName';
 
 type Props = {
   onAsignarCampana: (territory: Territory, campaignId: string) => void;
+  onView: (territory: Territory) => void;
 };
 
 const estadoColor: Record<string, string> = {
@@ -62,13 +70,15 @@ const ESTADO_TEXTO: Record<string, string> = {
   pasada: 'Pasada',
 };
 
-const CampanasTab = ({ onAsignarCampana }: Props) => {
+const CampanasTab = ({ onAsignarCampana, onView }: Props) => {
   const congId = useAtomValue(congIDState);
   const campaigns = useAtomValue(territoryCampaignsState);
   const territories = useAtomValue(territoriesState);
   const assignments = useAtomValue(territoryAssignmentsState);
   const zones = useAtomValue(territoryZonesState);
+  const tags = useAtomValue(territoryTagsState);
   const settings = useAtomValue(territorySettingsState);
+  const resolveName = usePersonName();
 
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -388,6 +398,13 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                       const latest: TerritoryAssignment | undefined =
                         campaignAssignments[0];
                       const open = Boolean(latest && !latest.returnedAt);
+                      // Las etiquetas dicen de un vistazo si el territorio es
+                      // grande o pequeño. Aquí hacen la misma falta que en la
+                      // pestaña de Territorios: esta lista es desde donde se
+                      // reparte la campaña.
+                      const misEtiquetas = (t.tags ?? [])
+                        .map((id) => tags.find((tag) => tag.id === id))
+                        .filter(Boolean) as TerritoryTag[];
                       return (
                         <Stack
                           key={t.id}
@@ -407,26 +424,47 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                               : 'transparent',
                           }}
                         >
-                          <Box>
-                            <Typography
-                              className="body-small-regular"
-                              sx={{ color: 'var(--ink)', fontWeight: 500 }}
+                          <AbrirTerritorio
+                            label={`${getZoneName(t.zoneId, zones)} ${territoryLabel(t)}`}
+                            onClick={() => onView(t)}
+                          >
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={0.5}
+                              sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                             >
-                              {/* Con la zona delante. Un "1" a secas no dice
-                                  nada cuando hay un 1 en cada una de las tres
-                                  zonas, y esta lista las mezcla. */}
-                              {getZoneName(t.zoneId, zones)} {territoryLabel(t)}
-                            </Typography>
+                              <Typography
+                                className="body-small-regular"
+                                sx={{ color: 'var(--ink)', fontWeight: 500 }}
+                              >
+                                {/* Con la zona delante. Un "1" a secas no dice
+                                    nada cuando hay un 1 en cada una de las tres
+                                    zonas, y esta lista las mezcla. */}
+                                {getZoneName(t.zoneId, zones)}{' '}
+                                {territoryLabel(t)}
+                              </Typography>
+                              {misEtiquetas.map((tag) => (
+                                <TagChip
+                                  key={tag.id}
+                                  label={tag.nombre}
+                                  color={tag.color}
+                                />
+                              ))}
+                            </Stack>
                             <Typography
                               className="label-small-regular"
                               sx={{
+                                display: 'block',
                                 color: open
                                   ? 'var(--orange-dark)'
                                   : 'var(--ink-2)',
                               }}
                             >
+                              {/* "Asignado (campaña)" a secas obligaba a irse
+                                  al historial para saber quién lo tiene. */}
                               {open
-                                ? 'Asignado (campaña)'
+                                ? `Asignado (campaña) a ${resolveName(latest!.personUid)}`
                                 : latest?.returnedAt
                                   ? `Entregado el ${formatTerritoryDate(latest.returnedAt, settings.dateFormat)} (${
                                       latest.status === 'trabajado'
@@ -435,7 +473,7 @@ const CampanasTab = ({ onAsignarCampana }: Props) => {
                                     })`
                                   : 'Sin asignar en esta campaña'}
                             </Typography>
-                          </Box>
+                          </AbrirTerritorio>
                           <Stack
                             direction="row"
                             spacing={1}

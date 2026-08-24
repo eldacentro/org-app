@@ -102,6 +102,57 @@ type TagChipProps = {
  * (el ámbar de "Grande") el texto blanco encima no se leía. El punto sigue
  * diciendo de qué etiqueta se trata.
  */
+/**
+ * El bloque de texto de una fila que ABRE el territorio.
+ *
+ * Las filas de Campañas y Estadísticas llevan sus propios botones a la
+ * derecha ("Asignar", "Entregar", "Quitar"), así que la fila entera no puede
+ * ser un botón: se anidarían. Pero el nombre del territorio SÍ tiene que
+ * poder pulsarse — era el único sitio del panel donde un territorio no se
+ * podía abrir para verlo. Esto es un `button` de verdad (teclado y lector de
+ * pantalla incluidos) que no se ve como tal: el texto queda igual que antes.
+ */
+export const AbrirTerritorio = ({
+  label,
+  onClick,
+  children,
+}: {
+  /** Nombre legible del territorio, para el lector de pantalla. */
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) => (
+  <Box
+    component="button"
+    type="button"
+    aria-label={`Ver ${label}`}
+    onClick={onClick}
+    className="active-press"
+    sx={{
+      appearance: 'none',
+      font: 'inherit',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      margin: 0,
+      textAlign: 'left',
+      cursor: 'pointer',
+      minWidth: 0,
+      flex: 1,
+      // En móvil estas filas son columnas: sin esto, el área que se pulsa
+      // acababa siendo solo el ancho del texto.
+      width: '100%',
+      '&:focus-visible': {
+        outline: '2px solid var(--accent-main)',
+        outlineOffset: '3px',
+        borderRadius: 'var(--shape-xs)',
+      },
+    }}
+  >
+    {children}
+  </Box>
+);
+
 export const TagChip = ({
   label,
   color,
