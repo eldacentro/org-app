@@ -25,7 +25,7 @@ import { displaySnackNotification } from '@services/states/app';
  *
  * Sirve para dos cosas, y por eso la pantalla no las explica: las enseña con
  * ejemplos al ponerle nombre a cada parte. Una es repartir un territorio
- * grande entre varios en la misma salida ("con Ana", "con Pedro"), que hasta
+ * grande entre varios en la misma salida, que hasta
  * ahora se explicaba señalando con el dedo en la puerta del Salón. La otra es
  * trabajárselo uno por partes ("esta semana", "la que viene"), que se hacía
  * de memoria y siempre quedaba una calle sin tocar.
@@ -390,8 +390,8 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
 
           {secciones.length > 0 && (
             <Typography className="label-small-regular" color="var(--ink-3)">
-              Toca una parte para ponerle nombre: «Con Ana», «Esta semana»… Las
-              letras valen igual.
+              Toca una parte para ponerle nombre: quien la lleva, o cuándo la
+              vas a hacer. Las letras valen igual.
             </Typography>
           )}
 
@@ -472,9 +472,9 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
 
       {/* Ponerle nombre a la parte.
         Las letras valen para partir, pero lo que se dice en la puerta del
-        Salón es "vete tú con Ana": con el nombre del que lo lleva puesto en
-        la parte, el mapa compartido ya dice el reparto entero sin explicar
-        nada. */}
+        Salón es a quién le toca cada cual: con eso puesto en la parte, el
+        mapa compartido ya dice el reparto entero sin explicar nada. Y si uno
+        se lo trabaja solo en tres tardes, el nombre es cuándo le toca. */}
       <Dialog open={Boolean(renombrando)} onClose={() => setRenombrando(null)}>
         <Stack spacing={2} sx={{ width: '100%' }}>
           <Typography className="h2" color="var(--ink)">

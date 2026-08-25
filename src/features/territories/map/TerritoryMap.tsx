@@ -81,7 +81,7 @@ type TerritoryMapProps = {
 const chapaSeccion = (nombre: string, color: string) =>
   L.divIcon({
     // Tamaño CERO y el rótulo centrado con un `translate`: con `iconSize`
-    // fijo, un nombre como "Con Ana" se partía en dos renglones dentro de un
+    // fijo, un nombre de dos palabras se partía en dos renglones dentro de un
     // círculo de 22px y se salía por los lados. Así la chapa mide lo que mida
     // el nombre y sigue quedando centrada en el trozo.
     className: '',

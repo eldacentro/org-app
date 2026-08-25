@@ -16,7 +16,7 @@ import { TerritorySection } from '@definition/territories';
 
 const trozo: TerritorySection = {
   id: 's1',
-  nombre: 'Con Ana',
+  nombre: 'La de arriba',
   color: '#2563EB',
   geometry: {
     type: 'Polygon',
