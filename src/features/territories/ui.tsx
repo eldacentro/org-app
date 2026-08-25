@@ -72,6 +72,13 @@ type TagChipProps = {
   selected?: boolean;
   onClick?: () => void;
   title?: string;
+  /**
+   * La parte de un territorio ya está hecha: se apaga y se tacha.
+   *
+   * Es una marca personal de quien lleva el territorio, no un registro — ver
+   * `TerritorySection.hecha`.
+   */
+  hecha?: boolean;
 };
 
 /**
@@ -159,6 +166,7 @@ export const TagChip = ({
   selected,
   onClick,
   title,
+  hecha,
 }: TagChipProps) => (
   <Box
     component={onClick ? 'button' : 'div'}
@@ -185,6 +193,14 @@ export const TagChip = ({
       backgroundColor: selected ? 'var(--state-selected)' : 'var(--grey-100)',
       border: `1px solid ${selected ? 'var(--state-selected)' : 'var(--line)'}`,
       color: selected ? 'var(--state-selected-ink)' : 'var(--ink)',
+      // Hecha: se apaga y se tacha. Apagar SOLO con opacidad bajaría el texto
+      // del contraste mínimo, así que el color va a `--ink-3`, que es un gris
+      // legible, y el punto de color se queda hueco.
+      ...(hecha && {
+        color: 'var(--ink-3)',
+        textDecoration: 'line-through',
+        backgroundColor: 'transparent',
+      }),
       cursor: onClick ? 'pointer' : 'default',
       transition: onClick
         ? 'background-color var(--motion-fast) var(--ease-standard)'
@@ -208,7 +224,8 @@ export const TagChip = ({
         width: 8,
         height: 8,
         borderRadius: 'var(--shape-full)',
-        backgroundColor: color,
+        backgroundColor: hecha ? 'transparent' : color,
+        border: hecha ? `1.5px solid ${color}` : undefined,
         flexShrink: 0,
       }}
     />

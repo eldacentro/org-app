@@ -208,12 +208,126 @@ const SIZE_TAG_NAMES = new Set([
 const TarjetaReparto = ({
   secciones,
   onDividir,
+  onMarcar,
 }: {
   secciones?: TerritorySection[];
   /** Solo se pasa a quien puede dividirlo; si no, la tarjeta solo informa. */
   onDividir?: () => void;
+  /** Solo se pasa si se pueden marcar partes (ajuste) y quien mira puede. */
+  onMarcar?: (seccionId: string) => void;
 }) => {
   if (!onDividir && !secciones?.length) return null;
+
+  const hechas = secciones?.filter((s) => s.hecha).length ?? 0;
+
+  // Ordenadas alfabéticamente: el corte mete cada parte nueva al lado de la
+  // que ha partido, y "A, C, B" en una lista se lee como un error.
+  const ordenadas = [...(secciones ?? [])].sort((a, b) =>
+    a.nombre.localeCompare(b.nombre)
+  );
+
+  const cuerpo = (
+    <>
+      <Box
+        aria-hidden
+        sx={{
+          width: 38,
+          height: 38,
+          flexShrink: 0,
+          borderRadius: 'var(--shape-md)',
+          backgroundColor: 'var(--accent-150)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <IconEditMap color="var(--accent-dark)" width={20} height={20} />
+      </Box>
+
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {secciones?.length ? (
+          <>
+            <Typography className="body-small-semibold" color="var(--ink)">
+              {/* Cuando hay algo marcado, el rótulo lo dice: es lo que se
+                  viene a mirar al volver el sábado siguiente. */}
+              {hechas > 0
+                ? `${hechas} de ${secciones.length} partes hechas`
+                : `Dividido en ${secciones.length} partes`}
+            </Typography>
+            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: '4px' }}>
+              {ordenadas.map((seccion) =>
+                onMarcar ? (
+                  <Box
+                    key={seccion.id}
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      // La tarjeta entera abre "dividir"; la pastilla, no.
+                      e.stopPropagation();
+                      onMarcar(seccion.id);
+                    }}
+                    aria-pressed={Boolean(seccion.hecha)}
+                    aria-label={
+                      seccion.hecha
+                        ? `${seccion.nombre}: hecha. Tocar para desmarcar`
+                        : `Marcar ${seccion.nombre} como hecha`
+                    }
+                    className="active-press"
+                    sx={{
+                      appearance: 'none',
+                      font: 'inherit',
+                      padding: 0,
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      '&:focus-visible': {
+                        outline: '2px solid var(--accent-main)',
+                        outlineOffset: '2px',
+                        borderRadius: 'var(--shape-full)',
+                      },
+                    }}
+                  >
+                    <TagChip
+                      label={seccion.nombre}
+                      color={seccion.color}
+                      hecha={Boolean(seccion.hecha)}
+                    />
+                  </Box>
+                ) : (
+                  <TagChip
+                    key={seccion.id}
+                    label={seccion.nombre}
+                    color={seccion.color}
+                    hecha={Boolean(seccion.hecha)}
+                  />
+                )
+              )}
+            </Stack>
+          </>
+        ) : (
+          <>
+            <Typography className="body-small-semibold" color="var(--ink)">
+              Dividir el territorio
+            </Typography>
+            <Typography
+              className="label-small-regular"
+              color="var(--ink-2)"
+              sx={{ display: 'block' }}
+            >
+              Para repartirlo entre varios, o hacerlo en varios días
+            </Typography>
+          </>
+        )}
+      </Box>
+
+      {onDividir && (
+        <IconChevronRight color="var(--ink-3)" width={20} height={20} />
+      )}
+    </>
+  );
 
   return (
     <Box
@@ -251,63 +365,7 @@ const TarjetaReparto = ({
         }),
       }}
     >
-      {/* La chapa del icono va con relleno y sin borde, como el resto de la
-          app. */}
-      <Box
-        aria-hidden
-        sx={{
-          width: 38,
-          height: 38,
-          flexShrink: 0,
-          borderRadius: 'var(--shape-md)',
-          backgroundColor: 'var(--accent-150)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <IconEditMap color="var(--accent-dark)" width={20} height={20} />
-      </Box>
-
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        {secciones?.length ? (
-          <>
-            <Typography className="body-small-semibold" color="var(--ink)">
-              Dividido en {secciones.length} partes
-            </Typography>
-            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: '4px' }}>
-              {/* Alfabético: el corte mete cada parte nueva al lado de la que
-                  ha partido, y "A, C, B" en una lista se lee como un error. */}
-              {[...secciones]
-                .sort((a, b) => a.nombre.localeCompare(b.nombre))
-                .map((seccion) => (
-                  <TagChip
-                    key={seccion.id}
-                    label={seccion.nombre}
-                    color={seccion.color}
-                  />
-                ))}
-            </Stack>
-          </>
-        ) : (
-          <>
-            <Typography className="body-small-semibold" color="var(--ink)">
-              Dividir el territorio
-            </Typography>
-            <Typography
-              className="label-small-regular"
-              color="var(--ink-2)"
-              sx={{ display: 'block' }}
-            >
-              Para repartirlo entre varios, o hacerlo en varios días
-            </Typography>
-          </>
-        )}
-      </Box>
-
-      {onDividir && (
-        <IconChevronRight color="var(--ink-3)" width={20} height={20} />
-      )}
+      {cuerpo}
     </Box>
   );
 };
@@ -834,6 +892,21 @@ const DialogVerTerritorio = ({
   }, [liveTerritory, openAssignments]);
 
   /**
+   * Las partes tal y como se enseñan.
+   *
+   * Con el ajuste apagado, las marcas de "hecha" no se ven: apagado tiene que
+   * querer decir que la función no existe, no que se queda a medias enseñando
+   * tachados que ya nadie puede cambiar. Como son efímeras —se van al
+   * entregar—, esconderlas no pierde nada.
+   */
+  const seccionesVisibles = useMemo(() => {
+    const partes = liveTerritory?.secciones;
+    if (!partes?.length) return partes;
+    if (settings.partesMarcables !== false) return partes;
+    return partes.map((parte) => ({ ...parte, hecha: false }));
+  }, [liveTerritory?.secciones, settings.partesMarcables]);
+
+  /**
    * Las últimas entregas cerradas de ESTE territorio, con el nombre resuelto.
    *
    * Se corta en cinco a propósito: esto es "¿a quién se lo he dado hace poco y
@@ -913,6 +986,47 @@ const DialogVerTerritorio = ({
     relevantAssignment.personUid === currentUid
   );
   const canReturnThis = canManage || (settings.publishersCanReturn && isMine);
+
+  /**
+   * Marcar partes hechas.
+   *
+   * Lo puede hacer quien lleva el territorio, un responsable, y también aquel
+   * con quien se ha compartido: en una salida, el que se lleva la parte de
+   * abajo es justo el que sabe cuándo está terminada. Y se puede apagar del
+   * todo desde los ajustes de Territorios, por si en la congregación no se
+   * quiere usar.
+   */
+  const esPrestado = Boolean(
+    relevantAssignment?.compartidoCon?.some(
+      (p) => p.personUid === currentUid && p.hasta > new Date().toISOString()
+    )
+  );
+
+  const puedeMarcarPartes =
+    settings.partesMarcables !== false &&
+    Boolean(liveTerritory?.secciones?.length) &&
+    (canManage || isMine || esPrestado);
+
+  const marcarParte = async (seccionId: string) => {
+    if (!liveTerritory?.secciones) return;
+
+    const actualizadas = liveTerritory.secciones.map((seccion) =>
+      seccion.id === seccionId ? { ...seccion, hecha: !seccion.hecha } : seccion
+    );
+
+    try {
+      await updateTerritoryPartial(congID, liveTerritory.id, {
+        secciones: actualizadas,
+      });
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        header: 'No se ha podido marcar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+      });
+    }
+  };
 
   /**
    * Prestárselo a otro hermano solo puede hacerlo QUIEN LO TIENE. Ni un
@@ -1097,7 +1211,7 @@ const DialogVerTerritorio = ({
           showLiveLocation={showLiveLocation}
           height="100%"
           borderRadius={0}
-          secciones={liveTerritory.secciones}
+          secciones={seccionesVisibles}
           bottomInset={sheetHeightPx}
           onNavigate={handleNavigate}
         />
@@ -1328,10 +1442,11 @@ const DialogVerTerritorio = ({
               }}
             >
               <TarjetaReparto
-                secciones={liveTerritory.secciones}
+                secciones={seccionesVisibles}
                 onDividir={
                   puedeDividir ? () => setDividirOpen(true) : undefined
                 }
+                onMarcar={puedeMarcarPartes ? marcarParte : undefined}
               />
             </Box>
           )}
@@ -1614,7 +1729,7 @@ const DialogVerTerritorio = ({
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
-          secciones={liveTerritory.secciones}
+          secciones={seccionesVisibles}
           onNavigate={handleNavigate}
         />
 
@@ -1783,7 +1898,7 @@ const DialogVerTerritorio = ({
           {tab === 0 && (
             <Box sx={{ mb: '14px' }}>
               <TarjetaReparto
-                secciones={liveTerritory.secciones}
+                secciones={seccionesVisibles}
                 onDividir={
                   puedeDividir ? () => setDividirOpen(true) : undefined
                 }

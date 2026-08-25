@@ -82,6 +82,17 @@ export type TerritorySection = {
   /** Color con el que se pinta en el mapa. Es un dato, no un token. */
   color: string;
   geometry: Polygon | MultiPolygon;
+  /**
+   * Marcada como hecha por quien lleva el territorio.
+   *
+   * Es una lista de la compra, NO un informe: no toca el estado de la
+   * asignación, no sale en el S-13 ni en el historial, no cuenta en las
+   * estadísticas y no impide devolver el territorio como se quiera. Sirve
+   * para acordarse de por dónde se iba —y para que el otro grupo de la
+   * salida vea que su parte ya está—, y se muere con la división cuando el
+   * territorio se entrega.
+   */
+  hecha?: boolean;
 };
 
 export type TerritoryAssignmentStatus =
@@ -267,6 +278,8 @@ export type TerritorySettings = {
   publishersCanReturn: boolean;
   publishersCanSeeGroup: boolean;
   publishersCanAddLocations: boolean;
+  /** ¿Se pueden marcar como hechas las partes de un territorio dividido? */
+  partesMarcables?: boolean;
   // ── Configuración de ubicación ──
   locationsRequireApproval: boolean;
   managers?: { uid: string; email: string; name: string }[];
@@ -292,6 +305,7 @@ export const DEFAULT_TERRITORY_SETTINGS: Omit<TerritorySettings, 'updatedAt'> =
     publishersCanReturn: true,
     publishersCanSeeGroup: false,
     publishersCanAddLocations: true,
+    partesMarcables: true,
     locationsRequireApproval: true,
   };
 

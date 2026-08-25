@@ -65,6 +65,8 @@ type TerritoryMapProps = {
     nombre: string;
     color: string;
     geometry: Polygon | MultiPolygon;
+    /** Ya trabajada: se apaga y su chapa lleva un ✓. */
+    hecha?: boolean;
   }[];
   /** En modo corte, tocar el mapa marca puntos en vez de no hacer nada. */
   onTocarMapa?: (punto: [number, number]) => void;
@@ -78,14 +80,14 @@ type TerritoryMapProps = {
  * Sin ella los trozos solo se distinguen por el color, y "vete tú al azul"
  * no es lo que se dice en la puerta del Salón: se dice "vete tú a la A".
  */
-const chapaSeccion = (nombre: string, color: string) =>
+const chapaSeccion = (nombre: string, color: string, hecha = false) =>
   L.divIcon({
     // Tamaño CERO y el rótulo centrado con un `translate`: con `iconSize`
     // fijo, un nombre de dos palabras se partía en dos renglones dentro de un
     // círculo de 22px y se salía por los lados. Así la chapa mide lo que mida
     // el nombre y sigue quedando centrada en el trozo.
     className: '',
-    html: `<div style="transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;background:${color};color:#fff;border-radius:999px;min-width:22px;height:22px;font:600 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0 8px">${nombre.replace(/[<>&]/g, '')}</div>`,
+    html: `<div style="transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;background:${color};color:#fff;border-radius:999px;min-width:22px;height:22px;font:600 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0 8px${hecha ? ';opacity:.55' : ''}">${hecha ? '✓ ' : ''}${nombre.replace(/[<>&]/g, '')}</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
@@ -1183,14 +1185,21 @@ const TerritoryMap = ({
                 style={{
                   color: seccion.color,
                   weight: 2,
-                  fillOpacity: 0.3,
+                  // Hecha: se apaga. Lo que queda por hacer es lo que tiene
+                  // que llamar la atención al abrir el territorio.
+                  fillOpacity: seccion.hecha ? 0.06 : 0.3,
+                  opacity: seccion.hecha ? 0.45 : 1,
                   interactive: false,
                 }}
               />
               {centro && (
                 <Marker
                   position={centro}
-                  icon={chapaSeccion(seccion.nombre, seccion.color)}
+                  icon={chapaSeccion(
+                    seccion.nombre,
+                    seccion.color,
+                    seccion.hecha
+                  )}
                   interactive={false}
                 />
               )}

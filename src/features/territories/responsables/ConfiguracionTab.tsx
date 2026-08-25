@@ -438,6 +438,12 @@ const ConfiguracionTab = () => {
             description="Los hermanos podrán marcar direcciones 'No visitar' desde el mapa"
             checked={draft.publishersCanAddLocations}
             onChange={(v) => set('publishersCanAddLocations', v)}
+          />
+          <ToggleRow
+            label="Marcar partes hechas"
+            description="En un territorio dividido, quien lo lleva puede ir marcando las partes que ya ha hecho. No cambia nada del registro: no sale en el S-13 ni en el historial, y desaparece al entregar el territorio"
+            checked={draft.partesMarcables !== false}
+            onChange={(v) => set('partesMarcables', v)}
             divider="none"
           />
         </SectionCard>
