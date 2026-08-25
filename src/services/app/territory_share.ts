@@ -98,6 +98,11 @@ export const buildSharePayload = ({
           nombre: seccion.nombre,
           color: seccion.color,
           geometry: seccion.geometry,
+          // También lo que ya está hecho: si no, quien abre el enlace ve el
+          // reparto pero no por dónde va, que es justo lo que quiere saber el
+          // grupo que se llevó la otra parte. Va en la huella del contenido,
+          // así que marcar una parte refresca solo los enlaces vivos.
+          hecha: seccion.hecha,
         }))
       : undefined,
     locations: visibleLocations,

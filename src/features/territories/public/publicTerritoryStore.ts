@@ -80,6 +80,7 @@ export const construirStorePublico = (payload: TerritorySharePayload) => {
       nombre: seccion.nombre,
       color: seccion.color,
       geometry: seccion.geometry as Polygon | MultiPolygon,
+      hecha: seccion.hecha,
     })),
     openAssignmentId: null,
     updatedAt: payload.generatedAt,

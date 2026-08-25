@@ -75,7 +75,13 @@ export type TerritorySharePayload = {
    * Como el resto del contenido, es una foto del momento — pero la app
    * reescribe los enlaces vivos sola cuando el territorio cambia.
    */
-  secciones?: { nombre: string; color: string; geometry: unknown }[];
+  secciones?: {
+    nombre: string;
+    color: string;
+    geometry: unknown;
+    /** Ya hecha. Va en el enlace para que el otro grupo lo vea. */
+    hecha?: boolean;
+  }[];
   /** Hasta cuándo vale (ISO). Va DENTRO del contenido cifrado para poder
    *  decírselo al invitado: el documento en claro solo lo puede leer quien
    *  tenga sesión. */
