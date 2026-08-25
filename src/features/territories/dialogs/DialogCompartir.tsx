@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import QRCode from 'qrcode';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -197,6 +198,47 @@ const DialogCompartir = ({
         severity: 'error',
       });
       return null;
+    }
+  };
+
+  // El QR del enlace, ya dibujado. Se guarda por token porque en el Salón se
+  // enseña la pantalla y se escanea: es la forma de pasar un territorio a
+  // alguien que está delante, sin WhatsApp y sin dictarle nada.
+  const [qrPorToken, setQrPorToken] = useState<Record<string, string>>({});
+  const [qrAbierto, setQrAbierto] = useState<string | null>(null);
+
+  const alternarQr = async (share: TerritoryShare) => {
+    if (qrAbierto === share.token) {
+      setQrAbierto(null);
+      return;
+    }
+
+    setQrAbierto(share.token);
+    if (qrPorToken[share.token]) return;
+
+    const url = await urlFor(share);
+    if (!url) {
+      setQrAbierto(null);
+      return;
+    }
+
+    try {
+      // Negro sobre blanco SIEMPRE, no sobre los tokens del tema: un QR en
+      // modo oscuro (claro sobre oscuro) muchos lectores no lo cogen.
+      const imagen = await QRCode.toDataURL(url, {
+        margin: 1,
+        width: 512,
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      setQrPorToken((prev) => ({ ...prev, [share.token]: imagen }));
+    } catch (err) {
+      console.error(err);
+      setQrAbierto(null);
+      displaySnackNotification({
+        header: 'No se pudo generar el código',
+        message: 'Usa "Copiar enlace" mientras tanto.',
+        severity: 'error',
+      });
     }
   };
 
@@ -619,6 +661,15 @@ const DialogCompartir = ({
 
                   <Button
                     variant="secondary"
+                    disableAutoStretch
+                    disabled={working}
+                    onClick={() => alternarQr(share)}
+                  >
+                    {qrAbierto === share.token ? 'Ocultar QR' : 'Ver QR'}
+                  </Button>
+
+                  <Button
+                    variant="secondary"
                     color="red"
                     disableAutoStretch
                     disabled={working}
@@ -627,6 +678,49 @@ const DialogCompartir = ({
                     Anular
                   </Button>
                 </Stack>
+
+                {qrAbierto === share.token && (
+                  <Stack alignItems="center" spacing="8px">
+                    {qrPorToken[share.token] ? (
+                      <>
+                        <Box
+                          component="img"
+                          src={qrPorToken[share.token]}
+                          alt={`Código QR del enlace de ${territoryLabel(territory)}`}
+                          sx={{
+                            width: 200,
+                            height: 200,
+                            // El blanco va debajo del PNG a propósito: el
+                            // margen del código es transparente y en modo
+                            // oscuro se comería la zona de silencio, que es
+                            // justo lo que el lector necesita para engancharlo.
+                            backgroundColor: 'var(--always-white)',
+                            padding: '8px',
+                            borderRadius: 'var(--shape-sm)',
+                            border: '1px solid var(--line)',
+                          }}
+                        />
+                        <Typography
+                          className="label-small-regular"
+                          sx={{
+                            color: 'var(--ink-2)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Que lo escaneen con la cámara. Lleva el enlace entero,
+                          así que enséñalo solo a quien se lo darías.
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography
+                        className="label-small-regular"
+                        sx={{ color: 'var(--ink-2)' }}
+                      >
+                        Generando el código…
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
               </Stack>
             </Box>
           ))}

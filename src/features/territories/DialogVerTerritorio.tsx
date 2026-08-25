@@ -42,6 +42,7 @@ import {
   territoryZonesState,
   territoryTagsState,
   territoryOpenAssignmentsState,
+  territoryAssignmentsState,
   territoryLocationsState,
   territorySettingsState,
   territoriesState,
@@ -186,6 +187,16 @@ const SIZE_TAG_NAMES = new Set([
   'Extra grande',
 ]);
 
+/** Una entrega ya cerrada de este territorio, con el nombre ya resuelto. */
+type EntregaAnterior = {
+  id: string;
+  nombre: string;
+  desde: string;
+  hasta: string;
+  trabajado: boolean;
+  campana: boolean;
+};
+
 // ─── Pestaña combinada "Info": viviendas + notas + Direcciones (No visitar) ──
 // Antes eran 2 pestañas separadas ("Info" solo con notas, y "Direcciones");
 // se unieron para no obligar a cambiar de pestaña para ver todo el panorama
@@ -195,6 +206,7 @@ const InfoTabContent = ({
   canManage,
   assignment,
   assignedName,
+  historial,
   dateFormat,
   tags,
   allTags,
@@ -205,6 +217,8 @@ const InfoTabContent = ({
   /** La asignación abierta, si la hay. Solo se pinta para responsables. */
   assignment?: TerritoryAssignment | null;
   assignedName?: string;
+  /** Entregas anteriores, ya resueltas a nombre. Solo para responsables. */
+  historial: EntregaAnterior[];
   dateFormat: string;
   /** Las etiquetas puestas a ESTE territorio, ya filtradas por rol. */
   tags: string[];
@@ -251,6 +265,84 @@ const InfoTabContent = ({
               ? ` · vence el ${formatTerritoryDate(assignment.dueAt, dateFormat)}`
               : ''}
           </Typography>
+        </Box>
+      )}
+
+      {/* Quién lo ha tenido antes.
+        Solo para responsables: es información de gestión —a quién se le dio y
+        si lo devolvió trabajado—, no algo que el publicador que lo tiene ahora
+        necesite (ni tiene por qué ver el rastro de sus hermanos).
+
+        Sirve para lo que antes obligaba a irse al historial general y filtrar
+        a mano: no darle a alguien el mismo territorio que acaba de tener, y
+        ver de un vistazo si este es de los que vuelven sin trabajar. */}
+      {canManage && (
+        <Box>
+          <Typography
+            className="label-small-semibold"
+            color="var(--ink-3)"
+            sx={{ display: 'block', mb: '8px' }}
+          >
+            Últimas veces
+          </Typography>
+
+          {historial.length === 0 ? (
+            <Typography className="body-small-regular" color="var(--ink-2)">
+              {assignment
+                ? 'Es la primera vez que se entrega.'
+                : 'Todavía no se ha entregado nunca.'}
+            </Typography>
+          ) : (
+            <Stack spacing="8px">
+              {historial.map((entrega) => (
+                <Box
+                  key={entrega.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--shape-sm)',
+                    border: '1px solid var(--line)',
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={0.75}
+                      sx={{ flexWrap: 'wrap', rowGap: '4px' }}
+                    >
+                      <Typography
+                        className="body-small-regular"
+                        color="var(--ink)"
+                      >
+                        {entrega.nombre}
+                      </Typography>
+                      {entrega.campana && (
+                        <Badge size="small" color="accent" text="Campaña" />
+                      )}
+                    </Stack>
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--ink-2)"
+                      sx={{ display: 'block' }}
+                    >
+                      {formatTerritoryDate(entrega.desde, dateFormat)} →{' '}
+                      {formatTerritoryDate(entrega.hasta, dateFormat)}
+                    </Typography>
+                  </Box>
+                  <Badge
+                    size="small"
+                    color={entrega.trabajado ? 'green' : 'grey'}
+                    text={entrega.trabajado ? 'Trabajado' : 'Sin trabajar'}
+                  />
+                </Box>
+              ))}
+            </Stack>
+          )}
         </Box>
       )}
 
@@ -509,6 +601,7 @@ const DialogVerTerritorio = ({
   const zones = useAtomValue(territoryZonesState);
   const allTags = useAtomValue(territoryTagsState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
+  const allAssignments = useAtomValue(territoryAssignmentsState);
   const territories = useAtomValue(territoriesState);
   const allLocations = useAtomValue(territoryLocationsState);
 
@@ -588,6 +681,33 @@ const DialogVerTerritorio = ({
     if (!liveTerritory) return null;
     return openAssignments.find((a) => a.territoryId === liveTerritory.id);
   }, [liveTerritory, openAssignments]);
+
+  /**
+   * Las últimas entregas cerradas de ESTE territorio, con el nombre resuelto.
+   *
+   * Se corta en cinco a propósito: esto es "¿a quién se lo he dado hace poco y
+   * cómo volvió?", no el historial completo —ese sigue estando entero en su
+   * pestaña, que además se puede buscar—.
+   */
+  const historial = useMemo<EntregaAnterior[]>(() => {
+    if (!liveTerritory || !canManage) return [];
+
+    return allAssignments
+      .filter((a) => a.territoryId === liveTerritory.id && a.returnedAt)
+      .sort(
+        (x, y) =>
+          new Date(y.returnedAt!).getTime() - new Date(x.returnedAt!).getTime()
+      )
+      .slice(0, 5)
+      .map((a) => ({
+        id: a.id,
+        nombre: resolveName(a.personUid),
+        desde: a.assignedAt,
+        hasta: a.returnedAt!,
+        trabajado: a.status === 'trabajado',
+        campana: Boolean(a.isCampaign),
+      }));
+  }, [allAssignments, liveTerritory, canManage, resolveName]);
 
   /**
    * Cuántas direcciones de «No visitar» hay en este territorio.
@@ -1178,6 +1298,7 @@ const DialogVerTerritorio = ({
                   ? resolveName(relevantAssignment.personUid)
                   : undefined
               }
+              historial={historial}
               dateFormat={settings.dateFormat}
               tags={visibleHeaderTags}
               allTags={allTags}
@@ -1473,6 +1594,7 @@ const DialogVerTerritorio = ({
                   ? resolveName(relevantAssignment.personUid)
                   : undefined
               }
+              historial={historial}
               dateFormat={settings.dateFormat}
               tags={visibleHeaderTags}
               allTags={allTags}
