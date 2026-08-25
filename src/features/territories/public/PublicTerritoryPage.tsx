@@ -54,6 +54,33 @@ const MESSAGES: Record<
   },
 };
 
+/**
+ * La clave del enlace, guardada para esta pestaña y nada más.
+ *
+ * `sessionStorage` y no `localStorage` a propósito: muere al cerrar la
+ * pestaña, así que un móvil prestado no se queda con la llave de un
+ * territorio dentro. Y si el navegador no deja escribir (modo privado de
+ * algunos), no pasa nada: se sigue como antes.
+ */
+const CLAVE_GUARDADA = 'territorio-compartido:';
+
+const leerClaveGuardada = (token: string): string => {
+  try {
+    return window.sessionStorage.getItem(CLAVE_GUARDADA + token) ?? '';
+  } catch {
+    return '';
+  }
+};
+
+const guardarClave = (token: string, keyB64: string): void => {
+  try {
+    window.sessionStorage.setItem(CLAVE_GUARDADA + token, keyB64);
+  } catch {
+    // Sin sitio donde guardarla, recargar volverá a fallar. No es motivo
+    // para no enseñar el territorio que ya se ha descifrado.
+  }
+};
+
 const PublicTerritoryPage = () => {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const link = useRef<ParsedShareLink>(parseShareHash(window.location.hash));
@@ -64,7 +91,22 @@ const PublicTerritoryPage = () => {
   const load = useCallback(async () => {
     const parsed = link.current;
 
-    if (!parsed || !isShareKeyLength(parsed.keyB64)) {
+    if (!parsed) {
+      setState({ status: 'error', kind: 'link' });
+      return;
+    }
+
+    // La clave se borra de la barra de direcciones en cuanto se abre (más
+    // abajo), así que a la SEGUNDA vez ya no está en la URL. Sin guardarla
+    // en algún sitio, recargar la página —o volver a la pestaña después de
+    // que el móvil la haya descargado de memoria, que es lo que pasa en una
+    // mañana de predicación— daba "Enlace incompleto" y el enlace parecía
+    // roto. Se queda en `sessionStorage`: vive solo en esta pestaña, muere
+    // al cerrarla, y no aparece ni en una captura ni en el historial.
+    const guardada = leerClaveGuardada(parsed.token);
+    const keyB64 = isShareKeyLength(parsed.keyB64) ? parsed.keyB64 : guardada;
+
+    if (!isShareKeyLength(keyB64)) {
       setState({ status: 'error', kind: 'link' });
       return;
     }
@@ -75,8 +117,10 @@ const PublicTerritoryPage = () => {
       const payload = await fetchPublicShare(
         parsed.congId,
         parsed.token,
-        parsed.keyB64
+        keyB64
       );
+
+      guardarClave(parsed.token, keyB64);
 
       // Con el contenido ya descifrado en memoria, la clave sobra en la
       // barra de direcciones. Se borra del hash para que no aparezca en una

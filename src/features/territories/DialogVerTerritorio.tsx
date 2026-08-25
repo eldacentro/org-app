@@ -25,7 +25,13 @@ import 'react-photo-view/dist/react-photo-view.css';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import { IconEdit, IconClose, IconMapOverview } from '@components/icons';
+import {
+  IconEdit,
+  IconClose,
+  IconMapOverview,
+  IconGroups,
+  IconChevronRight,
+} from '@components/icons';
 import { TagChip, ViviendasTag } from './ui';
 import { usePersonName } from './usePersonName';
 import { BadgeColor } from '@definition/app';
@@ -635,6 +641,12 @@ const DialogVerTerritorio = ({
   // cortando los botones igual que antes.
   const [cabeceraEl, setCabeceraEl] = useState<HTMLDivElement | null>(null);
   const [accionesEl, setAccionesEl] = useState<HTMLDivElement | null>(null);
+  // Lo que hay en la pestaña Mapa, que es corta a propósito: si el reparto no
+  // cupiera entero, quedaría medio asomando y habría que arrastrar la hoja
+  // para verlo — justo lo que se quería evitar sacándolo de la pestaña Info.
+  const [contenidoMapaEl, setContenidoMapaEl] = useState<HTMLDivElement | null>(
+    null
+  );
   const [minAlturaHoja, setMinAlturaHoja] = useState(0);
 
   useLayoutEffect(() => {
@@ -643,8 +655,19 @@ const DialogVerTerritorio = ({
     const medir = () => {
       // Un dedo de contenido por debajo de las pestañas: sin él la hoja se
       // queda pegada a los botones y parece que dentro no hay nada.
+      // Del CONTENEDOR que hace scroll, no del bloque de dentro: el
+      // contenedor añade su propio relleno, y midiendo solo el bloque la hoja
+      // se quedaba tres píxeles corta — lo justo para que la última fila de
+      // trozos asomara por debajo del borde.
+      const contenido = contenidoMapaEl
+        ? Math.max(
+            28,
+            contenidoMapaEl.parentElement?.scrollHeight ??
+              contenidoMapaEl.offsetHeight
+          )
+        : 28;
       setMinAlturaHoja(
-        cabeceraEl.offsetHeight + (accionesEl?.offsetHeight ?? 0) + 28
+        cabeceraEl.offsetHeight + (accionesEl?.offsetHeight ?? 0) + contenido
       );
     };
 
@@ -653,8 +676,9 @@ const DialogVerTerritorio = ({
     const observador = new ResizeObserver(medir);
     observador.observe(cabeceraEl);
     if (accionesEl) observador.observe(accionesEl);
+    if (contenidoMapaEl) observador.observe(contenidoMapaEl);
     return () => observador.disconnect();
-  }, [cabeceraEl, accionesEl]);
+  }, [cabeceraEl, accionesEl, contenidoMapaEl]);
 
   const zones = useAtomValue(territoryZonesState);
   const allTags = useAtomValue(territoryTagsState);
@@ -944,11 +968,19 @@ const DialogVerTerritorio = ({
   // pie) y la hoja no baja de ahí. En un móvil grande el `max()` no cambia
   // nada: 30vh siguen siendo más.
 
-  // `min(92%, …)` para que en horizontal la hoja no se coma la pantalla
-  // entera empujando su propia cabecera por encima del borde de arriba.
-  const alturaHoja = minAlturaHoja
-    ? `min(92%, max(${sheetHeight}, ${minAlturaHoja}px))`
-    : sheetHeight;
+  // El suelo medido va por `min-height`, NO metido dentro de `height`.
+  //
+  // La hoja anima su altura al cambiar de pestaña (`transition: height`), y
+  // si la medida se mete en `height` esa transición arranca a la vez que la
+  // de entrada del diálogo y se queda CLAVADA en el valor de partida: la
+  // regla decía 431px y el navegador seguía pintando 256, con los botones
+  // otra vez cortados. `min-height` no está en la transición, así que aplica
+  // en el sitio y la animación de las pestañas se mantiene.
+  //
+  // `max-height` al 92% para que en horizontal la hoja no se coma la pantalla
+  // entera empujando su propia cabecera por encima del borde de arriba (si
+  // el contenido fijo pidiera más, manda `min-height`, que es lo correcto:
+  // antes cortar la pantalla que cortar los botones).
 
   // En vh para animar (consistente con SHEET_HEIGHTS) y en px para pasarle a
   // Leaflet el espacio que debe reservar abajo al encuadrar/centrar el mapa.
@@ -1047,7 +1079,9 @@ const DialogVerTerritorio = ({
           bottom: 0,
           left: 0,
           right: 0,
-          height: alturaHoja,
+          height: sheetHeight,
+          minHeight: minAlturaHoja ? `${minAlturaHoja}px` : undefined,
+          maxHeight: '92%',
           zIndex: 100,
           // 380ms, más que `--motion-medium`, a propósito: una hoja que ocupa media
           // pantalla necesita más recorrido que un color de fondo. La CURVA sí es
@@ -1200,15 +1234,136 @@ const DialogVerTerritorio = ({
             '&::-webkit-scrollbar': { display: 'none' },
           }}
         >
-          {/* TAB 0: Mapa — el mapa cubre todo el fondo; aquí solo un aviso */}
+          {/* TAB 0: Mapa — el mapa cubre todo el fondo. Aquí abajo queda una
+              franja que estaba ocupada solo por un aviso; es el sitio donde
+              se ve —y se toca— el reparto del territorio, que antes había que
+              ir a buscar dentro de la pestaña Info. */}
           {tab === 0 && (
-            <Box>
+            <Box
+              ref={setContenidoMapaEl}
+              sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+            >
+              {(puedeDividir || Boolean(liveTerritory.secciones?.length)) && (
+                <Box
+                  component={puedeDividir ? 'button' : 'div'}
+                  type={puedeDividir ? 'button' : undefined}
+                  onClick={
+                    puedeDividir ? () => setDividirOpen(true) : undefined
+                  }
+                  className={puedeDividir ? 'active-press' : undefined}
+                  aria-label={
+                    puedeDividir
+                      ? liveTerritory.secciones?.length
+                        ? 'Cambiar el reparto del territorio'
+                        : 'Repartir el territorio en trozos'
+                      : undefined
+                  }
+                  sx={{
+                    appearance: 'none',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--shape-lg)',
+                    border: '1px solid var(--line)',
+                    backgroundColor: 'var(--card)',
+                    cursor: puedeDividir ? 'pointer' : 'default',
+                    transition:
+                      'background-color var(--motion-fast) var(--ease-standard)',
+                    ...(puedeDividir && {
+                      '&:hover': { backgroundColor: 'var(--state-hover)' },
+                      '&:focus-visible': {
+                        outline: '2px solid var(--accent-main)',
+                        outlineOffset: '2px',
+                      },
+                    }),
+                  }}
+                >
+                  {/* La chapa del icono va con relleno y sin borde, como el
+                      resto de la app. */}
+                  <Box
+                    aria-hidden
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      flexShrink: 0,
+                      borderRadius: 'var(--shape-md)',
+                      backgroundColor: 'var(--accent-150)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconGroups
+                      color="var(--accent-dark)"
+                      width={20}
+                      height={20}
+                    />
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {liveTerritory.secciones?.length ? (
+                      <>
+                        <Typography
+                          className="body-small-semibold"
+                          color="var(--ink)"
+                        >
+                          Repartido en {liveTerritory.secciones.length} trozos
+                        </Typography>
+                        <Stack
+                          direction="row"
+                          flexWrap="wrap"
+                          gap={0.5}
+                          sx={{ mt: '4px' }}
+                        >
+                          {[...liveTerritory.secciones]
+                            .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                            .map((seccion) => (
+                              <TagChip
+                                key={seccion.id}
+                                label={seccion.nombre}
+                                color={seccion.color}
+                              />
+                            ))}
+                        </Stack>
+                      </>
+                    ) : (
+                      <>
+                        <Typography
+                          className="body-small-semibold"
+                          color="var(--ink)"
+                        >
+                          Repartir el territorio
+                        </Typography>
+                        <Typography
+                          className="label-small-regular"
+                          color="var(--ink-2)"
+                          sx={{ display: 'block' }}
+                        >
+                          Pártelo en trozos para una salida
+                        </Typography>
+                      </>
+                    )}
+                  </Box>
+
+                  {puedeDividir && (
+                    <IconChevronRight
+                      color="var(--ink-3)"
+                      width={20}
+                      height={20}
+                    />
+                  )}
+                </Box>
+              )}
+
               <Typography
-                className="body-small-regular"
+                className="label-small-regular"
                 sx={{
                   color: 'var(--ink-3)',
                   textAlign: 'center',
-                  py: 1,
                 }}
               >
                 El mapa está detrás. Úsalo para navegar el territorio.
