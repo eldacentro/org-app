@@ -84,6 +84,26 @@ export const territoryAssignedIdsState = atom((get) => {
 });
 
 /** "Mis territorios": asignaciones abiertas del usuario actual. */
+/**
+ * Territorios que otro hermano me ha prestado y siguen en hora.
+ *
+ * Se filtra por fecha AQUÍ y también al pintar: este átomo solo se recalcula
+ * cuando cambia algo de Firestore, así que sin el segundo filtro un préstamo
+ * caducado a media mañana se quedaría en pantalla hasta que se moviera
+ * cualquier otra cosa.
+ */
+export const territoriosPrestadosState = atom((get) => {
+  const uid = get(userLocalUIDState);
+  if (!uid) return [];
+
+  const ahora = new Date().toISOString();
+  return get(territoryOpenAssignmentsState).filter((a) =>
+    a.compartidoCon?.some(
+      (prestamo) => prestamo.personUid === uid && prestamo.hasta > ahora
+    )
+  );
+});
+
 export const myTerritoryAssignmentsState = atom((get) => {
   const uid = get(userLocalUIDState);
   if (!uid) return [];

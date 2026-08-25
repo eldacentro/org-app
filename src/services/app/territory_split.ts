@@ -31,13 +31,13 @@ export type MotivoFallo =
 export const MOTIVO_TEXTO: Record<MotivoFallo, string> = {
   NO_CRUZA: 'La raya tiene que entrar por un lado y salir por el otro.',
   CRUZA_DE_MAS:
-    'Esa raya cruza el borde más de dos veces. Haz un corte más sencillo; después puedes volver a partir cada trozo.',
+    'Esa raya cruza el borde más de dos veces. Haz un corte más sencillo; después puedes volver a partir cada parte.',
   CORTA_UN_HUECO:
     'La raya pasa por encima de un hueco del territorio. Rodéalo por un lado.',
   ROZA_EL_BORDE:
-    'La raya pasa rozando el borde y uno de los dos trozos se queda en nada. Trázala más adentro.',
+    'La raya pasa rozando el borde y una de las dos partes se queda en nada. Trázala más adentro.',
   CRUZA_VARIAS_PARTES:
-    'Este territorio está en varios trozos sueltos y la raya cruza más de uno. Corta uno cada vez.',
+    'Este territorio está en varias piezas sueltas y la raya cruza más de una. Corta una cada vez.',
   AREA_NO_CUADRA:
     'El corte no ha salido bien y se perdería parte del territorio. Inténtalo con otra raya.',
 };

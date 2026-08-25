@@ -584,6 +584,20 @@ export const deleteTerritoryCompleto = async (
  * asignación abierta pero sin candado, así que se podía asignar otra vez a
  * un segundo hermano.
  */
+/**
+ * Presta el territorio (o deja de prestarlo). Se escribe la lista entera,
+ * que es un puñado de entradas y se resuelve en una sola escritura.
+ */
+export const updateAssignmentShares = (
+  congId: string,
+  assignmentId: string,
+  compartidoCon: { personUid: string; hasta: string }[]
+) =>
+  updateDoc(fsDoc(assignmentsCol(congId), assignmentId), {
+    compartidoCon,
+    updatedAt: new Date().toISOString(),
+  });
+
 export const updateAssignmentNote = (
   congId: string,
   assignmentId: string,
@@ -720,6 +734,18 @@ export const finalizeAssignmentBatch = async (
       territoryUpdate.lastWorkedAt = assignment.returnedAt;
       territoryUpdate.updatedAt = assignment.updatedAt;
     }
+    // La división se va con quien lo tenía.
+    //
+    // Las partes las hace uno para SU salida —con los nombres de los que
+    // salieron aquel día, o "esta semana" y "la que viene"—, así que dejarlas
+    // puestas para el siguiente sería darle un reparto ajeno que no entiende
+    // y que encima parece oficial. Cada uno lo parte como quiera cuando le
+    // toque; cuesta diez segundos.
+    if (territory.secciones?.length) {
+      territoryUpdate.secciones = [];
+      territoryUpdate.updatedAt = assignment.updatedAt;
+    }
+
     if (Object.keys(territoryUpdate).length > 0) {
       batch.update(fsDoc(territoriesCol(congId), territory.id), territoryUpdate);
     }

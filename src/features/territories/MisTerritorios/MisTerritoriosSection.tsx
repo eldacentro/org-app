@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, IconButton } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
@@ -14,6 +14,7 @@ import { markNoticeRead } from '@services/firebase/territories';
 import { displaySnackNotification } from '@services/states/app';
 import {
   myTerritoryAssignmentsState,
+  territoriosPrestadosState,
   myUnreadNoticesState,
   territoriesState,
   territoryOpenAssignmentsState,
@@ -30,6 +31,7 @@ import {
   computeDueAt,
 } from '@services/app/territories';
 import { usePersonName } from '@features/territories/usePersonName';
+import { quedaTiempo } from '@features/territories/dialogs/DialogPrestar';
 import TerritoryThumbnail from '@features/territories/TerritoryThumbnail';
 
 type Props = {
@@ -49,6 +51,7 @@ const CampanaBadge = () => <Badge size="small" color="accent" text="Campaña" />
 /** Sección "Mis territorios": territorios actualmente asignados al usuario. */
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const myAssignments = useAtomValue(myTerritoryAssignmentsState);
+  const prestados = useAtomValue(territoriosPrestadosState);
   const loading = useAtomValue(territoriesLoadingState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const notices = useAtomValue(myUnreadNoticesState);
@@ -200,6 +203,97 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
     </Stack>
   );
 
+  // ── Lo que me han prestado ───────────────────────────────────────────
+  // Un hermano que lleva un territorio me ha dejado verlo durante la salida.
+  // Va en su propio apartado y no mezclado con los míos: no es mío, no puedo
+  // entregarlo, y se me va a caer solo dentro de un rato.
+  //
+  // El minuto que corre lo lleva `ahora`: sin él, un préstamo que caduca a
+  // media mañana se quedaría en pantalla hasta que cambiara cualquier otra
+  // cosa, con su "quedan 0 min" congelado.
+  const [ahora, setAhora] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setAhora(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  const prestadosRows = useMemo(() => {
+    const corte = ahora.toISOString();
+    return prestados
+      .map((a) => ({
+        assignment: a,
+        territory: territories.find((t) => t.id === a.territoryId),
+        prestamo: a.compartidoCon?.find(
+          (p) => p.personUid === uid && p.hasta > corte
+        ),
+      }))
+      .filter(
+        (
+          r
+        ): r is {
+          assignment: TerritoryAssignment;
+          territory: Territory;
+          prestamo: { personUid: string; hasta: string };
+        } => Boolean(r.territory && r.prestamo)
+      );
+  }, [prestados, territories, uid, ahora]);
+
+  const prestadosSection = prestadosRows.length > 0 && (
+    <Box sx={{ mt: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
+        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+          Compartidos conmigo
+        </Typography>
+        <CountBadge value={prestadosRows.length} />
+      </Box>
+      <Stack spacing={1.5}>
+        {prestadosRows.map(({ assignment, territory, prestamo }) => (
+          // Con el trazo discontinuo de `muted`, igual que los del grupo: se
+          // ve a la primera que no es de uno.
+          <TerritoryCard
+            key={assignment.id}
+            accent={getZoneColor(territory.zoneId, zones)}
+            muted
+          >
+            <Stack
+              direction={{ mobile: 'column', tablet600: 'row' }}
+              alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+              spacing={1.5}
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ flexWrap: 'wrap' }}
+                >
+                  <Typography
+                    className="body-regular-semibold"
+                    color="var(--ink)"
+                  >
+                    {getZoneName(territory.zoneId, zones)} {territory.numero}
+                  </Typography>
+                  {assignment.isCampaign && <CampanaBadge />}
+                </Stack>
+                <Typography className="body-small-regular" color="var(--ink-2)">
+                  De {resolveName(assignment.personUid)} ·{' '}
+                  {quedaTiempo(prestamo.hasta, ahora)}
+                </Typography>
+              </Box>
+              <Button
+                variant="tertiary"
+                disableAutoStretch
+                onClick={() => onView(territory)}
+              >
+                Ver
+              </Button>
+            </Stack>
+          </TerritoryCard>
+        ))}
+      </Stack>
+    </Box>
+  );
+
   // ── Territorios del grupo de predicación ─────────────────────────────
   // Se define aquí arriba (y no dentro del return final) porque también
   // debe verse cuando uno NO tiene ningún territorio propio — que es
@@ -282,6 +376,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
             ? 'Cargando tus territorios…'
             : 'No tienes territorios asignados ahora mismo. Puedes solicitar uno.'}
         </Typography>
+        {prestadosSection}
         {groupSection}
       </Box>
     );
@@ -439,6 +534,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         })}
       </Stack>
 
+      {prestadosSection}
       {groupSection}
     </Box>
   );

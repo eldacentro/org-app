@@ -29,7 +29,7 @@ import {
   IconEdit,
   IconClose,
   IconMapOverview,
-  IconGroups,
+  IconEditMap,
   IconChevronRight,
 } from '@components/icons';
 import { TagChip, ViviendasTag } from './ui';
@@ -39,6 +39,8 @@ import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import DialogCompartir from './dialogs/DialogCompartir';
 import DialogDividir from './dialogs/DialogDividir';
+import DialogPrestar from './dialogs/DialogPrestar';
+import DialogElegirCompartir from './dialogs/DialogElegirCompartir';
 import SegmentedControl from '@components/segmented_control';
 import {
   Territory,
@@ -364,10 +366,10 @@ const InfoTabContent = ({
         característica del territorio, que es exactamente lo que esta pestaña
         guarda. Arriba se queda lo que se mira de un vistazo; aquí, lo que se
         consulta. */}
-      {/* Los trozos en los que está dividido, si lo está.
+      {/* Las partes en las que está dividido, si lo está.
         Solo los territorios grandes se parten, así que esto no sale casi
         nunca — pero cuando sale es lo que se mira antes de salir: "tú la A,
-        yo la B". El mapa de arriba los pinta con estos mismos colores. */}
+        yo la B". El mapa de arriba las pinta con estos mismos colores. */}
       {(territory.secciones?.length || onDividir) && (
         <Box>
           <Typography
@@ -375,7 +377,7 @@ const InfoTabContent = ({
             color="var(--ink-3)"
             sx={{ display: 'block', mb: '8px' }}
           >
-            Trozos
+            Partes
           </Typography>
 
           {territory.secciones?.length ? (
@@ -386,7 +388,7 @@ const InfoTabContent = ({
               alignItems="center"
               sx={{ mb: onDividir ? '8px' : 0 }}
             >
-              {/* Alfabético: el corte mete cada trozo nuevo al lado del que
+              {/* Alfabético: el corte mete cada parte nueva al lado de la que
                   ha partido, y "A, C, B" en una lista se lee como un error. */}
               {[...territory.secciones]
                 .sort((a, b) => a.nombre.localeCompare(b.nombre))
@@ -404,14 +406,14 @@ const InfoTabContent = ({
               color="var(--ink-2)"
               sx={{ display: 'block', mb: '8px' }}
             >
-              Va entero. Se puede partir para repartirlo entre varios grupos en
-              una salida.
+              Va entero. Se puede dividir para repartirlo entre varios, o para
+              hacerlo en varios días.
             </Typography>
           )}
 
           {onDividir && (
             <Button variant="secondary" disableAutoStretch onClick={onDividir}>
-              {territory.secciones?.length ? 'Cambiar los trozos' : 'Dividir'}
+              {territory.secciones?.length ? 'Cambiar las partes' : 'Dividir'}
             </Button>
           )}
         </Box>
@@ -633,6 +635,8 @@ const DialogVerTerritorio = ({
   const [uploading, setUploading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [dividirOpen, setDividirOpen] = useState(false);
+  const [prestarOpen, setPrestarOpen] = useState(false);
+  const [elegirCompartirOpen, setElegirCompartirOpen] = useState(false);
 
   // Por estado y no por `useRef`: la hoja vive dentro del Paper del diálogo,
   // que no está en el DOM hasta que se abre. Con una ref normal, el efecto
@@ -641,9 +645,9 @@ const DialogVerTerritorio = ({
   // cortando los botones igual que antes.
   const [cabeceraEl, setCabeceraEl] = useState<HTMLDivElement | null>(null);
   const [accionesEl, setAccionesEl] = useState<HTMLDivElement | null>(null);
-  // Lo que hay en la pestaña Mapa, que es corta a propósito: si el reparto no
-  // cupiera entero, quedaría medio asomando y habría que arrastrar la hoja
-  // para verlo — justo lo que se quería evitar sacándolo de la pestaña Info.
+  // Lo que hay en la pestaña Mapa, que es corta a propósito: si no cupiera
+  // entero, quedaría medio asomando y habría que arrastrar la hoja para
+  // verlo — justo lo que se quería evitar sacándolo de la pestaña Info.
   const [contenidoMapaEl, setContenidoMapaEl] = useState<HTMLDivElement | null>(
     null
   );
@@ -658,7 +662,7 @@ const DialogVerTerritorio = ({
       // Del CONTENEDOR que hace scroll, no del bloque de dentro: el
       // contenedor añade su propio relleno, y midiendo solo el bloque la hoja
       // se quedaba tres píxeles corta — lo justo para que la última fila de
-      // trozos asomara por debajo del borde.
+      // partes asomara por debajo del borde.
       const contenido = contenidoMapaEl
         ? Math.max(
             28,
@@ -844,6 +848,13 @@ const DialogVerTerritorio = ({
     relevantAssignment.personUid === currentUid
   );
   const canReturnThis = canManage || (settings.publishersCanReturn && isMine);
+
+  /**
+   * Prestárselo a otro hermano solo puede hacerlo QUIEN LO TIENE. Ni un
+   * responsable en nombre de otro (es su territorio, no el del responsable),
+   * ni el prestado a un tercero: si hace falta, se lo pide al que lo lleva.
+   */
+  const puedePrestar = Boolean(relevantAssignment && isMine);
 
   /**
    * Quién puede partir el territorio: un responsable siempre, y el hermano
@@ -1236,8 +1247,8 @@ const DialogVerTerritorio = ({
         >
           {/* TAB 0: Mapa — el mapa cubre todo el fondo. Aquí abajo queda una
               franja que estaba ocupada solo por un aviso; es el sitio donde
-              se ve —y se toca— el reparto del territorio, que antes había que
-              ir a buscar dentro de la pestaña Info. */}
+              se ve —y se toca— cómo está dividido el territorio, que antes
+              había que ir a buscar dentro de la pestaña Info. */}
           {tab === 0 && (
             <Box
               ref={setContenidoMapaEl}
@@ -1254,8 +1265,8 @@ const DialogVerTerritorio = ({
                   aria-label={
                     puedeDividir
                       ? liveTerritory.secciones?.length
-                        ? 'Cambiar el reparto del territorio'
-                        : 'Repartir el territorio en trozos'
+                        ? 'Cambiar cómo está dividido el territorio'
+                        : 'Dividir el territorio en partes'
                       : undefined
                   }
                   sx={{
@@ -1297,7 +1308,7 @@ const DialogVerTerritorio = ({
                       justifyContent: 'center',
                     }}
                   >
-                    <IconGroups
+                    <IconEditMap
                       color="var(--accent-dark)"
                       width={20}
                       height={20}
@@ -1311,7 +1322,7 @@ const DialogVerTerritorio = ({
                           className="body-small-semibold"
                           color="var(--ink)"
                         >
-                          Repartido en {liveTerritory.secciones.length} trozos
+                          Dividido en {liveTerritory.secciones.length} partes
                         </Typography>
                         <Stack
                           direction="row"
@@ -1336,14 +1347,14 @@ const DialogVerTerritorio = ({
                           className="body-small-semibold"
                           color="var(--ink)"
                         >
-                          Repartir el territorio
+                          Dividir el territorio
                         </Typography>
                         <Typography
                           className="label-small-regular"
                           color="var(--ink-2)"
                           sx={{ display: 'block' }}
                         >
-                          Pártelo en trozos para una salida
+                          Para repartirlo entre varios, o hacerlo en varios días
                         </Typography>
                       </>
                     )}
@@ -1582,8 +1593,12 @@ const DialogVerTerritorio = ({
               >
                 {(canManage || (relevantAssignment && isMine)) && (
                   <ActionButton
-                    label="Compartir enlace"
-                    onClick={() => setShareOpen(true)}
+                    label="Compartir"
+                    onClick={() =>
+                      puedePrestar
+                        ? setElegirCompartirOpen(true)
+                        : setShareOpen(true)
+                    }
                     variant="secondary"
                   />
                 )}
@@ -2035,6 +2050,30 @@ const DialogVerTerritorio = ({
           open={dividirOpen}
           territory={liveTerritory}
           onClose={() => setDividirOpen(false)}
+        />
+      )}
+
+      {elegirCompartirOpen && (
+        <DialogElegirCompartir
+          open={elegirCompartirOpen}
+          onClose={() => setElegirCompartirOpen(false)}
+          onHermano={() => {
+            setElegirCompartirOpen(false);
+            setPrestarOpen(true);
+          }}
+          onEnlace={() => {
+            setElegirCompartirOpen(false);
+            setShareOpen(true);
+          }}
+        />
+      )}
+
+      {prestarOpen && relevantAssignment && (
+        <DialogPrestar
+          open={prestarOpen}
+          territory={liveTerritory}
+          assignment={relevantAssignment}
+          onClose={() => setPrestarOpen(false)}
         />
       )}
 

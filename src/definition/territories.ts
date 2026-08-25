@@ -112,6 +112,20 @@ export type TerritoryAssignment = {
   notas?: string;
   /** person_uid de quien realizó la asignación. */
   assignedBy?: string;
+  /**
+   * A quién se lo ha PRESTADO quien lo tiene, y hasta cuándo.
+   *
+   * Para la salida: el hermano que lleva el territorio le enseña una parte a
+   * otro y quiere que la vea en su móvil, no que se la explique señalando.
+   * El prestado ve el territorio entero —mapa, partes, direcciones de "No
+   * visitar"— pero no puede entregarlo, ni dividirlo, ni prestarlo a su vez:
+   * el territorio sigue siendo de quien lo tiene, y en el S-13 y en el
+   * historial esto no aparece por ningún lado.
+   *
+   * Se cae solo al llegar la hora, y también cuando el territorio se
+   * entrega, porque entonces la asignación deja de estar abierta.
+   */
+  compartidoCon?: { personUid: string; hasta: string }[];
   updatedAt: string;
 };
 

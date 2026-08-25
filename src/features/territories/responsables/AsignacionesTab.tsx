@@ -162,6 +162,19 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.isCampaign && (
                   <Badge size="small" color="accent" text="Campaña" />
                 )}
+                {/* Que lo tenga compartido con otro hermano durante la salida
+                    no es una asignación ni cuenta para nada —el territorio
+                    sigue siendo de quien lo tiene, y en el S-13 y el
+                    historial solo sale él—, pero conviene que se vea: si no,
+                    encontrarse a otro hermano en ese territorio parece un
+                    error. Va el número, no los nombres: es cosa de ellos. */}
+                {compartidoAhora(activeOrLatest) > 0 && (
+                  <Badge
+                    size="small"
+                    color="grey"
+                    text={`Compartido con ${compartidoAhora(activeOrLatest)}`}
+                  />
+                )}
               </Stack>
               <Typography className="label-small-regular" color="var(--ink-2)">
                 {formatTerritoryDate(activeOrLatest.assignedAt, dateFormat)}
@@ -292,6 +305,13 @@ const TerritoryAssignmentCard = ({
       )}
     </TerritoryCard>
   );
+};
+
+/** Cuántos préstamos siguen en hora ahora mismo. */
+const compartidoAhora = (a: TerritoryAssignment): number => {
+  if (a.returnedAt) return 0;
+  const ahora = new Date().toISOString();
+  return (a.compartidoCon ?? []).filter((p) => p.hasta > ahora).length;
 };
 
 const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {

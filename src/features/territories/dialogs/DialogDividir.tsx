@@ -21,14 +21,17 @@ import { territoryLabel } from '@services/app/territories';
 import { displaySnackNotification } from '@services/states/app';
 
 /**
- * Dividir un territorio en trozos, cortando con una raya.
+ * Dividir un territorio en partes, cortando con una raya.
  *
- * Para las salidas: en un territorio grande el conductor le dice a un grupo
- * que se lleve una parte y él se va con la otra, y hasta ahora eso se
- * explicaba señalando con el dedo en la puerta del Salón.
+ * Sirve para dos cosas, y por eso la pantalla no las explica: las enseña con
+ * ejemplos al ponerle nombre a cada parte. Una es repartir un territorio
+ * grande entre varios en la misma salida ("con Ana", "con Pedro"), que hasta
+ * ahora se explicaba señalando con el dedo en la puerta del Salón. La otra es
+ * trabajárselo uno por partes ("esta semana", "la que viene"), que se hacía
+ * de memoria y siempre quedaba una calle sin tocar.
  *
  * Se corta, no se dibuja: una raya que cruza el territorio lo parte en dos y
- * los dos trozos siguen siendo el territorio entero. Dibujando áreas a mano
+ * las dos partes siguen siendo el territorio entero. Dibujando áreas a mano
  * siempre queda un hueco entre ellas, y ese hueco son portales a los que no
  * llama nadie. La comprobación está en `territory_split`.
  */
@@ -36,7 +39,7 @@ import { displaySnackNotification } from '@services/states/app';
 /**
  * Colores de las secciones. Van a pelo y no por tokens a propósito: se pintan
  * sobre las teselas del mapa, que no siguen el tema de la app, y tienen que
- * distinguirse entre ellas —es lo único que dice de quién es cada trozo.
+ * distinguirse entre ellas —es lo único que dice cuál es cada parte.
  */
 const COLORES = [
   '#2563EB',
@@ -86,7 +89,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
     }
   };
 
-  // El trozo que se está renombrando, y lo que lleva escrito.
+  // La parte que se está renombrando, y lo que lleva escrito.
   const [renombrando, setRenombrando] = useState<TerritorySection | null>(null);
   const [nombreNuevo, setNombreNuevo] = useState('');
 
@@ -126,11 +129,11 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
       return;
     }
 
-    // Ya dividido: se parte el trozo por el que pasa el CENTRO de la raya.
+    // Ya dividido: se parte la parte por la que pasa el CENTRO de la raya.
     //
-    // El primer intento fue "el trozo que la raya cruza", y no vale: la raya
+    // El primer intento fue "la que la raya cruza", y no vale: la raya
     // se prolonga sola por las puntas (para no obligar a trazar por fuera del
-    // territorio), así que una raya dibujada dentro de un trozo acaba
+    // territorio), así que una raya dibujada dentro de una parte acaba
     // cruzando también al de al lado, y entonces no se cortaba nada — decía
     // que la raya tocaba varios. Por dónde pasa el centro no tiene esa duda:
     // se parte aquello por encima de lo que estás trazando.
@@ -141,7 +144,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
 
     if (indice < 0) {
       setAviso(
-        'Traza la raya por encima del trozo que quieras partir: se parte aquel por el que pasa el centro de la raya.'
+        'Traza la raya por encima de la parte que quieras partir: se parte aquella por la que pasa el centro de la raya.'
       );
       return;
     }
@@ -193,11 +196,11 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
       displaySnackNotification({
         header:
           secciones.length > 0
-            ? `${territoryLabel(territory)} dividido en ${secciones.length}`
+            ? `${territoryLabel(territory)}, en ${secciones.length} partes`
             : 'División quitada',
         message:
           secciones.length > 0
-            ? 'Ya se ve en el mapa. Con "Compartir enlace" puedes pasar el QR y que cada uno vea su trozo.'
+            ? 'Ya se ve en el mapa. Con "Compartir enlace" puedes pasar el QR y que cada uno vea la suya.'
             : 'El territorio vuelve a ir entero.',
         severity: 'success',
       });
@@ -230,8 +233,8 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
   const instrucciones = useMemo(() => {
     if (puntos === 0) {
       return secciones.length === 0
-        ? 'Toca el mapa para ir marcando la raya. Puedes mover y acercar entre toque y toque para seguir una calle o un camino.'
-        : 'Toca el mapa para partir uno de los trozos, o guarda así.';
+        ? 'Toca el mapa para ir marcando la raya. Entre toque y toque puedes mover y acercar para seguir una calle o un camino.'
+        : 'Toca el mapa para partir una de las partes, o guarda así.';
     }
     if (puntos === 1) return 'Marca al menos otro punto al otro lado.';
     return `${puntos} puntos. La raya tiene que cruzar de lado a lado.`;
@@ -327,7 +330,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
             </Typography>
           </Box>
 
-          {/* Qué trozos hay ahora mismo, con su color: es lo que se mira para
+          {/* Qué partes hay ahora mismo, con su color: es lo que se mira para
               decir "tú la A y yo la B". */}
           {secciones.length > 0 && (
             <Stack
@@ -336,7 +339,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
               sx={{ flexWrap: 'wrap' }}
               useFlexGap
             >
-              {/* Por orden alfabético: el corte mete cada trozo nuevo al lado
+              {/* Por orden alfabético: el corte mete cada parte nueva al lado
                   del que ha partido, que es lo suyo para el mapa, pero en una
                   lista "A, C, B" se lee como un error. */}
               {[...secciones]
@@ -387,8 +390,8 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
 
           {secciones.length > 0 && (
             <Typography className="label-small-regular" color="var(--ink-3)">
-              Toca un trozo para ponerle nombre — el de quien lo lleva, por
-              ejemplo. Las letras valen igual.
+              Toca una parte para ponerle nombre: «Con Ana», «Esta semana»… Las
+              letras valen igual.
             </Typography>
           )}
 
@@ -460,26 +463,25 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
               {guardando
                 ? 'Guardando…'
                 : secciones.length > 0
-                  ? `Guardar ${secciones.length} trozos`
+                  ? `Guardar ${secciones.length} partes`
                   : 'Guardar'}
             </Button>
           )}
         </Box>
       </Box>
 
-      {/* Ponerle nombre al trozo.
+      {/* Ponerle nombre a la parte.
         Las letras valen para partir, pero lo que se dice en la puerta del
         Salón es "vete tú con Ana": con el nombre del que lo lleva puesto en
-        el trozo, el mapa compartido ya dice el reparto entero sin explicar
+        la parte, el mapa compartido ya dice el reparto entero sin explicar
         nada. */}
       <Dialog open={Boolean(renombrando)} onClose={() => setRenombrando(null)}>
         <Stack spacing={2} sx={{ width: '100%' }}>
           <Typography className="h2" color="var(--ink)">
-            Nombre del trozo
+            Nombre de la parte
           </Typography>
           <Typography className="body-small-regular" color="var(--ink-2)">
-            Ponle el nombre de quien lo lleva, o de la parte del pueblo. Es lo
-            que verán los demás en el mapa.
+            Quien la lleva, o cuándo la vas a hacer. Es lo que se ve en el mapa.
           </Typography>
           <TextField
             label="Nombre"
