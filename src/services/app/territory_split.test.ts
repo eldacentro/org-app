@@ -137,6 +137,17 @@ describe('cortarPoligono', () => {
     expect(r).toEqual({ ok: false, motivo: 'CRUZA_DE_MAS' });
   });
 
+  it('rechaza la raya que pasa rozando una esquina', () => {
+    // Corta de verdad —las cuentas cuadran— pero deja una astilla sin una
+    // sola casa dentro. Salía con los territorios reales.
+    const r = cortarPoligono(poli(cuadrado), [
+      [-1, 9.999],
+      [11, 9.999],
+    ]);
+
+    expect(r).toEqual({ ok: false, motivo: 'ROZA_EL_BORDE' });
+  });
+
   it('rechaza la raya que no llega a cruzar', () => {
     const r = cortarPoligono(poli(cuadrado), [
       [-5, 20],

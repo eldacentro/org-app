@@ -23,6 +23,7 @@ export type MotivoFallo =
   | 'NO_CRUZA'
   | 'CRUZA_DE_MAS'
   | 'CORTA_UN_HUECO'
+  | 'ROZA_EL_BORDE'
   | 'CRUZA_VARIAS_PARTES'
   | 'AREA_NO_CUADRA';
 
@@ -33,6 +34,8 @@ export const MOTIVO_TEXTO: Record<MotivoFallo, string> = {
     'Esa raya cruza el borde más de dos veces. Haz un corte más sencillo; después puedes volver a partir cada trozo.',
   CORTA_UN_HUECO:
     'La raya pasa por encima de un hueco del territorio. Rodéalo por un lado.',
+  ROZA_EL_BORDE:
+    'La raya pasa rozando el borde y uno de los dos trozos se queda en nada. Trázala más adentro.',
   CRUZA_VARIAS_PARTES:
     'Este territorio está en varios trozos sueltos y la raya cruza más de uno. Corta uno cada vez.',
   AREA_NO_CUADRA:
@@ -44,6 +47,12 @@ export type ResultadoCorte =
   | { ok: false; motivo: MotivoFallo };
 
 const EPS = 1e-12;
+
+/**
+ * Por debajo de esto un trozo no es una sección, es una astilla: media
+ * milésima del territorio son unos pocos metros cuadrados en uno urbano.
+ */
+const ASTILLA = 0.0005;
 
 // ─── Geometría de andar por casa ─────────────────────────────────────────
 
@@ -221,9 +230,18 @@ export const cortarPoligono = (
   // La comprobación que justifica todo esto: si los dos trozos no suman el
   // territorio, se ha perdido terreno por el camino y no se guarda nada.
   const original = areaPoligono(poligono);
-  const suma = areaPoligono(resultado[0]) + areaPoligono(resultado[1]);
+  const areas = [areaPoligono(resultado[0]), areaPoligono(resultado[1])];
+  const suma = areas[0] + areas[1];
   if (original > 0 && Math.abs(suma - original) / original > 1e-6) {
     return { ok: false, motivo: 'AREA_NO_CUADRA' };
+  }
+
+  // Una raya que pasa rozando una esquina parte "bien" —las cuentas cuadran—
+  // pero deja una astilla sin una sola casa dentro. Probando contra los
+  // territorios reales salían trozos de menos de una milésima del territorio:
+  // eso no es una sección, es un resbalón del dedo.
+  if (original > 0 && Math.min(...areas) / original < ASTILLA) {
+    return { ok: false, motivo: 'ROZA_EL_BORDE' };
   }
 
   return { ok: true, piezas: resultado };
