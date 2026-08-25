@@ -93,6 +93,8 @@ export type TerritorySection = {
    * territorio se entrega.
    */
   hecha?: boolean;
+  /** Cuándo se marcó (ISO). Se borra al desmarcarla. */
+  hechaEl?: string;
 };
 
 export type TerritoryAssignmentStatus =

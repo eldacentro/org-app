@@ -79,6 +79,13 @@ type TagChipProps = {
    * `TerritorySection.hecha`.
    */
   hecha?: boolean;
+  /**
+   * Apostilla en gris detrás del nombre — "anteayer", "hace 5 días".
+   *
+   * No se tacha aunque la píldora esté hecha: lo tachado es el nombre, que es
+   * lo que ya está resuelto; la fecha es información que se viene a leer.
+   */
+  detalle?: string;
 };
 
 /**
@@ -167,6 +174,7 @@ export const TagChip = ({
   onClick,
   title,
   hecha,
+  detalle,
 }: TagChipProps) => (
   <Box
     component={onClick ? 'button' : 'div'}
@@ -198,7 +206,6 @@ export const TagChip = ({
       // legible, y el punto de color se queda hueco.
       ...(hecha && {
         color: 'var(--ink-3)',
-        textDecoration: 'line-through',
         backgroundColor: 'transparent',
       }),
       cursor: onClick ? 'pointer' : 'default',
@@ -233,10 +240,23 @@ export const TagChip = ({
       component="span"
       className="body-small-semibold"
       color="inherit"
-      sx={{ lineHeight: '18px' }}
+      sx={{
+        lineHeight: '18px',
+        ...(hecha && { textDecoration: 'line-through' }),
+      }}
     >
       {label}
     </Typography>
+    {detalle && (
+      <Typography
+        component="span"
+        className="label-small-regular"
+        color="var(--ink-3)"
+        sx={{ lineHeight: '18px' }}
+      >
+        {detalle}
+      </Typography>
+    )}
   </Box>
 );
 

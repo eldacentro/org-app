@@ -68,6 +68,7 @@ import {
   getZoneName,
   isInCooldown,
   territoryLabel,
+  cuandoSeHizo,
   displayText,
   formatTerritoryDate,
   isStillEncrypted,
@@ -209,8 +210,10 @@ const TarjetaReparto = ({
   secciones,
   onDividir,
   onMarcar,
+  dateFormat,
 }: {
   secciones?: TerritorySection[];
+  dateFormat: string;
   /** Solo se pasa a quien puede dividirlo; si no, la tarjeta solo informa. */
   onDividir?: () => void;
   /** Solo se pasa si se pueden marcar partes (ajuste) y quien mira puede. */
@@ -294,6 +297,11 @@ const TarjetaReparto = ({
                       label={seccion.nombre}
                       color={seccion.color}
                       hecha={Boolean(seccion.hecha)}
+                      detalle={
+                        seccion.hecha && seccion.hechaEl
+                          ? cuandoSeHizo(seccion.hechaEl, dateFormat)
+                          : undefined
+                      }
                     />
                   </Box>
                 ) : (
@@ -302,6 +310,11 @@ const TarjetaReparto = ({
                     label={seccion.nombre}
                     color={seccion.color}
                     hecha={Boolean(seccion.hecha)}
+                    detalle={
+                      seccion.hecha && seccion.hechaEl
+                        ? cuandoSeHizo(seccion.hechaEl, dateFormat)
+                        : undefined
+                    }
                   />
                 )
               )}
@@ -411,6 +424,7 @@ const InfoTabContent = ({
   onToggleTag?: (tagId: string) => void;
 }) => {
   const [editandoEtiquetas, setEditandoEtiquetas] = useState(false);
+  const [verHistorial, setVerHistorial] = useState(false);
 
   return (
     // La cantidad de viviendas NO se repite aquí: ya está en el bloque de
@@ -477,53 +491,72 @@ const InfoTabContent = ({
             </Typography>
           ) : (
             <Stack spacing="8px">
-              {historial.map((entrega) => (
-                <Box
-                  key={entrega.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    flexWrap: 'wrap',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--shape-sm)',
-                    border: '1px solid var(--line)',
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={0.75}
-                      sx={{ flexWrap: 'wrap', rowGap: '4px' }}
-                    >
-                      <Typography
-                        className="body-small-regular"
-                        color="var(--ink)"
+              {(verHistorial ? historial : historial.slice(0, 1)).map(
+                (entrega) => (
+                  <Box
+                    key={entrega.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      padding: '8px 12px',
+                      borderRadius: 'var(--shape-sm)',
+                      border: '1px solid var(--line)',
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={0.75}
+                        sx={{ flexWrap: 'wrap', rowGap: '4px' }}
                       >
-                        {entrega.nombre}
+                        <Typography
+                          className="body-small-regular"
+                          color="var(--ink)"
+                        >
+                          {entrega.nombre}
+                        </Typography>
+                        {entrega.campana && (
+                          <Badge size="small" color="accent" text="Campaña" />
+                        )}
+                      </Stack>
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-2)"
+                        sx={{ display: 'block' }}
+                      >
+                        {formatTerritoryDate(entrega.desde, dateFormat)} →{' '}
+                        {formatTerritoryDate(entrega.hasta, dateFormat)}
                       </Typography>
-                      {entrega.campana && (
-                        <Badge size="small" color="accent" text="Campaña" />
-                      )}
-                    </Stack>
-                    <Typography
-                      className="label-small-regular"
-                      color="var(--ink-2)"
-                      sx={{ display: 'block' }}
-                    >
-                      {formatTerritoryDate(entrega.desde, dateFormat)} →{' '}
-                      {formatTerritoryDate(entrega.hasta, dateFormat)}
-                    </Typography>
+                    </Box>
+                    <Badge
+                      size="small"
+                      color={entrega.trabajado ? 'green' : 'grey'}
+                      text={entrega.trabajado ? 'Trabajado' : 'Sin trabajar'}
+                    />
                   </Box>
-                  <Badge
-                    size="small"
-                    color={entrega.trabajado ? 'green' : 'grey'}
-                    text={entrega.trabajado ? 'Trabajado' : 'Sin trabajar'}
-                  />
-                </Box>
-              ))}
+                )
+              )}
+
+              {/* Lo normal es querer saber quién lo tuvo justo antes. El
+                  resto se consulta de tarde en tarde, y teniéndolo siempre
+                  desplegado la pestaña Info empezaba con cinco tarjetas de
+                  gente antes de llegar a nada del territorio. */}
+              {historial.length > 1 && (
+                <Button
+                  variant="tertiary"
+                  disableAutoStretch
+                  onClick={() => setVerHistorial((v) => !v)}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  {verHistorial
+                    ? 'Ver solo la última'
+                    : `Ver las ${historial.length - 1} anteriores`}
+                </Button>
+              )}
             </Stack>
           )}
         </Box>
@@ -1447,6 +1480,7 @@ const DialogVerTerritorio = ({
                   puedeDividir ? () => setDividirOpen(true) : undefined
                 }
                 onMarcar={puedeMarcarPartes ? marcarParte : undefined}
+                dateFormat={settings.dateFormat}
               />
             </Box>
           )}
@@ -1902,6 +1936,8 @@ const DialogVerTerritorio = ({
                 onDividir={
                   puedeDividir ? () => setDividirOpen(true) : undefined
                 }
+                onMarcar={puedeMarcarPartes ? marcarParte : undefined}
+                dateFormat={settings.dateFormat}
               />
             </Box>
           )}

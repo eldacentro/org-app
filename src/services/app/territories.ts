@@ -132,6 +132,27 @@ export const daysSince = (iso: string, now: Date = new Date()): number => {
   );
 };
 
+/**
+ * "hoy", "ayer", "anteayer", "hace 5 días" — y a partir de ahí, la fecha.
+ *
+ * Para marcas de días, no de meses: una división no vive más que lo que dura
+ * la asignación, así que lo relativo se lee mejor que un 23/08 que hay que
+ * traducir mentalmente. Pasada una semana ya no se dice "hace nueve días",
+ * se mira el día.
+ */
+export const cuandoSeHizo = (
+  iso: string,
+  dateFormat = 'dd/MM/yyyy',
+  now: Date = new Date()
+): string => {
+  const dias = daysSince(iso, now);
+  if (dias <= 0) return 'hoy';
+  if (dias === 1) return 'ayer';
+  if (dias === 2) return 'anteayer';
+  if (dias <= 7) return `hace ${dias} días`;
+  return formatTerritoryDate(iso, dateFormat);
+};
+
 export const getZoneColor = (
   zoneId: string,
   zones: TerritoryZone[]
