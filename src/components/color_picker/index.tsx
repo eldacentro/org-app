@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Popover } from '@mui/material';
 import { IconCheck } from '@components/icons';
-import { PALETA_COLORES } from './palette';
+import { PALETA_COLORES } from '@services/app/paleta';
 import { ColorPickerProps } from './index.types';
 
 /**

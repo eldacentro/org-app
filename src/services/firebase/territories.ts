@@ -36,6 +36,7 @@ import {
   TerritoryTag,
   TerritoryZone,
 } from '@definition/territories';
+import { repartirPaleta } from '@services/app/paleta';
 import { dbTerritoryDeleteFile } from '@services/dexie/territories';
 import { computeDueAt, ENC_PREFIX } from '@services/app/territories';
 
@@ -883,6 +884,36 @@ export const backfillMissingReturnedAt = async (
  * (o cualquier otra escritura ya fijó el campo, aunque sea a `null`) esta
  * migración ya no lo vuelve a tocar nunca.
  */
+/**
+ * Pone los colores de zonas y etiquetas dentro de la paleta.
+ *
+ * Los colores viejos se eligieron de una paleta anterior que mezclaba pesos
+ * (ver `color_picker/palette.ts`), así que al lado de los nuevos cantarían.
+ * Cada uno se queda con el de la paleta más parecido al suyo, y sin repetir:
+ * dos zonas con dos verdes parecidos siguen siendo dos verdes distintos.
+ *
+ * Idempotente: en cuanto están todos en la paleta, no escribe nada más.
+ */
+export const backfillColoresDePaleta = async (
+  congId: string,
+  zones: TerritoryZone[],
+  tags: TerritoryTag[]
+): Promise<void> => {
+  const cambiosZonas = repartirPaleta(zones);
+  const cambiosTags = repartirPaleta(tags);
+  if (cambiosZonas.length === 0 && cambiosTags.length === 0) return;
+
+  const now = new Date().toISOString();
+  const batch = writeBatch(firestore);
+  cambiosZonas.forEach(({ id, color }) =>
+    batch.update(fsDoc(zonesCol(congId), id), { color, updatedAt: now })
+  );
+  cambiosTags.forEach(({ id, color }) =>
+    batch.update(fsDoc(tagsCol(congId), id), { color, updatedAt: now })
+  );
+  await batch.commit();
+};
+
 export const backfillOpenAssignmentLocks = async (
   congId: string,
   territories: Territory[],

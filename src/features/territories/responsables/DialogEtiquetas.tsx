@@ -15,7 +15,7 @@ import { territoryTagsState } from '@states/territories';
 import { territoriesState } from '@states/territories';
 import ColorPicker from '@components/color_picker';
 import IconButton from '@components/icon_button';
-import { PALETA_COLORES } from '@components/color_picker/palette';
+import { PALETA_COLORES } from '@services/app/paleta';
 import { conCuenta } from '@utils/plural';
 import { useDebouncedColorSave } from './useDebouncedColorSave';
 

@@ -38,6 +38,7 @@ import {
   saveSettings,
   backfillMissingReturnedAt,
   backfillOpenAssignmentLocks,
+  backfillColoresDePaleta,
   backfillDueAtFormula,
   closeCampaign,
   activateCampaignIfPlanned,
@@ -281,6 +282,20 @@ export const useTerritories = () => {
       console.error('Failed to backfill returnedAt:', err)
     );
   }, [congId, canManage, assignments]);
+
+  // Migración de un solo uso: los colores de zonas y etiquetas se eligieron
+  // de una paleta anterior que mezclaba pesos, así que al lado de los de
+  // ahora cantarían. Cada uno se queda con el más parecido de la paleta
+  // nueva, sin repetir. Solo responsables (nadie más puede escribirlos) e
+  // idempotente: en cuanto están todos dentro, deja de escribir.
+  useEffect(() => {
+    if (!congId || !canManage) return;
+    if (zones.length === 0) return;
+
+    backfillColoresDePaleta(congId, zones, tags).catch((err) =>
+      console.error('No se pudieron ajustar los colores a la paleta', err)
+    );
+  }, [congId, canManage, zones, tags]);
 
   // Migración de un solo uso: repara territory.openAssignmentId para
   // territorios que ya tenían una asignación abierta antes de que ese
