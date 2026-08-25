@@ -5,7 +5,9 @@ import TextField from '@components/textfield';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
-import { IconClose } from '@components/icons';
+import { IconClose, IconEdit } from '@components/icons';
+import IconButton from '@components/icon_button';
+import { useConfirm } from '@components/confirm_dialog';
 import TerritoryMap from '../map/TerritoryMap';
 import { congIDState } from '@states/settings';
 import { Territory, TerritorySection } from '@definition/territories';
@@ -217,6 +219,30 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
     }
   };
 
+  const { confirm, ConfirmDialogNode } = useConfirm();
+
+  /**
+   * Salir. Si hay algo a medias se pregunta: la raya y los cortes viven solo
+   * en esta pantalla hasta que se guardan, y perder tres cortes por rozar la
+   * X es de las cosas que hacen que no se vuelva a usar una función.
+   */
+  const cerrar = async () => {
+    if (!sinGuardar && raya.length === 0) {
+      onClose();
+      return;
+    }
+
+    const ok = await confirm({
+      title: 'Salir sin guardar',
+      message: sinGuardar
+        ? 'Las partes que has hecho aquí se perderán.'
+        : 'Se perderá la raya que estabas trazando.',
+      confirmLabel: 'Salir',
+      destructive: true,
+    });
+    if (ok) onClose();
+  };
+
   const renombrar = () => {
     if (!renombrando) return;
     const limpio = nombreNuevo.trim().slice(0, 24);
@@ -233,10 +259,10 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
   const instrucciones = useMemo(() => {
     if (puntos === 0) {
       return secciones.length === 0
-        ? 'Toca el mapa para ir marcando la raya. Entre toque y toque puedes mover y acercar para seguir una calle o un camino.'
-        : 'Toca el mapa para partir una de las partes, o guarda así.';
+        ? 'Toca el mapa para ir marcando por dónde quieres partirlo. Entre toque y toque puedes mover y acercar el mapa.'
+        : 'Toca el mapa para volver a partir, o guarda así.';
     }
-    if (puntos === 1) return 'Marca al menos otro punto al otro lado.';
+    if (puntos === 1) return 'Marca otro punto al otro lado del territorio.';
     return `${puntos} puntos. La raya tiene que cruzar de lado a lado.`;
   }, [puntos, secciones.length]);
 
@@ -244,7 +270,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
     <MUIDialog
       fullScreen
       open={open}
-      onClose={onClose}
+      onClose={cerrar}
       PaperProps={{
         sx: { backgroundColor: 'var(--white)', overflow: 'hidden', margin: 0 },
       }}
@@ -272,35 +298,6 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
             }}
             bottomInset={inset}
           />
-
-          <Box
-            component="button"
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            sx={{
-              position: 'absolute',
-              top: 'max(16px, env(safe-area-inset-top))',
-              left: 16,
-              zIndex: 1200,
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--shape-full)',
-              // Negro literal: va sobre las teselas del mapa, que son claras
-              // siempre, no sobre el fondo del tema.
-              backgroundColor: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(12px)',
-              border: '0.5px solid rgba(255,255,255,0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              appearance: 'none',
-              padding: 0,
-            }}
-          >
-            <IconClose color="var(--always-white)" width={16} height={16} />
-          </Box>
         </Box>
 
         {/* ─── La barra de abajo ────────────────────────────────────────── */}
@@ -317,18 +314,37 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
             backgroundColor: 'var(--white)',
           }}
         >
-          <Box>
-            <Typography className="h4" color="var(--ink)">
-              Dividir {territoryLabel(territory)}
-            </Typography>
-            <Typography
-              className="body-small-regular"
-              color="var(--ink-2)"
-              sx={{ display: 'block', mt: '2px' }}
+          {/* La salida vive AQUÍ, pegada al título de lo que se está
+              haciendo. Estuvo flotando sobre el mapa, arriba a la izquierda,
+              como en la ficha del territorio — y ahí no se encontraba: el
+              trabajo pasa abajo, y una X en la esquina del mapa parece del
+              mapa, no de esta pantalla. */}
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            justifyContent="space-between"
+            spacing={1}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Typography className="h4" color="var(--ink)">
+                Dividir {territoryLabel(territory)}
+              </Typography>
+              <Typography
+                className="body-small-regular"
+                color="var(--ink-2)"
+                sx={{ display: 'block', mt: '2px' }}
+              >
+                {instrucciones}
+              </Typography>
+            </Box>
+            <IconButton
+              onClick={cerrar}
+              aria-label="Salir de dividir"
+              sx={{ mt: '-6px', mr: '-8px' }}
             >
-              {instrucciones}
-            </Typography>
-          </Box>
+              <IconClose color="var(--ink-2)" width={20} height={20} />
+            </IconButton>
+          </Stack>
 
           {/* Qué partes hay ahora mismo, con su color: es lo que se mira para
               decir "tú la A y yo la B". */}
@@ -383,6 +399,10 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
                     >
                       {seccion.nombre}
                     </Typography>
+                    {/* Sin el lápiz, la cápsula se lee como una etiqueta y
+                        nadie la toca: el nombre se queda en "A" para
+                        siempre. */}
+                    <IconEdit color="var(--ink-3)" width={14} height={14} />
                   </Box>
                 ))}
             </Stack>
@@ -410,65 +430,95 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
             </Typography>
           )}
 
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ flexWrap: 'wrap' }}
-            useFlexGap
-          >
-            {puntos > 0 && (
-              <Button
-                variant="secondary"
-                disableAutoStretch
-                onClick={() => setRaya((prev) => prev.slice(0, -1))}
+          {/* Dos modos, y en cada uno lo que se puede hacer AHORA.
+              Antes salían mezclados "Quitar punto", "Deshacer corte" y
+              "Quitar la división" en la misma fila: tres cosas que suenan
+              igual —deshacer— y hacen tres cosas distintas. */}
+          {puntos > 0 ? (
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ flexWrap: 'wrap' }}
+                useFlexGap
               >
-                Quitar punto
-              </Button>
-            )}
-            {anteriores.length > 0 && puntos === 0 && (
-              <Button
-                variant="secondary"
-                disableAutoStretch
-                onClick={deshacerCorte}
-              >
-                Deshacer corte
-              </Button>
-            )}
-            {secciones.length > 0 && puntos === 0 && (
-              <Button
-                variant="secondary"
-                color="red"
-                disableAutoStretch
-                onClick={() => {
-                  setAnteriores((prev) => [...prev, secciones]);
-                  setSecciones([]);
-                  setAviso(null);
-                }}
-              >
-                Quitar la división
-              </Button>
-            )}
-          </Stack>
+                <Button
+                  variant="secondary"
+                  disableAutoStretch
+                  onClick={() => setRaya((prev) => prev.slice(0, -1))}
+                >
+                  Quitar el último
+                </Button>
+                {/* Con seis puntos puestos, ir quitándolos de uno en uno para
+                    empezar otra vez es un castigo. */}
+                {puntos > 1 && (
+                  <Button
+                    variant="secondary"
+                    disableAutoStretch
+                    onClick={() => {
+                      setRaya([]);
+                      setAviso(null);
+                    }}
+                  >
+                    Empezar la raya de nuevo
+                  </Button>
+                )}
+              </Stack>
 
-          {puntos >= 2 ? (
-            <Button variant="main" onClick={cortar}>
-              Cortar por aquí
-            </Button>
+              <Button variant="main" disabled={puntos < 2} onClick={cortar}>
+                Cortar por aquí
+              </Button>
+            </>
           ) : (
-            <Button
-              variant="main"
-              disabled={guardando || !sinGuardar}
-              onClick={guardar}
-            >
-              {guardando
-                ? 'Guardando…'
-                : secciones.length > 0
-                  ? `Guardar ${secciones.length} partes`
-                  : 'Guardar'}
-            </Button>
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ flexWrap: 'wrap' }}
+                useFlexGap
+              >
+                {anteriores.length > 0 && (
+                  <Button
+                    variant="secondary"
+                    disableAutoStretch
+                    onClick={deshacerCorte}
+                  >
+                    Deshacer el corte
+                  </Button>
+                )}
+                {secciones.length > 0 && (
+                  <Button
+                    variant="secondary"
+                    color="red"
+                    disableAutoStretch
+                    onClick={() => {
+                      setAnteriores((prev) => [...prev, secciones]);
+                      setSecciones([]);
+                      setAviso(null);
+                    }}
+                  >
+                    Dejarlo entero
+                  </Button>
+                )}
+              </Stack>
+
+              <Button
+                variant="main"
+                disabled={guardando || !sinGuardar}
+                onClick={guardar}
+              >
+                {guardando
+                  ? 'Guardando…'
+                  : secciones.length > 0
+                    ? `Guardar ${secciones.length} partes`
+                    : 'Guardar'}
+              </Button>
+            </>
           )}
         </Box>
       </Box>
+
+      {ConfirmDialogNode}
 
       {/* Ponerle nombre a la parte.
         Las letras valen para partir, pero lo que se dice en la puerta del
