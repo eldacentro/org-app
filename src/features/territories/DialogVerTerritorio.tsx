@@ -546,16 +546,43 @@ const InfoTabContent = ({
                   desplegado la pestaña Info empezaba con cinco tarjetas de
                   gente antes de llegar a nada del territorio. */}
               {historial.length > 1 && (
-                <Button
-                  variant="tertiary"
-                  disableAutoStretch
+                // Un enlace, no un botón con su caja: lo que importa de este
+                // bloque es la entrega que se ve, y un botón de contorno
+                // entero pesaba más que la propia tarjeta que abre. Es el
+                // mismo control discreto que el "Editar" de las etiquetas,
+                // aquí al lado.
+                <Box
+                  component="button"
+                  type="button"
                   onClick={() => setVerHistorial((v) => !v)}
-                  sx={{ alignSelf: 'flex-start' }}
+                  aria-expanded={verHistorial}
+                  sx={{
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'none',
+                    padding: '2px 8px',
+                    marginLeft: '-8px',
+                    alignSelf: 'flex-start',
+                    cursor: 'pointer',
+                    borderRadius: 'var(--shape-full)',
+                    color: 'var(--accent-main)',
+                    '&:hover': { backgroundColor: 'var(--state-hover)' },
+                    '&:focus-visible': {
+                      outline: '2px solid var(--accent-main)',
+                      outlineOffset: '2px',
+                    },
+                  }}
                 >
-                  {verHistorial
-                    ? 'Ver solo la última'
-                    : `Ver las ${historial.length - 1} anteriores`}
-                </Button>
+                  <Typography
+                    component="span"
+                    className="label-small-semibold"
+                    color="inherit"
+                  >
+                    {verHistorial
+                      ? 'Ver solo la última'
+                      : `Ver las ${historial.length - 1} anteriores`}
+                  </Typography>
+                </Box>
               )}
             </Stack>
           )}
