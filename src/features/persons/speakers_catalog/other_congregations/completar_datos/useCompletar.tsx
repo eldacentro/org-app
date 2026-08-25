@@ -36,8 +36,17 @@ export type Hallazgo = {
   nombre: string;
   numero: string;
   circuito: string;
-  /** Se buscó y no se pudo decidir. Se enseña para que se sepa cuáles quedan. */
+  /** Se buscó, se obtuvo respuesta, y no había nada que rellenar. */
   sinSuerte: boolean;
+  /**
+   * No se pudo ni preguntar: el servidor no contestó, o cortó por el límite de
+   * peticiones.
+   *
+   * Se distingue de `sinSuerte` porque tienen consecuencias opuestas: «se buscó
+   * y no hay» se apunta para no volver a molestar, y «no se pudo buscar» NO se
+   * apunta — si no, un corte de un minuto silenciaría el aviso para siempre.
+   */
+  noSePudo: boolean;
 };
 
 /**
@@ -91,8 +100,11 @@ const useCompletar = () => {
     [congregaciones, intentos]
   );
 
-  const encontradas = (hallazgos ?? []).filter((h) => !h.sinSuerte);
+  const encontradas = (hallazgos ?? []).filter(
+    (h) => !h.sinSuerte && !h.noSePudo
+  );
   const perdidas = (hallazgos ?? []).filter((h) => h.sinSuerte);
+  const incompletasPorFallo = (hallazgos ?? []).filter((h) => h.noSePudo);
 
   /** Las que no han entrado en esta tanda. Ver `POR_TANDA`. */
   const pendientes = Math.max(0, incompletas.length - POR_TANDA);
@@ -125,7 +137,28 @@ const useCompletar = () => {
       // congregaciones tiene un límite por minuto que un puñado de peticiones
       // simultáneas se lleva por delante.
       for (const falta of incompletas.slice(0, POR_TANDA)) {
-        const { data } = await apiFetchCongregations(paisGuid, falta.nombre);
+        const { status, data } = await apiFetchCongregations(
+          paisGuid,
+          falta.nombre
+        );
+
+        // Mirar el ESTADO y no solo si vino algo: cuando la búsqueda falla —el
+        // límite de peticiones, un corte— la respuesta trae un objeto de error
+        // donde se esperaba la lista, y eso se leía como «buscada y no está».
+        // Con esa lectura, un fallo de un minuto apuntaba la congregación como
+        // ya intentada y la callaba para siempre.
+        if (status !== 200) {
+          resultados.push({
+            id: falta.id,
+            nombre: falta.nombre,
+            numero: '',
+            circuito: '',
+            sinSuerte: false,
+            noSePudo: true,
+          });
+
+          continue;
+        }
 
         const encontrada = emparejarPorNombre<CongregationResponseType>(
           falta.nombre,
@@ -139,6 +172,7 @@ const useCompletar = () => {
             numero: '',
             circuito: '',
             sinSuerte: true,
+            noSePudo: false,
           });
 
           continue;
@@ -162,6 +196,7 @@ const useCompletar = () => {
           numero,
           circuito,
           sinSuerte: !numero && !circuito,
+          noSePudo: false,
         });
       }
 
@@ -257,6 +292,7 @@ const useCompletar = () => {
     hallazgos,
     encontradas,
     perdidas,
+    incompletasPorFallo,
     pendientes,
     buscando,
     guardando,

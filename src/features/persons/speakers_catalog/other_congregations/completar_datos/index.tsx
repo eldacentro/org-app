@@ -22,6 +22,7 @@ const CompletarDatos = () => {
     hallazgos,
     encontradas,
     perdidas,
+    incompletasPorFallo,
     pendientes,
     buscando,
     guardando,
@@ -109,6 +110,22 @@ const CompletarDatos = () => {
               .join(
                 ', '
               )}. No se vuelve a avisar de estas; si hace falta, escríbelo a mano desde el lápiz de cada una.`}
+          </Typography>
+        )}
+
+        {/* Las que no se pudieron ni consultar. NO se apuntan como intentadas
+            —volverán a avisar—, así que hay que decir que la culpa fue del
+            camino y no de que no existan: si no, se leería como «esta no está
+            en jw.org» y se dejaría de buscar. */}
+        {incompletasPorFallo.length > 0 && (
+          <Typography
+            component="span"
+            className="label-small-regular"
+            sx={{ color: 'var(--orange-dark)' }}
+          >
+            {incompletasPorFallo.length === 1
+              ? `No se ha podido consultar ${incompletasPorFallo[0].nombre}. Vuelve a intentarlo dentro de unos minutos.`
+              : `No se han podido consultar ${incompletasPorFallo.length} congregaciones. Vuelve a intentarlo dentro de unos minutos.`}
           </Typography>
         )}
 
