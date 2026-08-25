@@ -11,7 +11,7 @@ import Typography from '@components/typography';
 import { IconAdd, IconFullscreen } from '@components/icons';
 import { COLORES, EXTINTORES_GEO, PUESTOS, SALIDAS } from './data';
 import { PLANO_BASE_SVG, PLANO_TRANSFORM } from './plano_base';
-import { BLOQUES_ASIENTOS } from './asientos';
+import { BLOQUES_ASIENTOS, MESA_SONIDO } from './asientos';
 import { Seleccion } from './DetalleSeleccion';
 
 /**
@@ -389,6 +389,21 @@ const Plano2D = ({ seleccion, onSelect, onPantallaCompleta }: Props) => {
               </g>
             );
           })}
+
+          {/* La mesa del sonido, en medio de la fila de atrás del auditorio.
+              No se puede tocar: no es una zona que nadie desaloje, es un
+              obstáculo — y en un plan de evacuación saber que la fila de atrás
+              está partida en dos importa antes de que haga falta. */}
+          <rect
+            x={MESA_SONIDO.x - MESA_SONIDO.ancho / 2}
+            y={MESA_SONIDO.y - MESA_SONIDO.alto / 2}
+            width={MESA_SONIDO.ancho}
+            height={MESA_SONIDO.alto}
+            rx="0.3"
+            fill="#D9DADB"
+            stroke="#9AA3AF"
+            strokeWidth="0.28"
+          />
 
           {/* Salidas */}
           {SALIDAS.map((salida) => {
