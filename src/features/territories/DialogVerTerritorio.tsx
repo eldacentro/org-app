@@ -1257,7 +1257,15 @@ const DialogVerTerritorio = ({
           {tab === 0 && (
             <Box
               ref={setContenidoMapaEl}
-              sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                // Un respiro por debajo: la tarjeta lleva su propio borde y,
+                // sin esto, ese borde queda pegado a la línea que separa los
+                // botones de abajo y parecen la misma caja.
+                paddingBottom: '12px',
+              }}
             >
               {(puedeDividir || Boolean(liveTerritory.secciones?.length)) && (
                 <Box
