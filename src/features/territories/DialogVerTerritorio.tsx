@@ -45,6 +45,7 @@ import SegmentedControl from '@components/segmented_control';
 import {
   Territory,
   TerritoryAssignment,
+  TerritorySection,
   TerritoryTag,
 } from '@definition/territories';
 import {
@@ -196,6 +197,121 @@ const SIZE_TAG_NAMES = new Set([
   'Extra grande',
 ]);
 
+/**
+ * Cómo está repartido el territorio, y la puerta para cambiarlo.
+ *
+ * Vive en la franja de abajo de la pestaña Mapa —en móvil— y en la columna de
+ * información —en escritorio—, que son el mismo sitio: lo primero que se ve al
+ * abrir el territorio. Estuvo además dentro de la pestaña Info y sobraba: dos
+ * botones para lo mismo en la misma pantalla.
+ */
+const TarjetaReparto = ({
+  secciones,
+  onDividir,
+}: {
+  secciones?: TerritorySection[];
+  /** Solo se pasa a quien puede dividirlo; si no, la tarjeta solo informa. */
+  onDividir?: () => void;
+}) => {
+  if (!onDividir && !secciones?.length) return null;
+
+  return (
+    <Box
+      component={onDividir ? 'button' : 'div'}
+      type={onDividir ? 'button' : undefined}
+      onClick={onDividir}
+      className={onDividir ? 'active-press' : undefined}
+      aria-label={
+        onDividir
+          ? secciones?.length
+            ? 'Cambiar cómo está dividido el territorio'
+            : 'Dividir el territorio en partes'
+          : undefined
+      }
+      sx={{
+        appearance: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '10px 14px',
+        borderRadius: 'var(--shape-lg)',
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--card)',
+        cursor: onDividir ? 'pointer' : 'default',
+        transition: 'background-color var(--motion-fast) var(--ease-standard)',
+        ...(onDividir && {
+          '&:hover': { backgroundColor: 'var(--state-hover)' },
+          '&:focus-visible': {
+            outline: '2px solid var(--accent-main)',
+            outlineOffset: '2px',
+          },
+        }),
+      }}
+    >
+      {/* La chapa del icono va con relleno y sin borde, como el resto de la
+          app. */}
+      <Box
+        aria-hidden
+        sx={{
+          width: 38,
+          height: 38,
+          flexShrink: 0,
+          borderRadius: 'var(--shape-md)',
+          backgroundColor: 'var(--accent-150)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <IconEditMap color="var(--accent-dark)" width={20} height={20} />
+      </Box>
+
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {secciones?.length ? (
+          <>
+            <Typography className="body-small-semibold" color="var(--ink)">
+              Dividido en {secciones.length} partes
+            </Typography>
+            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: '4px' }}>
+              {/* Alfabético: el corte mete cada parte nueva al lado de la que
+                  ha partido, y "A, C, B" en una lista se lee como un error. */}
+              {[...secciones]
+                .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                .map((seccion) => (
+                  <TagChip
+                    key={seccion.id}
+                    label={seccion.nombre}
+                    color={seccion.color}
+                  />
+                ))}
+            </Stack>
+          </>
+        ) : (
+          <>
+            <Typography className="body-small-semibold" color="var(--ink)">
+              Dividir el territorio
+            </Typography>
+            <Typography
+              className="label-small-regular"
+              color="var(--ink-2)"
+              sx={{ display: 'block' }}
+            >
+              Para repartirlo entre varios, o hacerlo en varios días
+            </Typography>
+          </>
+        )}
+      </Box>
+
+      {onDividir && (
+        <IconChevronRight color="var(--ink-3)" width={20} height={20} />
+      )}
+    </Box>
+  );
+};
+
 /** Una entrega ya cerrada de este territorio, con el nombre ya resuelto. */
 type EntregaAnterior = {
   id: string;
@@ -220,7 +336,6 @@ const InfoTabContent = ({
   tags,
   allTags,
   onToggleTag,
-  onDividir,
 }: {
   territory: Territory;
   canManage: boolean;
@@ -236,8 +351,6 @@ const InfoTabContent = ({
   allTags: TerritoryTag[];
   /** Solo se pasa si quien mira puede cambiarlas. */
   onToggleTag?: (tagId: string) => void;
-  /** Solo se pasa a quien puede dividir el territorio. */
-  onDividir?: () => void;
 }) => {
   const [editandoEtiquetas, setEditandoEtiquetas] = useState(false);
 
@@ -366,59 +479,6 @@ const InfoTabContent = ({
         característica del territorio, que es exactamente lo que esta pestaña
         guarda. Arriba se queda lo que se mira de un vistazo; aquí, lo que se
         consulta. */}
-      {/* Las partes en las que está dividido, si lo está.
-        Solo los territorios grandes se parten, así que esto no sale casi
-        nunca — pero cuando sale es lo que se mira antes de salir: "tú la A,
-        yo la B". El mapa de arriba las pinta con estos mismos colores. */}
-      {(territory.secciones?.length || onDividir) && (
-        <Box>
-          <Typography
-            className="label-small-semibold"
-            color="var(--ink-3)"
-            sx={{ display: 'block', mb: '8px' }}
-          >
-            Partes
-          </Typography>
-
-          {territory.secciones?.length ? (
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              gap={0.75}
-              alignItems="center"
-              sx={{ mb: onDividir ? '8px' : 0 }}
-            >
-              {/* Alfabético: el corte mete cada parte nueva al lado de la que
-                  ha partido, y "A, C, B" en una lista se lee como un error. */}
-              {[...territory.secciones]
-                .sort((a, b) => a.nombre.localeCompare(b.nombre))
-                .map((seccion) => (
-                  <TagChip
-                    key={seccion.id}
-                    label={seccion.nombre}
-                    color={seccion.color}
-                  />
-                ))}
-            </Stack>
-          ) : (
-            <Typography
-              className="body-small-regular"
-              color="var(--ink-2)"
-              sx={{ display: 'block', mb: '8px' }}
-            >
-              Va entero. Se puede dividir para repartirlo entre varios, o para
-              hacerlo en varios días.
-            </Typography>
-          )}
-
-          {onDividir && (
-            <Button variant="secondary" disableAutoStretch onClick={onDividir}>
-              {territory.secciones?.length ? 'Cambiar las partes' : 'Dividir'}
-            </Button>
-          )}
-        </Box>
-      )}
-
       {(tags.length > 0 || (canManage && allTags.length > 0)) && (
         <Box>
           <Typography
@@ -1267,121 +1327,12 @@ const DialogVerTerritorio = ({
                 paddingBottom: '12px',
               }}
             >
-              {(puedeDividir || Boolean(liveTerritory.secciones?.length)) && (
-                <Box
-                  component={puedeDividir ? 'button' : 'div'}
-                  type={puedeDividir ? 'button' : undefined}
-                  onClick={
-                    puedeDividir ? () => setDividirOpen(true) : undefined
-                  }
-                  className={puedeDividir ? 'active-press' : undefined}
-                  aria-label={
-                    puedeDividir
-                      ? liveTerritory.secciones?.length
-                        ? 'Cambiar cómo está dividido el territorio'
-                        : 'Dividir el territorio en partes'
-                      : undefined
-                  }
-                  sx={{
-                    appearance: 'none',
-                    font: 'inherit',
-                    textAlign: 'left',
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--shape-lg)',
-                    border: '1px solid var(--line)',
-                    backgroundColor: 'var(--card)',
-                    cursor: puedeDividir ? 'pointer' : 'default',
-                    transition:
-                      'background-color var(--motion-fast) var(--ease-standard)',
-                    ...(puedeDividir && {
-                      '&:hover': { backgroundColor: 'var(--state-hover)' },
-                      '&:focus-visible': {
-                        outline: '2px solid var(--accent-main)',
-                        outlineOffset: '2px',
-                      },
-                    }),
-                  }}
-                >
-                  {/* La chapa del icono va con relleno y sin borde, como el
-                      resto de la app. */}
-                  <Box
-                    aria-hidden
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      flexShrink: 0,
-                      borderRadius: 'var(--shape-md)',
-                      backgroundColor: 'var(--accent-150)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <IconEditMap
-                      color="var(--accent-dark)"
-                      width={20}
-                      height={20}
-                    />
-                  </Box>
-
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    {liveTerritory.secciones?.length ? (
-                      <>
-                        <Typography
-                          className="body-small-semibold"
-                          color="var(--ink)"
-                        >
-                          Dividido en {liveTerritory.secciones.length} partes
-                        </Typography>
-                        <Stack
-                          direction="row"
-                          flexWrap="wrap"
-                          gap={0.5}
-                          sx={{ mt: '4px' }}
-                        >
-                          {[...liveTerritory.secciones]
-                            .sort((a, b) => a.nombre.localeCompare(b.nombre))
-                            .map((seccion) => (
-                              <TagChip
-                                key={seccion.id}
-                                label={seccion.nombre}
-                                color={seccion.color}
-                              />
-                            ))}
-                        </Stack>
-                      </>
-                    ) : (
-                      <>
-                        <Typography
-                          className="body-small-semibold"
-                          color="var(--ink)"
-                        >
-                          Dividir el territorio
-                        </Typography>
-                        <Typography
-                          className="label-small-regular"
-                          color="var(--ink-2)"
-                          sx={{ display: 'block' }}
-                        >
-                          Para repartirlo entre varios, o hacerlo en varios días
-                        </Typography>
-                      </>
-                    )}
-                  </Box>
-
-                  {puedeDividir && (
-                    <IconChevronRight
-                      color="var(--ink-3)"
-                      width={20}
-                      height={20}
-                    />
-                  )}
-                </Box>
-              )}
+              <TarjetaReparto
+                secciones={liveTerritory.secciones}
+                onDividir={
+                  puedeDividir ? () => setDividirOpen(true) : undefined
+                }
+              />
             </Box>
           )}
 
@@ -1541,7 +1492,6 @@ const DialogVerTerritorio = ({
               tags={visibleHeaderTags}
               allTags={allTags}
               onToggleTag={canManage ? handleToggleTag : undefined}
-              onDividir={puedeDividir ? () => setDividirOpen(true) : undefined}
             />
           )}
 
@@ -1828,6 +1778,19 @@ const DialogVerTerritorio = ({
 
         {/* Contenido scrollable */}
         <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 1 }}>
+          {/* En escritorio no hay pestaña Mapa —el mapa está siempre a la
+              izquierda—, así que el reparto va aquí, lo primero. */}
+          {tab === 0 && (
+            <Box sx={{ mb: '14px' }}>
+              <TarjetaReparto
+                secciones={liveTerritory.secciones}
+                onDividir={
+                  puedeDividir ? () => setDividirOpen(true) : undefined
+                }
+              />
+            </Box>
+          )}
+
           {tab === 0 && (
             <InfoTabContent
               territory={liveTerritory}
@@ -1843,7 +1806,6 @@ const DialogVerTerritorio = ({
               tags={visibleHeaderTags}
               allTags={allTags}
               onToggleTag={canManage ? handleToggleTag : undefined}
-              onDividir={puedeDividir ? () => setDividirOpen(true) : undefined}
             />
           )}
 
@@ -1986,8 +1948,15 @@ const DialogVerTerritorio = ({
               </Typography>
             )}
             {(canManage || (relevantAssignment && isMine)) && (
-              <Button variant="secondary" onClick={() => setShareOpen(true)}>
-                Compartir enlace
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  puedePrestar
+                    ? setElegirCompartirOpen(true)
+                    : setShareOpen(true)
+                }
+              >
+                Compartir
               </Button>
             )}
             {relevantAssignment && onEntregar && (
