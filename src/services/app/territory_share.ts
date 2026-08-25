@@ -92,6 +92,14 @@ export const buildSharePayload = ({
         ? territory.notas
         : undefined,
     tags: includes.mapa ? territoryTags : [],
+    // Con el mapa van los trozos: sin mapa no hay dónde pintarlos.
+    secciones: includes.mapa
+      ? territory.secciones?.map((seccion) => ({
+          nombre: seccion.nombre,
+          color: seccion.color,
+          geometry: seccion.geometry,
+        }))
+      : undefined,
     locations: visibleLocations,
     expiresAt,
     tiedToAssignment,

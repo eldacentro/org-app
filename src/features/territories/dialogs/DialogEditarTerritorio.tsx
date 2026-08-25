@@ -208,6 +208,13 @@ const DialogEditarTerritorio = ({
           zoneId,
           tags: tagIds,
           geometry,
+          // Cambiar la forma del territorio deja los trozos sin sentido: se
+          // quedarían saliéndose por un lado y dejando hueco por otro, y a
+          // quien abre el territorio le seguirían pareciendo el reparto
+          // bueno. Se quitan, y se vuelve a cortar cuando haga falta.
+          borrarSecciones:
+            Boolean(territory.secciones?.length) &&
+            JSON.stringify(geometry) !== JSON.stringify(territory.geometry),
           updatedAt: new Date().toISOString(),
         },
         masterKey ?? ''

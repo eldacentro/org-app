@@ -139,6 +139,37 @@ const parseGeometry = (value: unknown): Territory['geometry'] => {
   return value as Territory['geometry']; // tolera docs antiguos no serializados
 };
 
+/**
+ * Los trozos llevan geometría, así que les pasa lo mismo: Firestore no admite
+ * arrays anidados. Se guardan con su polígono serializado y se parsean al
+ * leer, igual que el del territorio.
+ *
+ * Sin esto, guardar una división fallaba entera y por pantalla salía
+ * "comprueba tu conexión" —con conexión de sobra—, que es lo que dice el
+ * catch cuando en realidad el servidor ha rechazado el documento.
+ */
+export const serializeSecciones = (secciones: TerritorySection[]) =>
+  secciones.map((seccion) => ({
+    ...seccion,
+    geometry: JSON.stringify(seccion.geometry),
+  }));
+
+/** La vuelta. Un trozo cuyo polígono no se entienda se descarta: antes que
+ *  enseñar medio reparto inventado, se enseña el que sí se entiende. */
+export const parseSecciones = (
+  value: unknown
+): TerritorySection[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .map((seccion) => ({
+      ...(seccion as TerritorySection),
+      geometry: parseGeometry(
+        (seccion as { geometry: unknown }).geometry
+      ) as TerritorySection['geometry'],
+    }))
+    .filter((seccion) => Boolean(seccion.geometry));
+};
+
 // ─── Firebase Storage (KML / PNG) ──────────────────────────────────────────
 export const uploadTerritoryImage = async (
   congId: string,
@@ -221,6 +252,7 @@ export const subscribeTerritories = (
       ({
         ...d,
         geometry: parseGeometry(d.geometry),
+        secciones: parseSecciones(d.secciones),
         notas: dec(d.notas as string, key, 'territory.notas'),
       }) as Territory,
     cb,
@@ -365,6 +397,9 @@ export const saveTerritory = (
     stripUndefined({
       ...territory,
       geometry: serializeGeometry(territory.geometry),
+      secciones: territory.secciones
+        ? serializeSecciones(territory.secciones)
+        : undefined,
       notas: enc(territory.notas, key),
     })
   );
@@ -414,7 +449,14 @@ export const updateTerritoryPartial = (
 ) =>
   updateDoc(
     fsDoc(territoriesCol(congId), territoryId),
-    stripUndefined({ ...fields, updatedAt: fields.updatedAt ?? new Date().toISOString() })
+    stripUndefined({
+      ...fields,
+      // El polígono de cada trozo, a texto (ver `serializeSecciones`).
+      ...(fields.secciones
+        ? { secciones: serializeSecciones(fields.secciones) }
+        : {}),
+      updatedAt: fields.updatedAt ?? new Date().toISOString(),
+    })
   );
 
 export const updateTerritoryEditableFields = (
@@ -433,6 +475,8 @@ export const updateTerritoryEditableFields = (
      *  deja EXACTAMENTE como está. Sin esto, el editor mandaba la nota vacía
      *  (porque el campo se bloquea y no se carga) y `?? null` la borraba. */
     keepNotas?: boolean;
+    /** `true` si ha cambiado la forma: los trozos de dentro ya no valen. */
+    borrarSecciones?: boolean;
   },
   key: string
 ) => {
@@ -446,6 +490,7 @@ export const updateTerritoryEditableFields = (
     updatedAt: fields.updatedAt,
   };
   if (!fields.keepNotas) payload.notas = enc(fields.notas, key) ?? null;
+  if (fields.borrarSecciones) payload.secciones = [];
   return updateDoc(fsDoc(territoriesCol(congId), territoryId), payload);
 };
 
@@ -465,6 +510,7 @@ export const saveTerritoriesBatch = async (
         stripUndefined({
           ...t,
           geometry: serializeGeometry(t.geometry),
+          secciones: t.secciones ? serializeSecciones(t.secciones) : undefined,
           notas: enc(t.notas, key),
         })
       )

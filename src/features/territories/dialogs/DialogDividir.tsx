@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Box, Stack, Dialog as MUIDialog } from '@mui/material';
+import Dialog from '@components/dialog';
+import TextField from '@components/textfield';
 import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
@@ -83,6 +85,10 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
       setInset(el.offsetHeight);
     }
   };
+
+  // El trozo que se está renombrando, y lo que lleva escrito.
+  const [renombrando, setRenombrando] = useState<TerritorySection | null>(null);
+  const [nombreNuevo, setNombreNuevo] = useState('');
 
   const sinGuardar =
     JSON.stringify(secciones) !== JSON.stringify(territory.secciones ?? []);
@@ -191,7 +197,7 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
             : 'División quitada',
         message:
           secciones.length > 0
-            ? 'Ya se ve repartido en el mapa del territorio.'
+            ? 'Ya se ve en el mapa. Con "Compartir enlace" puedes pasar el QR y que cada uno vea su trozo.'
             : 'El territorio vuelve a ir entero.',
         severity: 'success',
       });
@@ -206,6 +212,19 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
     } finally {
       setGuardando(false);
     }
+  };
+
+  const renombrar = () => {
+    if (!renombrando) return;
+    const limpio = nombreNuevo.trim().slice(0, 24);
+    if (limpio.length > 0) {
+      setSecciones((prev) =>
+        prev.map((s) =>
+          s.id === renombrando.id ? { ...s, nombre: limpio } : s
+        )
+      );
+    }
+    setRenombrando(null);
   };
 
   const instrucciones = useMemo(() => {
@@ -325,7 +344,18 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
                 .map((seccion) => (
                   <Box
                     key={seccion.id}
+                    component="button"
+                    type="button"
+                    aria-label={`Cambiar el nombre de ${seccion.nombre}`}
+                    onClick={() => {
+                      setRenombrando(seccion);
+                      setNombreNuevo(seccion.nombre);
+                    }}
+                    className="active-press"
                     sx={{
+                      appearance: 'none',
+                      font: 'inherit',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -353,6 +383,13 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
                   </Box>
                 ))}
             </Stack>
+          )}
+
+          {secciones.length > 0 && (
+            <Typography className="label-small-regular" color="var(--ink-3)">
+              Toca un trozo para ponerle nombre — el de quien lo lleva, por
+              ejemplo. Las letras valen igual.
+            </Typography>
           )}
 
           {aviso && (
@@ -429,6 +466,46 @@ const DialogDividir = ({ open, territory, onClose }: Props) => {
           )}
         </Box>
       </Box>
+
+      {/* Ponerle nombre al trozo.
+        Las letras valen para partir, pero lo que se dice en la puerta del
+        Salón es "vete tú con Ana": con el nombre del que lo lleva puesto en
+        el trozo, el mapa compartido ya dice el reparto entero sin explicar
+        nada. */}
+      <Dialog open={Boolean(renombrando)} onClose={() => setRenombrando(null)}>
+        <Stack spacing={2} sx={{ width: '100%' }}>
+          <Typography className="h2" color="var(--ink)">
+            Nombre del trozo
+          </Typography>
+          <Typography className="body-small-regular" color="var(--ink-2)">
+            Ponle el nombre de quien lo lleva, o de la parte del pueblo. Es lo
+            que verán los demás en el mapa.
+          </Typography>
+          <TextField
+            label="Nombre"
+            value={nombreNuevo}
+            onChange={(e) => setNombreNuevo(e.target.value.slice(0, 24))}
+            slotProps={{ htmlInput: { maxLength: 24 } }}
+          />
+          <Stack direction="row" spacing={1} justifyContent="flex-end">
+            <Button
+              variant="secondary"
+              disableAutoStretch
+              onClick={() => setRenombrando(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="main"
+              disableAutoStretch
+              disabled={nombreNuevo.trim().length === 0}
+              onClick={renombrar}
+            >
+              Guardar nombre
+            </Button>
+          </Stack>
+        </Stack>
+      </Dialog>
     </MUIDialog>
   );
 };

@@ -68,6 +68,14 @@ export type TerritorySharePayload = {
   tags: { nombre: string; color?: string }[];
   /** Solo las aprobadas, ya descifradas. */
   locations: { direccion: string; nota?: string }[];
+  /**
+   * Los trozos en los que está dividido, si lo está. Van en el enlace para
+   * que el reparto de una salida se pueda pasar por QR: quien lo abre ve el
+   * mapa con los trozos y sus nombres, y sabe cuál le toca sin preguntar.
+   * Como el resto del contenido, es una foto del momento — pero la app
+   * reescribe los enlaces vivos sola cuando el territorio cambia.
+   */
+  secciones?: { nombre: string; color: string; geometry: unknown }[];
   /** Hasta cuándo vale (ISO). Va DENTRO del contenido cifrado para poder
    *  decírselo al invitado: el documento en claro solo lo puede leer quien
    *  tenga sesión. */

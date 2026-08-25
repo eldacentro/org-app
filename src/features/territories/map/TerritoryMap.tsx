@@ -80,10 +80,14 @@ type TerritoryMapProps = {
  */
 const chapaSeccion = (nombre: string, color: string) =>
   L.divIcon({
+    // Tamaño CERO y el rótulo centrado con un `translate`: con `iconSize`
+    // fijo, un nombre como "Con Ana" se partía en dos renglones dentro de un
+    // círculo de 22px y se salía por los lados. Así la chapa mide lo que mida
+    // el nombre y sigue quedando centrada en el trozo.
     className: '',
-    html: `<div style="background:${color};color:#fff;border-radius:999px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font:600 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0 6px">${nombre.replace(/[<>&]/g, '')}</div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<div style="transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;background:${color};color:#fff;border-radius:999px;min-width:22px;height:22px;font:600 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0 8px">${nombre.replace(/[<>&]/g, '')}</div>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
   });
 
 /**

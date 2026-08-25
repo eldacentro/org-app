@@ -73,6 +73,14 @@ export const construirStorePublico = (payload: TerritorySharePayload) => {
     notas: payload.notas,
     numeroViviendas: payload.numeroViviendas,
     tags: tags.map((t) => t.id),
+    // Los trozos llegan sin id (el enlace no los necesita para nada más), así
+    // que se les pone uno de andar por casa para poder pintarlos en lista.
+    secciones: payload.secciones?.map((seccion, i) => ({
+      id: `seccion-${i}`,
+      nombre: seccion.nombre,
+      color: seccion.color,
+      geometry: seccion.geometry as Polygon | MultiPolygon,
+    })),
     openAssignmentId: null,
     updatedAt: payload.generatedAt,
   };
