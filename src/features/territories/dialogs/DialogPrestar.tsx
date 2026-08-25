@@ -17,10 +17,10 @@ import { displaySnackNotification } from '@services/states/app';
 import { usePersonName } from '../usePersonName';
 
 /**
- * Prestarle el territorio a un hermano durante la salida.
+ * Prestarle el territorio a alguien de la congregación.
  *
- * No es el enlace público: eso es para quien no tiene cuenta y hay que
- * mandarlo por WhatsApp. Esto es de dentro de la app — le aparece en Mis
+ * No es el enlace público: eso es para quien no tiene la aplicación y hay
+ * que mandarlo por WhatsApp. Esto pasa DENTRO de la app — le aparece en Mis
  * territorios, debajo de los suyos, y se le cae solo al cabo de unas horas.
  *
  * Cuatro horas y sin más opciones a propósito: casi nadie sale más de una
@@ -110,7 +110,7 @@ const DialogPrestar = ({ open, territory, assignment, onClose }: Props) => {
     setPersonUid(null);
     displaySnackNotification({
       header: `${resolveName(personUid)} ya lo ve`,
-      message: `Le sale en Mis territorios durante ${HORAS} horas.`,
+      message: `Le sale en Mis territorios, dentro de su aplicación, durante ${HORAS} horas.`,
       severity: 'success',
     });
   };
@@ -130,9 +130,9 @@ const DialogPrestar = ({ open, territory, assignment, onClose }: Props) => {
             color="var(--ink-2)"
             sx={{ display: 'block', mt: '4px' }}
           >
-            Para que otro hermano lo vea en su móvil durante la salida. Le sale
-            en Mis territorios durante {HORAS} horas y luego se le quita solo.
-            Sigue siendo tuyo: él no puede entregarlo ni cambiarlo.
+            Para que lo vea dentro de su propia aplicación. Le sale en Mis
+            territorios durante {HORAS} horas y luego se le quita solo. Sigue
+            siendo tuyo: no puede entregarlo ni cambiarlo.
           </Typography>
         </Box>
 

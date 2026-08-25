@@ -659,16 +659,21 @@ const DialogVerTerritorio = ({
     const medir = () => {
       // Un dedo de contenido por debajo de las pestañas: sin él la hoja se
       // queda pegada a los botones y parece que dentro no hay nada.
-      // Del CONTENEDOR que hace scroll, no del bloque de dentro: el
-      // contenedor añade su propio relleno, y midiendo solo el bloque la hoja
-      // se quedaba tres píxeles corta — lo justo para que la última fila de
-      // partes asomara por debajo del borde.
+      // El bloque de dentro MÁS el relleno del contenedor, medido aparte.
+      //
+      // Se probó con el `scrollHeight` del contenedor, que ya trae el relleno
+      // incluido — y se muerde la cola: `scrollHeight` nunca baja de la
+      // altura del propio contenedor, así que al volver de la pestaña Info
+      // (donde la hoja mide 76vh) se medía la hoja entera, la hoja crecía
+      // para caber en sí misma y se quedaba arriba tapando el mapa. Solo
+      // pasaba VOLVIENDO a Mapa, que es justo como se usa.
+      const contenedor = contenidoMapaEl?.parentElement;
+      const relleno = contenedor
+        ? parseFloat(getComputedStyle(contenedor).paddingTop || '0') +
+          parseFloat(getComputedStyle(contenedor).paddingBottom || '0')
+        : 0;
       const contenido = contenidoMapaEl
-        ? Math.max(
-            28,
-            contenidoMapaEl.parentElement?.scrollHeight ??
-              contenidoMapaEl.offsetHeight
-          )
+        ? Math.max(28, contenidoMapaEl.offsetHeight + relleno)
         : 28;
       setMinAlturaHoja(
         cabeceraEl.offsetHeight + (accionesEl?.offsetHeight ?? 0) + contenido
@@ -1369,16 +1374,6 @@ const DialogVerTerritorio = ({
                   )}
                 </Box>
               )}
-
-              <Typography
-                className="label-small-regular"
-                sx={{
-                  color: 'var(--ink-3)',
-                  textAlign: 'center',
-                }}
-              >
-                El mapa está detrás. Úsalo para navegar el territorio.
-              </Typography>
             </Box>
           )}
 

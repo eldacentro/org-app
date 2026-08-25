@@ -9,8 +9,9 @@ import { IconGroups, IconShare, IconChevronRight } from '@components/icons';
  * Hay dos maneras de compartir un territorio y no son intercambiables, así
  * que se pregunta en vez de esconder una detrás de la otra.
  *
- * Antes solo estaba el enlace, y el botón decía "Compartir enlace" — con lo
- * que pasar un territorio al hermano de al lado, que tiene la app y una
+ * La diferencia no es con quién —siempre es con un hermano—, sino por dónde:
+ * dentro de la aplicación, o fuera de ella. Antes solo estaba el enlace, así
+ * que pasarle un territorio al hermano de al lado, que tiene la app y su
  * cuenta, obligaba a salir a WhatsApp. Al aparecer la otra forma, un tercer
  * botón en la barra dejaba los tres tan estrechos que "Compartir enlace" se
  * partía en dos renglones.
@@ -107,8 +108,8 @@ const DialogElegirCompartir = ({
           icono={
             <IconGroups color="var(--accent-dark)" width={20} height={20} />
           }
-          titulo="Con un hermano"
-          detalle="Lo ve en su móvil durante la salida"
+          titulo="Con alguien de la congregación"
+          detalle="Lo ve dentro de su aplicación"
           onClick={onHermano}
         />
         <Opcion
