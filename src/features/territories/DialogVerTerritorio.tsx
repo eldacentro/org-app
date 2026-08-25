@@ -257,7 +257,14 @@ const TarjetaReparto = ({
                 ? `${hechas} de ${secciones.length} partes hechas`
                 : `Dividido en ${secciones.length} partes`}
             </Typography>
-            <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: '4px' }}>
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              // Más aire entre ellas cuando se tocan: pegadas, el pulgar se
+              // lleva la de al lado.
+              gap={onMarcar ? 0.75 : 0.5}
+              sx={{ mt: onMarcar ? '6px' : '4px' }}
+            >
               {ordenadas.map((seccion) =>
                 onMarcar ? (
                   <Box
@@ -297,6 +304,9 @@ const TarjetaReparto = ({
                       label={seccion.nombre}
                       color={seccion.color}
                       hecha={Boolean(seccion.hecha)}
+                      // Se toca: hace falta blanco para el pulgar, y encima
+                      // el nombre suele ser una sola letra.
+                      size="medium"
                       detalle={
                         seccion.hecha && seccion.hechaEl
                           ? cuandoSeHizo(seccion.hechaEl, dateFormat)

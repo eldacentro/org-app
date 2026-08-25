@@ -86,6 +86,16 @@ type TagChipProps = {
    * lo que ya está resuelto; la fecha es información que se viene a leer.
    */
   detalle?: string;
+  /**
+   * `medium` para las píldoras que se TOCAN (las partes de un territorio
+   * dividido): más alto, más ancho y con la letra un punto mayor.
+   *
+   * La de reposo es una etiqueta que se lee, y de esas hay cuatro en una
+   * ficha de dos dedos, así que es pequeña a propósito. Pero cuando la
+   * píldora es el botón —y encima el nombre suele ser una sola letra— ese
+   * tamaño deja un blanco demasiado fino para un pulgar.
+   */
+  size?: 'small' | 'medium';
 };
 
 /**
@@ -175,6 +185,7 @@ export const TagChip = ({
   title,
   hecha,
   detalle,
+  size = 'small',
 }: TagChipProps) => (
   <Box
     component={onClick ? 'button' : 'div'}
@@ -189,9 +200,9 @@ export const TagChip = ({
       margin: 0,
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '6px',
-      padding: '2px 10px',
-      minHeight: '22px',
+      gap: size === 'medium' ? '8px' : '6px',
+      padding: size === 'medium' ? '7px 14px' : '2px 10px',
+      minHeight: size === 'medium' ? '36px' : '22px',
       borderRadius: 'var(--shape-full)',
       flexShrink: 0,
       // `--grey-100` y no `--surface-2`: ese token es un azul bastante subido
@@ -228,8 +239,8 @@ export const TagChip = ({
     <Box
       aria-hidden
       sx={{
-        width: 8,
-        height: 8,
+        width: size === 'medium' ? 10 : 8,
+        height: size === 'medium' ? 10 : 8,
         borderRadius: 'var(--shape-full)',
         backgroundColor: hecha ? 'transparent' : color,
         border: hecha ? `1.5px solid ${color}` : undefined,
@@ -238,7 +249,9 @@ export const TagChip = ({
     />
     <Typography
       component="span"
-      className="body-small-semibold"
+      className={
+        size === 'medium' ? 'body-regular-semibold' : 'body-small-semibold'
+      }
       color="inherit"
       sx={{
         lineHeight: '18px',
@@ -250,7 +263,9 @@ export const TagChip = ({
     {detalle && (
       <Typography
         component="span"
-        className="label-small-regular"
+        className={
+          size === 'medium' ? 'body-small-regular' : 'label-small-regular'
+        }
         color="var(--ink-3)"
         sx={{ lineHeight: '18px' }}
       >
