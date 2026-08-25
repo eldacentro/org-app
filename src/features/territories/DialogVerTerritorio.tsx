@@ -32,6 +32,7 @@ import { BadgeColor } from '@definition/app';
 import TerritoryMap from './map/TerritoryMap';
 import DireccionesTab from './DireccionesTab';
 import DialogCompartir from './dialogs/DialogCompartir';
+import DialogDividir from './dialogs/DialogDividir';
 import SegmentedControl from '@components/segmented_control';
 import {
   Territory,
@@ -211,6 +212,7 @@ const InfoTabContent = ({
   tags,
   allTags,
   onToggleTag,
+  onDividir,
 }: {
   territory: Territory;
   canManage: boolean;
@@ -226,6 +228,8 @@ const InfoTabContent = ({
   allTags: TerritoryTag[];
   /** Solo se pasa si quien mira puede cambiarlas. */
   onToggleTag?: (tagId: string) => void;
+  /** Solo se pasa a quien puede dividir el territorio. */
+  onDividir?: () => void;
 }) => {
   const [editandoEtiquetas, setEditandoEtiquetas] = useState(false);
 
@@ -354,6 +358,59 @@ const InfoTabContent = ({
         característica del territorio, que es exactamente lo que esta pestaña
         guarda. Arriba se queda lo que se mira de un vistazo; aquí, lo que se
         consulta. */}
+      {/* Los trozos en los que está dividido, si lo está.
+        Solo los territorios grandes se parten, así que esto no sale casi
+        nunca — pero cuando sale es lo que se mira antes de salir: "tú la A,
+        yo la B". El mapa de arriba los pinta con estos mismos colores. */}
+      {(territory.secciones?.length || onDividir) && (
+        <Box>
+          <Typography
+            className="label-small-semibold"
+            color="var(--ink-3)"
+            sx={{ display: 'block', mb: '8px' }}
+          >
+            Trozos
+          </Typography>
+
+          {territory.secciones?.length ? (
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              gap={0.75}
+              alignItems="center"
+              sx={{ mb: onDividir ? '8px' : 0 }}
+            >
+              {/* Alfabético: el corte mete cada trozo nuevo al lado del que
+                  ha partido, y "A, C, B" en una lista se lee como un error. */}
+              {[...territory.secciones]
+                .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                .map((seccion) => (
+                  <TagChip
+                    key={seccion.id}
+                    label={seccion.nombre}
+                    color={seccion.color}
+                  />
+                ))}
+            </Stack>
+          ) : (
+            <Typography
+              className="body-small-regular"
+              color="var(--ink-2)"
+              sx={{ display: 'block', mb: '8px' }}
+            >
+              Va entero. Se puede partir para repartirlo entre varios grupos en
+              una salida.
+            </Typography>
+          )}
+
+          {onDividir && (
+            <Button variant="secondary" disableAutoStretch onClick={onDividir}>
+              {territory.secciones?.length ? 'Cambiar los trozos' : 'Dividir'}
+            </Button>
+          )}
+        </Box>
+      )}
+
       {(tags.length > 0 || (canManage && allTags.length > 0)) && (
         <Box>
           <Typography
@@ -569,6 +626,7 @@ const DialogVerTerritorio = ({
   const [tab, setTab] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [dividirOpen, setDividirOpen] = useState(false);
 
   // Por estado y no por `useRef`: la hoja vive dentro del Paper del diálogo,
   // que no está en el DOM hasta que se abre. Con una ref normal, el efecto
@@ -763,6 +821,16 @@ const DialogVerTerritorio = ({
   );
   const canReturnThis = canManage || (settings.publishersCanReturn && isMine);
 
+  /**
+   * Quién puede partir el territorio: un responsable siempre, y el hermano
+   * que lo tiene ahora mismo — es el que está delante en la salida y el que
+   * sabe por dónde quiere partirlo. Sin él, dividir habría que pedirlo por
+   * teléfono el sábado por la mañana.
+   */
+  const puedeDividir = Boolean(
+    liveTerritory?.geometry && (canManage || (relevantAssignment && isMine))
+  );
+
   // Un responsable sí saca partido de ver la etiqueta de tamaño junto a la
   // cantidad de viviendas (gestión); a un publicador le sale la misma
   // información dos veces, así que se le filtra solo a él.
@@ -921,6 +989,7 @@ const DialogVerTerritorio = ({
           showLiveLocation={showLiveLocation}
           height="100%"
           borderRadius={0}
+          secciones={liveTerritory.secciones}
           bottomInset={sheetHeightPx}
           onNavigate={handleNavigate}
         />
@@ -1303,6 +1372,7 @@ const DialogVerTerritorio = ({
               tags={visibleHeaderTags}
               allTags={allTags}
               onToggleTag={canManage ? handleToggleTag : undefined}
+              onDividir={puedeDividir ? () => setDividirOpen(true) : undefined}
             />
           )}
 
@@ -1421,6 +1491,7 @@ const DialogVerTerritorio = ({
           color={color}
           showLiveLocation={showLiveLocation}
           height="100%"
+          secciones={liveTerritory.secciones}
           onNavigate={handleNavigate}
         />
 
@@ -1599,6 +1670,7 @@ const DialogVerTerritorio = ({
               tags={visibleHeaderTags}
               allTags={allTags}
               onToggleTag={canManage ? handleToggleTag : undefined}
+              onDividir={puedeDividir ? () => setDividirOpen(true) : undefined}
             />
           )}
 
@@ -1802,6 +1874,14 @@ const DialogVerTerritorio = ({
       >
         {tabletDown ? mobileContent : desktopContent}
       </MUIDialog>
+
+      {dividirOpen && (
+        <DialogDividir
+          open={dividirOpen}
+          territory={liveTerritory}
+          onClose={() => setDividirOpen(false)}
+        />
+      )}
 
       {shareOpen && (
         <DialogCompartir

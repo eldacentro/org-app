@@ -1,10 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   MapContainer,
   TileLayer,
   GeoJSON,
   Marker,
+  Polyline,
+  CircleMarker,
   useMap,
+  useMapEvents,
   Tooltip,
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -46,6 +56,53 @@ type TerritoryMapProps = {
    *  territorio. */
   bottomInset?: number;
   onNavigate?: () => void;
+  /**
+   * Los trozos en los que está dividido, ya con su color. Se pintan encima
+   * del territorio; el contorno de fuera se sigue viendo.
+   */
+  secciones?: {
+    id: string;
+    nombre: string;
+    color: string;
+    geometry: Polygon | MultiPolygon;
+  }[];
+  /** En modo corte, tocar el mapa marca puntos en vez de no hacer nada. */
+  onTocarMapa?: (punto: [number, number]) => void;
+  /** La raya que se está trazando, en [longitud, latitud]. */
+  raya?: [number, number][];
+};
+
+/**
+ * La chapita con la letra del trozo, en medio de él.
+ *
+ * Sin ella los trozos solo se distinguen por el color, y "vete tú al azul"
+ * no es lo que se dice en la puerta del Salón: se dice "vete tú a la A".
+ */
+const chapaSeccion = (nombre: string, color: string) =>
+  L.divIcon({
+    className: '',
+    html: `<div style="background:${color};color:#fff;border-radius:999px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font:600 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0 6px">${nombre.replace(/[<>&]/g, '')}</div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+
+/**
+ * Recoge los toques del mapa mientras se está cortando.
+ *
+ * `click` de Leaflet ya distingue un toque de un arrastre, así que mover el
+ * mapa entre punto y punto no marca nada — que es justo lo que hace falta:
+ * se pone un punto, se acerca para ver bien la esquina siguiente, y se pone
+ * el otro.
+ */
+const CapturaToques = ({
+  onTocar,
+}: {
+  onTocar: (punto: [number, number]) => void;
+}) => {
+  useMapEvents({
+    click: (e) => onTocar([e.latlng.lng, e.latlng.lat]),
+  });
+  return null;
 };
 
 // ─── Ajuste de bounds ─────────────────────────────────────────────────────────
@@ -932,6 +989,9 @@ const TerritoryMap = ({
   onGeometryChange,
   bottomInset = 0,
   onNavigate,
+  secciones,
+  onTocarMapa,
+  raya,
 }: TerritoryMapProps) => {
   // Memorizado por VALOR (no por referencia de `geometry`, que llega como un
   // objeto nuevo en cada snapshot de Firestore aunque el polígono no haya
@@ -1106,6 +1166,67 @@ const TerritoryMap = ({
             style={{ color, weight: 3, fillOpacity: 0.13, interactive: false }}
           />
         ) : null}
+
+        {/* Los trozos, encima del territorio y cada uno de su color. */}
+        {secciones?.map((seccion) => {
+          const centro = geometryCenter(seccion.geometry);
+          return (
+            <Fragment
+              key={`${seccion.id}-${JSON.stringify(seccion.geometry).length}`}
+            >
+              <GeoJSON
+                data={seccion.geometry}
+                style={{
+                  color: seccion.color,
+                  weight: 2,
+                  fillOpacity: 0.3,
+                  interactive: false,
+                }}
+              />
+              {centro && (
+                <Marker
+                  position={centro}
+                  icon={chapaSeccion(seccion.nombre, seccion.color)}
+                  interactive={false}
+                />
+              )}
+            </Fragment>
+          );
+        })}
+
+        {/* La raya que se está trazando: la línea y un punto por cada toque,
+            para poder ver dónde se ha marcado y no fiarse de la memoria. */}
+        {raya && raya.length > 0 && (
+          <>
+            {raya.length > 1 && (
+              <Polyline
+                positions={raya.map(([lng, lat]) => [lat, lng])}
+                pathOptions={{
+                  color: accentColor,
+                  weight: 3,
+                  dashArray: '6 6',
+                  interactive: false,
+                }}
+              />
+            )}
+            {raya.map(([lng, lat], i) => (
+              <CircleMarker
+                key={`${lng}-${lat}-${i}`}
+                center={[lat, lng]}
+                radius={6}
+                pathOptions={{
+                  color: '#ffffff',
+                  weight: 2,
+                  fillColor: accentColor,
+                  fillOpacity: 1,
+                  interactive: false,
+                }}
+              />
+            ))}
+          </>
+        )}
+
+        {onTocarMapa && <CapturaToques onTocar={onTocarMapa} />}
 
         {livePos && (
           <LocationMarker

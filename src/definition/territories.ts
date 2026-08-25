@@ -47,6 +47,19 @@ export type Territory = {
   numeroViviendas?: number;
   /** ids de TerritoryTag. */
   tags: string[];
+  /**
+   * Trozos en los que está dividido para repartirlo dentro de una salida.
+   *
+   * Ausente o vacío = el territorio va entero, que es lo normal. Solo los
+   * grandes —los rurales y los de Salinas— piden partirse: en una salida el
+   * conductor le dice a un grupo que se lleve una parte y él se va con la
+   * otra, y hasta ahora eso se explicaba señalando con el dedo.
+   *
+   * Las secciones SIEMPRE suman el territorio entero (ver `territory_split`):
+   * se hacen cortando, no dibujando, justo para que no quede ni un portal
+   * fuera de ninguna.
+   */
+  secciones?: TerritorySection[];
   /** Última fecha en que el territorio fue devuelto como trabajado (ISO). */
   lastWorkedAt?: string;
   /**
@@ -59,6 +72,16 @@ export type Territory = {
    */
   openAssignmentId?: string | null;
   updatedAt: string;
+};
+
+/** Un trozo de territorio, para repartirlo dentro de una salida. */
+export type TerritorySection = {
+  id: string;
+  /** "A", "B"… o lo que le ponga quien divide. */
+  nombre: string;
+  /** Color con el que se pinta en el mapa. Es un dato, no un token. */
+  color: string;
+  geometry: Polygon | MultiPolygon;
 };
 
 export type TerritoryAssignmentStatus =

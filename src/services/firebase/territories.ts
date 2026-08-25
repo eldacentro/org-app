@@ -31,6 +31,7 @@ import {
   TerritoryLocation,
   TerritoryNotice,
   TerritoryRequest,
+  TerritorySection,
   TerritorySettings,
   TerritoryTag,
   TerritoryZone,
@@ -403,7 +404,13 @@ export const updateTerritoryPartial = (
   congId: string,
   territoryId: string,
   // `imageURL: null` borra la imagen (Firestore no acepta `undefined`).
-  fields: { imageURL?: string | null; tags?: string[]; updatedAt?: string }
+  fields: {
+    imageURL?: string | null;
+    tags?: string[];
+    /** Los trozos en los que está dividido. Un array vacío quita la división. */
+    secciones?: TerritorySection[];
+    updatedAt?: string;
+  }
 ) =>
   updateDoc(
     fsDoc(territoriesCol(congId), territoryId),

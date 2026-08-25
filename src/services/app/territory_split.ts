@@ -87,6 +87,44 @@ const dentroDelAnillo = (punto: Pos, anillo: Pos[]): boolean => {
   return dentro;
 };
 
+/** ¿Este punto cae dentro de la geometría (contando los huecos)? */
+export const puntoDentro = (
+  punto: Pos,
+  geometria: Polygon | MultiPolygon
+): boolean => {
+  const partes =
+    geometria.type === 'Polygon'
+      ? [geometria.coordinates as Pos[][]]
+      : (geometria.coordinates as Pos[][][]);
+
+  return partes.some(([exterior, ...huecos]) => {
+    if (!dentroDelAnillo(punto, cerrar(exterior))) return false;
+    return !huecos.some((hueco) => dentroDelAnillo(punto, cerrar(hueco)));
+  });
+};
+
+/** El punto que está a mitad de recorrido de la raya. */
+export const mitadDeLaRaya = (raya: Pos[]): Pos => {
+  const largos = raya
+    .slice(1)
+    .map((p, i) => Math.hypot(p[0] - raya[i][0], p[1] - raya[i][1]));
+  const total = largos.reduce((a, b) => a + b, 0);
+  if (total === 0) return raya[0];
+
+  let recorrido = 0;
+  for (let i = 0; i < largos.length; i += 1) {
+    if (recorrido + largos[i] >= total / 2) {
+      const t = (total / 2 - recorrido) / largos[i];
+      return [
+        raya[i][0] + (raya[i + 1][0] - raya[i][0]) * t,
+        raya[i][1] + (raya[i + 1][1] - raya[i][1]) * t,
+      ];
+    }
+    recorrido += largos[i];
+  }
+  return raya[raya.length - 1];
+};
+
 type Cruce = {
   punto: Pos;
   /** Índice del segmento de la raya y posición dentro de él. */
