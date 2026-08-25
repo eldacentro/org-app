@@ -797,7 +797,14 @@ export const deleteAssignment = async (
 
   if (territory) {
     const fields: Record<string, unknown> = {};
-    if (territory.openAssignmentId === assignmentId) fields.openAssignmentId = null;
+    if (territory.openAssignmentId === assignmentId) {
+      fields.openAssignmentId = null;
+      // Si se borra la asignación ABIERTA, el territorio deja de ser de
+      // nadie: sus partes tampoco tienen ya dueño. Solo en ese caso — borrar
+      // una asignación vieja del historial no puede tocar el reparto que
+      // tenga puesto quien lo lleva ahora.
+      if (territory.secciones?.length) fields.secciones = [];
+    }
 
     // Recalcular la fecha de último trabajo del territorio a partir de lo
     // que QUEDA. Borrar una asignación es la única forma que tiene un
@@ -1118,6 +1125,11 @@ export const closeCampaign = async (
       // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
       // como ocupado para siempre.
       if (t.openAssignmentId === a.id) fields.openAssignmentId = null;
+      // Y las partes se van con quien lo tenía, igual que en una entrega
+      // normal (ver `finalizeAssignmentBatch`). Cerrar la campaña ES una
+      // entrega: sin esto, el territorio volvía al montón con el reparto de
+      // la campaña puesto y los nombres de quienes salieron aquellos días.
+      if (t.secciones?.length) fields.secciones = [];
       ops.push((b) => b.update(fsDoc(territoriesCol(congId), t.id), fields));
     }
   });
