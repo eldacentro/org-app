@@ -178,42 +178,59 @@ export const BLOQUES_ASIENTOS: BloqueAsientos[] = [
     ],
   },
   {
+    /**
+     * OJO CON LAS X DE ESTE BLOQUE.
+     *
+     * Están corridas 2,5 a la izquierda respecto a donde caerían midiendo el
+     * plano en papel. No es un error: el último asiento llegaba a 181,75 y la
+     * pared derecha del edificio está en 180,17, así que la fila se salía del
+     * recuadro por metro y medio.
+     *
+     * La pared sale del contorno del plano base: su esquina derecha está en
+     * 3626,482 en las coordenadas del dibujo original, y con la escala de
+     * `PLANO_TRANSFORM` eso son 180,17. Si algún día se cambia ese contorno,
+     * hay que volver a hacer la cuenta.
+     *
+     * Los asientos se dibujan de 2,5 de ancho centrados (ver `Plano2D`), así
+     * que lo que cuenta es el centro más 1,25.
+     */
+
     id: 'lateral',
     nombre: 'Sección de la izquierda de la plataforma',
     zona: 'B',
     color: COLORES.zonaB,
     detalle: 'La desaloja el equipo B por la salida más cercana.',
     asientos: [
-      [148.61, 62.49],
-      [152.59, 62.49],
-      [156.58, 62.49],
-      [160.56, 62.49],
-      [164.55, 62.49],
-      [168.54, 62.49],
-      [172.52, 62.49],
-      [176.51, 62.49],
-      [180.5, 62.49],
-      [144.54, 70.3],
-      [148.61, 70.3],
-      [152.59, 70.3],
-      [156.58, 70.3],
-      [160.56, 70.3],
-      [164.55, 70.3],
-      [168.54, 70.3],
-      [172.52, 70.3],
-      [176.51, 70.3],
-      [180.5, 70.3],
-      [140.4, 78.1],
-      [144.54, 78.1],
-      [148.61, 78.1],
-      [152.59, 78.1],
-      [156.58, 78.1],
-      [160.56, 78.1],
-      [164.55, 78.1],
-      [168.54, 78.1],
-      [172.52, 78.1],
-      [176.51, 78.1],
-      [180.5, 78.1],
+      [146.11, 62.49],
+      [150.09, 62.49],
+      [154.08, 62.49],
+      [158.06, 62.49],
+      [162.05, 62.49],
+      [166.04, 62.49],
+      [170.02, 62.49],
+      [174.01, 62.49],
+      [178.0, 62.49],
+      [142.04, 70.3],
+      [146.11, 70.3],
+      [150.09, 70.3],
+      [154.08, 70.3],
+      [158.06, 70.3],
+      [162.05, 70.3],
+      [166.04, 70.3],
+      [170.02, 70.3],
+      [174.01, 70.3],
+      [178.0, 70.3],
+      [137.9, 78.1],
+      [142.04, 78.1],
+      [146.11, 78.1],
+      [150.09, 78.1],
+      [154.08, 78.1],
+      [158.06, 78.1],
+      [162.05, 78.1],
+      [166.04, 78.1],
+      [170.02, 78.1],
+      [174.01, 78.1],
+      [178.0, 78.1],
     ],
   },
 ];
