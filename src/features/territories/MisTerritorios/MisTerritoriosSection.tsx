@@ -29,7 +29,7 @@ import {
   getZoneColor,
   getZoneName,
   estaAtrasada,
-  computeDueAt,
+  dueAtDeAsignacion,
   isCampaignRunning,
 } from '@services/app/territories';
 import { useConfirm } from '@components/confirm_dialog';
@@ -589,9 +589,13 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
                   label={overdue ? 'Venció' : 'Vence'}
                   tone={overdue ? 'danger' : undefined}
                   value={formatTerritoryDate(
+                    // La guardada, y si falta —asignaciones anteriores a que
+                    // existiera ese campo— la que le tocaría, que en las de
+                    // campaña es el fin de la campaña y no la fórmula.
                     assignment.dueAt ||
-                      computeDueAt(
-                        assignment.assignedAt,
+                      dueAtDeAsignacion(
+                        assignment,
+                        campaigns,
                         settings.daysUntilOverdue
                       ),
                     settings.dateFormat

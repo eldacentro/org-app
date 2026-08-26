@@ -65,6 +65,12 @@ repita en cada ciclo y se coma las ediciones locales.
   styled-components/emotion (ej. `card_header`, `date_picker`,
   `multi_select`) no relacionados con la lógica de negocio — no son tuyos a
   menos que los hayas causado tú.
+- `npm run lint` — **pásalo SIEMPRE antes de subir.** El build de producción
+  corre ESLint dentro de Vite y trata sus errores como fatales, así que algo
+  tan tonto como un import que se quedó sin usar tumba el despliegue entero
+  (pasó el 2026-08-26). `tsc` no avisa de eso, y comprobar el lint fichero a
+  fichero tampoco: el que se rompe suele ser otro. Tarda segundos; el build
+  entero, medio minuto.
 - Preview con datos de prueba: `npm run preview` sirve `dist/` en el puerto
   4050 con un modo de "sembrado" de datos ficticios para verificar cambios
   de UI sin tocar datos reales.
