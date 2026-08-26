@@ -90,22 +90,48 @@ const PanelToolbar = ({
     }}
   >
     {onBuscar && (
+      /* ENVUELVE. La acción de al lado no siempre es un botón, que ocupa lo
+         que ocupa: puede ser un desplegable de 240 («Ordenar por»), y en una
+         pantalla estrecha los dos no caben. Sin `flexWrap` el buscador se
+         aplastaba hasta cortar su propia palabra, y con un desplegable puesto
+         al 100% llegaba a taparlo entero.
+
+         Con envoltura, cuando dejan de caber el desplegable baja a su propia
+         línea a lo ancho, que además es donde se deja pulsar sin apuntar. */
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
+          flexWrap: 'wrap',
           gap: '12px',
           width: '100%',
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        {/* `1 1 260px`: pide 260 y cede lo que haga falta. `minWidth: 0` es lo
+            que le permite encoger de verdad — sin él manda el contenido
+            mínimo del campo y quien cede es el vecino. */}
+        <Box sx={{ flex: '1 1 260px', minWidth: 0 }}>
           <SearchBar
             placeholder={placeholder}
             value={busqueda}
             onSearch={onBuscar}
           />
         </Box>
-        {accion}
+
+        {accion && (
+          /* La acción no se estira cuando hay sitio, y ocupa la línea entera
+             cuando ha bajado. Quien decide su ancho es ella; esto solo dice
+             cómo se comporta al repartir. */
+          <Box
+            sx={{
+              flexShrink: 0,
+              flexBasis: { mobile: '100%', tablet600: 'auto' },
+              maxWidth: '100%',
+            }}
+          >
+            {accion}
+          </Box>
+        )}
       </Box>
     )}
 

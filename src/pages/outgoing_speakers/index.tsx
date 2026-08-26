@@ -843,9 +843,10 @@ const OutgoingSpeakersPage = () => {
                 onChange={(e) =>
                   setSortBy(e.target.value as 'alphabetical' | 'last_assignment')
                 }
-                // 240, el mismo que el «Ordenar por» de la lista de discursos
-                // públicos: es el mismo control haciendo el mismo trabajo.
-                sx={{ width: '240px', flexShrink: 0 }}
+                // 240 cuando cabe al lado del buscador; a lo ancho cuando ha
+                // bajado a su propia línea. Es el mismo control y las mismas
+                // medidas que el «Ordenar por» de Discursos públicos.
+                sx={{ width: { mobile: '100%', tablet600: '240px' } }}
               >
                 <MenuItem value="alphabetical">
                   <Typography>Alfabético</Typography>

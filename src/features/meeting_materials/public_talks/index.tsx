@@ -71,10 +71,7 @@ const PublicTalks = ({ view }: PublicTalksType) => {
               onChange={(event) =>
                 handleSortChange(event.target.value as string)
               }
-              sx={{
-                width: { mobile: '100%', tablet600: '240px' },
-                flexShrink: 0,
-              }}
+              sx={{ width: { mobile: '100%', tablet600: '240px' } }}
             >
               {sortOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
