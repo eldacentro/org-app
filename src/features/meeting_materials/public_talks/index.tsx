@@ -1,7 +1,7 @@
 import { Box, MenuItem } from '@mui/material';
 import Button from '@components/button';
 import Select from '@components/select';
-import SearchBar from '@components/search_bar';
+import PanelToolbar from '@components/panel_toolbar';
 import TalksListView from './listView';
 import TalksTableView from './tableView';
 import Typography from '@components/typography';
@@ -43,54 +43,62 @@ const PublicTalks = ({ view }: PublicTalksType) => {
   };
 
   return (
-    <Box
-      sx={{
-        border: '1px solid var(--line)',
-        borderRadius: 'var(--shape-xl)',
-        padding: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        backgroundColor: 'var(--card)',
-        height: getTableHeight(),
-      }}
-    >
+    // La barra FUERA de la tarjeta de la lista, no dentro: las dos son
+    // tarjetas con el mismo fondo y el mismo canto, y una dentro de otra es el
+    // doble anidado que prohíbe el sistema de diseño (§8). Fuera queda además
+    // igual que Discursos salientes y que el catálogo de oradores: barra
+    // arriba, resultados debajo.
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Buscar y ordenar, en la MISMA fila: las dos son la misma pregunta
           —cómo encuentro lo que busco— y se responden antes de mirar la lista.
-          Es la misma pareja, y con las mismas medidas, que Discursos
-          salientes.
+
+          Y en la misma barra que Discursos salientes, el catálogo de oradores
+          y las pestañas de Territorios. Aquí ya decía que era «la misma pareja
+          con las mismas medidas» que Discursos salientes; ahora además es el
+          mismo componente, así que no pueden volver a separarse sin que se note.
 
           En un móvil no caben al lado y el desplegable baja a su propia línea
-          a lo ancho, que es donde se deja pulsar sin apuntar. Colgado a la
-          derecha del contador, como estuvo un rato, dejaba un hueco muerto
-          debajo del título y el texto no le cabía en la caja. */}
-      <Box sx={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 240px', minWidth: '200px' }}>
-          <SearchBar
-            placeholder={t('tr_search')}
-            value={txtSearch}
-            onSearch={handleSearch}
-          />
-        </Box>
+          a lo ancho, que es donde se deja pulsar sin apuntar. */}
+      <PanelToolbar
+        busqueda={txtSearch}
+        onBuscar={handleSearch}
+        placeholder={t('tr_search')}
+        accion={
+          view === 'list' ? (
+            <Select
+              label="Ordenar por"
+              value={sortValue}
+              onChange={(event) =>
+                handleSortChange(event.target.value as string)
+              }
+              sx={{
+                width: { mobile: '100%', tablet600: '240px' },
+                flexShrink: 0,
+              }}
+            >
+              {sortOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  <Typography>{option.label}</Typography>
+                </MenuItem>
+              ))}
+            </Select>
+          ) : null
+        }
+      />
 
-        {view === 'list' && (
-          <Select
-            label="Ordenar por"
-            value={sortValue}
-            onChange={(event) => handleSortChange(event.target.value as string)}
-            sx={{
-              width: { mobile: '100%', tablet600: '240px' },
-              flexShrink: 0,
-            }}
-          >
-            {sortOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <Typography>{option.label}</Typography>
-              </MenuItem>
-            ))}
-          </Select>
-        )}
-      </Box>
+      <Box
+        sx={{
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--shape-xl)',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          backgroundColor: 'var(--card)',
+          height: getTableHeight(),
+          minHeight: 0,
+        }}
+      >
 
       <Box
         sx={{
@@ -137,6 +145,7 @@ const PublicTalks = ({ view }: PublicTalksType) => {
       )}
 
       {view === 'table' && <TalksTableView talks={talks} />}
+      </Box>
     </Box>
   );
 };

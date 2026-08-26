@@ -30,7 +30,7 @@ import {
   IconSortDown,
   IconSortUp,
 } from '@components/icons';
-import SearchBar from '@components/search_bar';
+import PanelToolbar from '@components/panel_toolbar';
 import Select from '@components/select';
 import MenuItem from '@components/menuitem';
 import { outgoingSpeakersState } from '@states/visiting_speakers';
@@ -827,53 +827,35 @@ const OutgoingSpeakersPage = () => {
 
       {activeTab === 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Search and Sort controls */}
-          <Box
-            sx={{
-              display: 'flex',
-              gap: '16px',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              mt: 1,
-            }}
-          >
-            {/* El MISMO buscador que en Ayuda, Discursos públicos, Personas o
-                Ausencias. Estaba escrito aquí a mano con otro radio, otro
-                fondo y sin botón de limpiar: era el único de la aplicación
-                que no se parecía a los demás. */}
-            <Box sx={{ flex: '1 1 280px', minWidth: '280px' }}>
-              <SearchBar
-                placeholder="Buscar por nombre o número/título de discurso..."
-                value={searchQuery}
-                onSearch={setSearchQuery}
-              />
-            </Box>
-
-            {/* El desplegable del sistema, no el de MUI en crudo. El de antes
-                llevaba DOS bordes —el suyo propio más uno puesto a mano— y el
-                radio de un diálogo (28px) en un campo, así que no se parecía a
-                ningún otro desplegable de la app. La etiqueta va DENTRO, como
-                en el resto: un "Ordenar por:" suelto al lado obliga a leer dos
-                trozos para entender un control. */}
-            <Select
-              label="Ordenar por"
-              value={sortBy}
-              onChange={(e) =>
-                setSortBy(e.target.value as 'alphabetical' | 'last_assignment')
-              }
-              // 240, el mismo que el "Ordenar por" de la lista de discursos
-              // públicos: es el mismo control haciendo el mismo trabajo, y a
-              // 200 se veía más estrecho sin ningún motivo.
-              sx={{ width: '240px', flexShrink: 0 }}
-            >
-              <MenuItem value="alphabetical">
-                <Typography>Alfabético</Typography>
-              </MenuItem>
-              <MenuItem value="last_assignment">
-                <Typography>Última salida</Typography>
-              </MenuItem>
-            </Select>
-          </Box>
+          {/* La misma barra que el catálogo de oradores y que las pestañas
+              de Territorios: el buscador dentro de una tarjeta con lo que
+              filtra al lado. Antes iban los dos sueltos sobre el fondo, así
+              que la pareja no se leía como una barra de herramientas sino como
+              dos controles que habían caído ahí. */}
+          <PanelToolbar
+            busqueda={searchQuery}
+            onBuscar={setSearchQuery}
+            placeholder="Buscar por nombre o número de discurso"
+            accion={
+              <Select
+                label="Ordenar por"
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(e.target.value as 'alphabetical' | 'last_assignment')
+                }
+                // 240, el mismo que el «Ordenar por» de la lista de discursos
+                // públicos: es el mismo control haciendo el mismo trabajo.
+                sx={{ width: '240px', flexShrink: 0 }}
+              >
+                <MenuItem value="alphabetical">
+                  <Typography>Alfabético</Typography>
+                </MenuItem>
+                <MenuItem value="last_assignment">
+                  <Typography>Última salida</Typography>
+                </MenuItem>
+              </Select>
+            }
+          />
 
           {filteredSpeakers.length === 0 ? (
             <EmptyState
