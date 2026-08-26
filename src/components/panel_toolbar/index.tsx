@@ -32,6 +32,16 @@ type Props = {
   placeholder?: string;
   /** Acción a la derecha del buscador, si la pestaña tiene alguna. */
   accion?: ReactNode;
+  /**
+   * La acción es ANCHA (un desplegable de «Ordenar por», no un botón).
+   *
+   * Cambia una sola cosa: en pantallas estrechas baja a su propia línea y la
+   * ocupa entera, en vez de pelearse con el buscador por el sitio. Un botón
+   * —redondo o con su palabra— cabe al lado siempre y no debe bajar: es lo que
+   * pasó al meter esto sin distinguir, y el botón de gestionar de Territorios
+   * se fue solo a una segunda línea donde antes estaba pegado al buscador.
+   */
+  accionAncha?: boolean;
   /** Las filas de fichas de filtro (ver `RielChips`). */
   children?: ReactNode;
   /**
@@ -74,6 +84,7 @@ const PanelToolbar = ({
   onBuscar,
   placeholder,
   accion,
+  accionAncha = false,
   children,
   pie,
 }: Props) => (
@@ -119,14 +130,18 @@ const PanelToolbar = ({
         </Box>
 
         {accion && (
-          /* La acción no se estira cuando hay sitio, y ocupa la línea entera
-             cuando ha bajado. Quien decide su ancho es ella; esto solo dice
-             cómo se comporta al repartir. */
+          /* La acción nunca se estira ni se encoge: quien decide su ancho es
+             ella. Lo único que cambia con `accionAncha` es si en una pantalla
+             estrecha se lleva la línea entera —lo que necesita un desplegable
+             de 240— o se queda al lado del buscador, que es lo que hace un
+             botón y lo que hacía Territorios desde siempre. */
           <Box
             sx={{
               flexShrink: 0,
-              flexBasis: { mobile: '100%', tablet600: 'auto' },
               maxWidth: '100%',
+              ...(accionAncha
+                ? { flexBasis: { mobile: '100%', tablet600: 'auto' } }
+                : null),
             }}
           >
             {accion}

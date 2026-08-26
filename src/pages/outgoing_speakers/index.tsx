@@ -559,7 +559,8 @@ const OutgoingSpeakersPage = () => {
           // semana: es aproximado, pero la salida fue ese fin de semana y así
           // el historial sigue ordenándose bien.
           const recordDate = new Date(
-            fechaSalida || meetingDateOfWeek(schedule.weekOf, 'weekend') ||
+            fechaSalida ||
+              meetingDateOfWeek(schedule.weekOf, 'weekend') ||
               weekDate
           );
 
@@ -836,12 +837,15 @@ const OutgoingSpeakersPage = () => {
             busqueda={searchQuery}
             onBuscar={setSearchQuery}
             placeholder="Buscar por nombre o número de discurso"
+            accionAncha
             accion={
               <Select
                 label="Ordenar por"
                 value={sortBy}
                 onChange={(e) =>
-                  setSortBy(e.target.value as 'alphabetical' | 'last_assignment')
+                  setSortBy(
+                    e.target.value as 'alphabetical' | 'last_assignment'
+                  )
                 }
                 // 240 cuando cabe al lado del buscador; a lo ancho cuando ha
                 // bajado a su propia línea. Es el mismo control y las mismas

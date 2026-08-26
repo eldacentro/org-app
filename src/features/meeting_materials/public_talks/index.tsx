@@ -63,6 +63,7 @@ const PublicTalks = ({ view }: PublicTalksType) => {
         busqueda={txtSearch}
         onBuscar={handleSearch}
         placeholder={t('tr_search')}
+        accionAncha
         accion={
           view === 'list' ? (
             <Select
@@ -96,52 +97,51 @@ const PublicTalks = ({ view }: PublicTalksType) => {
           minHeight: 0,
         }}
       >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '16px',
+          }}
+        >
+          <Typography className="h2">
+            {t(labelSearch, { count: talks.length })}
+          </Typography>
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
-        <Typography className="h2">
-          {t(labelSearch, { count: talks.length })}
-        </Typography>
+          <>
+            {view === 'list' && laptopUp && (
+              <Button
+                variant="small"
+                startIcon={
+                  isExpandAll ? (
+                    <IconCollapse
+                      height={22}
+                      width={22}
+                      color="var(--accent-main)"
+                    />
+                  ) : (
+                    <IconExpand
+                      height={22}
+                      width={22}
+                      color="var(--accent-main)"
+                    />
+                  )
+                }
+                onClick={handleToggleExpandAll}
+              >
+                {isExpandAll ? t('tr_collapseAll') : t('tr_expandAll')}
+              </Button>
+            )}
+          </>
+        </Box>
 
-        <>
-          {view === 'list' && laptopUp && (
-            <Button
-              variant="small"
-              startIcon={
-                isExpandAll ? (
-                  <IconCollapse
-                    height={22}
-                    width={22}
-                    color="var(--accent-main)"
-                  />
-                ) : (
-                  <IconExpand
-                    height={22}
-                    width={22}
-                    color="var(--accent-main)"
-                  />
-                )
-              }
-              onClick={handleToggleExpandAll}
-            >
-              {isExpandAll ? t('tr_collapseAll') : t('tr_expandAll')}
-            </Button>
-          )}
-        </>
-      </Box>
+        {view === 'list' && (
+          <TalksListView talks={talksSorted} isExpandAll={isExpandAll} />
+        )}
 
-      {view === 'list' && (
-        <TalksListView talks={talksSorted} isExpandAll={isExpandAll} />
-      )}
-
-      {view === 'table' && <TalksTableView talks={talks} />}
+        {view === 'table' && <TalksTableView talks={talks} />}
       </Box>
     </Box>
   );
