@@ -4,8 +4,15 @@ import { Box, Stack } from '@mui/material';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import { IconError } from '@components/icons';
+import { useState } from 'react';
 import { myUnreadNoticesState } from '@states/territories';
-import { AVISO_ATRASADO_TITULO } from '@services/app/territories';
+import { congIDState } from '@states/settings';
+import { responderCierreCampana } from '@services/firebase/territories';
+import { displaySnackNotification } from '@services/states/app';
+import {
+  AVISO_ATRASADO_TITULO,
+  AVISO_CAMPANA_TITULO,
+} from '@services/app/territories';
 
 /**
  * El aviso de territorio ATRASADO del publicador, en la primera pantalla.
@@ -28,6 +35,8 @@ import { AVISO_ATRASADO_TITULO } from '@services/app/territories';
 const AvisoTerritorioInicio = () => {
   const navigate = useNavigate();
   const todos = useAtomValue(myUnreadNoticesState);
+  const congId = useAtomValue(congIDState);
+  const [respondiendo, setRespondiendo] = useState(false);
 
   // SOLO los territorios atrasados del propio publicador.
   //
@@ -36,7 +45,9 @@ const AvisoTerritorioInicio = () => {
   // salían al responsable en su inicio. Ahí no pintan nada: no hay que hacer
   // nada con ellos, para eso está la campanita. El inicio se reserva para lo
   // único que de verdad reclama algo de quien abre la aplicación.
-  const avisos = todos.filter((n) => n.title === AVISO_ATRASADO_TITULO);
+  const avisos = todos.filter(
+    (n) => n.title === AVISO_ATRASADO_TITULO || n.title === AVISO_CAMPANA_TITULO
+  );
 
   if (avisos.length === 0) return null;
 
@@ -45,6 +56,44 @@ const AvisoTerritorioInicio = () => {
   // al entrar.
   const aviso = avisos[0];
   const restantes = avisos.length - 1;
+
+  /**
+   * "¿Llegaste a trabajarlo?" se contesta aquí mismo.
+   *
+   * Sin salir a ninguna pantalla: si hay que ir a buscar dónde contestar, no
+   * se contesta. El aviso trae dentro el id de la asignación justo para poder
+   * responder desde el inicio, donde Territorios ni siquiera está cargado.
+   */
+  const esPreguntaDeCampana =
+    aviso.title === AVISO_CAMPANA_TITULO && Boolean(aviso.assignmentId);
+
+  const responder = async (trabajado: boolean) => {
+    if (!aviso.assignmentId) return;
+    setRespondiendo(true);
+    try {
+      await responderCierreCampana(
+        congId,
+        {
+          assignmentId: aviso.assignmentId,
+          territoryId: aviso.territoryId,
+          // La fecha de devolución es la del cierre, y el aviso se escribió en
+          // esa misma operación: su `createdAt` ES esa fecha.
+          returnedAt: aviso.createdAt,
+        },
+        trabajado,
+        aviso.id
+      );
+    } catch (err) {
+      console.error(err);
+      displaySnackNotification({
+        header: 'No se ha podido guardar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+      });
+    } finally {
+      setRespondiendo(false);
+    }
+  };
 
   const abrir = () => {
     navigate(
@@ -97,9 +146,34 @@ const AvisoTerritorioInicio = () => {
           )}
         </Box>
       </Stack>
-      <Button variant="main" onClick={abrir} disableAutoStretch>
-        Ver mis territorios
-      </Button>
+      {esPreguntaDeCampana ? (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ flexShrink: 0, flexWrap: 'wrap' }}
+        >
+          <Button
+            variant="main"
+            disableAutoStretch
+            disabled={respondiendo}
+            onClick={() => responder(true)}
+          >
+            Sí, lo trabajé
+          </Button>
+          <Button
+            variant="secondary"
+            disableAutoStretch
+            disabled={respondiendo}
+            onClick={() => responder(false)}
+          >
+            No lo trabajé
+          </Button>
+        </Stack>
+      ) : (
+        <Button variant="main" onClick={abrir} disableAutoStretch>
+          Ver mis territorios
+        </Button>
+      )}
     </Box>
   );
 };

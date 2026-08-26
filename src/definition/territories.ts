@@ -126,6 +126,16 @@ export type TerritoryAssignment = {
   /** person_uid de quien realizó la asignación. */
   assignedBy?: string;
   /**
+   * Se cerró sola al terminar la campaña y falta que el hermano diga si lo
+   * trabajó o no.
+   *
+   * Mientras tanto vale `no_trabajado`, que es lo honesto: nadie ha dicho que
+   * se trabajara. Antes se cerraban directamente como "trabajado" —la
+   * aplicación afirmaba algo que no sabía, movía la fecha de último trabajo
+   * del territorio y lo metía en descanso.
+   */
+  cierrePendiente?: boolean;
+  /**
    * A quién se lo ha PRESTADO quien lo tiene, y hasta cuándo.
    *
    * Para la salida: el hermano que lleva el territorio le enseña una parte a
@@ -233,6 +243,14 @@ export type TerritoryNotice = {
    * se muestran como antes.
    */
   territoryLabel?: string;
+  /**
+   * La asignación sobre la que se pregunta, si el aviso pide una respuesta.
+   *
+   * Lo usa el aviso de "campaña terminada": guardándolo aquí se puede
+   * contestar desde el panel de inicio o desde la campanita, que viven fuera
+   * de Territorios y no tienen cargadas las asignaciones.
+   */
+  assignmentId?: string;
   /** quién lo envió (person_uid). */
   sentBy?: string;
   createdAt: string;

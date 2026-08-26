@@ -38,7 +38,11 @@ import {
 } from '@definition/territories';
 import { repartirPaleta } from '@services/app/paleta';
 import { dbTerritoryDeleteFile } from '@services/dexie/territories';
-import { dueAtDeAsignacion, ENC_PREFIX } from '@services/app/territories';
+import {
+  AVISO_CAMPANA_TITULO,
+  dueAtDeAsignacion,
+  ENC_PREFIX,
+} from '@services/app/territories';
 
 // ─── Colección helpers ─────────────────────────────────────────────────────
 const zonesCol = (congId: string) =>
@@ -339,12 +343,24 @@ export const subscribeLocations = (
 export const subscribeCampaigns = (
   congId: string,
   cb: (rows: TerritoryCampaign[]) => void
-) => subscribe(campaignsCol(congId), (d) => d as TerritoryCampaign, cb, 'campañas');
+) =>
+  subscribe(
+    campaignsCol(congId),
+    (d) => d as TerritoryCampaign,
+    cb,
+    'campañas'
+  );
 
 export const subscribeRequests = (
   congId: string,
   cb: (rows: TerritoryRequest[]) => void
-) => subscribe(requestsCol(congId), (d) => d as TerritoryRequest, cb, 'solicitudes');
+) =>
+  subscribe(
+    requestsCol(congId),
+    (d) => d as TerritoryRequest,
+    cb,
+    'solicitudes'
+  );
 
 export const subscribeNotices = (
   congId: string,
@@ -825,7 +841,8 @@ export const deleteAssignment = async (
       .filter((a) => a.returnedAt && a.status === 'trabajado')
       .sort((a, b) => (a.returnedAt! > b.returnedAt! ? -1 : 1));
     const expected = worked[0]?.returnedAt ?? null;
-    if ((territory.lastWorkedAt ?? null) !== expected) fields.lastWorkedAt = expected;
+    if ((territory.lastWorkedAt ?? null) !== expected)
+      fields.lastWorkedAt = expected;
 
     if (Object.keys(fields).length > 0) {
       fields.updatedAt = new Date().toISOString();
@@ -848,6 +865,52 @@ export const deleteAssignment = async (
  * carga: una vez migrada una asignación, deja de aparecer en `stale` y no
  * vuelve a escribirse.
  */
+/**
+ * El hermano contesta a "¿llegaste a trabajarlo?" cuando su campaña se cerró
+ * sola.
+ *
+ * En una TRANSACCIÓN y no en un batch porque hay que leer antes de escribir:
+ * la fecha de último trabajo del territorio solo avanza —si mientras tanto
+ * otro lo trabajó y lo devolvió, esa fecha es más reciente y manda—, y quien
+ * contesta suele estar en el panel de inicio, donde Territorios ni siquiera
+ * está cargado y no hay con qué comparar. Se lee del servidor en el momento.
+ */
+export const responderCierreCampana = async (
+  congId: string,
+  aviso: { assignmentId: string; territoryId?: string; returnedAt: string },
+  trabajado: boolean,
+  noticeId?: string
+): Promise<void> => {
+  const now = new Date().toISOString();
+
+  await runTransaction(firestore, async (tx) => {
+    const terrRef = aviso.territoryId
+      ? fsDoc(territoriesCol(congId), aviso.territoryId)
+      : null;
+    const terrSnap = trabajado && terrRef ? await tx.get(terrRef) : null;
+
+    tx.update(fsDoc(assignmentsCol(congId), aviso.assignmentId), {
+      status: trabajado ? 'trabajado' : 'no_trabajado',
+      cierrePendiente: false,
+      updatedAt: now,
+    });
+
+    if (terrRef && terrSnap?.exists()) {
+      const actual = (terrSnap.data() as Territory).lastWorkedAt;
+      if (isNewerWorkDate(aviso.returnedAt, actual)) {
+        tx.update(terrRef, {
+          lastWorkedAt: aviso.returnedAt,
+          updatedAt: now,
+        });
+      }
+    }
+
+    if (noticeId) {
+      tx.update(fsDoc(noticesCol(congId), noticeId), { leido: true });
+    }
+  });
+};
+
 export const backfillMissingReturnedAt = async (
   congId: string,
   assignments: TerritoryAssignment[]
@@ -1138,11 +1201,39 @@ export const closeCampaign = async (
   const ops: Array<(b: ReturnType<typeof writeBatch>) => void> = [];
 
   open.forEach((a) => {
+    // Se cierra, pero NO se da por trabajado: nadie lo ha dicho.
+    //
+    // Antes se cerraban como "trabajado" a secas — la aplicación afirmaba lo
+    // que no sabía, le movía al territorio la fecha de último trabajo y lo
+    // metía en descanso. Ahora queda "sin trabajar" con la pregunta pendiente,
+    // y es el hermano quien la contesta desde su móvil. Si no contesta nunca,
+    // el registro se queda en lo honesto en vez de en lo cómodo.
     ops.push((b) =>
       b.update(fsDoc(assignmentsCol(congId), a.id), {
         returnedAt: closedAt,
-        status: 'trabajado',
+        status: 'no_trabajado',
+        cierrePendiente: true,
         updatedAt: now,
+      })
+    );
+
+    // La pregunta, en su campanita y en su panel de inicio. Lleva el id de la
+    // asignación porque se contesta desde fuera de Territorios, donde no hay
+    // asignaciones cargadas con las que buscarla.
+    const territorio = territories.find((t) => t.id === a.territoryId);
+    const nombre = territorio
+      ? `${territorio.numero}${territorio.nombre ? ` — ${territorio.nombre}` : ''}`
+      : 'tu territorio';
+    ops.push((b) =>
+      b.set(fsDoc(noticesCol(congId), crypto.randomUUID()), {
+        personUid: a.personUid,
+        title: AVISO_CAMPANA_TITULO,
+        mensaje: `Ha terminado «${campaign.nombre}». ¿Llegaste a trabajar el territorio ${nombre}?`,
+        territoryId: a.territoryId,
+        territoryLabel: nombre,
+        assignmentId: a.id,
+        createdAt: now,
+        leido: false,
       })
     );
     const t = territories.find((x) => x.id === a.territoryId);
@@ -1150,12 +1241,10 @@ export const closeCampaign = async (
       // Actualización parcial (no saveTerritory completo) — así no se pisa
       // una edición concurrente de nombre/notas/geometría.
       const fields: Partial<Territory> = { updatedAt: now };
-      // Igual que en finalizeAssignmentBatch: la fecha de último trabajo
-      // solo avanza, para que cerrar una campaña antigua no pise una fecha
-      // de trabajo más reciente.
-      if (isNewerWorkDate(closedAt, t.lastWorkedAt)) {
-        fields.lastWorkedAt = closedAt;
-      }
+      // La fecha de último trabajo NO se toca aquí: se pondrá cuando el
+      // hermano conteste que sí lo trabajó (ver `responderCierreCampana`).
+      // Ponerla ahora sería dar por trabajado lo que nadie ha confirmado, y
+      // encima meter el territorio en descanso sin motivo.
       // Libera el candado si esta era la asignación de campaña que lo
       // tenía — sin esto, cerrar una campaña dejaba el territorio marcado
       // como ocupado para siempre.

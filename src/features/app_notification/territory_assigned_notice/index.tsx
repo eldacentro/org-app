@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { TerritoryAssignedNotificationType } from '@definition/notification';
 import Button from '@components/button';
 
 import { useNavigate } from 'react-router';
-import { markNoticeRead } from '@services/firebase/territories';
+import {
+  markNoticeRead,
+  responderCierreCampana,
+} from '@services/firebase/territories';
 import { useAtomValue } from 'jotai';
 import { congIDState } from '@states/settings';
 import useAppNotification from '@features/app_notification/useAppNotification';
 import {
   AVISO_ATRASADO_TITULO,
+  AVISO_CAMPANA_TITULO,
   esAvisoInformativo,
 } from '@services/app/territories';
 
@@ -33,6 +38,34 @@ const TerritoryAssignedNotice = ({
   // que hacer. Ofrecerle "Ver territorio" es mandarle a un sitio al que no
   // iba; lo único que quiere es darse por enterado y quitárselo de encima.
   const soloEnterarse = esAvisoInformativo(notice.title);
+
+  // Y el de "campaña terminada" no lleva a ningún sitio: pregunta algo, y se
+  // contesta aquí mismo con dos botones. Mandarle a la ficha del territorio
+  // sería mandarle a mirar un mapa cuando lo que hay que decir es sí o no.
+  const preguntaDeCampana =
+    notice.title === AVISO_CAMPANA_TITULO && Boolean(notice.assignmentId);
+  const [respondiendo, setRespondiendo] = useState(false);
+
+  const responder = async (trabajado: boolean) => {
+    if (!notice.assignmentId) return;
+    setRespondiendo(true);
+    try {
+      await responderCierreCampana(
+        congId,
+        {
+          assignmentId: notice.assignmentId,
+          territoryId: notice.territoryId,
+          returnedAt: notice.createdAt,
+        },
+        trabajado,
+        notice.id
+      );
+    } catch (e) {
+      console.error('No se pudo responder al cierre de campaña', e);
+    } finally {
+      setRespondiendo(false);
+    }
+  };
 
   const handleMarcarLeido = async () => {
     if (!notice.id) return;
@@ -68,33 +101,55 @@ const TerritoryAssignedNotice = ({
         boxShadow: 'var(--small-card-shadow)',
       }}
     >
-      <Stack direction="row" justifyContent="flex-start">
-        <Button
-          variant={soloEnterarse ? 'tertiary' : 'main'}
-          onClick={soloEnterarse ? handleMarcarLeido : handleVerTerritorio}
-          sx={{
-            height: '38px',
-            minHeight: '38px',
-            px: '20px',
-            borderRadius: 'var(--shape-sm)',
-            fontWeight: 600,
-            fontSize: '13px',
-            letterSpacing: '0.01em',
-            boxShadow: 'var(--btn-shadow)',
-            transition:
-              'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
-            '&:hover': {
-              transform: 'translateY(-1px)',
-              boxShadow: 'var(--hover-shadow)',
-            },
-          }}
-        >
-          {soloEnterarse
-            ? 'Entendido'
-            : esAtrasado
-              ? 'Entregar territorio'
-              : 'Ver territorio'}
-        </Button>
+      <Stack direction="row" justifyContent="flex-start" spacing={1}>
+        {preguntaDeCampana && (
+          <>
+            <Button
+              variant="main"
+              disabled={respondiendo}
+              onClick={() => responder(true)}
+              sx={{ height: '38px', minHeight: '38px', px: '20px' }}
+            >
+              Sí, lo trabajé
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={respondiendo}
+              onClick={() => responder(false)}
+              sx={{ height: '38px', minHeight: '38px', px: '20px' }}
+            >
+              No lo trabajé
+            </Button>
+          </>
+        )}
+        {!preguntaDeCampana && (
+          <Button
+            variant={soloEnterarse ? 'tertiary' : 'main'}
+            onClick={soloEnterarse ? handleMarcarLeido : handleVerTerritorio}
+            sx={{
+              height: '38px',
+              minHeight: '38px',
+              px: '20px',
+              borderRadius: 'var(--shape-sm)',
+              fontWeight: 600,
+              fontSize: '13px',
+              letterSpacing: '0.01em',
+              boxShadow: 'var(--btn-shadow)',
+              transition:
+                'background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard)',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: 'var(--hover-shadow)',
+              },
+            }}
+          >
+            {soloEnterarse
+              ? 'Entendido'
+              : esAtrasado
+                ? 'Entregar territorio'
+                : 'Ver territorio'}
+          </Button>
+        )}
       </Stack>
     </Box>
   );

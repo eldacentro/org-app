@@ -146,6 +146,13 @@ export const isCampaignRunning = (
  */
 export const AVISO_ATRASADO_TITULO = 'Territorio atrasado';
 
+/**
+ * Aviso de "la campaña terminó, ¿lo trabajaste?".
+ *
+ * Va al publicador y PIDE algo, así que sale también en el panel de inicio.
+ */
+export const AVISO_CAMPANA_TITULO = 'Campaña terminada';
+
 /** Títulos de los avisos que van a un RESPONSABLE, no al publicador. */
 export const AVISO_DEVUELTO_TITULO = 'Territorio devuelto';
 export const AVISO_DIRECCION_TITULO = 'Dirección pendiente de aprobar';
