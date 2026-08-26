@@ -5,10 +5,19 @@ import { Box, Button, Input } from '@mui/material';
 // Además el campo redondo se distingue de un vistazo de los campos de dato
 // (rectángulo de esquina suave): al entrar en una lista larga, encontrar el
 // buscador deja de requerir leer.
+//
+// EL ALTO ES 56, el mismo que un campo. Estuvo en 48, y se notaba justo donde
+// más: en las barras de filtrar, con un «Ordenar por» al lado, uno era ocho
+// píxeles más bajo que el otro y la pareja se leía como un descuido en vez de
+// como una decisión. Material 3 pone la barra de búsqueda y los campos de
+// texto a la misma altura (56) precisamente para que puedan ir juntos, y les
+// deja formas DISTINTAS —una redonda del todo, el otro no— para que se
+// distingan por la silueta y no por el tamaño. Igualar el alto es lo que hace
+// que la diferencia de forma se lea como intención.
 export const StyledBox = styled(Box)({
   display: 'flex',
   width: '100%',
-  height: '48px',
+  height: '56px',
   alignItems: 'center',
   borderRadius: 'var(--shape-full)',
   background: 'var(--grey-100)',

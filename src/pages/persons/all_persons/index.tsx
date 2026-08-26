@@ -63,7 +63,7 @@ const SearchRow = ({
           {t('tr_filters')}
         </Button>
       ) : (
-        // 48px, el mismo alto que el buscador y con el mismo radio: al lado se
+        // 56px, el mismo alto que el buscador y con el mismo radio: al lado se
         // leen como una pareja y no como dos piezas de sitios distintos. Y con
         // el MISMO relleno, no con un aro alrededor: el buscador es una píldora
         // rellena y sin canto, así que el anillo hacía del icono una pieza de
@@ -73,8 +73,8 @@ const SearchRow = ({
           aria-label={t('tr_filters')}
           sx={{
             flexShrink: 0,
-            width: '48px',
-            height: '48px',
+            width: '56px',
+            height: '56px',
             backgroundColor: 'var(--grey-100)',
           }}
         >

@@ -1124,6 +1124,37 @@ La excepción real serían dos controles **pegados sin hueco**, como un buscador
 con su lupa dentro: ahí sí son un objeto y comparten un solo radio. Ese patrón
 no existe en esta app, y no conviene introducirlo.
 
+### 6.6 El buscador y sus filtros: MISMO alto, formas distintas
+
+Lo de arriba vale para un **botón** al lado de un campo. Con un **buscador** y
+su control de filtro al lado —el «Ordenar por» de Discursos salientes, de
+Discursos públicos o del catálogo de oradores— la respuesta es la contraria, y
+no por capricho:
+
+| | Alto | Forma |
+|---|---|---|
+| `@components/search_bar` | **56** | `--shape-full` (píldora) |
+| `@components/select`, campos | **56** | `--shape-md` (rectángulo blando) |
+
+**El alto se iguala; la forma no.** Es lo que hace Material 3: la barra de
+búsqueda y los campos de texto miden lo mismo (56dp) precisamente para poder ir
+juntos, y se distinguen por la SILUETA. Un desplegable como «Ordenar por» es un
+campo de texto con una flecha, así que le toca la forma de campo.
+
+El buscador estuvo a 48 y se notaba justo donde más: en una barra de filtrar,
+uno era ocho píxeles más bajo que el otro y la pareja se leía como un descuido.
+Con el mismo alto, la diferencia de forma pasa a leerse como lo que es —una
+cosa se busca y la otra se elige— en vez de como dos piezas de sitios
+distintos.
+
+**Lo que NO se hace** es igualar los radios (§2.3 y el aviso de aquí arriba):
+redondear el desplegable lo convertiría en una caja de búsqueda, y cuadrar el
+buscador lo perdería entre los ~600 campos de la app. La diferencia de forma es
+el mecanismo, no el problema.
+
+Y no se toca el fondo: el buscador va en gris neutro y los campos en el tinte de
+la marca. Es la otra mitad de la misma señal.
+
 ### 6.7 Degradados: fuera del contenido, permitidos como ambiente
 
 No es "ningún degradado nunca". La línea está en QUÉ pinta:
