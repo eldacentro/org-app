@@ -38,7 +38,11 @@ import {
 } from '@definition/territories';
 import { repartirPaleta } from '@services/app/paleta';
 import { dbTerritoryDeleteFile } from '@services/dexie/territories';
-import { computeDueAt, ENC_PREFIX } from '@services/app/territories';
+import {
+  computeDueAt,
+  dueAtDeAsignacion,
+  ENC_PREFIX,
+} from '@services/app/territories';
 
 // ─── Colección helpers ─────────────────────────────────────────────────────
 const zonesCol = (congId: string) =>
@@ -955,13 +959,17 @@ export const backfillOpenAssignmentLocks = async (
 export const backfillDueAtFormula = async (
   congId: string,
   assignments: TerritoryAssignment[],
+  campaigns: TerritoryCampaign[],
   daysUntilOverdue: number
 ): Promise<void> => {
+  // Con las campañas delante: si no, esta migración le devolvía la fórmula
+  // general a las asignaciones de campaña —que vencen el día que termina la
+  // campaña— y deshacía el arreglo en la siguiente carga de la aplicación.
+  const esperado = (a: TerritoryAssignment) =>
+    dueAtDeAsignacion(a, campaigns, daysUntilOverdue);
+
   const stale = assignments.filter(
-    (a) =>
-      !a.returnedAt &&
-      a.dueAt &&
-      a.dueAt !== computeDueAt(a.assignedAt, daysUntilOverdue)
+    (a) => !a.returnedAt && a.dueAt && a.dueAt !== esperado(a)
   );
   if (stale.length === 0) return;
 
@@ -970,7 +978,7 @@ export const backfillDueAtFormula = async (
     const batch = writeBatch(firestore);
     slice.forEach((a) =>
       batch.update(fsDoc(assignmentsCol(congId), a.id), {
-        dueAt: computeDueAt(a.assignedAt, daysUntilOverdue),
+        dueAt: esperado(a),
       })
     );
     await batch.commit();

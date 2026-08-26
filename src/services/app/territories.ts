@@ -78,6 +78,52 @@ export const isCampaignOver = (
   return end < now;
 };
 
+/**
+ * Cuándo vence una asignación.
+ *
+ * Las normales, a los días de "atrasado" que diga la configuración. Las de
+ * CAMPAÑA, el día que termina la campaña: es su último día para hacerlo, y
+ * decirle a un hermano "vence el 24 de diciembre" por un territorio de una
+ * campaña que acaba en septiembre es decirle que tiene tres meses cuando
+ * tiene dos semanas.
+ *
+ * Devuelve el final de ese día, no su medianoche: si no, la asignación
+ * vencería al empezar su último día y se perdería la jornada entera —el
+ * mismo cuidado que se tiene en `isCampaignOver`.
+ */
+export const dueAtDeAsignacion = (
+  assignment: { assignedAt: string; campaignId?: string },
+  campaigns: { id: string; fechaFin: string }[],
+  daysUntilOverdue: number
+): string => {
+  const campana = assignment.campaignId
+    ? campaigns.find((c) => c.id === assignment.campaignId)
+    : undefined;
+
+  if (!campana) return computeDueAt(assignment.assignedAt, daysUntilOverdue);
+
+  const fin = new Date(campana.fechaFin);
+  fin.setHours(23, 59, 59, 999);
+  return fin.toISOString();
+};
+
+/**
+ * ¿Está atrasada esta asignación?
+ *
+ * Por su fecha de vencimiento si la tiene —que en las de campaña es el fin de
+ * la campaña, no los días de la configuración— y por la fórmula solo cuando
+ * falta (registros anteriores a que existiera `dueAt`).
+ */
+export const estaAtrasada = (
+  assignment: { assignedAt: string; dueAt?: string; returnedAt?: string | null },
+  daysUntilOverdue: number,
+  now: Date = new Date()
+): boolean => {
+  if (assignment.returnedAt) return false;
+  if (assignment.dueAt) return new Date(assignment.dueAt) < now;
+  return isOverdue(assignment.assignedAt, daysUntilOverdue, now);
+};
+
 /** ¿La campaña está en curso ahora mismo (ya empezó y aún no ha terminado)? */
 export const isCampaignRunning = (
   fechaInicio: string,

@@ -50,7 +50,7 @@ import {
 import { apiSendTerritoryPush } from '@services/api/territories';
 import { sendEmailNotification } from '@services/firebase/email';
 import {
-  computeDueAt,
+  dueAtDeAsignacion,
   isCampaignRunning,
   territoryLabel,
   getZoneName,
@@ -290,7 +290,11 @@ const DialogAsignar = ({
               territoryId: t.id,
               personUid,
               assignedAt: now,
-              dueAt: computeDueAt(now, settings.daysUntilOverdue),
+              dueAt: dueAtDeAsignacion(
+                { assignedAt: now, ...marcaDeCampana(t.id) },
+                campaigns,
+                settings.daysUntilOverdue
+              ),
               returnedAt: null,
               status: 'asignado',
               ...marcaDeCampana(t.id),
@@ -450,7 +454,11 @@ const DialogAsignar = ({
         territoryId: effectiveTerritory.id,
         personUid,
         assignedAt: now,
-        dueAt: computeDueAt(now, settings.daysUntilOverdue),
+        dueAt: dueAtDeAsignacion(
+          { assignedAt: now, ...marcaDeCampana(effectiveTerritory.id) },
+          campaigns,
+          settings.daysUntilOverdue
+        ),
         // Explicit null (not omitted) so a future where('returnedAt','==',null)
         // query can find open assignments — Firestore equality filters don't
         // match documents where the field is simply absent.

@@ -336,10 +336,20 @@ export const useTerritories = () => {
     if (!congId || !canManage || assignments.length === 0 || !settings.id)
       return;
 
-    backfillDueAtFormula(congId, assignments, settings.daysUntilOverdue).catch(
-      (err) => console.error('Failed to backfill dueAt formula:', err)
-    );
-  }, [congId, canManage, assignments, settings.id, settings.daysUntilOverdue]);
+    backfillDueAtFormula(
+      congId,
+      assignments,
+      campaigns,
+      settings.daysUntilOverdue
+    ).catch((err) => console.error('Failed to backfill dueAt formula:', err));
+  }, [
+    congId,
+    canManage,
+    assignments,
+    campaigns,
+    settings.id,
+    settings.daysUntilOverdue,
+  ]);
 
   // ─── Enlaces públicos ───────────────────────────────────────────────────
   // Solo un responsable los necesita (y solo él puede enumerarlos según la

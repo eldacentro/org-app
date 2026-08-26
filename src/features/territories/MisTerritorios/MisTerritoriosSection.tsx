@@ -28,7 +28,7 @@ import {
   formatTerritoryDate,
   getZoneColor,
   getZoneName,
-  isOverdue,
+  estaAtrasada,
   computeDueAt,
   isCampaignRunning,
 } from '@services/app/territories';
@@ -519,7 +519,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
     assignment: TerritoryAssignment;
     territory: Territory;
   }) => {
-    const overdue = isOverdue(assignment.assignedAt, settings.daysUntilOverdue);
+    const overdue = estaAtrasada(assignment, settings.daysUntilOverdue);
     const color = getZoneColor(territory.zoneId, zones);
     return (
       <TerritoryCard key={assignment.id} accent={color}>

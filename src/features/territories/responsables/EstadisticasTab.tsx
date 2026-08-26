@@ -38,7 +38,7 @@ import {
   formatTerritoryDate,
   getZoneName,
   isInCooldown,
-  isOverdue,
+  estaAtrasada,
   statsRangeStart,
   serviceYearRange,
   territoryLabel,
@@ -448,8 +448,7 @@ const EstadisticasTab = ({ onAsignar, onEntregar, onView }: Props) => {
     // Atrasados
     const atrasados = relevant
       .filter(
-        (a) =>
-          !a.returnedAt && isOverdue(a.assignedAt, settings.daysUntilOverdue)
+        (a) => !a.returnedAt && estaAtrasada(a, settings.daysUntilOverdue)
       )
       .sort(
         (x, y) =>
