@@ -114,6 +114,40 @@ export type AssignmentCongregation = {
    */
   sentBy?: string;
   /**
+   * A quien tiene esta parte HAY QUE CAMBIARLO: ha dicho que no puede.
+   *
+   * Es una nota para quien programa, no un cambio del programa. La parte sigue
+   * asignada a esa persona —y así se sigue viendo en Programas semanales—
+   * porque hasta que no haya sustituto, quitarla dejaría un hueco que nadie
+   * recordaría rellenar. Lo que hace la marca es que ese trabajo pendiente se
+   * pueda ver de un vistazo en vez de vivir en la cabeza de alguien.
+   *
+   * Vive DENTRO de la asignación, igual que `confirmed` y `sent`, y por lo
+   * mismo: pertenece al par parte+persona y tiene que morir con él. Al poner a
+   * otro hermano se borra sola — si se quedara, la parte ya arreglada seguiría
+   * saliendo en la lista de pendientes para siempre.
+   */
+  toReplace?: boolean;
+  /**
+   * Cuándo se marcó.
+   *
+   * Existe por el MISMO motivo que `confirmedAt` y `sentAt`: marcar tiene que
+   * sellar `updatedAt` para ganar la fusión y llegar a los demás dispositivos,
+   * pero entonces el contador de «cambios desde que publicaste» lo contaría
+   * como un cambio del programa. Y no lo es: la congregación sigue viendo
+   * exactamente lo mismo. Cuando las dos fechas coinciden, el último toque fue
+   * esta marca. Ver `collectUpdatedAfter`.
+   */
+  toReplaceAt?: string;
+  /**
+   * Quién dijo que hay que cambiarlo, por su nombre.
+   *
+   * Se guarda por lo mismo que `sentBy`: en la lista de pendientes, lo primero
+   * que se pregunta uno al ver una parte marcada es quién lo sabe, para no ir a
+   * preguntarle al hermano algo que ya está hablado.
+   */
+  toReplaceBy?: string;
+  /**
    * Quién puso este valor, por su nombre.
    *
    * El registro de la semana ya guarda un `lastModifiedBy`, pero es el del

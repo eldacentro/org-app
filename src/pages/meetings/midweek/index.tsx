@@ -13,6 +13,7 @@ import WeekPickerPanel from '@features/meetings/week_picker_panel';
 import NavBarButton from '@components/nav_bar_button';
 import LastModifiedInfo from '@components/last_modified_info';
 import PendingSlips from '@features/meetings/midweek_editor/pending_slips';
+import PorCambiar from '@features/meetings/midweek_editor/por_cambiar';
 
 const MidweekMeeting = () => {
   const { t } = useAppTranslation();
@@ -115,6 +116,11 @@ const MidweekMeeting = () => {
       {/* Las hojitas pendientes van AQUÍ y no en Programas semanales: eso es
           la vista de consulta, y esto es trabajo de quien las reparte. */}
       {hasWeeks && <PendingSlips />}
+
+      {/* Las partes que hay que cambiar. Debajo de las hojitas y no encima: las
+          hojitas son la tarea de todas las semanas, y esto sale solo cuando
+          alguien ha avisado de que no puede. */}
+      {hasWeeks && <PorCambiar />}
 
       <Box
         sx={{

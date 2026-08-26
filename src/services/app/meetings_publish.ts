@@ -544,7 +544,12 @@ const collectUpdatedAfter = (
     // cambio del programa, y se manda mucho más a menudo que se confirma —una
     // tarde repartiendo quince decía «has hecho quince cambios desde que
     // publicaste», que es la forma más segura de que ese aviso deje de leerse.
-    const sellos = [record.confirmedAt, record.sentAt];
+    //
+    // Y TRES desde que existe «por cambiar» (`toReplaceAt`): avisar de que un
+    // hermano no puede tampoco cambia lo que ve la congregación —la parte sigue
+    // siendo suya hasta que haya sustituto—, así que marcarlo no puede pedir
+    // que se republique el mes.
+    const sellos = [record.confirmedAt, record.sentAt, record.toReplaceAt];
 
     if (sellos.some((sello) => sello === record.updatedAt)) {
       return [];

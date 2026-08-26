@@ -6,6 +6,7 @@ import useBrotherSelector from './useBrotherSelector';
 import AutoComplete from '@components/autocomplete';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
 import IconButton from '@components/icon_button';
+import AssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace';
 import Typography from '@components/typography';
 import OptionsPopper from '@components/options_popper';
 
@@ -226,6 +227,13 @@ const BrotherSelector = (props: PersonSelectorType) => {
                 />
               </IconButton>
             )}
+
+            {/* «Por cambiar»: se esconde sola fuera de la reunión de entre
+                semana y para quien no la edita. Ver `useAssignmentToReplace`. */}
+            <AssignmentToReplace
+              week={props.week}
+              assignment={props.assignment}
+            />
           </Box>
         )}
       </Box>

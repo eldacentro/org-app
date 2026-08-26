@@ -12,6 +12,7 @@ import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useStudentSelector from './useStudentSelector';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
 import AssignmentConfirmed from '@features/meetings/weekly_schedules/assignment_confirmed';
+import AssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace';
 import AutoComplete from '@components/autocomplete';
 import IconButton from '@components/icon_button';
 import Radio from '@components/radio';
@@ -347,6 +348,13 @@ const StudentSelector = (props: PersonSelectorType) => {
                 edita la reunión). Vive aquí y no en person_selector para que
                 comparta ancla con los otros dos botones. */}
             <AssignmentConfirmed
+              week={props.week}
+              assignment={props.assignment}
+            />
+
+            {/* «Por cambiar»: se esconde sola fuera de la reunión de entre
+                semana y para quien no la edita. Ver `useAssignmentToReplace`. */}
+            <AssignmentToReplace
               week={props.week}
               assignment={props.assignment}
             />

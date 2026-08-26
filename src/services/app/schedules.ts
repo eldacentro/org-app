@@ -1348,23 +1348,27 @@ export const schedulesUpdateHistory = (
  */
 const aplicarAutor = (
   registro: AssignmentCongregation,
-  marca: 'confirmed' | 'sent',
+  marca: 'confirmed' | 'sent' | 'toReplace',
   valor: boolean
 ) => {
-  if (marca !== 'sent') return;
+  // «Por cambiar» también lo guarda, y por lo mismo que mandar la hojita: al
+  // ver una parte marcada, lo primero que se pregunta uno es quién lo sabe.
+  const campo = marca === 'sent' ? 'sentBy' : marca === 'toReplace' ? 'toReplaceBy' : null;
+
+  if (!campo) return;
 
   if (valor) {
-    registro.sentBy = store.get(fullnameState);
+    registro[campo] = store.get(fullnameState);
     return;
   }
 
-  delete registro.sentBy;
+  delete registro[campo];
 };
 
 const schedulesMarkAssignment = async (
   schedule: SchedWeekType,
   assignment: AssignmentFieldType,
-  marca: 'confirmed' | 'sent',
+  marca: 'confirmed' | 'sent' | 'toReplace',
   valor: boolean
 ) => {
   const dataView = store.get(userDataViewState);
@@ -1376,7 +1380,7 @@ const schedulesMarkAssignment = async (
   // La MISMA fecha en los dos campos: así se sabe que el último toque de esta
   // asignación fue la hojita y no una edición del programa. Ver `confirmedAt`
   // y `sentAt` en la definición.
-  const sello = `${marca}At` as 'confirmedAt' | 'sentAt';
+  const sello = `${marca}At` as 'confirmedAt' | 'sentAt' | 'toReplaceAt';
 
   if (Array.isArray(fieldUpdate)) {
     const assigned = fieldUpdate.find((record) => record.type === dataView);
@@ -1425,6 +1429,18 @@ export const schedulesToggleAssignmentSent = async (
   assignment: AssignmentFieldType,
   sent: boolean
 ) => schedulesMarkAssignment(schedule, assignment, 'sent', sent);
+
+/**
+ * Marcar (o desmarcar) que a quien tiene esta parte hay que cambiarlo.
+ *
+ * No toca a quién está asignado: la parte sigue siendo suya hasta que haya
+ * sustituto. Ver `toReplace` en la definición.
+ */
+export const schedulesToggleAssignmentToReplace = async (
+  schedule: SchedWeekType,
+  assignment: AssignmentFieldType,
+  toReplace: boolean
+) => schedulesMarkAssignment(schedule, assignment, 'toReplace', toReplace);
 
 /**
  * El nombre de la congregación de un orador visitante.
@@ -1524,6 +1540,12 @@ export const schedulesSaveAssignment = async (
           delete assigned.sent;
           delete assigned.sentAt;
           delete assigned.sentBy;
+          // Y «por cambiar»: poner a otro hermano ES el cambio. Si se quedara,
+          // la parte ya arreglada seguiría saliendo en la lista de pendientes
+          // para siempre, que es el fallo más fácil de cometer aquí.
+          delete assigned.toReplace;
+          delete assigned.toReplaceAt;
+          delete assigned.toReplaceBy;
         }
 
         assigned.value = toSave;
@@ -1562,6 +1584,9 @@ export const schedulesSaveAssignment = async (
         delete fieldUpdate.sent;
         delete fieldUpdate.sentAt;
         delete fieldUpdate.sentBy;
+        delete fieldUpdate.toReplace;
+        delete fieldUpdate.toReplaceAt;
+        delete fieldUpdate.toReplaceBy;
       }
 
       fieldUpdate.value = toSave;
