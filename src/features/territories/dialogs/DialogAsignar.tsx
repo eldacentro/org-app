@@ -33,6 +33,7 @@ import SelectorTerritorio from './SelectorTerritorio';
 import Checkbox from '@components/checkbox';
 import {
   territoriesState,
+  territoryZonesState,
   territoryAssignmentsState,
   territoriesLoadingState,
   territoryCampaignsState,
@@ -52,6 +53,9 @@ import {
   computeDueAt,
   isCampaignRunning,
   territoryLabel,
+  getZoneName,
+  isInCooldown,
+  formatTerritoryDate,
 } from '@services/app/territories';
 
 type Props = {
@@ -95,6 +99,7 @@ const DialogAsignar = ({
   const coSpouseName = useAtomValue(COSpouseNameState);
   const settings = useAtomValue(territorySettingsState);
   const territories = useAtomValue(territoriesState);
+  const zonas = useAtomValue(territoryZonesState);
   const campaigns = useAtomValue(territoryCampaignsState);
 
   /**
@@ -192,14 +197,22 @@ const DialogAsignar = ({
   }, [persons, fullnameOption, coFullname, coLastname, coSpouseName]);
 
   const [personUid, setPersonUid] = useState<string | null>(null);
-  const [territoryId, setTerritoryId] = useState<string | null>(null);
+  /**
+   * Los territorios que se van a dar. Casi siempre es uno, pero a veces un
+   * hermano pide dos —o el responsable ve que le vienen bien dos de zonas
+   * distintas— y antes eso eran dos vueltas enteras por este diálogo.
+   */
+  const [territoryIds, setTerritoryIds] = useState<string[]>([]);
+  /** El selector está abierto para añadir otro más. */
+  const [anadiendo, setAnadiendo] = useState(false);
   const [nota, setNota] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       setPersonUid(defaultPersonUid ?? null);
-      setTerritoryId(territory?.id ?? null);
+      setTerritoryIds(territory ? [territory.id] : []);
+      setAnadiendo(false);
       setNota('');
       setAtenderSolicitud(true);
     }
@@ -207,8 +220,14 @@ const DialogAsignar = ({
 
   if (!open) return null;
 
-  const effectiveTerritory =
-    territory ?? territories.find((t) => t.id === territoryId) ?? null;
+  /** Los elegidos, en objetos y en el orden en que se fueron eligiendo. */
+  const elegidos = territory
+    ? [territory]
+    : (territoryIds
+        .map((id) => territories.find((t) => t.id === id))
+        .filter(Boolean) as Territory[]);
+
+  const effectiveTerritory = elegidos[0] ?? null;
 
   /**
    * Solicitud pendiente que esta asignación deja atendida.
@@ -236,13 +255,13 @@ const DialogAsignar = ({
    *  tengan una asignación abierta se omiten (igual que en el flujo de
    *  borrado masivo de la pestaña Territorios) en vez de bloquear todo el
    *  lote por uno solo. */
-  const handleAsignarBulk = async () => {
-    if (!personUid || !bulkTerritories || bulkTerritories.length === 0) return;
+  const handleAsignarBulk = async (lista: Territory[]) => {
+    if (!personUid || lista.length === 0) return;
 
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      const candidates = bulkTerritories.filter(
+      const candidates = lista.filter(
         (t) =>
           !allAssignments.some((a) => a.territoryId === t.id && !a.returnedAt)
       );
@@ -291,7 +310,7 @@ const DialogAsignar = ({
         )
         .map((r) => r.value);
       const skipped =
-        bulkTerritories.length -
+        lista.length -
         candidates.length +
         results.filter((r) => r.status === 'rejected').length;
 
@@ -406,7 +425,10 @@ const DialogAsignar = ({
   };
 
   const handleAsignar = async () => {
-    if (isBulk) return handleAsignarBulk();
+    if (isBulk) return handleAsignarBulk(bulkTerritories!);
+    // Dos o más elegidos a mano van por el mismo camino que la selección
+    // múltiple de la cuadrícula: cada uno en su transacción, un solo aviso.
+    if (elegidos.length > 1) return handleAsignarBulk(elegidos);
     if (!personUid || !effectiveTerritory) return;
     // Comprobar si hay alguna asignación abierta (campaña O regular) para este territorio
     const hasOpenAssignment = allAssignments.some(
@@ -577,8 +599,11 @@ const DialogAsignar = ({
               </Typography>
             </Box>
           ) : territory ? (
+            // También con la zona delante: se entra aquí desde la ficha de un
+            // territorio, pero lo que se lee tiene que decir lo mismo en todas
+            // partes.
             <Typography className="body-small-regular" color="var(--ink-2)">
-              {territoryLabel(territory)}
+              {getZoneName(territory.zoneId, zonas)} {territoryLabel(territory)}
             </Typography>
           ) : (
             <Box>
@@ -586,16 +611,98 @@ const DialogAsignar = ({
                 className="body-small-regular"
                 sx={{ color: 'var(--ink-2)', mb: 0.75 }}
               >
-                Territorio
+                {elegidos.length > 1 ? 'Territorios' : 'Territorio'}
               </Typography>
-              <SelectorTerritorio
-                value={territoryId}
-                onChange={setTerritoryId}
-                cargando={cargandoTerritorios}
-                campaignTerritoryIds={campanaDeLaAsignacion?.territoryIds}
-                campaignName={campanaDeLaAsignacion?.nombre}
-                zonaInicial={preferredZoneId}
-              />
+
+              {/* Los elegidos, con su zona delante: un "20" a secas no dice
+                  cuál es, porque hay un 20 en cada zona. */}
+              <Stack spacing={1}>
+                {elegidos.map((t) => (
+                  <Box
+                    key={t.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      p: '12px 14px',
+                      borderRadius: 'var(--shape-md)',
+                      border: '1px solid var(--accent-200)',
+                      backgroundColor: 'var(--accent-100)',
+                    }}
+                  >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        className="body-regular-semibold"
+                        sx={{ color: 'var(--ink)' }}
+                      >
+                        {getZoneName(t.zoneId, zonas)} {territoryLabel(t)}
+                      </Typography>
+                      <Typography
+                        className="label-small-regular"
+                        sx={{ color: 'var(--ink-2)' }}
+                      >
+                        {isInCooldown(t, settings.daysUntilReassignable ?? 30)
+                          ? 'En descanso · '
+                          : ''}
+                        {t.lastWorkedAt
+                          ? `Trabajado el ${formatTerritoryDate(t.lastWorkedAt, settings.dateFormat)}`
+                          : 'Nunca trabajado'}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="tertiary"
+                      disableAutoStretch
+                      onClick={() =>
+                        setTerritoryIds((prev) =>
+                          prev.filter((id) => id !== t.id)
+                        )
+                      }
+                    >
+                      Quitar
+                    </Button>
+                  </Box>
+                ))}
+              </Stack>
+
+              {/* A veces piden dos, o el responsable ve que le vienen bien dos
+                  de zonas distintas. Antes eso era pasar dos veces por todo
+                  este diálogo. */}
+              {elegidos.length > 0 && !anadiendo && (
+                <Button
+                  variant="secondary"
+                  disableAutoStretch
+                  onClick={() => setAnadiendo(true)}
+                  sx={{ mt: 1 }}
+                >
+                  Añadir otro territorio
+                </Button>
+              )}
+
+              {(elegidos.length === 0 || anadiendo) && (
+                <Box sx={{ mt: elegidos.length > 0 ? 1.5 : 0 }}>
+                  <SelectorTerritorio
+                    onChange={(id) => {
+                      setTerritoryIds((prev) => [...prev, id]);
+                      setAnadiendo(false);
+                    }}
+                    excluir={territoryIds}
+                    cargando={cargandoTerritorios}
+                    campaignTerritoryIds={campanaDeLaAsignacion?.territoryIds}
+                    campaignName={campanaDeLaAsignacion?.nombre}
+                    zonaInicial={preferredZoneId}
+                  />
+                  {anadiendo && (
+                    <Button
+                      variant="tertiary"
+                      disableAutoStretch
+                      onClick={() => setAnadiendo(false)}
+                      sx={{ mt: 1 }}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </Box>
+              )}
             </Box>
           )}
 
@@ -639,7 +746,11 @@ const DialogAsignar = ({
             onClick={handleAsignar}
             disabled={saving || !personUid || (!isBulk && !effectiveTerritory)}
           >
-            {isBulk ? `Asignar ${bulkTerritories!.length}` : 'Asignar'}
+            {isBulk
+              ? `Asignar ${bulkTerritories!.length}`
+              : elegidos.length > 1
+                ? `Asignar ${elegidos.length}`
+                : 'Asignar'}
           </Button>
 
           {/* Solicitud pendiente de esta persona.

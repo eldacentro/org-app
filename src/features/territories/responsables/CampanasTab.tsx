@@ -5,7 +5,7 @@ import { useAtomValue } from 'jotai';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
-import { IconDelete } from '@components/icons';
+import { IconDelete, IconExpand } from '@components/icons';
 import {
   AbrirTerritorio,
   TagChip,
@@ -41,6 +41,87 @@ import DialogCrearCampana from './DialogCrearCampana';
 import DialogSeleccionarTerritorios from './DialogSeleccionarTerritorios';
 import { displaySnackNotification } from '@services/states/app';
 import { usePersonName } from '@features/territories/usePersonName';
+
+/**
+ * La barra de cómo va una campaña: lo que queda por dar, lo que está en
+ * manos de alguien y lo que ya está entregado.
+ *
+ * Tres tramos y no un porcentaje: "60%" no dice de qué, y aquí lo que se
+ * mira es si queda algo por repartir.
+ */
+const BarraCampana = ({
+  sinAsignar,
+  asignados,
+  entregados,
+}: {
+  sinAsignar: number;
+  asignados: number;
+  entregados: number;
+}) => {
+  const total = sinAsignar + asignados + entregados;
+  if (total === 0) return null;
+
+  // En el mismo orden en que se leen los números de debajo. Una barra de
+  // tramos no tiene un orden "correcto" como sí lo tiene una de progreso, y
+  // que no coincida con su propia leyenda es lo único que la haría ilegible.
+  const tramos = [
+    { n: sinAsignar, color: 'var(--accent-main)' },
+    { n: asignados, color: 'var(--orange-main)' },
+    { n: entregados, color: 'var(--green-main)' },
+  ].filter(({ n }) => n > 0);
+
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        display: 'flex',
+        gap: '2px',
+        height: 6,
+        borderRadius: 'var(--shape-full)',
+        overflow: 'hidden',
+      }}
+    >
+      {tramos.map(({ n, color }, i) => (
+        <Box
+          key={i}
+          sx={{
+            flexGrow: n,
+            backgroundColor: color,
+            borderRadius: 'var(--shape-full)',
+          }}
+        />
+      ))}
+    </Box>
+  );
+};
+
+/** Un número con su punto de color y su palabra. */
+const Leyenda = ({
+  color,
+  n,
+  texto,
+}: {
+  color: string;
+  n: number;
+  texto: string;
+}) =>
+  n === 0 ? null : (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Box
+        aria-hidden
+        sx={{
+          width: 8,
+          height: 8,
+          borderRadius: 'var(--shape-full)',
+          backgroundColor: color,
+          flexShrink: 0,
+        }}
+      />
+      <Typography className="label-small-regular" color="var(--ink-2)">
+        <strong style={{ color: 'var(--ink)' }}>{n}</strong> {texto}
+      </Typography>
+    </Stack>
+  );
 
 type Props = {
   onAsignarCampana: (territory: Territory, campaignId: string) => void;
@@ -82,6 +163,8 @@ const CampanasTab = ({ onAsignarCampana, onView }: Props) => {
 
   const [openCrear, setOpenCrear] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  /** Qué campaña tiene abierto el detalle por zonas. */
+  const [desglose, setDesglose] = useState<string | null>(null);
   const [selectingFor, setSelectingFor] = useState<TerritoryCampaign | null>(
     null
   );
@@ -251,13 +334,40 @@ const CampanasTab = ({ onAsignarCampana, onView }: Props) => {
         const campTerritories = c.territoryIds
           .map((id) => territories.find((t) => t.id === id))
           .filter((t): t is Territory => Boolean(t));
-        // Cuántos lleva de cada zona, en el orden de las zonas.
+        /**
+         * En qué anda cada territorio DE ESTA campaña: sin repartir, en manos
+         * de alguien, o ya entregado aquí.
+         *
+         * Con el número de territorios a secas no se sabe lo único que se
+         * pregunta a mitad de campaña: cuántos quedan por dar. Y un territorio
+         * ya entregado NO es "libre": está hecho, no hay que volver a darlo.
+         */
+        const estadoDe = (t: Territory) => {
+          const suyas = assignments.filter(
+            (a) => a.campaignId === c.id && a.territoryId === t.id
+          );
+          if (suyas.some((a) => !a.returnedAt)) return 'asignado' as const;
+          if (suyas.length > 0) return 'entregado' as const;
+          return 'sinAsignar' as const;
+        };
+
+        const cuenta = (lista: Territory[]) => ({
+          sinAsignar: lista.filter((t) => estadoDe(t) === 'sinAsignar').length,
+          asignados: lista.filter((t) => estadoDe(t) === 'asignado').length,
+          entregados: lista.filter((t) => estadoDe(t) === 'entregado').length,
+        });
+
+        const total = cuenta(campTerritories);
+
+        // Lo mismo por zona, para quien quiera abrirlo: es lo que dice si la
+        // campaña va bien repartida o si hay una zona entera parada.
         const porZona = zones
           .map((zone) => ({
             zone,
-            n: campTerritories.filter((t) => t.zoneId === zone.id).length,
+            lista: campTerritories.filter((t) => t.zoneId === zone.id),
           }))
-          .filter(({ n }) => n > 0);
+          .filter(({ lista }) => lista.length > 0)
+          .map(({ zone, lista }) => ({ zone, ...cuenta(lista) }));
         const isOpen = expanded === c.id;
         const addable = territories.filter(
           (t) => !c.territoryIds.includes(t.id)
@@ -307,17 +417,109 @@ const CampanasTab = ({ onAsignarCampana, onView }: Props) => {
                     se mira para saber si está bien repartida —y si falta
                     meter de alguna— sin tener que contar a mano una lista de
                     treinta. */}
-                {porZona.length > 0 && (
-                  <Stack
-                    direction="row"
-                    sx={{ flexWrap: 'wrap', gap: '4px', mt: 0.75 }}
+                {/* Cómo va la campaña, de un vistazo y sin abrirla: la barra
+                    y tres números. Antes solo salía de cuántos iba cada zona,
+                    que dice si está bien repartida pero no si queda algo por
+                    dar —que es lo que se pregunta a mitad de campaña. */}
+                {campTerritories.length > 0 && (
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => setDesglose(desglose === c.id ? null : c.id)}
+                    aria-expanded={desglose === c.id}
+                    aria-label={
+                      desglose === c.id
+                        ? 'Ocultar el detalle por zonas'
+                        : 'Ver el detalle por zonas'
+                    }
+                    className="active-press"
+                    sx={{
+                      appearance: 'none',
+                      font: 'inherit',
+                      textAlign: 'left',
+                      border: 'none',
+                      background: 'none',
+                      padding: '6px 8px',
+                      margin: '2px -8px 0',
+                      width: 'calc(100% + 16px)',
+                      cursor: 'pointer',
+                      borderRadius: 'var(--shape-sm)',
+                      '&:hover': { backgroundColor: 'var(--state-hover)' },
+                      '&:focus-visible': {
+                        outline: '2px solid var(--accent-main)',
+                        outlineOffset: '2px',
+                      },
+                    }}
                   >
-                    {porZona.map(({ zone, n }) => (
-                      <TagChip
-                        key={zone.id}
-                        label={`${zone.nombre}: ${n}`}
-                        color={zone.color}
+                    <BarraCampana {...total} />
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', rowGap: '2px', mt: '6px' }}
+                    >
+                      <Leyenda
+                        color="var(--accent-main)"
+                        n={total.sinAsignar}
+                        texto="sin asignar"
                       />
+                      <Leyenda
+                        color="var(--orange-main)"
+                        n={total.asignados}
+                        texto={total.asignados === 1 ? 'asignado' : 'asignados'}
+                      />
+                      <Leyenda
+                        color="var(--green-main)"
+                        n={total.entregados}
+                        texto={
+                          total.entregados === 1 ? 'entregado' : 'entregados'
+                        }
+                      />
+                      <IconExpand
+                        color="var(--ink-3)"
+                        width={18}
+                        height={18}
+                        sx={{
+                          transition:
+                            'transform var(--motion-fast) var(--ease-standard)',
+                          transform:
+                            desglose === c.id
+                              ? 'rotate(180deg)'
+                              : 'rotate(0deg)',
+                        }}
+                      />
+                    </Stack>
+                  </Box>
+                )}
+
+                {desglose === c.id && porZona.length > 0 && (
+                  <Stack spacing={0.75} sx={{ mt: 1 }}>
+                    {porZona.map((z) => (
+                      <Stack
+                        key={z.zone.id}
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{ flexWrap: 'wrap', rowGap: '2px' }}
+                      >
+                        <TagChip label={z.zone.nombre} color={z.zone.color} />
+                        <Typography
+                          className="label-small-regular"
+                          color="var(--ink-2)"
+                        >
+                          {/* Solo lo que no es cero: "0 entregados" ocupa
+                              sitio y no dice nada. */}
+                          {[
+                            z.sinAsignar > 0 && `${z.sinAsignar} sin asignar`,
+                            z.asignados > 0 &&
+                              `${z.asignados} ${z.asignados === 1 ? 'asignado' : 'asignados'}`,
+                            z.entregados > 0 &&
+                              `${z.entregados} ${z.entregados === 1 ? 'entregado' : 'entregados'}`,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Typography>
+                      </Stack>
                     ))}
                   </Stack>
                 )}

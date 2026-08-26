@@ -14,7 +14,7 @@ import {
   territoryZonesSortedState,
 } from '@states/territories';
 import { Territory, TerritoryTag } from '@definition/territories';
-import { isInCooldown, territoryLabel } from '@services/app/territories';
+import { isInCooldown } from '@services/app/territories';
 
 /**
  * Elegir un territorio para asignar.
@@ -32,9 +32,10 @@ import { isInCooldown, territoryLabel } from '@services/app/territories';
 type Orden = 'numero' | 'antiguedad';
 
 type Props = {
-  /** Territorio ya elegido, si lo hay. */
-  value: string | null;
-  onChange: (territoryId: string | null) => void;
+  /** Se llama al tocar uno. Quien lo usa se queda con la lista de elegidos. */
+  onChange: (territoryId: string) => void;
+  /** Los que ya están en esa lista: no se vuelven a ofrecer. */
+  excluir?: string[];
   /** Se está cargando la lista todavía. */
   cargando?: boolean;
   /**
@@ -79,8 +80,8 @@ const antiguedad = (t: Territory): number =>
     : Number.MAX_SAFE_INTEGER;
 
 const SelectorTerritorio = ({
-  value,
   onChange,
+  excluir,
   cargando = false,
   campaignTerritoryIds,
   campaignName,
@@ -121,23 +122,20 @@ const SelectorTerritorio = ({
     [campaignTerritoryIds]
   );
 
-  const elegido = useMemo(
-    () => territories.find((t) => t.id === value) ?? null,
-    [territories, value]
-  );
-
   /** Libres por zona (los asignados no se pueden dar). */
   const libresPorZona = useMemo(() => {
     const mapa = new Map<string, Territory[]>();
+    const yaElegidos = new Set(excluir ?? []);
     for (const t of territories) {
       if (asignados.has(t.id)) continue;
+      if (yaElegidos.has(t.id)) continue;
       if (soloCampana && !idsCampana.has(t.id)) continue;
       const lista = mapa.get(t.zoneId) ?? [];
       lista.push(t);
       mapa.set(t.zoneId, lista);
     }
     return mapa;
-  }, [territories, asignados, soloCampana, idsCampana]);
+  }, [territories, asignados, soloCampana, idsCampana, excluir]);
 
   // El diálogo de asignar no se desmonta entre una solicitud y la siguiente,
   // así que el estado inicial de arriba solo valdría la primera vez. Y no se
@@ -162,47 +160,6 @@ const SelectorTerritorio = ({
     }
     return lista;
   }, [zonaAbierta, libresPorZona, orden]);
-
-  // ── ya hay uno elegido: se muestra en pequeño con un botón para cambiarlo ──
-  if (elegido) {
-    const descansando = isInCooldown(elegido, diasDescanso);
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          p: '12px 14px',
-          borderRadius: 'var(--shape-md)',
-          border: '1px solid var(--accent-200)',
-          backgroundColor: 'var(--accent-100)',
-        }}
-      >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            className="body-regular-semibold"
-            sx={{ color: 'var(--ink)' }}
-          >
-            {territoryLabel(elegido)}
-          </Typography>
-          <Typography
-            className="label-small-regular"
-            sx={{ color: 'var(--ink-2)' }}
-          >
-            {descansando ? 'En descanso · ' : ''}
-            {desdeUltimoTrabajo(elegido)}
-          </Typography>
-        </Box>
-        <Button
-          variant="tertiary"
-          disableAutoStretch
-          onClick={() => onChange(null)}
-        >
-          Cambiar
-        </Button>
-      </Box>
-    );
-  }
 
   if (cargando) {
     return (
