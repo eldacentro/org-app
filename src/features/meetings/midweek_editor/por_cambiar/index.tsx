@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, Collapse, Stack } from '@mui/material';
-import { IconExpand, IconRefreshSchedule } from '@components/icons';
+import { IconExpand } from '@components/icons';
 import Typography from '@components/typography';
 import usePorCambiar from './usePorCambiar';
 
@@ -29,10 +29,14 @@ const PorCambiar = () => {
   return (
     <Box
       sx={{
+        // Tarjeta blanca con canto, igual que la tira de hojitas de encima y
+        // que el resto de la aplicación. El color va en la chapa del número, no
+        // en el fondo: un panel entero teñido compite con la tarjeta del editor
+        // que tiene debajo, que es donde se trabaja.
         borderRadius: 'var(--shape-md)',
-        border: '1px solid var(--orange-main)',
-        backgroundColor: 'var(--orange-light)',
-        padding: '10px 14px',
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--card)',
+        padding: '16px',
       }}
     >
       <Box
@@ -53,20 +57,33 @@ const PorCambiar = () => {
           cursor: 'pointer',
         }}
       >
-        <IconRefreshSchedule color="var(--orange-dark)" />
-
-        <Typography
-          className="body-regular"
-          color="var(--orange-dark)"
-          sx={{ flex: 1 }}
+        {/* El número en una chapa redonda, como la de las hojitas: es lo que
+            se mira todos los días, y es donde va el color. */}
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: '28px',
+            height: '28px',
+            borderRadius: 'var(--shape-full)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'var(--orange-secondary)',
+          }}
         >
+          <Typography className="body-small-semibold" color="var(--orange-dark)">
+            {partes.length}
+          </Typography>
+        </Box>
+
+        <Typography className="body-regular" color="var(--ink)" sx={{ flex: 1 }}>
           {partes.length === 1
             ? 'Hay 1 asignación por cambiar'
             : `Hay ${partes.length} asignaciones por cambiar`}
         </Typography>
 
         <IconExpand
-          color="var(--orange-dark)"
+          color="var(--ink-3)"
           sx={{
             transform: abierta ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform var(--motion-medium) var(--ease-standard)',

@@ -6,6 +6,7 @@ import {
   IconDownload,
   IconFemale,
   IconMale,
+  IconRefreshSchedule,
 } from '@components/icons';
 import { StudentIconType } from './index.types';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
@@ -13,8 +14,9 @@ import useStudentSelector from './useStudentSelector';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
 import AssignmentConfirmed from '@features/meetings/weekly_schedules/assignment_confirmed';
 import AssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace';
+import useAssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace/useAssignmentToReplace';
+import RowMenu from '../row_menu';
 import AutoComplete from '@components/autocomplete';
-import IconButton from '@components/icon_button';
 import Radio from '@components/radio';
 import Typography from '@components/typography';
 import OptionsPopper from '@components/options_popper';
@@ -35,6 +37,17 @@ const StudentSelector = (props: PersonSelectorType) => {
   const showIcon = props.showIcon ?? true;
 
   const { t } = useAppTranslation();
+
+  // La marca de «por cambiar»: aquí solo hace falta saber si se puede marcar,
+  // cómo está y cómo se cambia. Lo que se DIBUJA va debajo del campo.
+  const {
+    visible: puedeMarcarCambio,
+    toReplace: porCambiar,
+    toggle: marcarCambio,
+  } = useAssignmentToReplace({
+    week: props.week,
+    assignment: props.assignment,
+  });
 
   const { desktopUp, tabletUp } = useBreakpoints();
 
@@ -286,13 +299,15 @@ const StudentSelector = (props: PersonSelectorType) => {
           />
         </Box>
 
-        {/* TODAS las acciones de la fila en un solo carril: historial, hoja
-            S-89 y la casilla de "hojita entregada". Antes cada una colgaba de
-            un ancla distinta —el historial en posición absoluta dentro del
-            campo, la descarga con un margen a ojo, la casilla centrada contra
-            el bloque entero, línea de ayuda incluida— y por eso nunca quedaban
-            a la misma altura. El carril mide lo que la primera línea del campo
-            (56px) y centra: la alineación sale por construcción. */}
+        {/* El carril: la casilla de «hojita entregada» y el menú, y nada más.
+            Llegó a haber cuatro controles aquí —historial, S-89, la casilla y
+            «por cambiar»— y con diez partes por semana eso era una pared de
+            iconos encima del programa. Las acciones de vez en cuando se fueron
+            al menú; la casilla se queda porque es un ESTADO que se repasa de un
+            vistazo y se marca quince veces seguidas una tarde de reparto.
+
+            El carril mide lo que la primera línea del campo (56px) y centra: la
+            alineación sale por construcción. */}
         {value && (
           <Box
             sx={{
@@ -303,64 +318,76 @@ const StudentSelector = (props: PersonSelectorType) => {
               flexShrink: 0,
             }}
           >
-            <IconButton
-              // El IconButton compartido trae `edge="start"` (-12px de margen
-              // izquierdo, pensado para pegarlo al borde de una barra); aquí
-              // rompería el ritmo del carril.
-              edge={false}
-              sx={{ padding: 0 }}
-              title={t('tr_assignmentHistory')}
-              onClick={handleOpenHistory}
-            >
-              <IconAssignmetHistory
-                color={
-                  helperText.length > 0
-                    ? 'var(--orange-dark)'
-                    : 'var(--accent-main)'
-                }
-              />
-            </IconButton>
-
-            {/* La hoja S-89 es UNA por estudiante: el ayudante no recibe la
-                suya, su nombre va escrito en la del estudiante. */}
-            {!isAssistant && (
-              <IconButton
-                edge={false}
-                sx={{ padding: 0 }}
-                title={t(
-                  'tr_exportS89Sheet',
-                  'Exportar hoja de asignación (S-89)'
-                )}
-                onClick={handleExportS89}
-                disabled={isExportingS89}
-              >
-                <IconDownload
-                  color={
-                    helperText.length > 0
-                      ? 'var(--orange-dark)'
-                      : 'var(--accent-main)'
-                  }
-                />
-              </IconButton>
-            )}
-
-            {/* Se esconde sola donde no toca (partes sin hojita, quien no
-                edita la reunión). Vive aquí y no en person_selector para que
-                comparta ancla con los otros dos botones. */}
             <AssignmentConfirmed
               week={props.week}
               assignment={props.assignment}
             />
 
-            {/* «Por cambiar»: se esconde sola fuera de la reunión de entre
-                semana y para quien no la edita. Ver `useAssignmentToReplace`. */}
-            <AssignmentToReplace
-              week={props.week}
-              assignment={props.assignment}
+            <RowMenu
+              atencion={porCambiar}
+              acciones={[
+                {
+                  clave: 'historial',
+                  icono: (
+                    <IconAssignmetHistory
+                      width={20}
+                      height={20}
+                      color="var(--accent-main)"
+                    />
+                  ),
+                  texto: t('tr_assignmentHistory'),
+                  onClick: handleOpenHistory,
+                },
+                // La hoja S-89 es UNA por estudiante: el ayudante no recibe la
+                // suya, su nombre va escrito en la del estudiante.
+                ...(isAssistant
+                  ? []
+                  : [
+                      {
+                        clave: 's89',
+                        icono: (
+                          <IconDownload
+                            width={20}
+                            height={20}
+                            color="var(--accent-main)"
+                          />
+                        ),
+                        texto: t(
+                          'tr_exportS89Sheet',
+                          'Exportar hoja de asignación (S-89)'
+                        ),
+                        onClick: handleExportS89,
+                        disabled: isExportingS89,
+                      },
+                    ]),
+                ...(puedeMarcarCambio
+                  ? [
+                      {
+                        clave: 'por-cambiar',
+                        icono: (
+                          <IconRefreshSchedule
+                            width={20}
+                            height={20}
+                            color="var(--orange-dark)"
+                          />
+                        ),
+                        texto: porCambiar
+                          ? 'Ya no hace falta cambiarlo'
+                          : 'No puede: marcar por cambiar',
+                        onClick: marcarCambio,
+                      },
+                    ]
+                  : []),
+              ]}
             />
           </Box>
         )}
       </Box>
+
+      {/* Debajo del campo y no en el carril: si el único rastro de que un
+          hermano no puede estuviera dentro del menú, habría que abrir diez
+          menús cada semana para saber si hay algo pendiente. */}
+      <AssignmentToReplace week={props.week} assignment={props.assignment} />
 
       {helperText.length > 0 && (
         <Typography

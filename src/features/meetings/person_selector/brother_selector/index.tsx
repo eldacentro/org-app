@@ -1,12 +1,15 @@
 import { Box } from '@mui/material';
 import { PersonOptionsType, PersonSelectorType } from '../index.types';
-import { IconAssignmetHistory, IconClose, IconEdit } from '@components/icons';
+import { IconAssignmetHistory, IconClose, IconEdit,
+  IconRefreshSchedule,
+} from '@components/icons';
 import { useAppTranslation, useBreakpoints } from '@hooks/index';
 import useBrotherSelector from './useBrotherSelector';
 import AutoComplete from '@components/autocomplete';
 import AssignmentsHistoryDialog from '@features/meetings/assignments_history_dialog';
-import IconButton from '@components/icon_button';
 import AssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace';
+import useAssignmentToReplace from '@features/meetings/weekly_schedules/assignment_to_replace/useAssignmentToReplace';
+import RowMenu from '../row_menu';
 import Typography from '@components/typography';
 import OptionsPopper from '@components/options_popper';
 
@@ -14,6 +17,15 @@ const BrotherSelector = (props: PersonSelectorType) => {
   const showAssignmentsHistory = props.showAssignmentsHistory ?? true;
 
   const { t } = useAppTranslation();
+
+  const {
+    visible: puedeMarcarCambio,
+    toReplace: porCambiar,
+    toggle: marcarCambio,
+  } = useAssignmentToReplace({
+    week: props.week,
+    assignment: props.assignment,
+  });
 
   const { desktopUp } = useBreakpoints();
 
@@ -193,50 +205,71 @@ const BrotherSelector = (props: PersonSelectorType) => {
               flexShrink: 0,
             }}
           >
-            {showAssignmentsHistory && value && (
-              <IconButton
-                // El IconButton compartido trae `edge="start"` (-12px de
-                // margen izquierdo); aquí descolocaría el carril.
-                edge={false}
-                sx={{ padding: 0 }}
-                title={t('tr_assignmentHistory')}
-                onClick={handleOpenHistory}
-              >
-                <IconAssignmetHistory
-                  color={
-                    helperText.length > 0
-                      ? 'var(--orange-dark)'
-                      : 'var(--accent-main)'
-                  }
-                />
-              </IconButton>
-            )}
-
-            {props.onEditClick && (
-              <IconButton
-                edge={false}
-                sx={{ padding: 0 }}
-                onClick={props.onEditClick}
-              >
-                <IconEdit
-                  color={
-                    helperText.length > 0
-                      ? 'var(--orange-dark)'
-                      : 'var(--accent-main)'
-                  }
-                />
-              </IconButton>
-            )}
-
-            {/* «Por cambiar»: se esconde sola fuera de la reunión de entre
-                semana y para quien no la edita. Ver `useAssignmentToReplace`. */}
-            <AssignmentToReplace
-              week={props.week}
-              assignment={props.assignment}
+            {/* Las acciones, detrás de los tres puntos: llegaron a ser tres
+                iconos pegados al campo y con diez partes por semana eso es una
+                pared encima del programa. Ver `RowMenu`. */}
+            <RowMenu
+              atencion={porCambiar}
+              acciones={[
+                ...(showAssignmentsHistory && value
+                  ? [
+                      {
+                        clave: 'historial',
+                        icono: (
+                          <IconAssignmetHistory
+                            width={20}
+                            height={20}
+                            color="var(--accent-main)"
+                          />
+                        ),
+                        texto: t('tr_assignmentHistory'),
+                        onClick: handleOpenHistory,
+                      },
+                    ]
+                  : []),
+                ...(props.onEditClick
+                  ? [
+                      {
+                        clave: 'editar',
+                        icono: (
+                          <IconEdit
+                            width={20}
+                            height={20}
+                            color="var(--accent-main)"
+                          />
+                        ),
+                        texto: t('tr_edit'),
+                        onClick: props.onEditClick,
+                      },
+                    ]
+                  : []),
+                ...(puedeMarcarCambio
+                  ? [
+                      {
+                        clave: 'por-cambiar',
+                        icono: (
+                          <IconRefreshSchedule
+                            width={20}
+                            height={20}
+                            color="var(--orange-dark)"
+                          />
+                        ),
+                        texto: porCambiar
+                          ? 'Ya no hace falta cambiarlo'
+                          : 'No puede: marcar por cambiar',
+                        onClick: marcarCambio,
+                      },
+                    ]
+                  : []),
+              ]}
             />
           </Box>
         )}
       </Box>
+
+      {/* Debajo del campo: meter algo en un menú no puede significar
+          esconderlo. Ver `AssignmentToReplace`. */}
+      <AssignmentToReplace week={props.week} assignment={props.assignment} />
 
       {helperText.length > 0 && (
         <Typography

@@ -1,53 +1,48 @@
+import { Box } from '@mui/material';
 import { AssignmentFieldType } from '@definition/assignment';
-import { Tooltip } from '@mui/material';
-import { IconRefreshSchedule } from '@components/icons';
-import IconButton from '@components/icon_button';
+import Typography from '@components/typography';
 import useAssignmentToReplace from './useAssignmentToReplace';
 
 /**
- * El botón de «por cambiar», en el carril de acciones del selector.
+ * La etiqueta de «Por cambiar», debajo del campo.
  *
- * Apagado es un icono más del carril, en el gris de lo que no está puesto;
- * encendido se pone naranja, que es el color de «esto pide atención» en toda la
- * aplicación. Naranja y no rojo a propósito: no es un error, es trabajo
- * pendiente, y el rojo aquí sería una alarma que no se puede apagar hasta que
- * alguien encuentre sustituto.
+ * NO es un botón: marcar y desmarcar se hace desde el menú de la fila. Esto
+ * solo lo DICE, y por eso está aquí fuera y no dentro del menú: si el único
+ * rastro de que un hermano no puede estuviera detrás de tres puntos, habría que
+ * abrir diez menús cada semana para saber si hay algo pendiente. Meter cosas en
+ * un menú no puede significar esconderlas.
  *
- * Lleva tooltip porque un icono solo no dice qué hace y además esto escribe.
+ * Con palabras y no con un icono, que era el problema de antes: un dibujo
+ * apagado y el mismo dibujo encendido se confunden, y encima hay que
+ * aprendérselo. «Por cambiar» no hay que aprendérselo.
+ *
+ * En naranja, el color de lo que pide atención en toda la aplicación, y en el
+ * mismo sitio y tamaño que la línea de ayuda que ya sale bajo estos campos.
  */
 const AssignmentToReplace = (props: {
   week: string;
   assignment?: AssignmentFieldType;
   dataView?: string;
 }) => {
-  const { visible, toReplace, toggle, saving } = useAssignmentToReplace(props);
+  const { visible, toReplace } = useAssignmentToReplace(props);
 
-  if (!visible) return null;
+  if (!visible || !toReplace) return null;
 
   return (
-    <Tooltip
-      title={
-        toReplace
-          ? 'Quitar la marca de por cambiar'
-          : 'Marcar: esta persona no puede'
-      }
-    >
-      <IconButton
-        edge={false}
-        sx={{ padding: 0, opacity: saving ? 0.5 : 1 }}
-        aria-label={
-          toReplace
-            ? 'Quitar la marca de por cambiar'
-            : 'Marcar que esta persona no puede'
-        }
-        aria-pressed={toReplace}
-        onClick={toggle}
+    <Box sx={{ padding: '4px 16px 0 16px' }}>
+      <Typography
+        className="label-small-semibold"
+        color="var(--orange-dark)"
+        sx={{
+          display: 'inline-block',
+          backgroundColor: 'var(--orange-secondary)',
+          borderRadius: 'var(--shape-full)',
+          padding: '2px 10px',
+        }}
       >
-        <IconRefreshSchedule
-          color={toReplace ? 'var(--orange-dark)' : 'var(--grey-350)'}
-        />
-      </IconButton>
-    </Tooltip>
+        Por cambiar
+      </Typography>
+    </Box>
   );
 };
 
