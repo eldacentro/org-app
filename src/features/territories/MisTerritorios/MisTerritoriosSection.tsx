@@ -230,7 +230,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
       message: `«${campanaEnMarcha!.nombre}» termina el ${formatTerritoryDate(
         campanaEnMarcha!.fechaFin,
         settings.dateFormat
-      )}. Este territorio no es de la campaña, y mientras dura lo suyo es trabajar los que sí lo son. ¿Lo abres igualmente?`,
+      )}. Este territorio no es de la campaña. ¿Lo abres igualmente?`,
       confirmLabel: 'Abrir igualmente',
     });
     if (ok) onView(territory);
@@ -659,10 +659,10 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
       <Stack spacing={1.5}>
         {separadoPorCampana ? (
           <>
-            {/* Los de la campaña, primero y con su nombre: durante esas dos
+            {/* Los de campaña, primero y con su nombre: durante esas dos
                 semanas son los que hay que trabajar. */}
             <Encabezado
-              texto="De la campaña"
+              texto="De campaña"
               detalle={campanaEnMarcha!.nombre}
               color="var(--accent-main)"
             />
@@ -670,7 +670,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
 
             {fueraDeCampana.length > 0 && (
               <>
-                <Encabezado texto="Fuera de la campaña" />
+                <Encabezado texto="Fuera de campaña" />
                 {fueraDeCampana.map(filaTerritorio)}
               </>
             )}
