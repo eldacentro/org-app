@@ -15,6 +15,7 @@ import { displaySnackNotification } from '@services/states/app';
 import {
   myTerritoryAssignmentsState,
   territoriosPrestadosState,
+  territoryCampaignsState,
   myUnreadNoticesState,
   territoriesState,
   territoryOpenAssignmentsState,
@@ -29,7 +30,9 @@ import {
   getZoneName,
   isOverdue,
   computeDueAt,
+  isCampaignRunning,
 } from '@services/app/territories';
+import { useConfirm } from '@components/confirm_dialog';
 import { usePersonName } from '@features/territories/usePersonName';
 import { quedaTiempo } from '@features/territories/dialogs/DialogPrestar';
 import TerritoryThumbnail from '@features/territories/TerritoryThumbnail';
@@ -38,6 +41,59 @@ type Props = {
   onView: (territory: Territory) => void;
   onEntregar: (assignment: TerritoryAssignment) => void;
 };
+
+/**
+ * Rótulo de un grupo dentro de "Mis territorios".
+ *
+ * Es el mismo tratamiento que llevan las zonas en Estadísticas —minúscula
+ * alta, gris, con su punto de color— y no un `h2`: "Mis territorios" ya es el
+ * título de la sección, y meter dos títulos del mismo peso dentro haría
+ * parecer que son dos secciones distintas.
+ */
+const Encabezado = ({
+  texto,
+  detalle,
+  color,
+}: {
+  texto: string;
+  detalle?: string;
+  color?: string;
+}) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    spacing={0.75}
+    sx={{ mt: 0.5, flexWrap: 'wrap', rowGap: '2px' }}
+  >
+    {color && (
+      <Box
+        aria-hidden
+        sx={{
+          width: 8,
+          height: 8,
+          borderRadius: 'var(--shape-full)',
+          backgroundColor: color,
+          flexShrink: 0,
+        }}
+      />
+    )}
+    <Typography
+      className="label-small-semibold"
+      sx={{
+        color: 'var(--ink-2)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+      }}
+    >
+      {texto}
+    </Typography>
+    {detalle && (
+      <Typography className="label-small-regular" color="var(--ink-3)">
+        · {detalle}
+      </Typography>
+    )}
+  </Stack>
+);
 
 /** Insignia "Campaña" — antes solo se mostraba en la lista personal; los
  *  compañeros de grupo (publishersCanSeeGroup) veían una asignación de
@@ -52,6 +108,7 @@ const CampanaBadge = () => <Badge size="small" color="accent" text="Campaña" />
 const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const myAssignments = useAtomValue(myTerritoryAssignmentsState);
   const prestados = useAtomValue(territoriosPrestadosState);
+  const campaigns = useAtomValue(territoryCampaignsState);
   const loading = useAtomValue(territoriesLoadingState);
   const openAssignments = useAtomValue(territoryOpenAssignmentsState);
   const notices = useAtomValue(myUnreadNoticesState);
@@ -62,6 +119,7 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
   const uid = useAtomValue(userLocalUIDState);
   const fieldGroups = useAtomValue(fieldGroupsState);
   const resolveName = usePersonName();
+  const { confirm, ConfirmDialogNode } = useConfirm();
 
   // Ocultar de inmediato el aviso al descartarlo, sin esperar a que el
   // cambio de `leido` en Firestore se propague de vuelta al estado local.
@@ -93,6 +151,22 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
     });
   };
 
+  /**
+   * La campaña que está en marcha ahora mismo, si la hay.
+   *
+   * Solo mientras dura cambia algo de esta pantalla: los territorios de la
+   * campaña se agrupan aparte y arriba, y abrir uno que no es de la campaña
+   * pregunta antes. Fuera de campaña, todo esto no existe.
+   */
+  const campanaEnMarcha = useMemo(
+    () =>
+      campaigns.find(
+        (c) =>
+          c.estado !== 'pasada' && isCampaignRunning(c.fechaInicio, c.fechaFin)
+      ) ?? null,
+    [campaigns]
+  );
+
   const rows = useMemo(
     () =>
       myAssignments
@@ -106,6 +180,61 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
         ),
     [myAssignments, territories]
   );
+
+  /**
+   * Mis territorios, partidos en los de la campaña y los demás.
+   *
+   * Solo se parten si hay campaña Y tengo alguno suyo: enseñar un rótulo
+   * "fuera de la campaña" sobre la lista entera, sin nada de campaña arriba,
+   * sería un rótulo que no separa nada.
+   */
+  const deCampana = useMemo(
+    () =>
+      campanaEnMarcha
+        ? rows.filter(
+            (r) =>
+              r.assignment.isCampaign &&
+              (!r.assignment.campaignId ||
+                r.assignment.campaignId === campanaEnMarcha.id)
+          )
+        : [],
+    [rows, campanaEnMarcha]
+  );
+
+  const fueraDeCampana = useMemo(
+    () => rows.filter((r) => !deCampana.includes(r)),
+    [rows, deCampana]
+  );
+
+  const separadoPorCampana = Boolean(campanaEnMarcha) && deCampana.length > 0;
+
+  /**
+   * Abrir un territorio que NO es de la campaña mientras hay una en marcha
+   * pregunta antes.
+   *
+   * No lo impide —puede haber mil razones para ir a otro sitio— pero una
+   * campaña dura dos semanas y lo que se espera es que se trabajen los suyos;
+   * abrir el de siempre por costumbre es justo el despiste que esto evita.
+   */
+  const abrirTerritorio = async (
+    territory: Territory,
+    esDeCampana: boolean
+  ) => {
+    if (!separadoPorCampana || esDeCampana) {
+      onView(territory);
+      return;
+    }
+
+    const ok = await confirm({
+      title: 'Hay una campaña en marcha',
+      message: `«${campanaEnMarcha!.nombre}» termina el ${formatTerritoryDate(
+        campanaEnMarcha!.fechaFin,
+        settings.dateFormat
+      )}. Este territorio no es de la campaña, y mientras dura lo suyo es trabajar los que sí lo son. ¿Lo abres igualmente?`,
+      confirmLabel: 'Abrir igualmente',
+    });
+    if (ok) onView(territory);
+  };
 
   /** Asignaciones abiertas de los compañeros del mismo grupo de predicación. */
   const groupRows = useMemo(() => {
@@ -382,8 +511,140 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
     );
   }
 
+  /** Una tarjeta de mis territorios. La misma en los dos grupos. */
+  const filaTerritorio = ({
+    assignment,
+    territory,
+  }: {
+    assignment: TerritoryAssignment;
+    territory: Territory;
+  }) => {
+    const overdue = isOverdue(assignment.assignedAt, settings.daysUntilOverdue);
+    const color = getZoneColor(territory.zoneId, zones);
+    return (
+      <TerritoryCard key={assignment.id} accent={color}>
+        {/* Una sola fila: identidad, datos y acciones. Antes las
+                  acciones colgaban DEBAJO de todo a lo ancho de la tarjeta,
+                  así que en un portátil quedaban dos botones pequeños
+                  pegados al margen izquierdo y ochocientos píxeles de vacío
+                  a su derecha. Aquí se van al extremo contrario en cuanto
+                  hay sitio, y solo bajan cuando de verdad no cabe. */}
+        <Stack
+          direction={{ mobile: 'column', tablet600: 'row' }}
+          alignItems={{ mobile: 'stretch', tablet600: 'center' }}
+          spacing={2}
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.5}
+            sx={{ flex: 1, minWidth: 0 }}
+          >
+            <TerritoryThumbnail geometry={territory.geometry} color={color} />
+
+            <Box sx={{ minWidth: 0 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ flexWrap: 'wrap', rowGap: '4px' }}
+              >
+                {/* El nombre propio del territorio ya no se cose al
+                          título con un guion largo: "Elda - Urbano 3 —
+                          Barrio de las Trescientas y pico viviendas" era una
+                          línea de sesenta caracteres con dos separadores
+                          distintos. El número identifica, el nombre describe;
+                          son dos niveles y ahora se ven como dos. */}
+                <Typography
+                  className="body-regular-semibold"
+                  color="var(--ink)"
+                >
+                  {getZoneName(territory.zoneId, zones)} {territory.numero}
+                </Typography>
+                {assignment.isCampaign && <CampanaBadge />}
+                {overdue && <Badge size="small" color="red" text="Atrasado" />}
+              </Stack>
+
+              {territory.nombre && (
+                <Typography className="body-small-regular" color="var(--ink-2)">
+                  {territory.nombre}
+                </Typography>
+              )}
+
+              {/* Antes iba todo corrido ("Asignado: … / Vence: …") con
+                        el rótulo pesando lo mismo que el dato. */}
+              <Stack direction="row" spacing={3} sx={{ mt: '8px' }}>
+                <MetaItem
+                  label="Asignado"
+                  value={formatTerritoryDate(
+                    assignment.assignedAt,
+                    settings.dateFormat
+                  )}
+                />
+                <MetaItem
+                  // En pasado cuando ya pasó: "Vence 28-05-2026" con la
+                  // fecha en rojo y en el pasado se lee como una
+                  // contradicción — el rótulo promete algo que aún no ha
+                  // ocurrido y la fecha dice que sí.
+                  label={overdue ? 'Venció' : 'Vence'}
+                  tone={overdue ? 'danger' : undefined}
+                  value={formatTerritoryDate(
+                    assignment.dueAt ||
+                      computeDueAt(
+                        assignment.assignedAt,
+                        settings.daysUntilOverdue
+                      ),
+                    settings.dateFormat
+                  )}
+                />
+              </Stack>
+            </Box>
+          </Stack>
+
+          {/* "Ver territorio" es el principal: es el que más se usa,
+                    con diferencia — "Entregar" es una acción puntual. */}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ flexShrink: 0, alignItems: 'center' }}
+          >
+            <Button
+              variant="main"
+              disableAutoStretch
+              onClick={() => abrirTerritorio(territory, assignment.isCampaign)}
+            >
+              Ver territorio
+            </Button>
+            {/* Antes este botón simplemente desaparecía si la opción
+                      estaba desactivada, sin explicar por qué — ahora se ve
+                      pero deshabilitado, con el motivo. */}
+            <Button
+              variant="tertiary"
+              disableAutoStretch
+              onClick={() => onEntregar(assignment)}
+              disabled={!settings.publishersCanReturn}
+            >
+              Entregar
+            </Button>
+          </Stack>
+        </Stack>
+
+        {!settings.publishersCanReturn && (
+          <Typography
+            className="label-small-regular"
+            color="var(--ink-2)"
+            sx={{ display: 'block', mt: 1 }}
+          >
+            Solo un responsable puede marcar este territorio como entregado.
+          </Typography>
+        )}
+      </TerritoryCard>
+    );
+  };
+
   return (
     <Box>
+      {ConfirmDialogNode}
       {/* El número en su chapa, no dentro del título entre paréntesis. Metido
           en la frase deja de ser un dato y pasa a ser parte del rótulo, así
           que no se puede mirar de un vistazo. Es la misma chapa que llevan
@@ -396,142 +657,27 @@ const MisTerritoriosSection = ({ onView, onEntregar }: Props) => {
       </Box>
       {noticesBanner}
       <Stack spacing={1.5}>
-        {rows.map(({ assignment, territory }) => {
-          const overdue = isOverdue(
-            assignment.assignedAt,
-            settings.daysUntilOverdue
-          );
-          const color = getZoneColor(territory.zoneId, zones);
-          return (
-            <TerritoryCard key={assignment.id} accent={color}>
-              {/* Una sola fila: identidad, datos y acciones. Antes las
-                  acciones colgaban DEBAJO de todo a lo ancho de la tarjeta,
-                  así que en un portátil quedaban dos botones pequeños
-                  pegados al margen izquierdo y ochocientos píxeles de vacío
-                  a su derecha. Aquí se van al extremo contrario en cuanto
-                  hay sitio, y solo bajan cuando de verdad no cabe. */}
-              <Stack
-                direction={{ mobile: 'column', tablet600: 'row' }}
-                alignItems={{ mobile: 'stretch', tablet600: 'center' }}
-                spacing={2}
-              >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1.5}
-                  sx={{ flex: 1, minWidth: 0 }}
-                >
-                  <TerritoryThumbnail
-                    geometry={territory.geometry}
-                    color={color}
-                  />
+        {separadoPorCampana ? (
+          <>
+            {/* Los de la campaña, primero y con su nombre: durante esas dos
+                semanas son los que hay que trabajar. */}
+            <Encabezado
+              texto="De la campaña"
+              detalle={campanaEnMarcha!.nombre}
+              color="var(--accent-main)"
+            />
+            {deCampana.map(filaTerritorio)}
 
-                  <Box sx={{ minWidth: 0 }}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                      sx={{ flexWrap: 'wrap', rowGap: '4px' }}
-                    >
-                      {/* El nombre propio del territorio ya no se cose al
-                          título con un guion largo: "Elda - Urbano 3 —
-                          Barrio de las Trescientas y pico viviendas" era una
-                          línea de sesenta caracteres con dos separadores
-                          distintos. El número identifica, el nombre describe;
-                          son dos niveles y ahora se ven como dos. */}
-                      <Typography
-                        className="body-regular-semibold"
-                        color="var(--ink)"
-                      >
-                        {getZoneName(territory.zoneId, zones)}{' '}
-                        {territory.numero}
-                      </Typography>
-                      {assignment.isCampaign && <CampanaBadge />}
-                      {overdue && (
-                        <Badge size="small" color="red" text="Atrasado" />
-                      )}
-                    </Stack>
-
-                    {territory.nombre && (
-                      <Typography
-                        className="body-small-regular"
-                        color="var(--ink-2)"
-                      >
-                        {territory.nombre}
-                      </Typography>
-                    )}
-
-                    {/* Antes iba todo corrido ("Asignado: … / Vence: …") con
-                        el rótulo pesando lo mismo que el dato. */}
-                    <Stack direction="row" spacing={3} sx={{ mt: '8px' }}>
-                      <MetaItem
-                        label="Asignado"
-                        value={formatTerritoryDate(
-                          assignment.assignedAt,
-                          settings.dateFormat
-                        )}
-                      />
-                      <MetaItem
-                        // En pasado cuando ya pasó: "Vence 28-05-2026" con la
-                        // fecha en rojo y en el pasado se lee como una
-                        // contradicción — el rótulo promete algo que aún no ha
-                        // ocurrido y la fecha dice que sí.
-                        label={overdue ? 'Venció' : 'Vence'}
-                        tone={overdue ? 'danger' : undefined}
-                        value={formatTerritoryDate(
-                          assignment.dueAt ||
-                            computeDueAt(
-                              assignment.assignedAt,
-                              settings.daysUntilOverdue
-                            ),
-                          settings.dateFormat
-                        )}
-                      />
-                    </Stack>
-                  </Box>
-                </Stack>
-
-                {/* "Ver territorio" es el principal: es el que más se usa,
-                    con diferencia — "Entregar" es una acción puntual. */}
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ flexShrink: 0, alignItems: 'center' }}
-                >
-                  <Button
-                    variant="main"
-                    disableAutoStretch
-                    onClick={() => onView(territory)}
-                  >
-                    Ver territorio
-                  </Button>
-                  {/* Antes este botón simplemente desaparecía si la opción
-                      estaba desactivada, sin explicar por qué — ahora se ve
-                      pero deshabilitado, con el motivo. */}
-                  <Button
-                    variant="tertiary"
-                    disableAutoStretch
-                    onClick={() => onEntregar(assignment)}
-                    disabled={!settings.publishersCanReturn}
-                  >
-                    Entregar
-                  </Button>
-                </Stack>
-              </Stack>
-
-              {!settings.publishersCanReturn && (
-                <Typography
-                  className="label-small-regular"
-                  color="var(--ink-2)"
-                  sx={{ display: 'block', mt: 1 }}
-                >
-                  Solo un responsable puede marcar este territorio como
-                  entregado.
-                </Typography>
-              )}
-            </TerritoryCard>
-          );
-        })}
+            {fueraDeCampana.length > 0 && (
+              <>
+                <Encabezado texto="Fuera de la campaña" />
+                {fueraDeCampana.map(filaTerritorio)}
+              </>
+            )}
+          </>
+        ) : (
+          rows.map(filaTerritorio)
+        )}
       </Stack>
 
       {prestadosSection}

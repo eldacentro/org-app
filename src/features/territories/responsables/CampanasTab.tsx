@@ -377,11 +377,16 @@ const CampanasTab = ({ onAsignarCampana, onView }: Props) => {
           <TerritoryCard key={c.id} accent={estadoColor[c.estado]}>
             <Stack
               direction={{ mobile: 'column', tablet600: 'row' }}
-              alignItems={{ mobile: 'flex-start', tablet600: 'center' }}
+              alignItems={{ mobile: 'stretch', tablet600: 'center' }}
               justifyContent="space-between"
               spacing={1.5}
             >
-              <Box sx={{ minWidth: 0 }}>
+              {/* Ancho fijo, no "el que pida el contenido": si no, al
+                  desplegar el detalle por zonas —que es más ancho que la
+                  fila de números— la columna crecía y la barra de la campaña
+                  se estiraba con ella. Una barra que cambia de largo al
+                  abrirla parece que también cambian los números. */}
+              <Box sx={{ minWidth: 0, flex: 1, width: '100%' }}>
                 <Stack
                   direction="row"
                   spacing={1}
