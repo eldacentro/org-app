@@ -7,11 +7,15 @@ import Button from '@components/button';
 import NoSpeakers from '../no_speakers';
 import SpeakerEditView from '../speaker_edit';
 import SpeakerRowView from '../../speaker_row_view';
+import useFiltroOradores from '../../useFiltroOradores';
 
 const SpeakersLocal = ({ isEditMode }: SpeakersLocalProps) => {
   const { t } = useAppTranslation();
 
-  const { handleSpeakerAdd, speakers } = useSpeakersLocal();
+  const { handleSpeakerAdd, speakers: todosLosOradores } = useSpeakersLocal();
+
+  // Solo los que responden al buscador de arriba. Ver `useFiltroOradores`.
+  const speakers = useFiltroOradores(todosLosOradores);
 
   return (
     <Box

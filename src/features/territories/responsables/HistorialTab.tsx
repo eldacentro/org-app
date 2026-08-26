@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
-import PanelToolbar, { RielChips } from './PanelToolbar';
+import PanelToolbar, { RielChips } from '@components/panel_toolbar';
 import FilterChip from '@components/filter_chip';
 import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';

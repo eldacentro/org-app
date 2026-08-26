@@ -2,7 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { dbVisitingSpeakersAdd } from '@services/dexie/visiting_speakers';
 import { visitingSpeakersActiveState } from '@states/visiting_speakers';
-import { speakersCongregationsState } from '@states/speakers_congregations';
+import {
+  speakersCatalogSearchState,
+  speakersCongregationsState,
+} from '@states/speakers_congregations';
+import {
+  congregacionCoincide,
+  oradorCoincide,
+  prepararBusqueda,
+} from '@services/app/speakers_congregations';
 import { speakersSortByName } from '@services/app/visiting_speakers';
 
 const useSpeakersList = (
@@ -12,6 +20,7 @@ const useSpeakersList = (
 ) => {
   const visitingSpeakers = useAtomValue(visitingSpeakersActiveState);
   const congregations = useAtomValue(speakersCongregationsState);
+  const busqueda = useAtomValue(speakersCatalogSearchState);
 
   const [speakers, setSpeakers] = useState(visitingSpeakers);
 
@@ -22,8 +31,47 @@ const useSpeakersList = (
   }, [congregations, cong_id]);
 
   const filteredList = useMemo(() => {
-    return speakers.filter((record) => record.speaker_data.cong_id === cong_id);
-  }, [speakers, cong_id]);
+    const deLaCongregacion = speakers.filter(
+      (record) => record.speaker_data.cong_id === cong_id
+    );
+
+    const palabras = prepararBusqueda(busqueda);
+
+    if (palabras.length === 0) return deLaCongregacion;
+
+    // Si lo buscado es la propia congregación —su nombre, su número o su
+    // circuito—, salen TODOS sus oradores: se ha pedido ver esa congregación,
+    // no un hermano suyo. Filtrar también aquí dejaría la congregación abierta
+    // y vacía, que se lee como «no tiene oradores».
+    const esLaCongregacion =
+      congregation &&
+      congregacionCoincide(
+        {
+          nombre: congregation.cong_data.cong_name.value,
+          numero: congregation.cong_data.cong_number.value,
+          circuito: congregation.cong_data.cong_circuit.value,
+        },
+        palabras
+      );
+
+    if (esLaCongregacion) return deLaCongregacion;
+
+    return deLaCongregacion.filter((record) =>
+      oradorCoincide(
+        {
+          nombre: [
+            record.speaker_data.person_firstname.value,
+            record.speaker_data.person_lastname.value,
+            record.speaker_data.person_display_name.value,
+          ].join(' '),
+          discursos: record.speaker_data.talks
+            .filter((talk) => !talk._deleted)
+            .map((talk) => talk.talk_number),
+        },
+        palabras
+      )
+    );
+  }, [speakers, cong_id, busqueda, congregation]);
 
   const incomingSpeakers = useMemo(() => {
     return isEdit ? filteredList : speakersSortByName(filteredList);

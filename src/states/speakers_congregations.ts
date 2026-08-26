@@ -94,3 +94,16 @@ export const congregationsNotDisapprovedState = atom((get) => {
     (record) => record.cong_data.request_status !== 'disapproved'
   );
 });
+
+/**
+ * Lo que se ha escrito en el buscador del catálogo de oradores.
+ *
+ * En un átomo y no en la página porque lo leen tres sitios que no cuelgan unos
+ * de otros —«Tu congregación», las listas de congregaciones y la de oradores de
+ * cada una— y pasarlo por propiedades obligaría a atravesar cuatro componentes
+ * que no tienen nada que ver con buscar.
+ *
+ * Se queda a media escritura a propósito, sin guardarse en ningún sitio: es un
+ * filtro de un rato, no un ajuste. Al salir de la pantalla se olvida.
+ */
+export const speakersCatalogSearchState = atom('');

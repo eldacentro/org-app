@@ -6,7 +6,7 @@ import Typography from '@components/typography';
 import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
 import EmptyState from '@components/empty_state';
-import PanelToolbar, { RielChips } from './PanelToolbar';
+import PanelToolbar, { RielChips } from '@components/panel_toolbar';
 import { IconDelete, IconInfo } from '@components/icons';
 import { useConfirm } from '@components/confirm_dialog';
 import { TerritoryCard } from '@features/territories/ui';

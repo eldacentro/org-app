@@ -17,10 +17,12 @@ import {
   useBreakpoints,
   useCurrentUser,
 } from '@hooks/index';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { congNameState, congNumberState } from '@states/settings';
 import { personsActiveState } from '@states/persons';
 import useSpeakersCatalog from './useSpeakersCatalog';
+import PanelToolbar from '@components/panel_toolbar';
+import { speakersCatalogSearchState } from '@states/speakers_congregations';
 import MyCongregation from '@features/persons/speakers_catalog/my_congregation';
 import OtherCongregations from '@features/persons/speakers_catalog/other_congregations';
 import NavBarButton from '@components/nav_bar_button';
@@ -44,6 +46,8 @@ const SpeakersCatalog = () => {
   const homeCongName = useAtomValue(congNameState);
   const homeCongNumber = useAtomValue(congNumberState);
   const persons = useAtomValue(personsActiveState);
+
+  const [busqueda, setBusqueda] = useAtom(speakersCatalogSearchState);
 
   const { handleIsAddingOpen } = useSpeakersCatalog();
 
@@ -583,6 +587,17 @@ const SpeakersCatalog = () => {
               )}
             </>
           }
+        />
+
+        {/* El mismo buscador que las pestañas de Territorios, y el mismo
+            componente: aquí se llega con una de tres preguntas —dónde está
+            Fulano, quién da el 38, cuál era la congregación tal— y las tres se
+            contestan escribiendo en el mismo sitio. Fuera de la tarjeta de
+            resultados, que es lo que filtra. */}
+        <PanelToolbar
+          busqueda={busqueda}
+          onBuscar={setBusqueda}
+          placeholder="Buscar por orador, discurso o congregación"
         />
 
         <Box

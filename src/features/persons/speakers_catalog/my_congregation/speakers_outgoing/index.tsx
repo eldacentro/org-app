@@ -9,19 +9,23 @@ import Typography from '@components/typography';
 import NoSpeakers from '../no_speakers';
 import SpeakerEditView from '../speaker_edit';
 import SpeakerRowView from '../../speaker_row_view';
+import useFiltroOradores from '../../useFiltroOradores';
 
 const SpeakersOutgoing = ({ isEditMode }: SpeakersOutgoingProps) => {
   const { t } = useAppTranslation();
 
   const {
     handleSpeakerAdd,
-    speakers,
+    speakers: todosLosOradores,
     hasBrokenLinks,
     handleReconcileLinks,
     diagnostics,
     isDiagnosticsOpen,
     handleCloseDiagnostics,
   } = useSpeakersOutgoing();
+
+  // Solo los que responden al buscador de arriba. Ver `useFiltroOradores`.
+  const speakers = useFiltroOradores(todosLosOradores);
 
   const getDiagnosticReasonText = (
     diagnostic: (typeof diagnostics)[number]

@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import {
   apuntarSinSuerte,
+  congregacionCoincide,
+  oradorCoincide,
+  prepararBusqueda,
   congregacionesIncompletas,
   emparejarPorNombre,
   faltasPorIntentar,
@@ -258,5 +261,80 @@ describe('lo que ya se intentó y no dio nada', () => {
 
     expect(() => apuntarSinSuerte([falta('betel')])).not.toThrow();
     expect(faltasPorIntentar([falta('betel')])).toHaveLength(1);
+  });
+});
+
+describe('buscar en el catálogo', () => {
+  const orador = (nombre: string, discursos: number[] = []) => ({
+    nombre,
+    discursos,
+  });
+  const cong = (nombre: string, numero = '', circuito = '') => ({
+    nombre,
+    numero,
+    circuito,
+  });
+  const b = prepararBusqueda;
+
+  it('sin nada escrito, todo vale', () => {
+    expect(oradorCoincide(orador('Fulano'), b(''))).toBe(true);
+    expect(congregacionCoincide(cong('Elda - Centro'), b('   '))).toBe(true);
+  });
+
+  it('encuentra por un trozo del nombre', () => {
+    expect(oradorCoincide(orador('Juan Carlos de la Fuente'), b('fuente'))).toBe(
+      true
+    );
+    expect(oradorCoincide(orador('Juan Carlos de la Fuente'), b('pedro'))).toBe(
+      false
+    );
+  });
+
+  it('le da igual cómo esté escrito', () => {
+    expect(oradorCoincide(orador('Moisés Gracia Alcaraz'), b('MOISES'))).toBe(
+      true
+    );
+    expect(congregacionCoincide(cong('Monóvar'), b('monovar'))).toBe(true);
+  });
+
+  it('con dos palabras, estrecha en vez de ampliar', () => {
+    // Escribiendo dos cosas uno está afinando. Si valiera con una, «juan elda»
+    // devolvería todos los Juanes del circuito.
+    expect(
+      congregacionCoincide(cong('Elda - Centro', '9357'), b('elda centro'))
+    ).toBe(true);
+    expect(
+      congregacionCoincide(cong('Elda - Norte', '315'), b('elda centro'))
+    ).toBe(false);
+  });
+
+  it('encuentra por número de discurso, entero', () => {
+    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('38'))).toBe(true);
+    // El 3 NO es el 38: buscando «3» interesa el discurso 3.
+    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('3'))).toBe(false);
+    expect(oradorCoincide(orador('Fulano', [3]), b('3'))).toBe(true);
+  });
+
+  it('el nombre y el discurso valen a la vez', () => {
+    expect(oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 38'))).toBe(
+      true
+    );
+    expect(oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 99'))).toBe(
+      false
+    );
+  });
+
+  it('la congregación se encuentra por número y por circuito', () => {
+    expect(
+      congregacionCoincide(cong('Elda - Centro', '9357', 'ESP-Alicante-03A'), b('9357'))
+    ).toBe(true);
+    expect(
+      congregacionCoincide(cong('Elda - Centro', '9357', 'ESP-Alicante-03A'), b('alicante'))
+    ).toBe(true);
+  });
+
+  it('aguanta datos vacíos', () => {
+    expect(() => oradorCoincide(orador('', []), b('algo'))).not.toThrow();
+    expect(congregacionCoincide(cong('', '', ''), b('algo'))).toBe(false);
   });
 });

@@ -11,6 +11,7 @@ const OtherCongregations = () => {
   const { t } = useAppTranslation();
 
   const {
+    buscando,
     circuitCongs,
     otherCongs,
     circuitSpeakersCount,
@@ -57,7 +58,9 @@ const OtherCongregations = () => {
               paddingLeft: '8px',
             }}
           >
-            No hay congregaciones en tu circuito.
+            {buscando
+              ? 'Ninguna de tu circuito coincide con la búsqueda.'
+              : 'No hay congregaciones en tu circuito.'}
           </Typography>
         )}
 
@@ -87,7 +90,9 @@ const OtherCongregations = () => {
               paddingLeft: '8px',
             }}
           >
-            No hay otras congregaciones fuera de tu circuito.
+            {buscando
+              ? 'Ninguna otra congregación coincide con la búsqueda.'
+              : 'No hay otras congregaciones fuera de tu circuito.'}
           </Typography>
         )}
 

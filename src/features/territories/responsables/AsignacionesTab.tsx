@@ -9,7 +9,7 @@ import Button from '@components/button';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
-import PanelToolbar, { RielChips } from './PanelToolbar';
+import PanelToolbar, { RielChips } from '@components/panel_toolbar';
 import { IconDelete } from '@components/icons';
 import {
   TerritoryCard,

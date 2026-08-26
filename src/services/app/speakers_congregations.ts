@@ -166,3 +166,88 @@ export const olvidarIntentos = () => {
     // nada que hacer
   }
 };
+
+/**
+ * Buscar en el catálogo de oradores.
+ *
+ * QUÉ SE BUSCA, y por qué esas cosas: quien cuadra los discursos llega aquí con
+ * una de tres preguntas en la cabeza — «¿dónde está Fulano?», «¿quién da el
+ * 38?» y «¿cuál era la congregación tal?». Las tres se contestan con el mismo
+ * campo, así que se mira el nombre del orador, sus números de discurso, y el
+ * nombre, número y circuito de la congregación.
+ *
+ * Un número escrito a secas es ambiguo a propósito: «38» encuentra tanto a los
+ * que dan el discurso 38 como a la congregación número 38. Preguntar cuál de
+ * las dos cosas quería sería un desplegable más para ahorrar una lectura.
+ */
+
+/** Sin mayúsculas, sin acentos y sin signos. */
+const aplanar = (texto: string) =>
+  (texto || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+/**
+ * Prepara lo que se ha escrito para poder comparar.
+ *
+ * Se parte en palabras y se exigen TODAS: «juan elda» tiene que encontrar a Juan
+ * de Elda y no a todos los Juanes más todo lo de Elda. Escribiendo dos palabras
+ * uno está estrechando, no ampliando.
+ */
+export const prepararBusqueda = (busqueda: string) =>
+  aplanar(busqueda).split(' ').filter(Boolean);
+
+/** ¿Ese texto contiene todas las palabras buscadas? */
+const contieneTodas = (texto: string, palabras: string[]) => {
+  const plano = aplanar(texto);
+
+  return palabras.every((palabra) => plano.includes(palabra));
+};
+
+export type OradorBuscable = {
+  nombre: string;
+  /** Los números de sus discursos. */
+  discursos: number[];
+};
+
+export type CongregacionBuscable = {
+  nombre: string;
+  numero: string;
+  circuito: string;
+};
+
+/**
+ * ¿Este orador responde a lo que se ha escrito?
+ *
+ * Los discursos se comparan ENTEROS y no por dentro: buscando «3» interesa el
+ * discurso 3, no el 13, el 30 y el 130. Es lo contrario que con el nombre, donde
+ * buscar un trozo es justo lo que se quiere.
+ */
+export const oradorCoincide = (
+  orador: OradorBuscable,
+  palabras: string[]
+): boolean => {
+  if (palabras.length === 0) return true;
+
+  return palabras.every(
+    (palabra) =>
+      aplanar(orador.nombre).includes(palabra) ||
+      orador.discursos.some((numero) => String(numero) === palabra)
+  );
+};
+
+/** ¿Y esta congregación? */
+export const congregacionCoincide = (
+  cong: CongregacionBuscable,
+  palabras: string[]
+): boolean => {
+  if (palabras.length === 0) return true;
+
+  return contieneTodas(
+    [cong.nombre, cong.numero, cong.circuito].filter(Boolean).join(' '),
+    palabras
+  );
+};

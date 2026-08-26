@@ -9,7 +9,7 @@ import IconButton from '@components/icon_button';
 import FilterChip from '@components/filter_chip';
 import Accordion from '@components/accordion';
 import EmptyState from '@components/empty_state';
-import PanelToolbar, { RielChips } from './PanelToolbar';
+import PanelToolbar, { RielChips } from '@components/panel_toolbar';
 import accentSurface from '@components/accent_surface';
 import {
   IconAdd,

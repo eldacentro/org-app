@@ -3,7 +3,15 @@ import { Box } from '@mui/material';
 import SearchBar from '@components/search_bar';
 
 /**
- * La barra de buscar y filtrar de las pestañas del panel de responsables.
+ * Vive en `components/` y no dentro de Territorios porque lo usan dos
+ * pantallas: las pestañas del panel de responsables y el catálogo de oradores.
+ * Un componente que usan dos funcionalidades no puede vivir dentro de una de
+ * ellas — la otra tendría que ir a buscarlo ahí dentro, y el día que Territorios
+ * se reorganice se lo lleva por delante.
+ */
+
+/**
+ * La barra de buscar y filtrar.
  *
  * Existe porque cada pestaña se había montado la suya: "Territorios" y
  * "Ubicaciones" con un buscador de píldora dentro de una tarjeta, y
