@@ -5,6 +5,12 @@ import { TerritoryRequest } from '@definition/territories';
 import { buildPersonFullname } from '@utils/common';
 import { personsActiveState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
+import {
+  territoryCampaignsState,
+  territoryZonesState,
+} from '@states/territories';
+import Badge from '@components/badge';
+import { TagChip } from '@features/territories/ui';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
@@ -33,6 +39,8 @@ const DialogAsignarConDatos = (props: ComponentProps<typeof DialogAsignar>) => {
 const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
   const persons = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
+  const campaigns = useAtomValue(territoryCampaignsState);
+  const zonas = useAtomValue(territoryZonesState);
 
   const [openAssign, setOpenAssign] = useState(false);
 
@@ -58,11 +66,35 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
         }}
       >
         <Stack spacing={1.5}>
-          <Typography
-            sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}
+          {/* Lo mismo que enseña la pestaña Solicitudes: para qué lo pidió y
+              de qué zona lo prefiere. Aquí no salía, así que desde la
+              campanita una solicitud de campaña parecía una normal. */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{ flexWrap: 'wrap', rowGap: '4px' }}
           >
-            {fullname}
-          </Typography>
+            <Typography
+              sx={{ fontWeight: 600, fontSize: '13px', color: 'var(--ink)' }}
+            >
+              {fullname}
+            </Typography>
+            {request.campaignId && (
+              <Badge
+                size="small"
+                color="accent"
+                text={
+                  campaigns.find((c) => c.id === request.campaignId)?.nombre ??
+                  'Campaña'
+                }
+              />
+            )}
+            {(() => {
+              const z = zonas.find((x) => x.id === request.zoneId);
+              return z ? <TagChip label={z.nombre} color={z.color} /> : null;
+            })()}
+          </Stack>
           {request.nota && (
             <Typography
               variant="body2"
@@ -105,6 +137,15 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
           onClose={() => setOpenAssign(false)}
           defaultPersonUid={request.personUid}
           requestId={request.id}
+          // Lo mismo que se le pasa desde la pestaña Solicitudes. Sin esto, el
+          // asignador solo acertaba de rebote: se caía a "la campaña que esté
+          // en marcha ahora mismo", así que una solicitud de una campaña que
+          // ya terminó —o que aún no ha empezado— abría el selector con TODOS
+          // los territorios, y había que acordarse de cuáles eran los de la
+          // campaña.
+          isCampaign={Boolean(request.campaignId)}
+          campaignId={request.campaignId}
+          preferredZoneId={request.zoneId}
         />
       )}
     </>
