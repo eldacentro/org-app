@@ -6,13 +6,14 @@ import { useAtomValue } from 'jotai';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import Badge from '@components/badge';
-import { TerritoryCard } from '@features/territories/ui';
+import { TerritoryCard, TagChip, NotaPeticion } from '@features/territories/ui';
 import {
   territoriesState,
   territoryAssignmentsState,
   territoryZonesState,
   territorySettingsState,
   territoriesLoadingState,
+  territoryRequestsState,
 } from '@states/territories';
 import {
   territoryLabel,
@@ -45,6 +46,7 @@ const HistorialTab = () => {
   const territories = useAtomValue(territoriesState);
   const zones = useAtomValue(territoryZonesState);
   const settings = useAtomValue(territorySettingsState);
+  const requests = useAtomValue(territoryRequestsState);
   const resolveName = usePersonName();
 
   const [search, setSearch] = useState('');
@@ -242,6 +244,44 @@ const HistorialTab = () => {
                         </>
                       )}
                     </Typography>
+                    {/* De qué petición salió esta entrega.
+                        Al repasar el historial, "se le dio el 12" no dice si
+                        se le dio lo que pedía. Con la zona que pidió y su
+                        nota al lado, se ve de una. */}
+                    {(() => {
+                      const req = a.requestId
+                        ? requests.find((r) => r.id === a.requestId)
+                        : undefined;
+                      if (!req) return null;
+
+                      const zonaPedida = zones.find((z) => z.id === req.zoneId);
+                      if (!zonaPedida && !req.nota) return null;
+
+                      return (
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={0.75}
+                          sx={{ mt: '4px', flexWrap: 'wrap', rowGap: '4px' }}
+                        >
+                          <Typography
+                            className="label-small-regular"
+                            color="var(--ink-3)"
+                          >
+                            Lo pidió:
+                          </Typography>
+                          {zonaPedida && (
+                            <TagChip
+                              label={zonaPedida.nombre}
+                              color={zonaPedida.color}
+                            />
+                          )}
+                          {req.nota && (
+                            <NotaPeticion nota={req.nota} variant="discreta" />
+                          )}
+                        </Stack>
+                      );
+                    })()}
                   </Box>
 
                   <Stack

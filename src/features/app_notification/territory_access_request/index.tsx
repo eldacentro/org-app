@@ -8,9 +8,11 @@ import { fullnameOptionState } from '@states/settings';
 import {
   territoryCampaignsState,
   territoryZonesState,
+  territorySettingsState,
 } from '@states/territories';
+import { formatTerritoryDate } from '@services/app/territories';
 import Badge from '@components/badge';
-import { TagChip } from '@features/territories/ui';
+import { TagChip, NotaPeticion } from '@features/territories/ui';
 import Typography from '@components/typography';
 import Button from '@components/button';
 import DialogAsignar from '@features/territories/dialogs/DialogAsignar';
@@ -41,6 +43,7 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
   const fullnameOption = useAtomValue(fullnameOptionState);
   const campaigns = useAtomValue(territoryCampaignsState);
   const zonas = useAtomValue(territoryZonesState);
+  const settings = useAtomValue(territorySettingsState);
 
   const [openAssign, setOpenAssign] = useState(false);
 
@@ -95,14 +98,18 @@ const TerritoryAccessRequest = ({ request }: { request: TerritoryRequest }) => {
               return z ? <TagChip label={z.nombre} color={z.color} /> : null;
             })()}
           </Stack>
-          {request.nota && (
-            <Typography
-              variant="body2"
-              sx={{ color: 'var(--grey-400)', lineHeight: 1.5 }}
-            >
-              <strong>Nota:</strong> {request.nota}
-            </Typography>
-          )}
+          {/* Cuándo lo pidió. Sin fecha, tres solicitudes seguidas parecen
+              todas de hoy, y aquí es justo lo que decide a quién se atiende
+              antes. */}
+          <Typography className="label-small-regular" color="var(--ink-3)">
+            {formatTerritoryDate(request.createdAt, settings.dateFormat)}
+          </Typography>
+
+          {/* La misma nota, con la misma pinta que en la pestaña de
+              Solicitudes: recortada a dos líneas y con enlace para leerla
+              entera si no cabe. Aquí se quedaba entera y sin recortar, y una
+              nota larga estiraba la campanita hasta empujar el botón fuera. */}
+          {request.nota && <NotaPeticion nota={request.nota} />}
 
           <Stack direction="row" justifyContent="flex-start" sx={{ mt: 1 }}>
             <Button

@@ -1,9 +1,10 @@
 import { Box, SxProps, Theme } from '@mui/material';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Typography from '@components/typography';
 import Badge from '@components/badge';
 import { IconHousehold } from '@components/icons';
 import accentSurface from '@components/accent_surface';
+import { displayText } from '@services/app/territories';
 
 /**
  * Vocabulario visual compartido de Territorios.
@@ -376,3 +377,109 @@ export const ViviendasTag = ({ count }: { count: number }) => (
     text={`${count} ${count === 1 ? 'vivienda' : 'viviendas'}`}
   />
 );
+
+// ─── La nota de una solicitud ─────────────────────────────────────────────
+/**
+ * Lo que el hermano escribió al pedir territorio.
+ *
+ * La nota es el único sitio donde dice lo que realmente quiere ("uno de
+ * pisos, que voy con el carrito", "el 12 si está libre, que es el de mi
+ * calle"), y aparece en cuatro pantallas distintas: la campanita, las
+ * solicitudes pendientes, las ya atendidas y el historial. Se escribía a mano
+ * en cada una, con un recorte distinto —o sin ninguno, y una nota larga
+ * partía la tarjeta en dos—.
+ *
+ * Recortada a dos líneas por defecto, con un enlace para leerla entera que
+ * SOLO sale si de verdad no cabe: en la inmensa mayoría de las notas, que son
+ * de una línea, no aparece nada.
+ */
+export const NotaPeticion = ({
+  nota,
+  variant = 'destacada',
+  lineas = 2,
+}: {
+  nota: string;
+  /** `destacada` en lo que está esperando respuesta; `discreta` en lo ya
+   *  hecho, donde la nota es un dato de consulta y no una petición viva. */
+  variant?: 'destacada' | 'discreta';
+  lineas?: number;
+}) => {
+  const [abierta, setAbierta] = useState(false);
+  const [desborda, setDesborda] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Solo se mide cerrada: abierta, el alto de dentro y el de fuera coinciden
+  // siempre y el enlace para volver a plegarla desaparecería nada más pulsarlo.
+  //
+  // Se mide el propio párrafo —el primer hijo—, no esta caja: el recorte vive
+  // en el texto, y una caja sin recortar crece con él y nunca desbordaría.
+  useEffect(() => {
+    const el = ref.current?.firstElementChild;
+    if (!el || abierta) return;
+    setDesborda(el.scrollHeight > el.clientHeight + 1);
+  }, [nota, lineas, abierta]);
+
+  const recorte = abierta
+    ? {}
+    : {
+        display: '-webkit-box',
+        WebkitBoxOrient: 'vertical' as const,
+        WebkitLineClamp: lineas,
+        overflow: 'hidden',
+      };
+
+  const destacada = variant === 'destacada';
+
+  return (
+    <Box
+      ref={ref}
+      sx={
+        destacada
+          ? {
+              mt: 1,
+              // Se ajusta al texto: como bloque ocupaba los ochocientos
+              // píxeles de la columna y una frase de diez palabras quedaba
+              // flotando en una franja larguísima.
+              display: 'inline-block',
+              maxWidth: '100%',
+              padding: '8px 12px',
+              borderRadius: 'var(--shape-sm)',
+              backgroundColor: 'var(--accent-100)',
+            }
+          : { minWidth: 0 }
+      }
+    >
+      {/* El recorte va en el PÁRRAFO, no en una caja por fuera: envuelto, las
+          líneas se separaban con el interlineado de la tarjeta (24px) en vez
+          de con el suyo, y la nota quedaba con una calle enorme en medio. */}
+      <Typography
+        className={destacada ? 'body-small-regular' : 'label-small-regular'}
+        color={destacada ? 'var(--ink)' : 'var(--ink-2)'}
+        sx={{ fontStyle: 'italic', ...recorte }}
+      >
+        &laquo;{displayText(nota)}&raquo;
+      </Typography>
+
+      {desborda && (
+        <Box
+          component="button"
+          type="button"
+          onClick={() => setAbierta((v) => !v)}
+          sx={{
+            border: 'none',
+            background: 'none',
+            padding: 0,
+            marginTop: '2px',
+            cursor: 'pointer',
+            color: 'var(--accent-dark)',
+            font: 'inherit',
+          }}
+        >
+          <Typography className="label-small-medium" color="var(--accent-dark)">
+            {abierta ? 'Menos' : 'Leer la nota entera'}
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+};

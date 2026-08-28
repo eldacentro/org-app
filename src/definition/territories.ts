@@ -135,6 +135,8 @@ export type TerritoryAssignment = {
    * del territorio y lo metía en descanso.
    */
   cierrePendiente?: boolean;
+  /** La solicitud que esta asignación atendió, si vino de una. */
+  requestId?: string;
   /**
    * A quién se lo ha PRESTADO quien lo tiene, y hasta cuándo.
    *
@@ -221,6 +223,14 @@ export type TerritoryRequest = {
    * muestran como "Atendida" a secas.
    */
   atendidaComo?: 'asignada' | 'descartada';
+  /**
+   * Qué territorios se le dieron al atenderla.
+   *
+   * Sin esto, la solicitud atendida solo decía "se le asignó": se veía lo que
+   * el hermano pidió —su zona, su nota— pero no lo que acabó recibiendo, que
+   * es justo la comparación que se quiere hacer al repasarlas.
+   */
+  territoriosAsignados?: string[];
 };
 
 /** Aviso dirigido a un publicador (ej. territorio atrasado). Llega al instante

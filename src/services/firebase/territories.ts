@@ -695,6 +695,9 @@ export const saveAssignmentAndAttendRequest = (
       atendidaPor: attendedBy,
       atendidaAt: new Date().toISOString(),
       atendidaComo: 'asignada',
+      // Y QUÉ se le dio: al repasar las atendidas se quiere comparar lo que
+      // pidió con lo que recibió, y "se le asignó" a secas no lo dice.
+      territoriosAsignados: [a.territoryId],
     });
   });
 
@@ -1332,13 +1335,21 @@ export const atenderRequest = (
   requestId: string,
   personUid: string,
   /** Cómo se cerró. Por defecto 'asignada': es de donde más se llama. */
-  como: 'asignada' | 'descartada' = 'asignada'
+  como: 'asignada' | 'descartada' = 'asignada',
+  /** Qué territorios se le dieron, para poder compararlo con lo que pidió. */
+  territoriosAsignados?: string[]
 ) =>
-  updateDoc(fsDoc(requestsCol(congId), requestId), {
-    atendidaPor: personUid,
-    atendidaAt: new Date().toISOString(),
-    atendidaComo: como,
-  });
+  updateDoc(
+    fsDoc(requestsCol(congId), requestId),
+    stripUndefined({
+      atendidaPor: personUid,
+      atendidaAt: new Date().toISOString(),
+      atendidaComo: como,
+      territoriosAsignados: territoriosAsignados?.length
+        ? territoriosAsignados
+        : undefined,
+    })
+  );
 
 /**
  * Retira una solicitud que aún no ha atendido nadie.

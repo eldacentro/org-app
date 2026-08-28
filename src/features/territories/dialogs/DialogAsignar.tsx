@@ -30,7 +30,9 @@ import {
 } from '@utils/circuit_overseer';
 import { usePersonName } from '@features/territories/usePersonName';
 import SelectorTerritorio from './SelectorTerritorio';
+import { TagChip, NotaPeticion } from '@features/territories/ui';
 import Checkbox from '@components/checkbox';
+import Badge from '@components/badge';
 import {
   territoriesState,
   territoryZonesState,
@@ -245,6 +247,19 @@ const DialogAsignar = ({
   const solicitudPendiente =
     pendingRequests.find((r) => r.personUid === personUid) ?? null;
 
+  /**
+   * La solicitud CONCRETA desde la que se entró, cuando se entró desde una.
+   *
+   * Se enseña aquí lo que pidió —campaña, zona y su nota— porque es justo
+   * mientras se elige territorio cuando hace falta: el selector ya se abre por
+   * su zona, pero la nota («que no sea de pisos, que llevamos el carrito») no
+   * se veía por ningún lado desde este diálogo, y había que volver atrás a
+   * leerla.
+   */
+  const solicitudOrigen = requestId
+    ? (pendingRequests.find((r) => r.id === requestId) ?? null)
+    : null;
+
   const requestIdEfectivo = requestId
     ? requestId
     : atenderSolicitud
@@ -298,6 +313,7 @@ const DialogAsignar = ({
               returnedAt: null,
               status: 'asignado',
               ...marcaDeCampana(t.id),
+              requestId: requestIdEfectivo || undefined,
               notas: nota.trim() || undefined,
               assignedBy: currentUid || undefined,
               updatedAt: now,
@@ -334,9 +350,14 @@ const DialogAsignar = ({
       // independientes; si falla, lo peor que pasa es que la solicitud siga
       // pendiente, que es exactamente el estado de antes.
       if (requestIdEfectivo) {
-        await atenderRequest(congId, requestIdEfectivo, currentUid).catch(
-          (err) =>
-            console.error('No se pudo marcar la solicitud como atendida', err)
+        await atenderRequest(
+          congId,
+          requestIdEfectivo,
+          currentUid,
+          'asignada',
+          toAssign.map((t) => t.id)
+        ).catch((err) =>
+          console.error('No se pudo marcar la solicitud como atendida', err)
         );
       }
 
@@ -465,6 +486,7 @@ const DialogAsignar = ({
         returnedAt: null,
         status: 'asignado',
         ...marcaDeCampana(effectiveTerritory.id),
+        requestId: requestIdEfectivo || undefined,
         notas: nota.trim() || undefined,
         assignedBy: currentUid || undefined,
         updatedAt: now,
@@ -589,6 +611,51 @@ const DialogAsignar = ({
         </Typography>
 
         <Stack spacing={2}>
+          {solicitudOrigen && (
+            <Box>
+              <Typography
+                className="body-small-regular"
+                sx={{ color: 'var(--ink-2)', mb: 0.75 }}
+              >
+                Lo que pidió
+              </Typography>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ flexWrap: 'wrap', rowGap: '4px' }}
+              >
+                {(() => {
+                  const c = campaigns.find(
+                    (x) => x.id === solicitudOrigen.campaignId
+                  );
+                  return c ? (
+                    <Badge size="small" color="accent" text={c.nombre} />
+                  ) : null;
+                })()}
+                {(() => {
+                  const z = zonas.find((x) => x.id === solicitudOrigen.zoneId);
+                  return z ? (
+                    <TagChip label={z.nombre} color={z.color} />
+                  ) : null;
+                })()}
+                {!solicitudOrigen.campaignId &&
+                  !solicitudOrigen.zoneId &&
+                  !solicitudOrigen.nota && (
+                    <Typography
+                      className="label-small-regular"
+                      color="var(--ink-3)"
+                    >
+                      No dijo nada en concreto.
+                    </Typography>
+                  )}
+              </Stack>
+              {solicitudOrigen.nota && (
+                <NotaPeticion nota={solicitudOrigen.nota} />
+              )}
+            </Box>
+          )}
+
           {isBulk ? (
             <Box
               sx={{
@@ -786,6 +853,35 @@ const DialogAsignar = ({
                 {resolveName(solicitudPendiente.personUid)} tiene una solicitud
                 de territorio pendiente.
               </Typography>
+              {/* Y QUÉ pedía en ella: si pedía Salinas y se le está dando un
+                  rural, esto es lo que hace que se note antes de guardar. */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ mt: 0.75, flexWrap: 'wrap', rowGap: '4px' }}
+              >
+                {(() => {
+                  const z = zonas.find(
+                    (x) => x.id === solicitudPendiente.zoneId
+                  );
+                  return z ? (
+                    <TagChip label={z.nombre} color={z.color} />
+                  ) : null;
+                })()}
+              </Stack>
+              {/* Discreta: este aviso ya va sobre fondo de acento, y la nota
+                  destacada le pone encima otra caja del mismo color que no se
+                  distingue de nada. */}
+              {solicitudPendiente.nota && (
+                <Box sx={{ mt: 0.5 }}>
+                  <NotaPeticion
+                    nota={solicitudPendiente.nota}
+                    variant="discreta"
+                  />
+                </Box>
+              )}
+
               <Box sx={{ mt: 0.5 }}>
                 <Checkbox
                   checked={atenderSolicitud}

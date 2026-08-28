@@ -7,8 +7,9 @@ import { useConfirm } from '@components/confirm_dialog';
 import { congIDState, userLocalUIDState } from '@states/settings';
 import Badge from '@components/badge';
 import { IconChevronRight } from '@components/icons';
-import { TagChip } from '@features/territories/ui';
+import { TagChip, NotaPeticion } from '@features/territories/ui';
 import {
+  territoriesState,
   territoryCampaignsState,
   territoryZonesSortedState,
   territoryPendingRequestsState,
@@ -17,7 +18,7 @@ import {
 } from '@states/territories';
 import { TerritoryRequest } from '@definition/territories';
 import { atenderRequest } from '@services/firebase/territories';
-import { formatTerritoryDate } from '@services/app/territories';
+import { formatTerritoryDate, territoryLabel } from '@services/app/territories';
 import { territorySettingsState } from '@states/territories';
 import { usePersonName } from '@features/territories/usePersonName';
 import { TerritoryCard } from '@features/territories/ui';
@@ -36,6 +37,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
   const todas = useAtomValue(territoryRequestsState);
   const campaigns = useAtomValue(territoryCampaignsState);
   const zonas = useAtomValue(territoryZonesSortedState);
+  const territories = useAtomValue(territoriesState);
   const settings = useAtomValue(territorySettingsState);
   const resolveName = usePersonName();
   const { confirm, ConfirmDialogNode } = useConfirm();
@@ -174,14 +176,43 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                 </Typography>
 
                 {req.nota && (
-                  <Typography
-                    className="label-small-regular"
-                    color="var(--ink-2)"
-                    sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}
-                  >
-                    &laquo;{req.nota}&raquo;
-                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <NotaPeticion nota={req.nota} variant="discreta" />
+                  </Box>
                 )}
+
+                {/* Y QUÉ se le dio. Con la zona delante, que es lo que se
+                    compara con la que pidió: "quería Salinas y se le dio un
+                    rural" es la conversación que esta lista tiene que
+                    permitir tener. */}
+                {req.territoriosAsignados &&
+                  req.territoriosAsignados.length > 0 && (
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={0.75}
+                      sx={{ mt: 0.75, flexWrap: 'wrap', rowGap: '4px' }}
+                    >
+                      <Typography
+                        className="label-small-regular"
+                        color="var(--ink-3)"
+                      >
+                        Se le dio:
+                      </Typography>
+                      {req.territoriosAsignados.map((id) => {
+                        const t = territories.find((x) => x.id === id);
+                        if (!t) return null;
+                        const z = zonas.find((x) => x.id === t.zoneId);
+                        return (
+                          <TagChip
+                            key={id}
+                            label={`${z?.nombre ?? ''} ${territoryLabel(t)}`.trim()}
+                            color={z?.color ?? 'var(--grey-400)'}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
               </TerritoryCard>
             );
           })}
@@ -274,25 +305,7 @@ const SolicitudesTab = ({ onAsignarParaSolicitud }: Props) => {
                       territorio darle, y estaba con el mismo peso que la
                       fecha. Va entrecomillada y sobre su propio fondo para
                       que se lea como una cita suya, no como texto de la app. */}
-                  {req.nota && (
-                    <Typography
-                      className="body-small-regular"
-                      color="var(--ink)"
-                      sx={{
-                        mt: 1,
-                        // Se ajusta al texto: como bloque ocupaba los ochocientos
-                        // píxeles de la columna y una frase de diez palabras
-                        // quedaba flotando en una franja larguísima.
-                        display: 'inline-block',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--shape-sm)',
-                        backgroundColor: 'var(--accent-100)',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      &laquo;{req.nota}&raquo;
-                    </Typography>
-                  )}
+                  {req.nota && <NotaPeticion nota={req.nota} />}
                 </Box>
                 <Stack
                   direction="row"
