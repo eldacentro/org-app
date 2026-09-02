@@ -31,6 +31,7 @@ import {
   meetingPublishKeyOfAssignment,
 } from '@services/app/meetings_publish';
 import {
+  deptConfigForWeek,
   DEPT_LABEL,
   deptSlotsForMeeting,
 } from '@services/app/departments_slots';
@@ -447,7 +448,7 @@ const Dashboard = () => {
             if (!show) continue;
 
             for (const slot of deptSlotsForMeeting(
-              departmentsConfig,
+              deptConfigForWeek(departmentsConfig, deptWeek.weekOf),
               dept,
               meeting
             )) {

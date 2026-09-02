@@ -3,7 +3,8 @@ import { DepartmentType } from '@definition/person';
 import { AssignmentHistoryType } from '@definition/schedules';
 import {
   buildAllDeptSlots,
-  DepartmentsConfig,
+  deptConfigForWeek,
+  DepartmentsConfigStored,
   DEPT_LABEL,
 } from './departments_slots';
 
@@ -24,16 +25,21 @@ import {
  */
 export const deptBuildHistoryList = (
   schedules: DeptWeekType[],
-  config: DepartmentsConfig | null | undefined
+  config: DepartmentsConfigStored | null | undefined
 ): AssignmentHistoryType[] => {
   const result: AssignmentHistoryType[] = [];
-
-  const slots = buildAllDeptSlots(config);
 
   for (const week of schedules ?? []) {
     if (!week?.weekOf) continue;
 
-    for (const slot of slots) {
+    // Los puestos se calculan por SEMANA, no una vez para todas: la
+    // configuración rige desde un mes, y el historial mira años hacia atrás.
+    // Con una sola lista, cambiar hoy la organización de los micrófonos
+    // vaciaría el historial de todo lo anterior — que sigue guardado, solo que
+    // bajo las claves de entonces.
+    for (const slot of buildAllDeptSlots(
+      deptConfigForWeek(config, week.weekOf)
+    )) {
       const assigned = (
         week[slot.dept] as Record<string, { value?: string }> | undefined
       )?.[slot.key];

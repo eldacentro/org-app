@@ -1,5 +1,6 @@
 import { AppRoleType } from './app';
 import { AssignmentFieldType } from './assignment';
+import type { DepartmentsConfigStored } from '@services/app/departments_slots';
 
 export enum FullnameOption {
   FIRST_BEFORE_LAST = 1,
@@ -209,16 +210,16 @@ export type SettingsType = {
     }[];
     /**
      * Cómo se organiza cada departamento: por semana o por reunión, y cuántos
-     * turnos. Sin definir = lo de siempre (por semana, un turno). Ver
-     * `services/app/departments_slots`.
+     * turnos. Sin definir = lo de siempre (por semana, un turno).
+     *
+     * Lleva además la LÍNEA DEL TIEMPO (`__tramos`): desde qué mes rige cada
+     * configuración, para que cambiarla en octubre no reescriba septiembre.
+     * Arriba del todo sigue estando la del último tramo, con la forma exacta
+     * de siempre, para que una versión antigua de la aplicación la siga
+     * leyendo. Ver `services/app/departments_slots`.
      */
     departments_config?: {
-      value: Partial<
-        Record<
-          'acomodadores' | 'microfonos' | 'multimedia' | 'plataforma',
-          { scope: 'week' | 'meeting'; turns: number }
-        >
-      >;
+      value: DepartmentsConfigStored;
       updatedAt: string;
     };
     // Correo al que los oradores públicos envían el contenido multimedia

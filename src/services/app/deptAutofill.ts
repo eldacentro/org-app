@@ -7,7 +7,10 @@ import { addWeeks, formatDate } from '@utils/date';
 import { schedulesState } from '@states/schedules';
 import { schedulesWeekHasNoMeetingAtAll } from '@services/app/schedules';
 import { departmentsConfigState } from '@states/settings';
-import { buildDeptSlots } from '@services/app/departments_slots';
+import {
+  buildDeptSlots,
+  deptConfigForWeek,
+} from '@services/app/departments_slots';
 import { DepartmentType } from '@definition/person';
 
 export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
@@ -98,16 +101,25 @@ export const deptStartAutofill = async (startWeek: string, endWeek: string) => {
     'acomodadores',
   ];
 
-  const rolesToFill = DEPT_PRIORITY.flatMap((dept) =>
-    buildDeptSlots(departmentsConfig, dept).map((slot) => ({
-      dept,
-      role: slot.key,
-    }))
-  );
+  // Los puestos se calculan DENTRO del bucle de semanas y no una sola vez: la
+  // configuración puede cambiar a mitad del rango (rige desde un mes), y un
+  // autocompletado de dos meses tiene que escribir en cada semana las claves
+  // que le tocan a su mes.
+  const puestosDeLaSemana = (weekOf: string) => {
+    const configSemana = deptConfigForWeek(departmentsConfig, weekOf);
+
+    return DEPT_PRIORITY.flatMap((dept) =>
+      buildDeptSlots(configSemana, dept).map((slot) => ({
+        dept,
+        role: slot.key,
+      }))
+    );
+  };
 
   for (const weekOf of rangeWeeks) {
     const weekSched = localSchedules.find((s) => s.weekOf === weekOf)!;
     const assignedThisWeek: string[] = [];
+    const rolesToFill = puestosDeLaSemana(weekOf);
 
     // Track already manually assigned people for this week
     rolesToFill.forEach(({ dept, role }) => {

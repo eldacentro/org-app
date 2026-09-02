@@ -42,7 +42,7 @@ const DepartmentEditor = () => {
     weekName,
     meetingDaysName,
     isNoMeetingWeek,
-    departmentsConfig,
+    deptConfig,
     weekList,
     handleSelectWeek,
   } = useDepartmentEditor();
@@ -170,7 +170,7 @@ const DepartmentEditor = () => {
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {buildDeptSlotGroups(departmentsConfig, dept).map((grupo) => (
+                {buildDeptSlotGroups(deptConfig, dept).map((grupo) => (
                   <Box
                     key={grupo.titulo ?? 'unico'}
                     sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}

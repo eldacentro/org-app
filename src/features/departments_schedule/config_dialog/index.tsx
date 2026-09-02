@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import Dialog from '@components/dialog';
@@ -6,17 +6,27 @@ import Typography from '@components/typography';
 import InfoTip from '@components/info_tip';
 import AppButton from '@components/button';
 import SegmentedControl from '@components/segmented_control';
+import Select from '@components/select';
+import MenuItem from '@components/menuitem';
 import SwitchWithLabel from '@components/switch_with_label';
 import { departmentsConfigState } from '@states/settings';
+import { deptScheduleState } from '@states/departments_schedule';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { displaySnackNotification } from '@services/states/app';
 import {
   DEPT_LABEL,
   DeptConfig,
   DepartmentsConfig,
+  DepartmentsConfigStored,
+  deptConfigForMonth,
+  deptConfigSetForMonth,
+  deptConfigTramos,
   MAX_DEPT_TURNS,
   readDeptConfig,
 } from '@services/app/departments_slots';
+import { isDeptMonthPublished } from '@services/app/departments_publish';
+import { monthOfDate } from '@services/app/month_publish';
+import { MESES_ES } from '@utils/nombres_fecha';
 import { ALL_DEPARTMENT_TYPES, DepartmentType } from '@definition/person';
 
 /**
@@ -26,18 +36,14 @@ import { ALL_DEPARTMENT_TYPES, DepartmentType } from '@definition/person';
  * lleva los departamentos no tiene por qué tener acceso a los ajustes, y sí
  * tiene que poder decidir cómo se organizan sus turnos.
  *
- * Cambiar esto NO borra nada, pero sí cambia la clave con la que se guarda
- * cada puesto, así que lo ya asignado con la configuración anterior deja de
- * verse hasta que se vuelva a dejar como estaba. Se avisa abajo.
+ * SE CONFIGURA A PARTIR DE UN MES, y no para toda la historia. Antes era una
+ * sola configuración para siempre: cambiarla en septiembre para que rigiera en
+ * octubre reescribía también septiembre y agosto, y lo ya asignado —guardado
+ * bajo las claves de entonces— dejaba de encontrarse. Ahora cada mes se lee
+ * con la configuración que regía ese mes (ver `departments_slots`), y lo
+ * anterior al mes elegido no se toca.
  */
 
-/**
- * Son cuatro departamentos con dos ajustes cada uno, así que en un móvil el
- * diálogo no cabe entero. La altura se limita a lo que de verdad se puede
- * usar —descontando la barra de estado y el notch— y lo que sobra se
- * desplaza por dentro. Sin esto, el diálogo crecía por encima de la pantalla
- * y el título se metía debajo de la hora y la batería.
- */
 const PAPER_STYLE: CSSProperties = {
   maxWidth: '560px',
   borderRadius: 'var(--shape-md)',
@@ -50,15 +56,66 @@ const PAPER_STYLE: CSSProperties = {
     'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
 };
 
+/** Cuántos meses hacia delante se pueden elegir. Un año da de sobra. */
+const MESES_POR_DELANTE = 12;
+
+const mesDeHoy = () => {
+  const hoy = new Date();
+
+  return `${hoy.getFullYear()}/${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const sumarMeses = (mes: string, cuantos: number) => {
+  const [year, month] = mes.split('/').map(Number);
+  const fecha = new Date(year, month - 1 + cuantos, 1);
+
+  return `${fecha.getFullYear()}/${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+};
+
+/** 'octubre 2026', igual que en el diálogo de publicar de esta misma página. */
+const etiquetaMes = (mes: string) => {
+  const [year, month] = mes.split('/');
+
+  return `${MESES_ES[Number(month) - 1] ?? ''} ${year ?? ''}`.trim();
+};
+
+/**
+ * Los interruptores tal como están ese mes.
+ *
+ * Se rellenan LOS CUATRO departamentos aunque no haya nada guardado: así el
+ * diálogo enseña siempre lo que de verdad rige (lo de siempre, cuando no se ha
+ * tocado nada) en vez de dejar huecos.
+ */
+const cargarDelMes = (
+  saved: DepartmentsConfigStored,
+  mes: string
+): DepartmentsConfig => {
+  const delMes = deptConfigForMonth(saved, mes);
+  const draft: DepartmentsConfig = {};
+
+  for (const dept of ALL_DEPARTMENT_TYPES) {
+    draft[dept] = readDeptConfig(delMes, dept);
+  }
+
+  return draft;
+};
+
 const DeptConfigDialog = ({
   open,
   onClose,
+  month,
 }: {
   open: boolean;
   onClose: () => void;
+  /** El mes que se está viendo en la página, que es el que se propone. */
+  month: string;
 }) => {
   const saved = useAtomValue(departmentsConfigState);
+  const schedules = useAtomValue(deptScheduleState);
 
+  const mesPagina = monthOfDate(month);
+
+  const [mes, setMes] = useState('');
   const [draft, setDraft] = useState<DepartmentsConfig>({});
 
   // Se parte de lo guardado cada vez que se abre, para que cancelar deshaga
@@ -76,14 +133,43 @@ const DeptConfigDialog = ({
     if (initialized.current) return;
     initialized.current = true;
 
-    const next: DepartmentsConfig = {};
+    const inicial = mesPagina || mesDeHoy();
 
-    for (const dept of ALL_DEPARTMENT_TYPES) {
-      next[dept] = readDeptConfig(saved, dept);
+    setMes(inicial);
+    setDraft(cargarDelMes(saved, inicial));
+  }, [open, saved, mesPagina]);
+
+  /**
+   * Los meses que se pueden elegir: de este en adelante, un año.
+   *
+   * Y además el que se esté viendo en la página y los que ya tengan un tramo
+   * decidido, aunque se hayan quedado atrás: si no, un tramo puesto por error
+   * el año pasado no habría forma ni de mirarlo ni de deshacerlo.
+   */
+  const meses = useMemo(() => {
+    const lista = new Set<string>();
+    const hoy = mesDeHoy();
+
+    for (let i = 0; i <= MESES_POR_DELANTE; i++) {
+      lista.add(sumarMeses(hoy, i));
     }
 
-    setDraft(next);
-  }, [open, saved]);
+    if (mesPagina) lista.add(mesPagina);
+
+    for (const tramo of deptConfigTramos(saved)) {
+      if (tramo.desde) lista.add(tramo.desde);
+    }
+
+    return [...lista].sort();
+  }, [saved, mesPagina]);
+
+  const handleMes = (nuevo: string) => {
+    setMes(nuevo);
+
+    // Los interruptores pasan a enseñar cómo está el mes NUEVO. Lo tocado sin
+    // guardar se pierde a propósito: lo que se ve tiene que ser lo que hay.
+    setDraft(cargarDelMes(saved, nuevo));
+  };
 
   const setDept = (dept: DepartmentType, changes: Partial<DeptConfig>) => {
     setDraft((prev) => ({
@@ -92,11 +178,49 @@ const DeptConfigDialog = ({
     }));
   };
 
+  const mesLabel = etiquetaMes(mes);
+  const mesPasado = mes !== '' && mes < mesDeHoy();
+  const mesPublicado = mes !== '' && isDeptMonthPublished(schedules, mes);
+
+  // Si hay otra configuración más adelante, esta NO llega hasta allí. Decirlo
+  // evita el susto de creer que se ha cambiado todo el curso de una vez.
+  const siguienteTramo = useMemo(() => {
+    if (!mes) return '';
+
+    const siguiente = deptConfigTramos(saved).find(
+      (tramo) => tramo.desde && tramo.desde > mes
+    );
+
+    return siguiente?.desde ?? '';
+  }, [saved, mes]);
+
+  const aviso = mesPasado
+    ? `${mesLabel} ya pasó. Cambiar la configuración de un mes que ya se dio esconde lo que se asignó entonces, que sigue guardado con las claves de aquella configuración. Lo normal es cambiarlo a partir del mes que viene.`
+    : mesPublicado
+      ? `${mesLabel} ya está publicado: la congregación lo tiene delante. Cambiar su configuración no borra nada, pero lo que ya estuviera asignado deja de verse mientras esté cambiada.`
+      : 'Cambiar esto no borra nada, pero las asignaciones ya hechas con la configuración anterior dejan de verse mientras esté cambiada. Si te arrepientes, déjalo como estaba y vuelven a aparecer.';
+
   const handleSave = async () => {
+    const value = deptConfigSetForMonth(saved, mes, draft);
+
+    // Guardar algo idéntico despierta la sincronización de toda la
+    // congregación para nada: misma regla que al publicar el mes.
+    if (JSON.stringify(value) === JSON.stringify(saved)) {
+      onClose();
+
+      displaySnackNotification({
+        header: 'Sin cambios',
+        message: 'La configuración se queda como estaba.',
+        severity: 'success',
+      });
+
+      return;
+    }
+
     try {
       await dbAppSettingsUpdate({
         'cong_settings.departments_config': {
-          value: draft,
+          value,
           updatedAt: new Date().toISOString(),
         },
       });
@@ -116,7 +240,7 @@ const DeptConfigDialog = ({
 
     displaySnackNotification({
       header: 'Hecho',
-      message: 'Configuración de departamentos guardada.',
+      message: `Así quedan los departamentos a partir de ${mesLabel}.`,
       severity: 'success',
     });
   };
@@ -127,13 +251,43 @@ const DeptConfigDialog = ({
       onClose={onClose}
       PaperProps={{ className: 'pop-up-shadow', style: PAPER_STYLE }}
       // El contenido no se desplaza entero: solo la lista de departamentos.
-      // Así el título y los botones no se van de la pantalla y no hay que
-      // bajar hasta el final para poder guardar.
+      // Así el título, el mes y los botones no se van de la pantalla y no hay
+      // que bajar hasta el final para poder guardar.
       sx={{ overflow: 'hidden', alignItems: 'stretch' }}
     >
       <Typography className="h2" sx={{ color: 'var(--ink)' }}>
         Configuración de departamentos
       </Typography>
+
+      {/* El mes va FUERA de lo que se desplaza, pegado al título: es el marco
+          de todo lo de abajo, y perderlo de vista mientras se tocan los
+          interruptores es justo cómo se cambia el mes equivocado. */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          width: '100%',
+        }}
+      >
+        <Select
+          label="A partir de"
+          value={meses.includes(mes) ? mes : ''}
+          onChange={(e) => handleMes(e.target.value as string)}
+        >
+          {meses.map((value) => (
+            <MenuItem key={value} value={value}>
+              <Typography>{etiquetaMes(value)}</Typography>
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Typography className="body-small-regular" color="var(--ink-2)">
+          {`Los meses anteriores a ${mesLabel} se quedan como están. Los interruptores enseñan cómo está ${mesLabel}.`}
+          {siguienteTramo &&
+            ` Desde ${etiquetaMes(siguienteTramo)} ya rige otra configuración, y esa no se toca.`}
+        </Typography>
+      </Box>
 
       <Stack
         spacing="12px"
@@ -194,11 +348,7 @@ const DeptConfigDialog = ({
           );
         })}
 
-        <InfoTip
-          isBig={false}
-          color="warning"
-          text="Cambiar esto no borra nada, pero las asignaciones ya hechas con la configuración anterior dejan de verse mientras esté cambiada. Si te arrepientes, déjalo como estaba y vuelven a aparecer."
-        />
+        <InfoTip isBig={false} color="warning" text={aviso} />
       </Stack>
 
       <Box

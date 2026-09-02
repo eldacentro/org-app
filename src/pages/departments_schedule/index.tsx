@@ -18,7 +18,11 @@ import {
   departmentsConfigState,
   pdfExportEnabledState,
 } from '@states/settings';
-import { DEPT_LABEL, buildAllDeptSlots } from '@services/app/departments_slots';
+import {
+  DEPT_LABEL,
+  buildAllDeptSlots,
+  deptConfigForWeek,
+} from '@services/app/departments_slots';
 import { ALL_DEPARTMENT_TYPES } from '@definition/person';
 import LastModifiedInfo from '@components/last_modified_info';
 import { buildFieldChanges } from '@services/app/last_modified';
@@ -98,10 +102,12 @@ const DepartmentsSchedule = () => {
 
     for (const week of weeksInMonth) {
       // Los puestos que hay que contar son los que la configuración de cada
-      // departamento define ahora mismo, no una lista escrita a mano: si
+      // departamento define PARA ESE MES, no una lista escrita a mano: si
       // alguien parte un departamento en dos turnos, los turnos vacíos también
       // cuentan.
-      for (const slot of buildAllDeptSlots(departmentsConfig)) {
+      for (const slot of buildAllDeptSlots(
+        deptConfigForWeek(departmentsConfig, week.weekOf)
+      )) {
         if (!week[slot.dept]?.[slot.key]?.value) count++;
       }
     }
@@ -121,7 +127,9 @@ const DepartmentsSchedule = () => {
     const found: string[] = [];
 
     for (const week of weeksInMonth) {
-      for (const slot of buildAllDeptSlots(departmentsConfig)) {
+      for (const slot of buildAllDeptSlots(
+        deptConfigForWeek(departmentsConfig, week.weekOf)
+      )) {
         const uid = week[slot.dept]?.[slot.key]?.value;
 
         if (!uid) continue;
@@ -218,6 +226,9 @@ const DepartmentsSchedule = () => {
       <DeptConfigDialog
         open={configDialog}
         onClose={() => setConfigDialog(false)}
+        // El mes que se está viendo es el que se propone cambiar: la
+        // configuración rige a partir de un mes, no para toda la historia.
+        month={selectedMonth}
       />
 
       {isAutofillOpen && (

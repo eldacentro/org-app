@@ -46,7 +46,7 @@ const DepartmentsContainer = () => {
 
           {week && (
             <Stack spacing="24px">
-              <DepartmentsMeeting schedule={schedule} />
+              <DepartmentsMeeting schedule={schedule} week={week} />
             </Stack>
           )}
         </Box>

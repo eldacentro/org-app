@@ -1,4 +1,5 @@
 import { DepartmentType } from '@definition/person';
+import { monthOfDate } from './month_publish';
 
 /**
  * Qué puestos tiene cada departamento en una semana.
@@ -37,7 +38,19 @@ export type DeptConfig = {
   turns: number;
 };
 
-export type DepartmentsConfig = Partial<Record<DepartmentType, DeptConfig>>;
+export type DepartmentsConfig = Partial<Record<DepartmentType, DeptConfig>> & {
+  /**
+   * Marca de tipo, no un dato que se guarde: aquí NO cabe la línea del tiempo.
+   *
+   * Lo que está guardado (`DepartmentsConfigStored`) lleva los tramos pegados,
+   * y pasarlo tal cual a `buildDeptSlots` daría los puestos del ÚLTIMO tramo
+   * para todos los meses — justo el fallo que los tramos vienen a arreglar, y
+   * que no se ve hasta que alguien abre septiembre estando en octubre. Con
+   * esta marca, quien tenga lo guardado tiene que pasar antes por
+   * `deptConfigForWeek`, y de acordarse se encarga el compilador.
+   */
+  __tramos?: never;
+};
 
 /** Lo de siempre: una asignación por semana y un solo turno. */
 export const DEFAULT_DEPT_CONFIG: DeptConfig = { scope: 'week', turns: 1 };
@@ -90,6 +103,231 @@ export const readDeptConfig = (
     scope: stored.scope === 'meeting' ? 'meeting' : 'week',
     turns,
   };
+};
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * La configuración, mes a mes
+ *
+ * Hasta ahora la configuración era UNA y valía para toda la historia: cambiar
+ * en septiembre cómo se organizan los micrófonos cambiaba también septiembre,
+ * agosto y todo lo anterior — con lo ya asignado escrito bajo las claves de
+ * antes, que dejaban de encontrarse. Se pedía el cambio para octubre y se
+ * llevaba por delante el mes en curso.
+ *
+ * Ahora la configuración es una LÍNEA DEL TIEMPO de tramos: cada uno dice
+ * desde qué mes rige, y cada mes se lee con el suyo. Los meses anteriores se
+ * quedan exactamente como estaban, con sus claves, y siguen viéndose.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Un tramo: desde qué mes rige esta configuración.
+ *
+ * `desde` es un mes 'YYYY/MM' y CUENTA desde ese mes. Sin `desde` es el tramo
+ * de siempre: lo que regía antes del primer cambio con fecha.
+ */
+export type DeptConfigTramo = {
+  desde?: string;
+  config: DepartmentsConfig;
+};
+
+/**
+ * Lo que hay guardado en `cong_settings.departments_config.value`.
+ *
+ * Son DOS cosas a la vez, y a propósito:
+ *
+ * 1. Arriba del todo, la configuración del último tramo, con la MISMA forma
+ *    que tenía este ajuste antes de que los tramos existieran. Una versión
+ *    antigua de la aplicación —una pestaña que lleva horas abierta, un móvil
+ *    que todavía no se ha actualizado— la lee tal cual y se comporta como se
+ *    comportaba ayer. Si en vez de eso se encontrara una forma que no entiende,
+ *    se quedaría con los puestos por defecto y los programas ya guardados
+ *    dejarían de encontrarse por su clave: la manera clásica de «perder» datos
+ *    en esta aplicación sin borrar nada.
+ * 2. En `__tramos`, la línea del tiempo entera, que es lo que hace falta para
+ *    contestar «¿cómo estaba organizado esto en septiembre?».
+ *
+ * Sin `__tramos` —el caso de todas las congregaciones hasta hoy— esto es
+ * idéntico a lo de siempre, así que no hay ninguna migración.
+ */
+export type DepartmentsConfigStored = Omit<DepartmentsConfig, '__tramos'> & {
+  __tramos?: DeptConfigTramo[];
+};
+
+const DEPT_KEYS = Object.keys(DEPT_ROLES) as DepartmentType[];
+
+/** La configuración a secas, sin la línea del tiempo pegada detrás. */
+const soloDepartamentos = (
+  config: DepartmentsConfigStored | DepartmentsConfig | null | undefined
+): DepartmentsConfig => {
+  const limpia: DepartmentsConfig = {};
+
+  for (const dept of DEPT_KEYS) {
+    const guardada = config?.[dept];
+
+    if (guardada) limpia[dept] = guardada;
+  }
+
+  return limpia;
+};
+
+/**
+ * ¿Dicen lo mismo dos configuraciones?
+ *
+ * Se comparan NORMALIZADAS (`readDeptConfig`), así que «sin configurar» y
+ * «por semana, un turno» son lo mismo — que es lo que significan.
+ */
+export const deptConfigIguales = (
+  a: DepartmentsConfig | null | undefined,
+  b: DepartmentsConfig | null | undefined
+) =>
+  DEPT_KEYS.every((dept) => {
+    const uno = readDeptConfig(a, dept);
+    const otro = readDeptConfig(b, dept);
+
+    return uno.scope === otro.scope && uno.turns === otro.turns;
+  });
+
+/**
+ * De más antiguo a más nuevo. Comparación de cadenas a pelo y no
+ * `localeCompare`: 'YYYY/MM' ya se ordena solo, y es como compara fechas el
+ * resto de la aplicación (`week.weekOf >= today`). Sin mes va primero, que es
+ * el tramo de siempre.
+ */
+const porMes = (a: DeptConfigTramo, b: DeptConfigTramo) => {
+  const uno = a.desde ?? '';
+  const otro = b.desde ?? '';
+
+  if (uno === otro) return 0;
+
+  return uno < otro ? -1 : 1;
+};
+
+/**
+ * Los tramos guardados, normalizados y en orden.
+ *
+ * Devuelve una lista VACÍA cuando no hay línea del tiempo: eso significa «una
+ * sola configuración para todo», que es como ha funcionado siempre.
+ */
+export const deptConfigTramos = (
+  stored: DepartmentsConfigStored | null | undefined
+): DeptConfigTramo[] => {
+  const guardados = stored?.__tramos;
+
+  if (!Array.isArray(guardados) || guardados.length === 0) return [];
+
+  const tramos = guardados
+    .filter((tramo) => tramo && typeof tramo === 'object')
+    .map((tramo) => {
+      const desde = monthOfDate(tramo.desde ?? '');
+      const config = soloDepartamentos(tramo.config);
+
+      // Sin mes válido es el tramo de siempre. La clave se OMITE en vez de
+      // ponerla a `undefined`: esto se cifra pasando por `JSON.stringify`, y
+      // ahí un `undefined` desaparece de todas formas.
+      return desde ? { desde, config } : { config };
+    });
+
+  // Por si llegan desordenados de otro dispositivo. El que no tiene mes es el
+  // de siempre y va primero.
+  return tramos.sort(porMes);
+};
+
+const configDelMes = (
+  stored: DepartmentsConfigStored | null | undefined,
+  mesOFecha: string
+): DepartmentsConfig => {
+  const tramos = deptConfigTramos(stored);
+
+  // Sin línea del tiempo hay una sola configuración y vale para todo.
+  if (tramos.length === 0) return soloDepartamentos(stored);
+
+  const mes = monthOfDate(mesOFecha);
+
+  // Sin mes no hay nada que decidir: la última, que es además la que está
+  // copiada arriba del todo y la que leen las versiones antiguas.
+  if (!mes) return soloDepartamentos(stored);
+
+  let elegido = tramos[0];
+
+  for (const tramo of tramos) {
+    if (tramo.desde && tramo.desde > mes) break;
+
+    elegido = tramo;
+  }
+
+  return elegido.config;
+};
+
+/**
+ * Cómo estaban organizados los departamentos en la semana que sea.
+ *
+ * Es POR EL LUNES de la semana, igual que la publicación por meses
+ * (`departments_publish`): si publicas septiembre se marca justo lo que ves
+ * bajo septiembre, y con esto se lee justo con la configuración de septiembre.
+ *
+ * Todo lo que pinte, exporte, autocomplete o avise de un puesto tiene que
+ * pasar por aquí antes de llamar a `buildDeptSlots` y compañía.
+ */
+export const deptConfigForWeek = (
+  stored: DepartmentsConfigStored | null | undefined,
+  weekOf: string
+) => configDelMes(stored, weekOf);
+
+/** Lo mismo, cuando lo que se tiene es el mes ('YYYY/MM'). */
+export const deptConfigForMonth = (
+  stored: DepartmentsConfigStored | null | undefined,
+  month: string
+) => configDelMes(stored, month);
+
+/**
+ * Deja escrito que a partir de `month` la configuración es esta otra.
+ *
+ * No muta lo que recibe y no toca los meses anteriores: eso es justo lo que se
+ * viene a arreglar. Devuelve lo que hay que guardar.
+ *
+ * Dos cosas que hace de más, y que valen la pena:
+ *
+ * · Un tramo que dice lo mismo que el anterior SOBRA, así que se quita. Con
+ *   eso, volver a dejar un mes como estaba deshace el cambio de verdad en vez
+ *   de acumular tramos vacíos, y no hace falta ningún botón de «quitar tramo».
+ * · Si al final queda una sola configuración sin fecha, se guarda con la forma
+ *   de siempre, sin `__tramos`. Una congregación que nunca use esto no llega a
+ *   tener línea del tiempo.
+ */
+export const deptConfigSetForMonth = (
+  stored: DepartmentsConfigStored | null | undefined,
+  month: string,
+  config: DepartmentsConfig
+): DepartmentsConfigStored => {
+  const mes = monthOfDate(month);
+  const nueva = soloDepartamentos(config);
+
+  const actuales = deptConfigTramos(stored);
+
+  // Lo que había hasta ahora se convierte en el tramo de siempre: sin esto,
+  // poner una configuración «desde octubre» reescribiría también el pasado.
+  const base: DeptConfigTramo[] =
+    actuales.length > 0 ? actuales : [{ config: soloDepartamentos(stored) }];
+
+  const tramos = [
+    ...base.filter((tramo) => (tramo.desde ?? '') !== mes),
+    mes ? { desde: mes, config: nueva } : { config: nueva },
+  ].sort(porMes);
+
+  const podados = tramos.filter(
+    (tramo, i) =>
+      i === 0 || !deptConfigIguales(tramos[i - 1].config, tramo.config)
+  );
+
+  const ultimo = podados[podados.length - 1];
+
+  const resultado: DepartmentsConfigStored = { ...ultimo.config };
+
+  if (podados.length > 1 || podados[0].desde) {
+    resultado.__tramos = podados;
+  }
+
+  return resultado;
 };
 
 /**

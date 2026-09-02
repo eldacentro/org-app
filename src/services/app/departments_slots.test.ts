@@ -4,6 +4,13 @@ import {
   buildDeptSlots,
   buildDeptSlotGroups,
   DEFAULT_DEPT_CONFIG,
+  deptConfigForMonth,
+  deptConfigForWeek,
+  deptConfigIguales,
+  deptConfigSetForMonth,
+  deptConfigTramos,
+  DepartmentsConfig,
+  DepartmentsConfigStored,
   DEPT_LABEL,
   deptSlotKey,
   deptSlotsForMeeting,
@@ -236,7 +243,10 @@ describe('buildDeptSlotGroups — los puestos, agrupados para pintarlos', () => 
     expect(grupos).toHaveLength(1);
     expect(grupos[0].titulo).toBeNull();
     // Y las etiquetas se quedan como están: no hay sufijo que quitar.
-    expect(grupos[0].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
+    expect(grupos[0].slots.map((s) => s.label)).toEqual([
+      'Exterior',
+      'Interior',
+    ]);
   });
 
   it('por reunión: dos grupos, y la etiqueta del campo pierde el sufijo', () => {
@@ -252,8 +262,14 @@ describe('buildDeptSlotGroups — los puestos, agrupados para pintarlos', () => 
     ]);
     // Lo que se ve en el campo es el puesto y nada más — la reunión la dice el
     // rótulo de arriba.
-    expect(grupos[0].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
-    expect(grupos[1].slots.map((s) => s.label)).toEqual(['Exterior', 'Interior']);
+    expect(grupos[0].slots.map((s) => s.label)).toEqual([
+      'Exterior',
+      'Interior',
+    ]);
+    expect(grupos[1].slots.map((s) => s.label)).toEqual([
+      'Exterior',
+      'Interior',
+    ]);
   });
 
   it('las CLAVES no cambian: son las que guardan la asignación', () => {
@@ -273,5 +289,269 @@ describe('buildDeptSlotGroups — los puestos, agrupados para pintarlos', () => 
     expect(buildDeptSlots(config, 'acomodadores')[0].label).toBe(
       'Exterior · Entre semana'
     );
+  });
+});
+
+/**
+ * La configuración, mes a mes.
+ *
+ * El fallo que esto arregla: se cambiaba en septiembre para que rigiera en
+ * octubre y el cambio se llevaba por delante septiembre y todo lo anterior —
+ * con las asignaciones ya hechas guardadas bajo las claves de entonces, que
+ * dejaban de encontrarse y parecían borradas.
+ */
+describe('la línea del tiempo (tramos)', () => {
+  const PorReunion = { scope: 'meeting' as const, turns: 1 };
+
+  /**
+   * Leer lo guardado SIN pasar por los tramos, que es lo que hace una versión
+   * antigua de la aplicación. El tipo lo prohíbe a propósito (por eso el
+   * casting): aquí se hace justo para comprobar que esa versión sigue leyendo
+   * algo con sentido.
+   */
+  const comoUnaVersionAntigua = (guardado: DepartmentsConfigStored) =>
+    guardado as DepartmentsConfig;
+
+  describe('sin tramos, todo sigue exactamente como estaba', () => {
+    it('la configuración de siempre vale para cualquier semana', () => {
+      const guardado = { microfonos: PorReunion };
+
+      for (const semana of ['2020/01/06', '2026/09/07', '2030/12/30']) {
+        expect(
+          buildDeptSlots(deptConfigForWeek(guardado, semana), 'microfonos').map(
+            (s) => s.key
+          )
+        ).toEqual([
+          'micro1__midweek',
+          'micro2__midweek',
+          'micro1__weekend',
+          'micro2__weekend',
+        ]);
+      }
+    });
+
+    it('sin nada guardado, los puestos de siempre', () => {
+      expect(
+        buildDeptSlots(deptConfigForWeek(null, '2026/09/07'), 'microfonos').map(
+          (s) => s.key
+        )
+      ).toEqual(['micro1', 'micro2']);
+    });
+
+    it('y no se inventa una línea del tiempo donde no la hay', () => {
+      expect(deptConfigTramos({ microfonos: PorReunion })).toEqual([]);
+    });
+  });
+
+  describe('cambiar a partir de un mes', () => {
+    const guardado = deptConfigSetForMonth({}, '2026/10', {
+      microfonos: PorReunion,
+    });
+
+    it('septiembre conserva SUS claves: es lo que hace que no se pierda nada', () => {
+      expect(
+        buildDeptSlots(
+          deptConfigForWeek(guardado, '2026/09/28'),
+          'microfonos'
+        ).map((s) => s.key)
+      ).toEqual(['micro1', 'micro2']);
+    });
+
+    it('octubre ya va por reunión', () => {
+      expect(
+        buildDeptSlots(
+          deptConfigForWeek(guardado, '2026/10/05'),
+          'microfonos'
+        ).map((s) => s.key)
+      ).toEqual([
+        'micro1__midweek',
+        'micro2__midweek',
+        'micro1__weekend',
+        'micro2__weekend',
+      ]);
+    });
+
+    it('y noviembre también: rige desde ese mes EN ADELANTE', () => {
+      expect(
+        readDeptConfig(deptConfigForWeek(guardado, '2027/03/01'), 'microfonos')
+          .scope
+      ).toBe('meeting');
+    });
+
+    it('la semana cuenta por su LUNES, igual que la publicación por meses', () => {
+      // El lunes 28 de septiembre lleva dentro el 1 de octubre, y aun así es
+      // una semana de septiembre: es como la agrupa el selector y como se
+      // publica el mes.
+      expect(
+        readDeptConfig(deptConfigForWeek(guardado, '2026/09/28'), 'microfonos')
+          .scope
+      ).toBe('week');
+    });
+  });
+
+  describe('lo que leen las versiones antiguas de la aplicación', () => {
+    it('arriba del todo queda la configuración del último tramo, con la forma de siempre', () => {
+      const guardado = deptConfigSetForMonth({}, '2026/10', {
+        microfonos: PorReunion,
+      });
+
+      // Una versión sin tramos lee esto tal cual y se comporta como ayer, en
+      // vez de encontrarse una forma que no entiende y quedarse con los
+      // puestos por defecto (que es como dejan de encontrarse los programas).
+      expect(
+        readDeptConfig(comoUnaVersionAntigua(guardado), 'microfonos').scope
+      ).toBe('meeting');
+    });
+
+    it('sin línea del tiempo no se guarda ninguna: la forma no cambia hasta que hace falta', () => {
+      const guardado = deptConfigSetForMonth({}, '', {
+        microfonos: PorReunion,
+      });
+
+      expect(guardado.__tramos).toBeUndefined();
+      expect(
+        readDeptConfig(comoUnaVersionAntigua(guardado), 'microfonos').scope
+      ).toBe('meeting');
+    });
+  });
+
+  describe('deshacer', () => {
+    it('dejar un mes como estaba quita el tramo, no acumula basura', () => {
+      const conTramo = deptConfigSetForMonth({}, '2026/10', {
+        microfonos: PorReunion,
+      });
+
+      expect(conTramo.__tramos).toHaveLength(2);
+
+      const deshecho = deptConfigSetForMonth(conTramo, '2026/10', {
+        microfonos: { scope: 'week', turns: 1 },
+      });
+
+      expect(deshecho.__tramos).toBeUndefined();
+      expect(
+        readDeptConfig(comoUnaVersionAntigua(deshecho), 'microfonos').scope
+      ).toBe('week');
+    });
+
+    it('«sin configurar» y «por semana, un turno» son lo mismo', () => {
+      expect(
+        deptConfigIguales({}, { microfonos: { scope: 'week', turns: 1 } })
+      ).toBe(true);
+      expect(deptConfigIguales({}, { microfonos: PorReunion })).toBe(false);
+    });
+  });
+
+  describe('varios tramos', () => {
+    let guardado: DepartmentsConfigStored = deptConfigSetForMonth(
+      {},
+      '2026/10',
+      {
+        microfonos: PorReunion,
+      }
+    );
+
+    guardado = deptConfigSetForMonth(guardado, '2027/01', {
+      microfonos: { scope: 'week', turns: 2 },
+    });
+
+    it('cada mes con el suyo', () => {
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2026/09'), 'microfonos')
+      ).toEqual({
+        scope: 'week',
+        turns: 1,
+      });
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2026/11'), 'microfonos')
+      ).toEqual({
+        scope: 'meeting',
+        turns: 1,
+      });
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2027/02'), 'microfonos')
+      ).toEqual({
+        scope: 'week',
+        turns: 2,
+      });
+    });
+
+    it('tocar un tramo de en medio no cambia los de después', () => {
+      const tocado = deptConfigSetForMonth(guardado, '2026/10', {
+        multimedia: PorReunion,
+      });
+
+      expect(
+        readDeptConfig(deptConfigForMonth(tocado, '2027/02'), 'microfonos')
+          .turns
+      ).toBe(2);
+      expect(
+        readDeptConfig(deptConfigForMonth(tocado, '2026/11'), 'multimedia')
+          .scope
+      ).toBe('meeting');
+    });
+  });
+
+  describe('lo que llega de otro dispositivo puede venir raro', () => {
+    it('desordenado se pone en orden, y el que no tiene mes es el de siempre', () => {
+      const guardado = {
+        __tramos: [
+          { desde: '2026/10', config: { microfonos: PorReunion } },
+          { config: {} },
+        ],
+      } as DepartmentsConfigStored;
+
+      expect(deptConfigTramos(guardado).map((t) => t.desde)).toEqual([
+        undefined,
+        '2026/10',
+      ]);
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2026/09'), 'microfonos')
+          .scope
+      ).toBe('week');
+    });
+
+    it('una fecha imposible se trata como el tramo de siempre', () => {
+      const guardado = {
+        __tramos: [{ desde: 'ayer', config: { microfonos: PorReunion } }],
+      } as unknown as DepartmentsConfigStored;
+
+      expect(deptConfigTramos(guardado)[0].desde).toBeUndefined();
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2020/01'), 'microfonos')
+          .scope
+      ).toBe('meeting');
+    });
+
+    it('sin semana ni mes se contesta con la última, que es la de arriba', () => {
+      const guardado = deptConfigSetForMonth({}, '2026/10', {
+        microfonos: PorReunion,
+      });
+
+      expect(
+        readDeptConfig(deptConfigForWeek(guardado, ''), 'microfonos').scope
+      ).toBe('meeting');
+    });
+
+    it('un mes anterior al primer tramo con fecha usa el más antiguo que haya', () => {
+      const guardado = {
+        __tramos: [{ desde: '2026/10', config: { microfonos: PorReunion } }],
+      } as DepartmentsConfigStored;
+
+      expect(
+        readDeptConfig(deptConfigForMonth(guardado, '2025/01'), 'microfonos')
+          .scope
+      ).toBe('meeting');
+    });
+  });
+
+  it('no muta lo que recibe', () => {
+    const guardado = { microfonos: PorReunion };
+    const antes = JSON.stringify(guardado);
+
+    deptConfigSetForMonth(guardado, '2026/10', {
+      microfonos: { scope: 'week', turns: 1 },
+    });
+
+    expect(JSON.stringify(guardado)).toBe(antes);
   });
 });

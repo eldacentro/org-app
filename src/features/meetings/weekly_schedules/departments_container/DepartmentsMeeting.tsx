@@ -20,7 +20,10 @@ import {
 import { personGetDisplayName } from '@utils/common';
 import { DeptWeekType } from '@definition/departments_schedule';
 import { DepartmentType, PersonType } from '@definition/person';
-import { buildDeptSlotGroups } from '@services/app/departments_slots';
+import {
+  buildDeptSlotGroups,
+  deptConfigForWeek,
+} from '@services/app/departments_slots';
 import MeetingSection from '@features/meetings/meeting_section';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import { useCurrentUser } from '@hooks/index';
@@ -102,10 +105,25 @@ const DEPARTMENTS: {
   },
 ];
 
-const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
+const DepartmentsMeeting = ({
+  schedule,
+  week,
+}: {
+  schedule?: DeptWeekType;
+  /**
+   * La semana que se está mirando. Hace falta aparte del programa porque una
+   * semana sin nada guardado también se pinta (para quien edita), y sin ella
+   * no se sabría con qué configuración leerla.
+   */
+  week: string;
+}) => {
   const { t } = useAppTranslation();
 
   const departmentsConfig = useAtomValue(departmentsConfigState);
+
+  // Los puestos, con la configuración que regía el mes de esta semana. Ver
+  // `deptConfigForWeek`: cambiarla en octubre no reescribe septiembre.
+  const configSemana = deptConfigForWeek(departmentsConfig, week);
 
   // Quien lleva los departamentos tiene que poder ver SU borrador. Antes esto
   // preguntaba por el comité de servicio, que no es lo mismo: el responsable
@@ -178,7 +196,7 @@ const DepartmentsMeeting = ({ schedule }: { schedule?: DeptWeekType }) => {
               el editor: antes cada campo repetía el sufijo al final de su
               propia etiqueta ("Micro 1 · Entre semana") y había que leerse los
               seis para saber cuál era cuál. */}
-          {buildDeptSlotGroups(departmentsConfig, dept).map((grupo) => (
+          {buildDeptSlotGroups(configSemana, dept).map((grupo) => (
             <Box
               key={grupo.titulo ?? 'unico'}
               sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}

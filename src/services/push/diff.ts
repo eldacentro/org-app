@@ -4,6 +4,7 @@ import { departmentsConfigState } from '@states/settings';
 import { isDeptWeekPublished } from '@services/app/departments_publish';
 import {
   buildDeptSlots,
+  deptConfigForWeek,
   DEPT_LABEL,
 } from '@services/app/departments_slots';
 import { ALL_DEPARTMENT_TYPES } from '@definition/person';
@@ -263,7 +264,10 @@ const computeNewAssignments = async (): Promise<NewAssignment[]> => {
         // Los puestos salen de la configuración del departamento, no de una
         // lista escrita a mano: así el aviso dice "Acomodadores (Exterior ·
         // Entre semana)" y no la clave interna con sus sufijos.
-        for (const slot of buildDeptSlots(departmentsConfig, dept)) {
+        for (const slot of buildDeptSlots(
+          deptConfigForWeek(departmentsConfig, week.weekOf),
+          dept
+        )) {
           if (deptData[slot.key]?.value !== userUID) continue;
 
           mark(

@@ -53,6 +53,7 @@ import {
   meetingPublishKeyOfAssignment,
 } from '@services/app/meetings_publish';
 import {
+  deptConfigForWeek,
   DEPT_LABEL,
   deptSlotsForMeeting,
 } from '@services/app/departments_slots';
@@ -211,6 +212,12 @@ const useMyAssignments = () => {
           // que aquí no hay que saber nada de claves ni de sufijos.
           const schedule = schedules.find((s) => s.weekOf === weekDate);
 
+          // Con la configuración que regía ESE mes: si en octubre se pasan los
+          // micrófonos a «por reunión», lo que se asignó en septiembre se
+          // sigue leyendo con las claves de septiembre y no desaparece de las
+          // asignaciones del hermano.
+          const configSemana = deptConfigForWeek(departmentsConfig, weekDate);
+
           const meetingDays: Array<'midweek' | 'weekend'> = [
             'midweek',
             'weekend',
@@ -239,11 +246,7 @@ const useMyAssignments = () => {
             if (actualDate < currentDayStr) continue;
 
             for (const dept of ALL_DEPARTMENT_TYPES) {
-              const slots = deptSlotsForMeeting(
-                departmentsConfig,
-                dept,
-                meeting
-              );
+              const slots = deptSlotsForMeeting(configSemana, dept, meeting);
 
               const mySlots = slots.filter(
                 (slot) => week[dept]?.[slot.key]?.value === uid

@@ -6,8 +6,9 @@ import { ACTIVITY_LABELS } from '@services/app/circuit_visit';
 import { toComparableDate } from '@utils/date';
 import {
   buildAllDeptSlots,
+  deptConfigForWeek,
   DEPT_LABEL,
-  DepartmentsConfig,
+  DepartmentsConfigStored,
 } from '@services/app/departments_slots';
 
 /**
@@ -61,7 +62,7 @@ export const CATEGORY_LABELS: Record<ActivityCategory, string> = {
 export const buildDepartmentActivity = (
   weeks: DeptWeekType[],
   uid: string,
-  config?: DepartmentsConfig | null
+  config?: DepartmentsConfigStored | null
 ): ActivityItem[] => {
   const items: ActivityItem[] = [];
 
@@ -70,8 +71,12 @@ export const buildDepartmentActivity = (
     if (!date) continue;
 
     // Los puestos salen de la configuración de cada departamento (por semana
-    // o por reunión, con uno o dos turnos), no de una lista escrita a mano.
-    for (const slot of buildAllDeptSlots(config)) {
+    // o por reunión, con uno o dos turnos), no de una lista escrita a mano. Y
+    // de la que regía el mes de esa semana: esto mira hacia atrás, y la
+    // configuración cambia a partir de un mes.
+    for (const slot of buildAllDeptSlots(
+      deptConfigForWeek(config, week.weekOf)
+    )) {
       if (week[slot.dept]?.[slot.key]?.value !== uid) continue;
 
       items.push({

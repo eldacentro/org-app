@@ -66,7 +66,13 @@ export const countryCodeState = atom((get) => {
 
 /**
  * Cómo está organizado cada departamento (por semana o por reunión, y cuántos
- * turnos). Sin configurar, lo de siempre. Ver `services/app/departments_slots`.
+ * turnos). Sin configurar, lo de siempre.
+ *
+ * OJO: esto es lo GUARDADO, con su línea del tiempo dentro, no la
+ * configuración de una semana concreta. Antes de pintar, exportar o avisar de
+ * un puesto hay que pasarlo por `deptConfigForWeek(config, weekOf)`: cada mes
+ * se lee con la configuración que regía ese mes. El tipo no deja saltárselo.
+ * Ver `services/app/departments_slots`.
  */
 export const departmentsConfigState = atom((get) => {
   const settings = get(settingsState);

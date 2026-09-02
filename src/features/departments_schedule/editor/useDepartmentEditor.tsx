@@ -28,7 +28,10 @@ import { personGetDisplayName } from '@utils/common';
 import { useAppTranslation } from '@hooks/index';
 import { monthNamesState } from '@states/app';
 import { buildWeekRangeLabel } from '@services/app/week_range';
-import { readDeptConfig } from '@services/app/departments_slots';
+import {
+  deptConfigForWeek,
+  readDeptConfig,
+} from '@services/app/departments_slots';
 
 const useDepartmentEditor = () => {
   const [selectedWeek, setSelectedWeek] = useAtom(selectedDeptWeekState);
@@ -57,6 +60,14 @@ const useDepartmentEditor = () => {
   const schedule = useMemo(() => {
     return schedules.find((record) => record?.weekOf === selectedWeek);
   }, [schedules, selectedWeek]);
+
+  // La configuración con la que se lee y se escribe ESTA semana. La guardada
+  // lleva la línea del tiempo dentro (rige desde un mes), así que nunca se usa
+  // en crudo: ver `deptConfigForWeek`.
+  const deptConfig = useMemo(
+    () => deptConfigForWeek(departmentsConfig, selectedWeek),
+    [departmentsConfig, selectedWeek]
+  );
 
   const isNoMeetingWeek = useMemo(() => {
     if (!selectedWeek) return false;
@@ -161,7 +172,7 @@ const useDepartmentEditor = () => {
     if (!selectedWeek) return '';
 
     const anyByMeeting = ALL_DEPARTMENT_TYPES.some(
-      (dept) => readDeptConfig(departmentsConfig, dept).scope === 'meeting'
+      (dept) => readDeptConfig(deptConfig, dept).scope === 'meeting'
     );
 
     if (!anyByMeeting) return '';
@@ -181,14 +192,14 @@ const useDepartmentEditor = () => {
     if (!midweek.locale || !weekend.locale) return '';
 
     return `Entre semana: ${midweek.locale} · Fin de semana: ${weekend.locale}`;
-  }, [selectedWeek, dataView, departmentsConfig]);
+  }, [selectedWeek, dataView, deptConfig]);
 
   return {
     weekList,
     handleSelectWeek,
     selectedWeek,
     schedule,
-    departmentsConfig,
+    deptConfig,
     handleSaveAssignment,
     clearAll,
     handleOpenClearAll,
