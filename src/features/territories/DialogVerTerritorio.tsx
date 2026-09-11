@@ -9,6 +9,8 @@ import {
   type ReactElement,
   type ReactNode,
   type Ref,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useConfirm } from '@components/confirm_dialog';
 import {
@@ -110,6 +112,32 @@ const Transition = forwardRef(function Transition(
 // Box con onClick (invisible para lectores de pantalla y sin soporte de
 // teclado); ahora son botones reales con este reset para conservar el
 // aspecto visual exacto.
+/** Un gesto de arrastre de la hoja, de principio a fin. */
+type GestoHoja = {
+  id: number;
+  y0: number;
+  yPrevia: number;
+  tPrevio: number;
+  /** px/ms del último tramo: decide si fue un deslizar rápido. */
+  velocidad: number;
+  arrastrando: boolean;
+  /** Si estaba escondida AL EMPEZAR: el gesto no depende de lo que cambie
+   *  mientras el dedo sigue encima. */
+  plegada: boolean;
+  /** Cuánto puede bajar la hoja hasta dejar solo lo que asoma. */
+  recorrido: number;
+};
+
+/** Lo que se mueve el dedo antes de dejar de ser un toque. */
+const UMBRAL_ARRASTRE = 6;
+
+/** Fuera de su recorrido la hoja cede poco y nunca más de 24px. */
+const goma = (d: number) => Math.sign(d) * Math.min(24, Math.abs(d) / 4);
+
+const TRANSICION_ALTURA_HOJA =
+  'height var(--motion-medium) var(--ease-standard)';
+const TRANSICION_HOJA = `${TRANSICION_ALTURA_HOJA}, transform var(--motion-medium) var(--ease-standard)`;
+
 const buttonReset = {
   appearance: 'none',
   border: 'none',
@@ -841,6 +869,36 @@ const DialogVerTerritorio = ({
   );
   const [minAlturaHoja, setMinAlturaHoja] = useState(0);
 
+  // ── Esconder la hoja ─────────────────────────────────────────────────────
+  // Tenía el asa de siempre, la que en cualquier app dice "esto se arrastra",
+  // pero no se movía: para ver el mapa entero no había más remedio que
+  // cerrar el territorio. Ahora se baja con el dedo y se queda asomando lo
+  // justo —el asa y el nombre— para volver a subirla.
+  const [hojaPlegada, setHojaPlegada] = useState(false);
+  // Lo que queda a la vista con la hoja escondida: el asa y la identidad.
+  const [asomaEl, setAsomaEl] = useState<HTMLDivElement | null>(null);
+  const [alturaAsoma, setAlturaAsoma] = useState(0);
+  const hojaRef = useRef<HTMLDivElement | null>(null);
+  // Para soltar las escuchas de la ventana de un gesto a medias.
+  const quitarEscuchasHojaRef = useRef<(() => void) | null>(null);
+  // Tras arrastrar, el navegador aún puede mandar un clic al soltar, y ese
+  // clic volvería a abrir la hoja que se acaba de esconder.
+  const tragarClicRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!asomaEl) return;
+    const medir = () => setAlturaAsoma(asomaEl.offsetHeight);
+    medir();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observador = new ResizeObserver(medir);
+    observador.observe(asomaEl);
+    return () => observador.disconnect();
+  }, [asomaEl]);
+
+  // Si la vista se cierra con el dedo todavía encima, que no quede nada
+  // escuchando a la ventana.
+  useEffect(() => () => quitarEscuchasHojaRef.current?.(), []);
+
   useLayoutEffect(() => {
     if (!cabeceraEl) return;
 
@@ -937,6 +995,9 @@ const DialogVerTerritorio = ({
           ? 1
           : 0;
     setTab(defaultTab);
+    // Escondida era una forma de mirar ESE territorio; el siguiente se abre
+    // con su ficha a la vista, como siempre.
+    setHojaPlegada(false);
   }, [territory?.id]);
 
   // Móvil tiene 3 pestañas y escritorio 2. Al girar el móvil o ensanchar la
@@ -1256,6 +1317,122 @@ const DialogVerTerritorio = ({
         )
       : 0;
 
+  // ── El gesto de la hoja ────────────────────────────────────────────────
+  // Escondida, se desplaza hacia abajo todo menos lo que asoma (y el margen
+  // del indicador de inicio del iPhone, para que el nombre no quede debajo).
+  // Con `translateY` y un porcentaje, que se refiere al alto de la PROPIA
+  // hoja: no hace falta saber cuánto mide en cada pestaña.
+  //
+  // No se toca `bottomInset` del mapa: al esconder la hoja el mapa se queda
+  // donde el hermano lo dejó y solo se descubre lo que había debajo. Si se
+  // reencuadrara, quien se había acercado a una calle saldría despedido otra
+  // vez al territorio entero.
+  const baseHoja = (plegada: boolean) =>
+    plegada
+      ? `calc(100% - ${Math.max(alturaAsoma, 56)}px - env(safe-area-inset-bottom, 0px))`
+      : '0px';
+
+  // Moverse y soltar se escuchan en la VENTANA, no en la cabecera. El dedo
+  // sale de la cabecera enseguida —baja por encima de los botones—, y un
+  // `pointermove` que ocurre fuera de ella no pasa por ella. En un móvil el
+  // navegador suele retener el toque en el elemento donde empezó, así que
+  // funcionaba; con ratón o trackpad no, y la hoja se quedaba quieta mientras
+  // debajo se seleccionaba el texto.
+  const alPulsarHoja = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    quitarEscuchasHojaRef.current?.();
+    tragarClicRef.current = false;
+
+    const g: GestoHoja = {
+      id: e.pointerId,
+      y0: e.clientY,
+      yPrevia: e.clientY,
+      tPrevio: e.timeStamp,
+      velocidad: 0,
+      arrastrando: false,
+      plegada: hojaPlegada,
+      recorrido: Math.max(
+        0,
+        (hojaRef.current?.offsetHeight ?? 0) - alturaAsoma
+      ),
+    };
+    const base = baseHoja(g.plegada);
+    const escuchas = new AbortController();
+    const quitar = () => {
+      escuchas.abort();
+      quitarEscuchasHojaRef.current = null;
+    };
+
+    const mover = (ev: PointerEvent) => {
+      const hoja = hojaRef.current;
+      if (!hoja || ev.pointerId !== g.id) return;
+
+      const dy = ev.clientY - g.y0;
+      if (!g.arrastrando) {
+        // Hasta aquí es un toque: las pestañas y el asa tienen que seguir
+        // respondiendo. Solo al pasar el umbral se queda la hoja con el dedo.
+        if (Math.abs(dy) < UMBRAL_ARRASTRE) return;
+        g.arrastrando = true;
+        // Pegada al dedo, sin animación que la haga ir por detrás.
+        hoja.style.transition = TRANSICION_ALTURA_HOJA;
+      }
+
+      const dt = ev.timeStamp - g.tPrevio;
+      if (dt > 0) g.velocidad = (ev.clientY - g.yPrevia) / dt;
+      g.yPrevia = ev.clientY;
+      g.tPrevio = ev.timeStamp;
+
+      // Dentro de su recorrido va con el dedo; fuera, cede poco, como una goma.
+      const d = g.plegada
+        ? dy <= 0
+          ? Math.max(dy, -g.recorrido)
+          : goma(dy)
+        : dy >= 0
+          ? dy
+          : goma(dy);
+
+      // Directo en el elemento y no con estado: cada `setState` redibujaría la
+      // vista entera, mapa incluido, sesenta veces por segundo.
+      hoja.style.transform = `translateY(calc(${base} + ${d}px))`;
+    };
+
+    const soltar = (ev: PointerEvent) => {
+      if (ev.pointerId !== g.id) return;
+      quitar();
+      if (!g.arrastrando) return;
+
+      tragarClicRef.current = true;
+
+      // Se devuelven los estilos de siempre y, en el MISMO evento, se cambia
+      // el estado: React pinta la clase nueva antes de que el navegador
+      // recalcule, así que la hoja anima desde donde la soltó el dedo hasta
+      // su sitio.
+      const hoja = hojaRef.current;
+      if (hoja) {
+        hoja.style.transition = '';
+        hoja.style.transform = '';
+      }
+      if (ev.type === 'pointercancel') return;
+
+      const dy = ev.clientY - g.y0;
+      // Si se paró antes de soltar, no cuenta como deslizar rápido.
+      const velocidad = ev.timeStamp - g.tPrevio > 100 ? 0 : g.velocidad;
+
+      if (!g.plegada && (dy > 72 || (velocidad > 0.45 && dy > 16))) {
+        setHojaPlegada(true);
+      } else if (g.plegada && (dy < -48 || (velocidad < -0.45 && dy < -16))) {
+        setHojaPlegada(false);
+      }
+    };
+
+    window.addEventListener('pointermove', mover, { signal: escuchas.signal });
+    window.addEventListener('pointerup', soltar, { signal: escuchas.signal });
+    window.addEventListener('pointercancel', soltar, {
+      signal: escuchas.signal,
+    });
+    quitarEscuchasHojaRef.current = quitar;
+  };
+
   // ── LAYOUT MÓVIL ───────────────────────────────────────────────────────────
   const mobileContent = (
     <Box
@@ -1334,6 +1511,7 @@ const DialogVerTerritorio = ({
 
       {/* BOTTOM SHEET flotante */}
       <Box
+        ref={hojaRef}
         sx={{
           position: 'absolute',
           bottom: 0,
@@ -1343,10 +1521,11 @@ const DialogVerTerritorio = ({
           minHeight: minAlturaHoja ? `${minAlturaHoja}px` : undefined,
           maxHeight: '92%',
           zIndex: 100,
+          transform: `translateY(${baseHoja(hojaPlegada)})`,
           // 380ms, más que `--motion-medium`, a propósito: una hoja que ocupa media
           // pantalla necesita más recorrido que un color de fondo. La CURVA sí es
           // la del sistema.
-          transition: 'height var(--motion-medium) var(--ease-standard)',
+          transition: TRANSICION_HOJA,
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'var(--white)',
@@ -1369,107 +1548,161 @@ const DialogVerTerritorio = ({
         {/* Cabecera (asa + identidad + pestañas) en un solo bloque: es lo
             que se mide para que la hoja nunca sea más baja que su propio
             contenido fijo. */}
-        <Box ref={setCabeceraEl} sx={{ flexShrink: 0 }}>
-          {/* Drag handle pill */}
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              pt: '10px',
-              pb: '6px',
-            }}
-          >
+        {/* Toda la cabecera se arrastra, no solo el asa: 40×4 píxeles son un
+            blanco imposible para el pulgar, y quien quiere bajar la hoja pone
+            el dedo encima de lo primero que ve, que es el nombre.
+            `touch-action: none` para que el navegador no se quede el gesto
+            para hacer scroll o recargar la página. */}
+        <Box
+          ref={setCabeceraEl}
+          onPointerDown={alPulsarHoja}
+          onClickCapture={(e) => {
+            if (!tragarClicRef.current) return;
+            tragarClicRef.current = false;
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          // Escondida, lo que asoma se toca para volver a subirla.
+          onClick={() => {
+            if (hojaPlegada) setHojaPlegada(false);
+          }}
+          sx={{
+            flexShrink: 0,
+            touchAction: 'none',
+            // Arrastrar con el ratón seleccionaba el nombre y las etiquetas;
+            // y en el móvil, dejar el dedo quieto un momento abría la lupa.
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            cursor: hojaPlegada ? 'pointer' : undefined,
+          }}
+        >
+          <Box ref={setAsomaEl}>
+            {/* El asa es un botón: tocarla sube o baja la hoja (como en las
+              hojas de iOS), y es la única forma de hacerlo con el teclado o
+              con un lector de pantalla, que no pueden arrastrar. */}
             <Box
-              sx={{
-                width: 40,
-                height: 4,
-                borderRadius: 'var(--shape-full)',
-                backgroundColor: 'var(--line)',
+              component="button"
+              type="button"
+              aria-label={
+                hojaPlegada
+                  ? 'Mostrar la ficha del territorio'
+                  : 'Esconder la ficha para ver el mapa'
+              }
+              aria-expanded={!hojaPlegada}
+              onClick={(e: ReactMouseEvent) => {
+                e.stopPropagation();
+                setHojaPlegada((v) => !v);
               }}
-            />
-          </Box>
-
-          {/* IDENTITY BLOCK */}
-          <Box sx={{ flexShrink: 0, px: 3, pb: '12px' }}>
-            <Stack
-              direction="row"
-              alignItems="flex-start"
-              justifyContent="space-between"
+              sx={{
+                ...buttonReset,
+                width: '100%',
+                flexShrink: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                pt: '10px',
+                pb: '6px',
+                cursor: 'grab',
+                '&:active': { cursor: 'grabbing' },
+                '&:focus-visible': {
+                  outline: '2px solid var(--accent-main)',
+                  outlineOffset: '-2px',
+                },
+              }}
             >
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                {/* Número del territorio */}
-                {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
+              <Box
+                sx={{
+                  width: 40,
+                  height: 4,
+                  borderRadius: 'var(--shape-full)',
+                  backgroundColor: 'var(--line)',
+                }}
+              />
+            </Box>
+
+            {/* IDENTITY BLOCK */}
+            <Box sx={{ flexShrink: 0, px: 3, pb: '12px' }}>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                justifyContent="space-between"
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  {/* Número del territorio */}
+                  {/* Era 28px a peso 800 con −0,8px de espaciado: un tamaño
                   y un peso que no existen en la escala de la app. `h1` es
                   el equivalente que sí está. */}
-                <Typography
-                  className="h1"
-                  color="var(--ink)"
-                  sx={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    mb: '6px',
-                  }}
-                >
-                  {label}
-                </Typography>
+                  <Typography
+                    className="h1"
+                    color="var(--ink)"
+                    sx={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      mb: '6px',
+                    }}
+                  >
+                    {label}
+                  </Typography>
 
-                {/* Zona + estado */}
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  flexWrap="wrap"
-                  gap={0.75}
-                >
-                  <Stack direction="row" alignItems="center" spacing={'5px'}>
-                    <Box
-                      sx={{
-                        width: 9,
-                        height: 9,
-                        borderRadius: 'var(--shape-full)',
-                        backgroundColor: color,
-                        boxShadow: `0 0 0 2.5px color-mix(in srgb, ${color} 15%, transparent)`,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      className="label-small-medium"
-                      color="var(--ink-2)"
-                    >
-                      {zoneName}
-                    </Typography>
-                  </Stack>
-                  {liveTerritory.numeroViviendas != null && (
-                    <ViviendasTag count={liveTerritory.numeroViviendas} />
-                  )}
-                  {/* Que el territorio sea de campaña se decía SOLO en el
+                  {/* Zona + estado */}
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    flexWrap="wrap"
+                    gap={0.75}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={'5px'}>
+                      <Box
+                        sx={{
+                          width: 9,
+                          height: 9,
+                          borderRadius: 'var(--shape-full)',
+                          backgroundColor: color,
+                          boxShadow: `0 0 0 2.5px color-mix(in srgb, ${color} 15%, transparent)`,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography
+                        className="label-small-medium"
+                        color="var(--ink-2)"
+                      >
+                        {zoneName}
+                      </Typography>
+                    </Stack>
+                    {liveTerritory.numeroViviendas != null && (
+                      <ViviendasTag count={liveTerritory.numeroViviendas} />
+                    )}
+                    {/* Que el territorio sea de campaña se decía SOLO en el
                     recuadro de asignación de la pestaña Info, y ese recuadro
                     es solo para responsables: el publicador que lo abría no
                     veía por ninguna parte que lo que tiene en la mano es un
                     territorio de campaña. Va arriba, pegado al número, que es
                     lo que se mira de un vistazo. */}
-                  {relevantAssignment?.isCampaign && (
-                    <Badge size="small" color="accent" text="Campaña" />
-                  )}
-                  {canManage && (
-                    <AssignedBadge
-                      status={assignedStatus}
-                      personName={
-                        relevantAssignment
-                          ? resolveName(relevantAssignment.personUid)
-                          : undefined
-                      }
-                    />
-                  )}
-                </Stack>
-              </Box>
-            </Stack>
+                    {relevantAssignment?.isCampaign && (
+                      <Badge size="small" color="accent" text="Campaña" />
+                    )}
+                    {canManage && (
+                      <AssignedBadge
+                        status={assignedStatus}
+                        personName={
+                          relevantAssignment
+                            ? resolveName(relevantAssignment.personUid)
+                            : undefined
+                        }
+                      />
+                    )}
+                  </Stack>
+                </Box>
+              </Stack>
+            </Box>
           </Box>
 
           {/* SEGMENTED CONTROL */}
-          <Box sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
+          {/* `inert` con la hoja escondida: está fuera de la pantalla, y sin
+              esto el tabulador seguiría pasando por pestañas y botones que no
+              se ven. */}
+          <Box inert={hojaPlegada} sx={{ flexShrink: 0, px: 3, pb: '14px' }}>
             <SegmentedControl
               ariaLabel="Vistas del territorio"
               tabs={['Mapa', 'Imagen', 'Info']}
@@ -1484,6 +1717,7 @@ const DialogVerTerritorio = ({
 
         {/* CONTENIDO DINÁMICO (scrollable) */}
         <Box
+          inert={hojaPlegada}
           sx={{
             flex: 1,
             overflowY: 'auto',
@@ -1691,6 +1925,7 @@ const DialogVerTerritorio = ({
         {(hayAcciones || footer) && (
           <Box
             ref={setAccionesEl}
+            inert={hojaPlegada}
             sx={{
               flexShrink: 0,
               px: 3,
