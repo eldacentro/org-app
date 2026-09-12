@@ -14,7 +14,7 @@ const PublisherRecords = () => {
 
   const { desktopUp, tablet688Up } = useBreakpoints();
 
-  const { exportOpen, handleCloseExport, handleOpenExport } =
+  const { exportOpen, handleCloseExport, handleOpenExport, year, setYear } =
     usePublisherRecords();
 
   return (
@@ -61,8 +61,8 @@ const PublisherRecords = () => {
             width: desktopUp ? 'auto' : '100%',
           }}
         >
-          <YearsStats />
-          <PioneerBalance />
+          <YearsStats year={year} onYearChange={setYear} />
+          <PioneerBalance year={year} />
         </Box>
       </Box>
     </Box>

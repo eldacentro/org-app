@@ -1,10 +1,16 @@
 import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
-import { buildServiceYearsFor, currentServiceYear } from '@utils/date';
+import { buildServiceYearsFor } from '@utils/date';
 import YearDetails from './year_details';
 import { serviceYearsWithReportsState } from '@states/field_service_reports';
 
-const useYearsStats = () => {
+const useYearsStats = ({
+  year,
+  onYearChange,
+}: {
+  year: string;
+  onYearChange: (year: string) => void;
+}) => {
   const años = useAtomValue(serviceYearsWithReportsState);
 
   const serviceYears = useMemo(() => {
@@ -13,12 +19,22 @@ const useYearsStats = () => {
     return result;
   }, [años]);
 
-  const intial_value = useMemo(() => {
-    const year = currentServiceYear();
+  // La pestaña elegida sale del año que guarda la página, no de «hoy»: ese año
+  // lo comparte con el saldo de precursores, que está en otra tarjeta. Antes
+  // cada una tenía el suyo y elegir 2026 aquí no le llegaba a la otra.
+  const value = useMemo(() => {
+    const index = serviceYears.findIndex((record) => record.year === year);
 
-    const findIndex = serviceYears.findIndex((record) => record.year === year);
-    return findIndex;
-  }, [serviceYears]);
+    // Un año que ya no está en la lista: el más reciente, en vez de dejar las
+    // pestañas sin ninguna elegida.
+    return index === -1 ? serviceYears.length - 1 : index;
+  }, [serviceYears, year]);
+
+  const handleChange = (index: number) => {
+    const elegido = serviceYears[index]?.year;
+
+    if (elegido) onYearChange(elegido);
+  };
 
   const tabs = useMemo(() => {
     return serviceYears.map((record) => {
@@ -29,7 +45,7 @@ const useYearsStats = () => {
     });
   }, [serviceYears]);
 
-  return { tabs, intial_value };
+  return { tabs, value, handleChange };
 };
 
 export default useYearsStats;

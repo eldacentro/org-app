@@ -5,12 +5,18 @@ import useYearsStats from './useYearsStats';
 import ScrollableTabs from '@components/scrollable_tabs';
 import Typography from '@components/typography';
 
-const YearsStats = () => {
+const YearsStats = ({
+  year,
+  onYearChange,
+}: {
+  year: string;
+  onYearChange: (year: string) => void;
+}) => {
   const { t } = useAppTranslation();
 
   const { tabletUp } = useBreakpoints();
 
-  const { tabs, intial_value } = useYearsStats();
+  const { tabs, value, handleChange } = useYearsStats({ year, onYearChange });
 
   return (
     <CardContainer sx={{ flex: 0.8 }}>
@@ -25,7 +31,8 @@ const YearsStats = () => {
         <ScrollableTabs
           variant={tabletUp ? 'fullWidth' : 'scrollable'}
           tabs={tabs}
-          value={intial_value}
+          value={value}
+          onChange={handleChange}
         />
       </Stack>
     </CardContainer>

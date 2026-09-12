@@ -4,12 +4,12 @@ import { CardContainer } from '../shared_styles';
 import usePioneerBalance from './usePioneerBalance';
 import Typography from '@components/typography';
 
-const PioneerBalance = () => {
+const PioneerBalance = ({ year }: { year: string }) => {
   const { t } = useAppTranslation();
 
   const { isServiceCommittee } = useCurrentUser();
 
-  const { pioneers, year } = usePioneerBalance();
+  const { pioneers } = usePioneerBalance(year);
 
   // Datos sensibles de desempeño — solo el comité de servicio (y admins)
   // deben ver el saldo de horas de los demás, no cualquier anciano.
