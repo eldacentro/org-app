@@ -28,6 +28,7 @@ const CongregationAdmin = () => {
             variant="admin"
             name={user.person_name}
             secondary={user.person_role}
+            email={user.person_email}
             clickOnUserAccountItem={() => handleOpenUserDetails(user.person_id)}
           />
         ))}

@@ -31,22 +31,59 @@ import Typography from '@components/typography';
  * // Renders user name for a baptized user:
  * <UserAccountItemTextContent variant="baptized" userName="Jane Doe" />
  */
+/**
+ * El correo de la cuenta, debajo del nombre.
+ *
+ * Pequeño y apagado: es para encontrar a alguien («¿con qué correo entró?»),
+ * no lo que se lee primero. Se parte por donde haga falta porque un correo no
+ * tiene espacios, y sin eso uno largo empujaba la flecha fuera de la fila.
+ */
+const UserAccountItemEmail = ({ email }: { email?: string }) =>
+  email ? (
+    <Typography
+      className="body-small-regular"
+      color="var(--ink-3)"
+      sx={{ overflowWrap: 'anywhere' }}
+    >
+      {email}
+    </Typography>
+  ) : null;
+
 const UserAccountItemTextContent = (props: UserAccountItemTextContentType) => {
   switch (props.variant) {
     case 'user':
     case 'baptized':
+      // Sin correo, lo de siempre tal cual: las cuentas Pocket no tienen.
+      if (!props.email) {
+        return (
+          <Typography
+            className="h4"
+            style={{ fontWeight: '550', color: props.color || 'var(--black)' }}
+          >
+            {props.name}
+          </Typography>
+        );
+      }
+
       return (
-        <Typography
-          className="h4"
-          style={{ fontWeight: '550', color: props.color || 'var(--black)' }}
-        >
-          {props.name}
-        </Typography>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            className="h4"
+            style={{
+              fontWeight: '550',
+              margin: '0',
+              color: props.color || 'var(--black)',
+            }}
+          >
+            {props.name}
+          </Typography>
+          <UserAccountItemEmail email={props.email} />
+        </Box>
       );
 
     case 'admin':
       return (
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             className="h4"
             style={{
@@ -68,6 +105,7 @@ const UserAccountItemTextContent = (props: UserAccountItemTextContentType) => {
           >
             {props.secondary}
           </Typography>
+          <UserAccountItemEmail email={props.email} />
         </Box>
       );
   }
@@ -125,6 +163,7 @@ const UserAccountItemIcon = (props: UserAccountItemIconType) => {
 const UserAccountItem = (props: UserAccountItemProps) => {
   const variant = props.variant || 'user';
   const secondary = props.secondary || null;
+  const email = props.email || '';
   const name = props.name;
   const clickOnArrow = props.clickOnArrow || null;
   const clickOnUserAccountItem = props.clickOnUserAccountItem || null;
@@ -144,6 +183,8 @@ const UserAccountItem = (props: UserAccountItemProps) => {
           flexDirection: 'row',
           alignItems: 'center',
           gap: '8px',
+          // Sin esto la fila no puede encoger y un correo largo no se parte.
+          minWidth: 0,
         }}
       >
         <UserAccountItemIcon
@@ -154,6 +195,7 @@ const UserAccountItem = (props: UserAccountItemProps) => {
           variant={variant}
           name={name}
           secondary={secondary}
+          email={email}
           color={isHovered ? 'var(--accent-dark)' : 'var(--black)'}
         />
       </Box>

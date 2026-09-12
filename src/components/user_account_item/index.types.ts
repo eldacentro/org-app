@@ -30,6 +30,12 @@ export type UserAccountItemProps = {
    * The position or role of the user (optional).
    */
   secondary?: string;
+
+  /**
+   * El correo con el que esa cuenta entra en la app. Solo lo tienen las
+   * pantallas de administración; sin él, la fila es exactamente la de siempre.
+   */
+  email?: string;
 };
 
 export type UserAccountItemTextContentType = {
@@ -37,6 +43,7 @@ export type UserAccountItemTextContentType = {
   name: string;
   secondary: string;
   color?: string;
+  email?: string;
 };
 
 export type UserAccountItemIconType = {

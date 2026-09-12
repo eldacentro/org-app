@@ -272,6 +272,18 @@ export type CongregationUserType = {
     user_members_delegate: string[];
     pocket_invitation_code?: string;
     createdAt?: string;
+    /**
+     * El correo con el que la cuenta entra en la app. Solo llega en las
+     * respuestas de administración —el servidor no se lo manda a nadie más— y
+     * no existe en las cuentas Pocket, que entran con código.
+     */
+    email?: string;
+    /**
+     * Por dónde entra esa cuenta, tal como lo dice Firebase: 'google.com',
+     * 'microsoft.com', 'yahoo.com', o 'password'/'email' para el enlace al
+     * correo.
+     */
+    auth_provider?: string;
   };
   sessions?: SessionResponseType[];
 };

@@ -50,6 +50,9 @@ const useCongregationAdmin = () => {
           fullnameOption
         ),
         person_role: getUserMainRole(user.profile?.cong_role || []),
+        // El correo con el que entra. Solo llega a administradores: ver
+        // `CongregationUserType.profile.email`.
+        person_email: user.profile?.email ?? '',
       };
     });
   }, [users, fullnameOption, getUserMainRole]);

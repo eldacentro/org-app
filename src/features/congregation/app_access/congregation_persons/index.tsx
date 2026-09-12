@@ -38,6 +38,7 @@ const CongregationPersons = ({ isLoading }: UsersListType) => {
                 user.profile.firstname.value,
                 fullnameOption
               )}
+              email={user.profile.email}
               clickOnUserAccountItem={() => handleOpenUserDetails(user.id)}
             />
           ))}
