@@ -11,6 +11,7 @@ import Divider from '@components/divider';
 import MiniChip from '@components/mini_chip';
 import Typography from '@components/typography';
 import { comoEntraLaCuenta } from '@services/app/cuenta_acceso';
+import AccountName from '../account_name';
 
 const ProfileSettings = () => {
   const { t } = useAppTranslation();
@@ -49,6 +50,10 @@ const ProfileSettings = () => {
           </Typography>
           {isProcessing && <IconLoading color="var(--black)" />}
         </Box>
+
+        <AccountName />
+
+        <Divider color="var(--line)" />
 
         {/* Una cuenta normal sin correo (el servidor no pudo leerlo, o todavía
             no se ha desplegado) no enseña nada: mejor callar que decir que no
