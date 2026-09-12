@@ -17,6 +17,8 @@ import {
 import { PublishersSortOption } from '@definition/settings';
 import { fieldGroupsSortMembersByName } from '@services/app/field_service_groups';
 import usePerson from '@features/persons/hooks/usePerson';
+import type { PersonType } from '@definition/person';
+import { ordenarPorFamilias } from '@services/app/ordenar_por_familias';
 import { TemplateEmergencyContacts } from '@views/index';
 import { diaArchivo, nombreArchivo } from '@utils/nombre_pdf';
 import type {
@@ -61,40 +63,38 @@ const useExportEmergencyContacts = () => {
       const personUidToGroupIndex = new Map<string, number>();
       const groupIdToIndex = new Map<string, number>();
 
-      const formattedGroups: EmergencyContactsGroupType[] = groups.map(
-        (record, groupIndex) => {
-          groupIdToIndex.set(record.group_id, groupIndex);
+      const formattedGroups = groups.map((record, groupIndex) => {
+        groupIdToIndex.set(record.group_id, groupIndex);
 
-          const group_name =
-            record.group_data.name.length > 0
-              ? record.group_data.name
-              : `Grupo ${record.group_data.sort_index + 1}`;
+        const group_name =
+          record.group_data.name.length > 0
+            ? record.group_data.name
+            : `Grupo ${record.group_data.sort_index + 1}`;
 
-          let members = record.group_data.members
-            .slice()
-            .sort((a, b) => a.sort_index - b.sort_index);
+        let members = record.group_data.members
+          .slice()
+          .sort((a, b) => a.sort_index - b.sort_index);
 
-          if (sortMethod === PublishersSortOption.ALPHABETICAL) {
-            members = fieldGroupsSortMembersByName(members);
-          }
-
-          const memberEntries: PersonContactEntry[] = [];
-
-          for (const member of members) {
-            const person = persons.find(
-              (p) => p.person_uid === member.person_uid
-            );
-
-            if (!person) continue;
-
-            assignedUids.add(person.person_uid);
-            personUidToGroupIndex.set(person.person_uid, groupIndex);
-            memberEntries.push(buildEntry(person));
-          }
-
-          return { group_name, members: memberEntries };
+        if (sortMethod === PublishersSortOption.ALPHABETICAL) {
+          members = fieldGroupsSortMembersByName(members);
         }
-      );
+
+        const personas: PersonType[] = [];
+
+        for (const member of members) {
+          const person = persons.find(
+            (p) => p.person_uid === member.person_uid
+          );
+
+          if (!person) continue;
+
+          assignedUids.add(person.person_uid);
+          personUidToGroupIndex.set(person.person_uid, groupIndex);
+          personas.push(person);
+        }
+
+        return { group_name, personas };
+      });
 
       // Grupo asignado manualmente en el perfil (organización interna):
       // quien no sea miembro real de ningún grupo pero tenga un
@@ -111,7 +111,7 @@ const useExportEmergencyContacts = () => {
         const groupIndex = groupIdToIndex.get(assignedGroupId);
         if (groupIndex === undefined) continue;
 
-        formattedGroups[groupIndex].members.push(buildEntry(person));
+        formattedGroups[groupIndex].personas.push(person);
         assignedUids.add(person.person_uid);
         personUidToGroupIndex.set(person.person_uid, groupIndex);
       }
@@ -136,16 +136,36 @@ const useExportEmergencyContacts = () => {
           : undefined;
 
         if (headGroupIndex !== undefined) {
-          formattedGroups[headGroupIndex].members.push(buildEntry(person));
+          formattedGroups[headGroupIndex].personas.push(person);
           assignedUids.add(person.person_uid);
         } else {
           stillUnassigned.push(person);
         }
       }
 
-      const unassigned = stillUnassigned
-        .sort((a, b) => getName(a).localeCompare(getName(b)))
-        .map((person) => buildEntry(person));
+      // POR FAMILIAS, y solo en este PDF. Hasta aquí cada hoja lleva el orden
+      // de Grupos de predicación, que es el que pone a mano el superintendente
+      // de grupo; para buscar a quién llamar en una urgencia sirve más ver a
+      // cada familia seguida, con el cabeza delante.
+      //
+      // Va al FINAL a propósito: así sube también junto a los suyos quien se
+      // ha añadido arriba por no tener grupo propio (un hijo estudiante, por
+      // ejemplo), que antes quedaba al final de la hoja, lejos de sus padres.
+      // Nadie cambia de hoja. El PDF de Grupos de predicación no pasa por aquí
+      // y conserva su orden.
+      const groupsForPdf: EmergencyContactsGroupType[] = formattedGroups.map(
+        ({ group_name, personas }) => ({
+          group_name,
+          members: ordenarPorFamilias(personas, persons).map(buildEntry),
+        })
+      );
+
+      // Los que no tienen grupo, por nombre como siempre, pero también con
+      // cada familia seguida.
+      const unassigned = ordenarPorFamilias(
+        stillUnassigned.sort((a, b) => getName(a).localeCompare(getName(b))),
+        persons
+      ).map(buildEntry);
 
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
@@ -155,7 +175,7 @@ const useExportEmergencyContacts = () => {
 
       const blob = await pdf(
         <TemplateEmergencyContacts
-          groups={formattedGroups}
+          groups={groupsForPdf}
           unassigned={unassigned}
           congregation={congName}
           generatedAt={generatedAt}
