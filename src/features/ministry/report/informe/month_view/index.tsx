@@ -27,7 +27,7 @@ const MonthView = () => {
   const monthNames = useAtomValue(monthNamesState);
 
   const {
-    dayNamesShort,
+    weekdayHeaders,
     cells,
     monthLabel,
     goToPreviousMonth,
@@ -98,7 +98,7 @@ const MonthView = () => {
             gap: '4px',
           }}
         >
-          {dayNamesShort.map((name, idx) => (
+          {weekdayHeaders.map((name, idx) => (
             <Typography
               key={idx}
               className="label-small-semibold"

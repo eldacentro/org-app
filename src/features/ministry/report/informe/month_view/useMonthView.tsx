@@ -3,6 +3,7 @@ import { capitalizarPrimera } from '@utils/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { dayNamesShortState, monthNamesState } from '@states/app';
+import { firstDayWeekState } from '@states/settings';
 import {
   reportUserSelectedMonthState,
   userFieldServiceDailyReportsState,
@@ -22,6 +23,24 @@ export type MonthDayCell = {
 const useMonthView = () => {
   const { person } = useCurrentUser();
   const dayNamesShort = useAtomValue(dayNamesShortState);
+
+  // Por qué día empieza la semana en el calendario. Es el ajuste de la
+  // congregación (Ajustes → Formularios de reunión), el mismo que siguen los
+  // selectores de fecha de toda la app, y por defecto es el LUNES. Antes esto
+  // empezaba siempre en domingo, a la americana, porque tomaba el `getDay()`
+  // de JavaScript tal cual. Sus valores son los de `getDay()` (0 = domingo,
+  // 1 = lunes, 6 = sábado), así que se pueden restar sin traducir nada.
+  const primerDia = useAtomValue(firstDayWeekState);
+
+  // La cabecera, girada para que empiece por ese día. `dayNamesShort` viene
+  // siempre desde el domingo.
+  const weekdayHeaders = useMemo(
+    () =>
+      dayNamesShort.map(
+        (_, idx) => dayNamesShort[(idx + primerDia) % dayNamesShort.length]
+      ),
+    [dayNamesShort, primerDia]
+  );
   const monthNames = useAtomValue(monthNamesState);
   const [selectedMonth, setSelectedMonth] = useAtom(
     reportUserSelectedMonthState
@@ -57,7 +76,11 @@ const useMonthView = () => {
     const [year, month] = selectedMonth.split('/').map(Number);
     const firstOfMonth = new Date(year, month - 1, 1);
     const daysInMonth = new Date(year, month, 0).getDate();
-    const leadingBlanks = firstOfMonth.getDay(); // 0 = domingo
+    // Cuántas casillas vacías antes del día 1: los días que hay desde el primer
+    // día de la semana hasta el día en que cae el 1. El `+ 7` evita un
+    // negativo cuando el mes empieza antes que la semana (un domingo, con la
+    // semana en lunes, son 6 huecos y no -1).
+    const leadingBlanks = (firstOfMonth.getDay() - primerDia + 7) % 7;
 
     const result: MonthDayCell[] = [];
 
@@ -92,7 +115,7 @@ const useMonthView = () => {
     }
 
     return result;
-  }, [selectedMonth, dailyReports, todayStr]);
+  }, [selectedMonth, dailyReports, todayStr, primerDia]);
 
   const goToPreviousMonth = () => {
     const [year, month] = selectedMonth.split('/').map(Number);
@@ -107,7 +130,7 @@ const useMonthView = () => {
   };
 
   return {
-    dayNamesShort,
+    weekdayHeaders,
     cells,
     monthLabel,
     goToPreviousMonth,
