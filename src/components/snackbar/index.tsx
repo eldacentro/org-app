@@ -46,7 +46,7 @@ SlideTransition.displayName = 'SlideTransition';
  * Custom Snackbar component.
  */
 const Snackbar = (props: SnackbarPropsType) => {
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const open = props.open || false;
   const messageHeader = props.messageHeader || '';
@@ -110,7 +110,7 @@ const Snackbar = (props: SnackbarPropsType) => {
         top: position === 'top-center' ? '80px' : 'unset',
         bottom:
           position === 'bottom-center'
-            ? tablet688Up
+            ? tablet600Up
               ? '24px'
               : 'calc(80px + env(safe-area-inset-bottom, 0px))'
             : 'unset',

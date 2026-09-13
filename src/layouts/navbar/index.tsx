@@ -116,7 +116,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleReconnectAccount,
     handleOpenRealApp,
     handleBack,
-    tablet688Up,
+    tablet600Up,
     logoutConfirmOpen,
     handleOpenLogoutConfirm,
     handleCloseLogoutConfirm,
@@ -256,8 +256,18 @@ const NavBar = ({ isSupported }: NavBarType) => {
                 maxWidth: '1440px',
                 padding:
                   navBarOptions.title !== null
-                    ? { mobile: '4px 16px', tablet: '6px 32px' }
-                    : { mobile: '8px 16px', tablet: '6px 32px' },
+                    ? { mobile: '4px 0', tablet: '6px 0' }
+                    : { mobile: '8px 0', tablet: '6px 0' },
+                // Los lados, nunca por debajo del área segura: mismo motivo
+                // que el contenedor de la página (layouts/root_layout).
+                paddingLeft: {
+                  mobile: 'max(16px, env(safe-area-inset-left, 0px))',
+                  tablet: 'max(32px, env(safe-area-inset-left, 0px))',
+                },
+                paddingRight: {
+                  mobile: 'max(16px, env(safe-area-inset-right, 0px))',
+                  tablet: 'max(32px, env(safe-area-inset-right, 0px))',
+                },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -663,7 +673,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       los botones de acción se van a la derecha. */}
                   <Box
                     sx={{
-                      display: !tablet688Up ? 'grid' : 'flex',
+                      display: !tablet600Up ? 'grid' : 'flex',
                       // Los 62px son lo que miden los dos iconos de la
                       // izquierda (atrás + inicio), y son un SUELO, no un
                       // ancho. Con `1fr` a secas, un subtítulo largo —el de
@@ -674,14 +684,24 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       // mismo: 62 cuando no sobra nada y a partes iguales
                       // cuando sobra. Lo que cede es el subtítulo, que ya se
                       // recorta con puntos suspensivos.
-                      gridTemplateColumns: !tablet688Up
+                      gridTemplateColumns: !tablet600Up
                         ? 'minmax(62px, 1fr) auto minmax(62px, 1fr)'
                         : undefined,
                       flexDirection: 'row',
                       gap: { mobile: '8px', tablet: '16px' },
                       alignItems: 'center',
-                      width: !tablet688Up ? '100%' : 'auto',
-                      justifyContent: !tablet688Up ? undefined : 'start',
+                      width: !tablet600Up ? '100%' : 'auto',
+                      justifyContent: !tablet600Up ? undefined : 'start',
+                      // En la fila única, este grupo (iconos + título) es el
+                      // que CEDE cuando no cabe todo: sin `minWidth: 0` un
+                      // flex no encoge por debajo de su contenido, y en un
+                      // ancho regular pero justo (el iPhone Duo abierto en
+                      // vertical mide 626) los botones de acción se salían
+                      // por la derecha de la pantalla. Con esto, lo que se
+                      // recorta es el título, que ya lleva sus puntos
+                      // suspensivos.
+                      minWidth: 0,
+                      flex: !tablet600Up ? undefined : '1 1 auto',
                     }}
                   >
                     <Box
@@ -732,8 +752,8 @@ const NavBar = ({ isSupported }: NavBarType) => {
                         // sus puntos suspensivos dentro de su columna en vez de
                         // ensanchar la fila y empujar los iconos.
                         minWidth: 0,
-                        marginLeft: !tablet688Up ? 0 : '-8px',
-                        textAlign: !tablet688Up ? 'center' : 'left',
+                        marginLeft: !tablet600Up ? 0 : '-8px',
+                        textAlign: !tablet600Up ? 'center' : 'left',
                       }}
                     >
                       <Typography
@@ -790,7 +810,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                         </Badge>
                       </IconButton>
                     ) : (
-                      !tablet688Up && (
+                      !tablet600Up && (
                         <Box
                           sx={{
                             width: '22px',
@@ -801,7 +821,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       )
                     )}
                   </Box>
-                  {!!tablet688Up &&
+                  {!!tablet600Up &&
                     hasRenderableContent(navBarOptions.buttons) && (
                       <Box
                         className="navbar-actions-container"
@@ -811,6 +831,9 @@ const NavBar = ({ isSupported }: NavBarType) => {
                           padding: '4px',
                           flexDirection: 'row',
                           alignItems: 'center',
+                          // Las acciones no se encogen: es el título el que
+                          // cede (ver el grupo de la izquierda).
+                          flexShrink: 0,
                           // Concéntrico con lo que lleva dentro. Los botones de
                           // acción pasaron a ser píldoras, y esta bandeja se quedó
                           // en 16px: una caja medio cuadrada abrazando algo
@@ -830,7 +853,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
           </Toolbar>
         </AppBar>
       </Box>
-      {hasRenderableContent(navBarOptions.buttons) && !tablet688Up && (
+      {hasRenderableContent(navBarOptions.buttons) && !tablet600Up && (
         <BottomMenu buttons={navBarOptions.buttons} />
       )}
     </>

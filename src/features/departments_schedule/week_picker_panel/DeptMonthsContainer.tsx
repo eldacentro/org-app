@@ -18,7 +18,7 @@ const DeptMonthsContainer = ({
     weeks: { weekOf: string; label: string; noMeeting: boolean }[];
   }[];
 }) => {
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const items = useMemo(
     () =>
@@ -44,7 +44,7 @@ const DeptMonthsContainer = ({
     // agradece poder saltar de una semana a otra sin volver a desplegar.
     <MonthAccordion
       months={items}
-      onWeekPicked={tablet688Up ? undefined : () => {}}
+      onWeekPicked={tablet600Up ? undefined : () => {}}
     />
   );
 };

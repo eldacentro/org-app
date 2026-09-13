@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { BottomMenuProps } from './index.types';
 import {
   useAppTranslation,
+  useBreakpoints,
   useStaticSafeAreaInsetBottom,
   useViewportInset,
 } from '@hooks/index';
@@ -21,6 +22,14 @@ const BottomMenu = (props: BottomMenuProps) => {
   const { keyboardOpen } = useViewportInset();
   // Congelado al montar — ver el comentario del hook.
   const safeAreaInsetBottom = useStaticSafeAreaInsetBottom();
+
+  // ¿Carril a la derecha en vez de píldora abajo? Es la pantalla exterior de
+  // un plegable (iPhone Duo cerrado): corta y ancha, donde lo que escasea es
+  // la altura. Apple se lleva ahí los controles a una tira vertical del lado
+  // derecho, al alcance del pulgar, y esto hace lo mismo con los botones de
+  // la página: en columna, solo con el icono (el CSS del carril les quita la
+  // etiqueta; el `aria-label` se queda). Ver `constants/pantalla`.
+  const { carrilLateral } = useBreakpoints();
 
   // Anclamos desde ARRIBA (`top`), no desde abajo. En iOS, `position: fixed`
   // anclado con `bottom` resulta inestable en la PWA instalada: WebKit sigue
@@ -54,15 +63,21 @@ const BottomMenu = (props: BottomMenuProps) => {
   }, []);
 
   // La altura de la barra depende de sus botones (varía por breakpoint/
-  // contenido), así que se mide después de montar en vez de asumirla.
+  // contenido), así que se mide después de montar en vez de asumirla. El
+  // ancho también: es lo que reserva el carril.
   const barRef = useRef<HTMLElement>(null);
   const [barHeight, setBarHeight] = useState(0);
+  const [barWidth, setBarWidth] = useState(0);
 
   useEffect(() => {
     const el = barRef.current;
     if (!el) return;
 
-    const measure = () => setBarHeight(el.getBoundingClientRect().height);
+    const measure = () => {
+      const caja = el.getBoundingClientRect();
+      setBarHeight(caja.height);
+      setBarWidth(caja.width);
+    };
     measure();
 
     const observer = new ResizeObserver(measure);
@@ -77,19 +92,55 @@ const BottomMenu = (props: BottomMenuProps) => {
   // Se hace con una variable CSS y no con un hueco en el DOM porque la barra la
   // pinta el LAYOUT, fuera del contenedor que hace scroll: un `<div>` de relleno
   // aquí no empujaría nada.
+  //
+  // Con el carril, lo que se reserva es ANCHO a la derecha (`--side-rail-space`)
+  // y nada abajo: la barra ya no está ahí. El relleno propio del contenedor de
+  // la página pone el aire entre el contenido y el carril.
   useEffect(() => {
+    const raiz = document.documentElement.style;
+
+    if (carrilLateral) {
+      if (!barWidth) return;
+      raiz.setProperty('--side-rail-space', `${barWidth + BAR_MARGIN}px`);
+      return () => {
+        raiz.removeProperty('--side-rail-space');
+      };
+    }
+
     if (!barHeight) return;
     const total = barHeight + BAR_MARGIN * 2 + safeAreaInsetBottom;
-    document.documentElement.style.setProperty(
-      '--bottom-bar-space',
-      `${total}px`
-    );
+    raiz.setProperty('--bottom-bar-space', `${total}px`);
     return () => {
-      document.documentElement.style.removeProperty('--bottom-bar-space');
+      raiz.removeProperty('--bottom-bar-space');
     };
-  }, [barHeight, safeAreaInsetBottom]);
+  }, [barHeight, barWidth, safeAreaInsetBottom, carrilLateral]);
 
   const barTop = windowHeight - barHeight - BAR_MARGIN - safeAreaInsetBottom;
+
+  // Dónde se ancla. Abajo: por `top` calculado (ver arriba). Como carril: a
+  // media altura y pegado al borde derecho, respetando el área segura; aquí
+  // el anclaje por `top: 50%` no sufre el vaivén de iOS, que es del borde de
+  // ABAJO.
+  const anclaje = carrilLateral
+    ? {
+        top: '50%',
+        right: `calc(${BAR_MARGIN}px + env(safe-area-inset-right, 0px))`,
+        transform: keyboardOpen ? 'translate(16px, -50%)' : 'translateY(-50%)',
+        flexDirection: 'column' as const,
+        maxWidth: 'none',
+        maxHeight: 'calc(100dvh - 160px)',
+      }
+    : {
+        top: barHeight ? `${barTop}px` : undefined,
+        // Antes de la primera medición (barHeight === 0), nos apoyamos en
+        // `bottom` solo para que no aparezca pegada arriba un instante —
+        // se corrige en el primer paint útil, así que no se nota.
+        bottom: barHeight ? undefined : `${BAR_MARGIN + safeAreaInsetBottom}px`,
+        left: '50%',
+        transform: keyboardOpen ? 'translate(-50%, 16px)' : 'translateX(-50%)',
+        flexDirection: 'row' as const,
+        maxWidth: 'calc(100vw - 32px)',
+      };
 
   return (
     <>
@@ -98,19 +149,16 @@ const BottomMenu = (props: BottomMenuProps) => {
         ref={barRef}
         component="nav"
         aria-label={t('tr_bottomActionsMenu')}
+        // La clase del carril es la que el CSS usa para dejar los botones solo
+        // con icono (bloque «CARRIL LATERAL» de global/index.css).
+        className={
+          carrilLateral
+            ? 'barra-acciones barra-acciones--carril'
+            : 'barra-acciones'
+        }
         sx={{
           position: 'fixed',
-          top: barHeight ? `${barTop}px` : undefined,
-          // Antes de la primera medición (barHeight === 0), nos apoyamos en
-          // `bottom` solo para que no aparezca pegada arriba un instante —
-          // se corrige en el primer paint útil, así que no se nota.
-          bottom: barHeight
-            ? undefined
-            : `${BAR_MARGIN + safeAreaInsetBottom}px`,
-          left: '50%',
-          transform: keyboardOpen
-            ? 'translate(-50%, 16px)'
-            : 'translateX(-50%)',
+          ...anclaje,
           opacity: keyboardOpen ? 0 : 1,
           pointerEvents: keyboardOpen ? 'none' : 'auto',
           transition:
@@ -138,13 +186,11 @@ const BottomMenu = (props: BottomMenuProps) => {
 
           padding: '5px',
           display: 'flex',
-          flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '4px',
 
           width: 'fit-content',
-          maxWidth: 'calc(100vw - 32px)',
           overflow: 'hidden',
         }}
       >

@@ -10,7 +10,7 @@ import NavBarButton from '@components/nav_bar_button';
 
 const UserDetails = () => {
   const { t } = useAppTranslation();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const {
     user,
@@ -27,7 +27,7 @@ const UserDetails = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       {isDelete && (

@@ -15,7 +15,7 @@ import ReminderItem from './reminder_item';
 const AppReminders = () => {
   const { t } = useAppTranslation();
 
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const { reminders, reminderMeTomorrow } = useReminders();
 
@@ -30,8 +30,8 @@ const AppReminders = () => {
         className="warning-glow"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 2,
-          left: tablet688Up ? 'unset' : '15px',
-          maxWidth: tablet688Up ? '500px' : 'unset',
+          left: tablet600Up ? 'unset' : '15px',
+          maxWidth: tablet600Up ? '500px' : 'unset',
         }}
       >
         <StyledRemindersTitle>

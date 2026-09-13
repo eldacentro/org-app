@@ -14,34 +14,60 @@ import { Box } from '@mui/material';
  * - On smaller screens, it renders a premium pill with icon + label.
  */
 const NavBarButton = (props: NavBarButtonProps) => {
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up, laptopUp } = useBreakpoints();
 
   const main = props.main || false;
   const textImportant = props.textImportant || false;
   const disabled = props.disabled || false;
 
+  // Ancho regular pero JUSTO: de 600 a 767. Las acciones ya van en la barra
+  // superior, pero con dos o tres botones de texto el título se quedaba en
+  // «Programa d…» (medido en un iPhone Duo abierto en vertical, 626). Aquí
+  // los secundarios se quedan con el icono, redondos, y el principal —el
+  // azul, a lo que se viene— conserva su texto. Es lo que hacen las barras
+  // de iPadOS y las de Material en una ventana mediana. La etiqueta sigue en
+  // el `aria-label`.
+  const soloIcono = tablet600Up && !laptopUp && !main && !textImportant;
+
   // ── Desktop / textImportant path ─────────────────────────────────
-  if (tablet688Up || textImportant) {
+  if (tablet600Up || textImportant) {
     return (
       <Button
         variant={main ? 'main' : 'secondary'}
         color={props.color}
         ariaLabel={props.text}
         onClick={props.onClick}
-        startIcon={props.icon}
+        startIcon={soloIcono ? undefined : props.icon}
         disabled={disabled}
+        sx={
+          soloIcono
+            ? {
+                // Un círculo del alto natural del botón: el ancho sale de la
+                // proporción, así que mide lo mismo que sus vecinos con texto.
+                minWidth: 'auto',
+                width: { mobile: 'auto', tablet: 'auto' },
+                padding: 0,
+                aspectRatio: '1 / 1',
+                borderRadius: 'var(--shape-full)',
+              }
+            : undefined
+        }
       >
-        <Box
-          component="span"
-          sx={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth: '100%',
-          }}
-        >
-          {props.text}
-        </Box>
+        {soloIcono ? (
+          props.icon
+        ) : (
+          <Box
+            component="span"
+            sx={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%',
+            }}
+          >
+            {props.text}
+          </Box>
+        )}
       </Button>
     );
   }

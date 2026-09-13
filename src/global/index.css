@@ -1270,6 +1270,10 @@ body {
    DEBAJO de la barra y no hay scroll que lo saque. */
 .screen {
   padding-bottom: var(--bottom-bar-space, 0px);
+  /* El carril de acciones de la pantalla exterior de un plegable (ver el
+     bloque CARRIL LATERAL al final): reserva ancho a la derecha igual que la
+     barra flotante reserva alto abajo. Las dos las publica layouts/bottom_menu. */
+  padding-right: var(--side-rail-space, 0px);
 }
 
 /* `body`'s own background (set in global.css) is accent-100, but .screen's
@@ -2269,10 +2273,17 @@ body {
        las medidas otra, un iPad podría acabar con el mapa a pantalla
        completa y el texto de escritorio.
      · `min-height: 600px` echa fuera a los móviles. Un teléfono solo pasa
-       de 700px de ancho girándolo, y ahí su altura se desploma: un iPhone
+       de 600px de ancho girándolo, y ahí su altura se desploma: un iPhone
        16 Pro Max apaisado mide 956x440 y se cae por la altura.
      · Entran iPad mini (744x1133), iPad (820x1180), cualquier iPad
        apaisado y un plegable abierto tipo Pixel Fold (841x701).
+     · Y el iPhone Duo ABIERTO en las dos orientaciones: 626x890 y 890x626.
+       El corte estuvo en 700 hasta el 2026-09-13 y dejaba fuera al Duo en
+       vertical (626), así que al girarlo la app cambiaba de escala. Apple
+       trata esa pantalla como ancho regular gire como gire, y 600 es el
+       mismo corte con el que la barra superior asume las acciones
+       (`tablet600Up`). El Duo CERRADO (466x678) se queda fuera por ancho y
+       recibe la interfaz de móvil, que es lo suyo.
      · Un iPad con la app en Split View a 507px se queda fuera y recibe la
        interfaz de móvil, que es lo correcto.
 
@@ -2280,7 +2291,7 @@ body {
    ni un byte. Todo lo de aquí vive dentro de una llave que ellos no abren.
    ══════════════════════════════════════════════════════════════════════════ */
 
-@media (any-pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
+@media (any-pointer: coarse) and (min-width: 600px) and (min-height: 600px) {
   :root {
     /* Medida de la columna de contenido. La usan el panel principal y los
        menús de categoría; subirla es lo que evita que la columna parezca
@@ -2707,7 +2718,7 @@ body {
 
 /* Régimen tablet táctil — el mismo predicado que el escalón de arriba, para
    que el escalón de la página se sume al de la tablet y no lo pise. */
-@media (any-pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
+@media (any-pointer: coarse) and (min-width: 600px) and (min-height: 600px) {
   .programas-semanales .h1 {
     font-size: 31.5px;
     line-height: 1.2;
@@ -2843,4 +2854,47 @@ body {
 .body-regular,
 .body-regular-semibold {
   line-height: 1.45;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CARRIL LATERAL  ·  pantalla exterior de un plegable (iPhone Duo cerrado)
+   ══════════════════════════════════════════════════════════════════════════
+
+   Un teléfono corto y ancho en vertical: 466x678, proporción 0,69, cuando un
+   iPhone normal anda por 0,46. Ahí lo que escasea es la ALTURA, y la píldora
+   de acciones flotando abajo se comía una sexta parte de la pantalla. Apple
+   se lleva los controles de esa pantalla a una tira vertical del lado
+   derecho, al alcance del pulgar; la píldora hace lo mismo (ver
+   layouts/bottom_menu, que es quien la coloca) y aquí sus botones se quedan
+   SOLO CON EL ICONO, redondos, como en esa tira. La etiqueta sigue en el
+   `aria-label` de cada botón, así que un lector de pantalla la dice igual.
+
+   La condición es la MISMA cadena que `CARRIL_LATERAL_QUERY` en
+   src/constants/pantalla.ts, donde está explicado trozo a trozo. Si se toca
+   una, se toca la otra. Ningún iPhone actual entra: son todos más alargados.
+
+   Doble clase (`.barra-acciones--carril .nav-action-pill`) para ganar a las
+   clases de emotion del botón sin `!important`, igual que en el escalón.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8) {
+  .barra-acciones--carril .nav-action-pill,
+  .barra-acciones--carril .nav-action-pill-main {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .barra-acciones--carril .nav-action-pill > span,
+  .barra-acciones--carril .nav-action-pill-main > span {
+    display: none;
+  }
+
+  .barra-acciones--carril .nav-action-pill svg,
+  .barra-acciones--carril .nav-action-pill-main svg {
+    width: 22px;
+    height: 22px;
+  }
 }

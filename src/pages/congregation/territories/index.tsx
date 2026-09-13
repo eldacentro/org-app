@@ -43,7 +43,7 @@ type AsignarState = {
 const CLOSED_ASIGNAR: AsignarState = { open: false, territory: null };
 
 const TerritoriesPage = () => {
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
   useTerritories();
   const canManage = useIsTerritoryManager();
   const territories = useAtomValue(territoriesState);
@@ -138,7 +138,7 @@ const TerritoriesPage = () => {
           title="Territorios"
           buttons={
             <NavBarButton
-              text={tablet688Up ? 'Solicitar territorio' : 'Solicitar'}
+              text={tablet600Up ? 'Solicitar territorio' : 'Solicitar'}
               icon={<IconAdd />}
               onClick={() => setOpenSolicitar(true)}
               main

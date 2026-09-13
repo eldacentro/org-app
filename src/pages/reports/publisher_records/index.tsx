@@ -12,7 +12,7 @@ import NavBarButton from '@components/nav_bar_button';
 const PublisherRecords = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { desktopUp, tablet600Up } = useBreakpoints();
 
   const { exportOpen, handleCloseExport, handleOpenExport, year, setYear } =
     usePublisherRecords();
@@ -23,7 +23,7 @@ const PublisherRecords = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       {exportOpen && (

@@ -618,7 +618,7 @@ const Buscador = ({
             <Box
               aria-hidden
               sx={{
-                display: { mobile: 'none', tablet688: 'block' },
+                display: { mobile: 'none', tablet600: 'block' },
                 flexShrink: 0,
                 border: '1px solid var(--line-2)',
                 borderRadius: 'var(--shape-xs)',

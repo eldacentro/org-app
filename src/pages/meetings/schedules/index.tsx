@@ -17,7 +17,7 @@ import {
 
 const WeeklySchedules = () => {
   const { t } = useAppTranslation();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const { value, handleScheduleChange, tabs } = useWeeklySchedules();
 
@@ -68,7 +68,7 @@ const WeeklySchedules = () => {
         display: 'flex',
         gap: '22px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       <PageTitle

@@ -21,7 +21,7 @@ import FilterChip from '@components/filter_chip';
 
 const DocumentosPage = () => {
   const { isElder, isAdmin } = useCurrentUser();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
   const { documentos, categorias } = useDocumentos();
   const congId = useAtomValue(congIDState);
   const canManage = isElder || isAdmin;
@@ -93,14 +93,14 @@ const DocumentosPage = () => {
       <>
         <NavBarButton
           key="upload-document"
-          text={tablet688Up ? 'Subir documento' : 'Subir'}
+          text={tablet600Up ? 'Subir documento' : 'Subir'}
           icon={<IconAdd />}
           onClick={() => setOpenSubir(true)}
           main
         />
       </>
     );
-  }, [canManage, tablet688Up]);
+  }, [canManage, tablet600Up]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

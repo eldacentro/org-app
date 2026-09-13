@@ -51,7 +51,7 @@ const useRootLayout = () => {
   const settings = useAtomValue(settingsState);
   const isDarkTheme = useAtomValue(isDarkThemeState);
   const navBarOptions = useAtomValue(navBarOptionsState);
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up, carrilLateral } = useBreakpoints();
 
   const isDashboard = location.pathname === '/';
 
@@ -60,7 +60,12 @@ const useRootLayout = () => {
   // position:fixed, it overlays content regardless of document flow — pages
   // need bottom clearance so their last item never ends up hidden behind it.
   // Centralized here so individual pages don't each need to remember it.
-  const hasFloatingBottomBar = Boolean(navBarOptions.buttons) && !tablet688Up;
+  //
+  // En la pantalla exterior de un plegable la barra no flota abajo sino en un
+  // carril a la derecha (ver layouts/bottom_menu): ahí el hueco lo reserva
+  // `.screen` a la derecha, y abajo no hace falta ninguno.
+  const hasFloatingBottomBar =
+    Boolean(navBarOptions.buttons) && !tablet600Up && !carrilLateral;
 
   const initialSetupOpen = useMemo(() => {
     return settings.cong_settings.cong_new ?? false;

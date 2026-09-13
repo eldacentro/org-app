@@ -1,4 +1,5 @@
 import { useMediaQuery, useTheme } from '@mui/material';
+import { CARRIL_LATERAL_QUERY } from '@constants/pantalla';
 
 const useHookBreakpoints = () => {
   const theme = useTheme();
@@ -11,6 +12,20 @@ const useHookBreakpoints = () => {
     noSsr: true,
   });
 
+  /**
+   * De 600 para arriba la pantalla es de ANCHO REGULAR: las acciones de la
+   * página van en la barra superior y no en la píldora flotante, y la barra
+   * superior deja de ser la de tres columnas del móvil.
+   *
+   * Hasta el 2026-09-13 ese corte estaba en 688 (`tablet688Up`), un número
+   * que no salía de ningún sitio. Se bajó por el iPhone Duo: abierto en
+   * vertical mide 626, y Apple lo trata como ancho regular en las DOS
+   * orientaciones. Con el corte en 688 se giraba el teléfono y la app
+   * cambiaba de idioma —píldora abajo en vertical, acciones arriba en
+   * horizontal—, que es justo lo que Apple pide no hacer: no decidir por la
+   * orientación. 600 es además el corte compacto→mediano de Material, así que
+   * no es un número inventado para un aparato.
+   */
   const tablet600Up = useMediaQuery(theme.breakpoints.up('tablet600'), {
     noSsr: true,
   });
@@ -39,10 +54,6 @@ const useHookBreakpoints = () => {
     noSsr: true,
   });
 
-  const tablet688Up = useMediaQuery(theme.breakpoints.up('tablet688'), {
-    noSsr: true,
-  });
-
   const desktopLargeUp = useMediaQuery(theme.breakpoints.up('desktopLarge'), {
     noSsr: true,
   });
@@ -65,6 +76,14 @@ const useHookBreakpoints = () => {
    */
   const touchDevice = useMediaQuery('(any-pointer: coarse)', { noSsr: true });
 
+  /**
+   * ¿Teléfono corto y ancho, sostenido en vertical? Es la pantalla exterior
+   * de un iPhone Duo plegado. Ahí la píldora de acciones se vuelve un carril a
+   * la derecha, como hace el sistema. La pregunta está escrita una sola vez,
+   * en `constants/pantalla`, para el CSS y para esto.
+   */
+  const carrilLateral = useMediaQuery(CARRIL_LATERAL_QUERY, { noSsr: true });
+
   return {
     mobile400Down,
     tablet500Down,
@@ -75,9 +94,9 @@ const useHookBreakpoints = () => {
     laptopDown,
     laptopUp,
     desktopUp,
-    tablet688Up,
     desktopLargeUp,
     touchDevice,
+    carrilLateral,
   };
 };
 

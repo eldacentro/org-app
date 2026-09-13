@@ -18,7 +18,7 @@ import PorCambiar from '@features/meetings/midweek_editor/por_cambiar';
 const MidweekMeeting = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { desktopUp, tablet600Up } = useBreakpoints();
 
   const {
     handleCloseQuickSettings,
@@ -48,7 +48,7 @@ const MidweekMeeting = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       {quickSettingsOpen && (

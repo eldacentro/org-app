@@ -14,7 +14,7 @@ import QuickSettingsMeetingAttendanceRecord from '@features/reports/meeting_atte
 const MeetingAttendance = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { desktopUp, tablet600Up } = useBreakpoints();
 
   const { isSecretary, isGroup } = useCurrentUser();
 
@@ -30,7 +30,7 @@ const MeetingAttendance = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       {quickSettingsOpen && (

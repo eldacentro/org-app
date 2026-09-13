@@ -11,7 +11,7 @@ import TextField from '@components/textfield';
 const GroupDetails = (props: GroupDetailsProps) => {
   const { t } = useAppTranslation();
 
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const {
     overseers,
@@ -43,7 +43,7 @@ const GroupDetails = (props: GroupDetailsProps) => {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: tablet688Up ? 'row' : 'column',
+            flexDirection: tablet600Up ? 'row' : 'column',
             alignItems: 'center',
             gap: '16px',
           }}

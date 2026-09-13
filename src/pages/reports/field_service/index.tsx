@@ -15,7 +15,7 @@ import NavBarButton from '@components/nav_bar_button';
 const FieldService = () => {
   const { t } = useAppTranslation();
 
-  const { desktopUp, tablet688Up } = useBreakpoints();
+  const { desktopUp, tablet600Up } = useBreakpoints();
 
   const { isSecretary, isGroup } = useCurrentUser();
 
@@ -27,7 +27,7 @@ const FieldService = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       <PageTitle

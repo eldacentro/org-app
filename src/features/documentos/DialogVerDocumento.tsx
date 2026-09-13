@@ -32,7 +32,7 @@ const DialogVerDocumento = ({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { person } = useCurrentUser();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
   const categorias = useAtomValue(documentoCategoriasState);
   const congId = useAtomValue(congIDState);
 
@@ -150,15 +150,15 @@ const DialogVerDocumento = ({
     <Dialog
       open={open}
       onClose={handleClose}
-      fullScreen={!tablet688Up}
+      fullScreen={!tablet600Up}
       PaperProps={{
         sx: {
           background: 'var(--card)',
-          maxWidth: tablet688Up ? '850px' : 'none',
-          width: tablet688Up ? '90vw' : '100%',
-          height: tablet688Up ? '85vh' : '100%',
-          borderRadius: tablet688Up ? 'var(--shape-xl)' : 0,
-          margin: tablet688Up ? 'auto' : 0,
+          maxWidth: tablet600Up ? '850px' : 'none',
+          width: tablet600Up ? '90vw' : '100%',
+          height: tablet600Up ? '85vh' : '100%',
+          borderRadius: tablet600Up ? 'var(--shape-xl)' : 0,
+          margin: tablet600Up ? 'auto' : 0,
           overflow: 'hidden',
         },
       }}
@@ -166,7 +166,7 @@ const DialogVerDocumento = ({
       {loading ? (
         renderSkeleton()
       ) : documento && pdfUrl ? (
-        tablet688Up ? (
+        tablet600Up ? (
           /* ── Vista escritorio: visor embebido ── */
           <Box
             sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}

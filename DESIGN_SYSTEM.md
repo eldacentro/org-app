@@ -1176,6 +1176,34 @@ dan profundidad.
 color congelado que ignora los cinco temas — pasó con el azul del armazón y
 con el rojo del aviso de "sin conexión".
 
+### 6.8 Ventanas: compacta, regular, y la pantalla exterior de un plegable
+
+La app no decide NUNCA por la orientación ni por el aparato, sino por el ancho
+que hay y por cómo se maneja. Tres cortes, y lo que significa cada uno:
+
+| Corte | Qué cambia | Por qué ahí |
+|---|---|---|
+| `< 600` (compacta) | Acciones de la página en la píldora flotante de abajo; barra superior de tres columnas | Es un teléfono |
+| `≥ 600` (`tablet600Up`, regular) | Acciones en la barra superior; barra de una fila | Corte compacto→mediano de Material, y el iPhone Duo abierto en vertical mide 626 |
+| `any-pointer: coarse` + `≥ 600` de ancho + `≥ 600` de alto | El escalón de tablet: mismas piezas, un tamaño más (final de `global/index.css`) | Táctil grande: iPad, plegable abierto. Un teléfono apaisado se cae por la altura |
+
+Y una cuarta pregunta, que no es de ancho sino de FORMA: **un teléfono corto y
+ancho en vertical** (`CARRIL_LATERAL_QUERY`, en `constants/pantalla`). Es la
+pantalla exterior del iPhone Duo cerrado, 466×678: ahí lo que escasea es la
+altura, así que la píldora de acciones se vuelve un **carril a la derecha**,
+con los botones solo con icono, al alcance del pulgar — que es exactamente lo
+que Apple hace con sus controles en esa pantalla. Ningún iPhone normal entra:
+todos son más alargados.
+
+Lo que se decidió NO hacer: nada según la bisagra. Safari no le dice a la web
+ni dónde está ni si el aparato está medio doblado, y fingirlo sería peor que
+no hacer nada. El día que WebKit exponga los segmentos del viewport, el sitio
+para usarlos es el mismo bloque de `index.css`.
+
+Ojo al probarlo: el emulador solo simula «táctil» por debajo de 768 de ancho,
+así que el Duo abierto en horizontal (890×626) no entra en el escalón en el
+emulador aunque sí en el aparato.
+
 ### 6.6 Los plurales se escriben, no se concatenan
 
 `` `${n} territorios` `` escribe "1 territorios". Siempre la forma completa:

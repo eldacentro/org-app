@@ -12,7 +12,6 @@ declare module '@mui/material/styles' {
     tablet: true;
     tablet500: true;
     tablet600: true;
-    tablet688: true;
     laptop: true;
     desktop: true;
     desktopLarge: true;

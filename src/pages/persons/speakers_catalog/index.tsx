@@ -39,7 +39,7 @@ import useSpeakersImportExport from '@features/persons/speakers_catalog/import_e
 const SpeakersCatalog = () => {
   const { t } = useAppTranslation();
 
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const { isPublicTalkCoordinator } = useCurrentUser();
 
@@ -498,7 +498,7 @@ const SpeakersCatalog = () => {
           display: 'flex',
           gap: '16px',
           flexDirection: 'column',
-          paddingBottom: !tablet688Up ? '60px' : '0px',
+          paddingBottom: !tablet600Up ? '60px' : '0px',
         }}
       >
         <PageTitle

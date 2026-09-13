@@ -97,8 +97,22 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
             sx={{
               maxWidth: '1440px',
               width: '100%',
-              paddingLeft: { mobile: '16px', tablet: '24px', desktop: '32px' },
-              paddingRight: { mobile: '16px', tablet: '24px', desktop: '32px' },
+              // El relleno de los lados nunca baja del área segura: con
+              // `viewport-fit=cover` el contenido llega hasta el borde, y en
+              // horizontal un iPhone con isla o un plegable abierto pueden
+              // reclamar unos píxeles a un lado. Se toma el mayor de los dos
+              // en vez de sumarlos: si el aparato ya deja 44, no hacen falta
+              // otros 16 encima.
+              paddingLeft: {
+                mobile: 'max(16px, env(safe-area-inset-left, 0px))',
+                tablet: 'max(24px, env(safe-area-inset-left, 0px))',
+                desktop: 'max(32px, env(safe-area-inset-left, 0px))',
+              },
+              paddingRight: {
+                mobile: 'max(16px, env(safe-area-inset-right, 0px))',
+                tablet: 'max(24px, env(safe-area-inset-right, 0px))',
+                desktop: 'max(32px, env(safe-area-inset-right, 0px))',
+              },
               marginTop: '0px',
               position: 'relative',
               zIndex: 1,

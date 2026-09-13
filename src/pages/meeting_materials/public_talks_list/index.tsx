@@ -13,7 +13,7 @@ import ImportTalks from '@features/meeting_materials/public_talks/import_talks';
 
 const PublicTalksList = () => {
   const { t } = useAppTranslation();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
   const { isPublicTalkCoordinator } = useCurrentUser();
 
   const { currentView, handleToggleView } = usePublicTalksList();
@@ -24,7 +24,7 @@ const PublicTalksList = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       <PageTitle

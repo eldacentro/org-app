@@ -8,7 +8,7 @@ import WithdrawReport from '@features/reports/branch_office/withdraw_report';
 
 const BranchOffice = () => {
   const { t } = useAppTranslation();
-  const { tablet688Up } = useBreakpoints();
+  const { tablet600Up } = useBreakpoints();
 
   const {
     buttons,
@@ -24,7 +24,7 @@ const BranchOffice = () => {
         display: 'flex',
         gap: '16px',
         flexDirection: 'column',
-        paddingBottom: !tablet688Up ? '60px' : '0px',
+        paddingBottom: !tablet600Up ? '60px' : '0px',
       }}
     >
       {submitOpen && (
