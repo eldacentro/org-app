@@ -2868,6 +2868,12 @@ body {
    SOLO CON EL ICONO, redondos, como en esa tira. La etiqueta sigue en el
    `aria-label` de cada botón, así que un lector de pantalla la dice igual.
 
+   Y también con el Duo ABIERTO Y GIRADO (890x626): ahí Apple deja los
+   controles en el lado para que sigan donde estaban al abrir el teléfono.
+   Es la segunda mitad de la condición (una pantalla táctil ancha y baja);
+   un iPad apaisado es más alto y no entra. La interior en vertical (626x890)
+   se queda con la barra de arriba, como dice la guía.
+
    La condición es la MISMA cadena que `CARRIL_LATERAL_QUERY` en
    src/constants/pantalla.ts, donde está explicado trozo a trozo. Si se toca
    una, se toca la otra. Ningún iPhone actual entra: son todos más alargados.
@@ -2876,7 +2882,8 @@ body {
    clases de emotion del botón sin `!important`, igual que en el escalón.
    ══════════════════════════════════════════════════════════════════════════ */
 
-@media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8) {
+@media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8),
+  (any-pointer: coarse) and (orientation: landscape) and (min-width: 800px) and (min-height: 560px) and (max-height: 700px) {
   /* Alguna página envuelve sus botones en una caja propia en fila (el
      Catálogo de oradores, que lleva dentro el campo oculto de importar). El
      carril apila a sus hijos directos, así que esa caja salía en horizontal

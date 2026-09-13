@@ -117,6 +117,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleOpenRealApp,
     handleBack,
     tablet600Up,
+    carrilLateral,
     logoutConfirmOpen,
     handleOpenLogoutConfirm,
     handleCloseLogoutConfirm,
@@ -821,7 +822,10 @@ const NavBar = ({ isSupported }: NavBarType) => {
                       )
                     )}
                   </Box>
+                  {/* Con carril (ver `carrilLateral`) las acciones no van
+                      aquí aunque el ancho sea regular: van a la derecha. */}
                   {!!tablet600Up &&
+                    !carrilLateral &&
                     hasRenderableContent(navBarOptions.buttons) && (
                       <Box
                         className="navbar-actions-container"
@@ -853,9 +857,12 @@ const NavBar = ({ isSupported }: NavBarType) => {
           </Toolbar>
         </AppBar>
       </Box>
-      {hasRenderableContent(navBarOptions.buttons) && !tablet600Up && (
-        <BottomMenu buttons={navBarOptions.buttons} />
-      )}
+      {/* La píldora de abajo en compacto; y como carril a la derecha en las
+          dos poses del plegable, sea cual sea el ancho. */}
+      {hasRenderableContent(navBarOptions.buttons) &&
+        (!tablet600Up || carrilLateral) && (
+          <BottomMenu buttons={navBarOptions.buttons} />
+        )}
     </>
   );
 };

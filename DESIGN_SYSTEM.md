@@ -1187,13 +1187,22 @@ que hay y por cómo se maneja. Tres cortes, y lo que significa cada uno:
 | `≥ 600` (`tablet600Up`, regular) | Acciones en la barra superior; barra de una fila | Corte compacto→mediano de Material, y el iPhone Duo abierto en vertical mide 626 |
 | `any-pointer: coarse` + `≥ 600` de ancho + `≥ 600` de alto | El escalón de tablet: mismas piezas, un tamaño más (final de `global/index.css`) | Táctil grande: iPad, plegable abierto. Un teléfono apaisado se cae por la altura |
 
-Y una cuarta pregunta, que no es de ancho sino de FORMA: **un teléfono corto y
-ancho en vertical** (`CARRIL_LATERAL_QUERY`, en `constants/pantalla`). Es la
-pantalla exterior del iPhone Duo cerrado, 466×678: ahí lo que escasea es la
-altura, así que la píldora de acciones se vuelve un **carril a la derecha**,
-con los botones solo con icono, al alcance del pulgar — que es exactamente lo
-que Apple hace con sus controles en esa pantalla. Ningún iPhone normal entra:
-todos son más alargados.
+Y una cuarta pregunta, que no es de ancho sino de FORMA
+(`CARRIL_LATERAL_QUERY`, en `constants/pantalla`): ¿van las acciones de la
+página en un **carril a la derecha**, con los botones solo con icono, al
+alcance del pulgar? Es lo que Apple hace con sus controles en el iPhone Duo, y
+la respuesta es sí en dos poses y no en la tercera:
+
+| Pose del Duo | Medida | Acciones |
+|---|---|---|
+| Cerrado, vertical (pantalla exterior) | 466×678 | **Carril**: lo que escasea es la altura |
+| Abierto, horizontal | 890×626 | **Carril**: Apple lo deja en el lado para que siga donde estaba al abrir |
+| Abierto, vertical | 626×890 | Barra de arriba: «has enough vertical space to keep standard horizontal bars» |
+
+El carril manda sobre el corte de ancho: con carril, ni píldora abajo ni
+acciones en la barra superior (`navbar`, `NavBarButton`). Ningún iPhone normal
+entra (todos son más alargados) ni ningún iPad apaisado (todos son más altos
+que 700).
 
 Lo que se decidió NO hacer: nada según la bisagra. Safari no le dice a la web
 ni dónde está ni si el aparato está medio doblado, y fingirlo sería peor que

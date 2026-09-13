@@ -77,10 +77,12 @@ const useHookBreakpoints = () => {
   const touchDevice = useMediaQuery('(any-pointer: coarse)', { noSsr: true });
 
   /**
-   * ¿Teléfono corto y ancho, sostenido en vertical? Es la pantalla exterior
-   * de un iPhone Duo plegado. Ahí la píldora de acciones se vuelve un carril a
-   * la derecha, como hace el sistema. La pregunta está escrita una sola vez,
-   * en `constants/pantalla`, para el CSS y para esto.
+   * ¿Van las acciones de la página en un carril a la derecha? Sí en la
+   * pantalla exterior de un iPhone Duo plegado (corta y ancha, en vertical) y
+   * en la interior abierta y girada (ancha y baja): es donde el sistema pone
+   * sus controles. La pregunta está escrita una sola vez, en
+   * `constants/pantalla`, para el CSS y para esto. Manda sobre `tablet600Up`:
+   * con carril, ni píldora abajo ni acciones en la barra de arriba.
    */
   const carrilLateral = useMediaQuery(CARRIL_LATERAL_QUERY, { noSsr: true });
 

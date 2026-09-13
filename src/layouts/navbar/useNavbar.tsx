@@ -29,8 +29,14 @@ import { recoverVipSession } from '@services/app/session_recovery';
 const useNavbar = () => {
   const navigate = useNavigate();
 
-  const { laptopUp, tabletDown, tabletUp, desktopUp, tablet600Up } =
-    useBreakpoints();
+  const {
+    laptopUp,
+    tabletDown,
+    tabletUp,
+    desktopUp,
+    tablet600Up,
+    carrilLateral,
+  } = useBreakpoints();
 
   const [anchorEl, setAnchorEl] = useAtom(navBarAnchorElState);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
@@ -296,6 +302,7 @@ const useNavbar = () => {
     desktopUp,
     handleQuickSettings,
     tablet600Up,
+    carrilLateral,
   };
 };
 

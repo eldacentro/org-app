@@ -14,7 +14,7 @@ import { Box } from '@mui/material';
  * - On smaller screens, it renders a premium pill with icon + label.
  */
 const NavBarButton = (props: NavBarButtonProps) => {
-  const { tablet600Up, laptopUp } = useBreakpoints();
+  const { tablet600Up, laptopUp, carrilLateral } = useBreakpoints();
 
   const main = props.main || false;
   const textImportant = props.textImportant || false;
@@ -30,7 +30,10 @@ const NavBarButton = (props: NavBarButtonProps) => {
   const soloIcono = tablet600Up && !laptopUp && !main && !textImportant;
 
   // ── Desktop / textImportant path ─────────────────────────────────
-  if (tablet600Up || textImportant) {
+  // Con carril (el plegable abierto y girado tiene ancho regular), el botón
+  // es el de la píldora aunque el ancho diga otra cosa: es el que el carril
+  // sabe apilar y dejar en icono.
+  if ((tablet600Up && !carrilLateral) || textImportant) {
     return (
       <Button
         variant={main ? 'main' : 'secondary'}
