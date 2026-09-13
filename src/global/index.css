@@ -1078,7 +1078,6 @@ body iframe {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-
 /* El contenido de la página, cuando releva al esqueleto o al cargador. Solo
    opacidad: no desplaza nada, así que no hay salto de maquetación justo cuando
    la vista se acaba de dibujar —que es cuando más se notaría—. */
@@ -2878,6 +2877,17 @@ body {
    ══════════════════════════════════════════════════════════════════════════ */
 
 @media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8) {
+  /* Alguna página envuelve sus botones en una caja propia en fila (el
+     Catálogo de oradores, que lleva dentro el campo oculto de importar). El
+     carril apila a sus hijos directos, así que esa caja salía en horizontal
+     dentro del carril. Cualquier envoltorio se apila igual que los botones. */
+  .barra-acciones--carril > :not(button) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
   .barra-acciones--carril .nav-action-pill,
   .barra-acciones--carril .nav-action-pill-main {
     width: 44px;
