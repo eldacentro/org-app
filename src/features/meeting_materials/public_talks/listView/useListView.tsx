@@ -24,6 +24,11 @@ const useListView = () => {
     // quién dio el discurso. Los mínimos de estas dos, 60 y 188, eran la mitad
     // de ese ancho.
     //
+    // Y vuelven como columna a partir de 768, no de 600: entre 600 y 767 —el
+    // iPhone Duo abierto en vertical mide 626— las cuatro columnas dejaban al
+    // título 188px y se leía en tres líneas, con «Fecha» y «Orador» sobrando
+    // vacías al lado. En ese tramo mandan el título y la fila de debajo.
+    //
     // Esconderlas se llevó por delante ORDENAR por ellas, porque esta tabla se
     // ordenaba pulsando el título de la columna: en un móvil solo quedaban
     // número y título. Ahora se ordena desde el desplegable de «Ordenar por»
@@ -38,7 +43,7 @@ const useListView = () => {
       sx: {
         width: '60px',
         backgroundColor: 'unset',
-        display: { mobile: 'none', tablet600: 'table-cell' },
+        display: { mobile: 'none', laptop: 'table-cell' },
       },
     },
     {
@@ -48,7 +53,7 @@ const useListView = () => {
       sx: {
         width: '188px',
         backgroundColor: 'unset',
-        display: { mobile: 'none', tablet600: 'table-cell' },
+        display: { mobile: 'none', laptop: 'table-cell' },
       },
     },
     {

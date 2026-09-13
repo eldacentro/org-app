@@ -97,16 +97,16 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
         >
           <Typography className="h4">{talk.talk_number}</Typography>
         </TableCell>
-        <TableCell sx={{ minWidth: { mobile: 0, tablet600: '138px' } }}>
+        <TableCell sx={{ minWidth: { mobile: 0, laptop: '138px' } }}>
           <Typography className="h4">{talk.talk_title}</Typography>
 
-          {/* En un móvil, la fecha y el orador van AQUÍ, debajo del título,
-              porque sus columnas no caben (ver la nota de `useListView`). No
-              se pierde el dato: cambia de sitio. */}
+          {/* Por debajo de 768, la fecha y el orador van AQUÍ, debajo del
+              título, porque sus columnas no caben (ver la nota de
+              `useListView`). No se pierde el dato: cambia de sitio. */}
           <Typography
             className="body-small-regular"
             color="var(--ink-2)"
-            sx={{ display: { mobile: 'block', tablet600: 'none' } }}
+            sx={{ display: { mobile: 'block', laptop: 'none' } }}
           >
             {[
               talk.last_date.length > 0 &&
@@ -124,7 +124,7 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
           sx={{
             width: '50px',
             minWidth: '50px',
-            display: { mobile: 'none', tablet600: 'table-cell' },
+            display: { mobile: 'none', laptop: 'table-cell' },
           }}
         >
           <Typography className="body-small-regular">
@@ -136,7 +136,7 @@ const TalkRow = ({ talk, isExpandAll }: TalkRowType) => {
           sx={{
             width: '205px',
             minWidth: '205px',
-            display: { mobile: 'none', tablet600: 'table-cell' },
+            display: { mobile: 'none', laptop: 'table-cell' },
           }}
         >
           <Typography className="body-small-regular">
