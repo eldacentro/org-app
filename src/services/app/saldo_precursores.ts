@@ -23,6 +23,17 @@ export const META_MENSUAL_PRECURSOR = 50;
 export type SaldoPrecursor = {
   person_uid: string;
   name: string;
+  /** Horas de predicación del año, enteras: no tienen techo. */
+  horas: number;
+  /**
+   * El crédito que CONTÓ: cada mes, lo que quepa hasta 55 con la predicación.
+   * No es lo apuntado en bruto, a propósito: así `horas + credito = total`
+   * cuadra en la tabla, y el saldo sale de ese total. Ver `credit_hours.ts`.
+   */
+  credito: number;
+  /** Predicación más el crédito que contó. */
+  total: number;
+  /** El total menos la meta (50 por cada mes con informe de precursor). */
   balance: number;
 };
 
@@ -100,6 +111,8 @@ export const saldoDePrecursores = ({
 
     if (mesesDePrecursor.size === 0) continue;
 
+    let horas = 0;
+    let credito = 0;
     let balance = 0;
 
     for (const report of informesDe.get(person.person_uid) ?? []) {
@@ -110,17 +123,29 @@ export const saldoDePrecursores = ({
 
       // CON EL TOPE DEL MES: la predicación cuenta entera y el crédito solo lo
       // que quepa hasta 55. Ver `credit_hours.ts`.
-      const horas = monthlyCreditedTotal(
-        data.hours.field_service,
+      const campo = Number.isFinite(data.hours.field_service)
+        ? Math.max(0, data.hours.field_service)
+        : 0;
+
+      const totalMes = monthlyCreditedTotal(
+        campo,
         rawCreditHours(data.hours.credit)
       );
 
-      balance += horas - META_MENSUAL_PRECURSOR;
+      // Separadas, y no solo el total: el secretario las quiere ver aparte
+      // porque es como se encuentra un informe mal metido (unas horas de
+      // crédito apuntadas como predicación, o un cero de más).
+      horas += campo;
+      credito += totalMes - campo;
+      balance += totalMes - META_MENSUAL_PRECURSOR;
     }
 
     result.push({
       person_uid: person.person_uid,
       name: nombre(person),
+      horas,
+      credito,
+      total: horas + credito,
       balance,
     });
   }

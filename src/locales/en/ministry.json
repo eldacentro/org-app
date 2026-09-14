@@ -38,7 +38,7 @@
   "tr_currentMonthlyGoal": "Current monthly goal",
   "tr_hoursBalance": "Hours balance",
   "tr_pioneersHoursBalance": "Pioneers hours balance",
-  "tr_pioneersHoursBalanceDesc": "Cumulative difference between reported hours and the monthly goal (50 hours) for regular pioneers in the {{ year }} service year. Those below the goal appear first.",
+  "tr_pioneersHoursBalanceDesc": "Regular pioneers in the {{ year }} service year: field service hours, credit and total, plus the balance against the monthly goal (50 hours). Credit counts up to 55 hours a month. Those below the goal appear first.",
   "tr_applicationAuxiliaryPioneer": "Auxiliary pioneer application",
   "tr_submitApplication": "Submit the application",
   "tr_serviceOverseer": "Service overseer",

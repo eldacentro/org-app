@@ -82,7 +82,16 @@ describe('el año lo decide quien mira, no la fecha de hoy', () => {
       nombre,
     });
 
-    expect(saldo).toEqual([{ person_uid: 'ana', name: 'ana', balance: 3 }]);
+    expect(saldo).toEqual([
+      {
+        person_uid: 'ana',
+        name: 'ana',
+        horas: 103,
+        credito: 0,
+        total: 103,
+        balance: 3,
+      },
+    ]);
   });
 
   it('y 2027, recién empezado, sale a cero sin inventarse nada', () => {
@@ -94,7 +103,16 @@ describe('el año lo decide quien mira, no la fecha de hoy', () => {
       nombre,
     });
 
-    expect(saldo).toEqual([{ person_uid: 'ana', name: 'ana', balance: 0 }]);
+    expect(saldo).toEqual([
+      {
+        person_uid: 'ana',
+        name: 'ana',
+        horas: 0,
+        credito: 0,
+        total: 0,
+        balance: 0,
+      },
+    ]);
   });
 });
 
@@ -115,7 +133,16 @@ describe('quién sale en el saldo', () => {
       nombre,
     });
 
-    expect(saldo).toEqual([{ person_uid: 'luis', name: 'luis', balance: -10 }]);
+    expect(saldo).toEqual([
+      {
+        person_uid: 'luis',
+        name: 'luis',
+        horas: 90,
+        credito: 0,
+        total: 90,
+        balance: -10,
+      },
+    ]);
   });
 
   it('quien empezó a mitad de año cuenta desde que empezó', () => {
@@ -127,7 +154,16 @@ describe('quién sale en el saldo', () => {
       nombre,
     });
 
-    expect(saldo).toEqual([{ person_uid: 'eva', name: 'eva', balance: 10 }]);
+    expect(saldo).toEqual([
+      {
+        person_uid: 'eva',
+        name: 'eva',
+        horas: 60,
+        credito: 0,
+        total: 60,
+        balance: 10,
+      },
+    ]);
   });
 
   it('quien no fue precursor ningún mes no sale', () => {
@@ -187,6 +223,31 @@ describe('qué horas cuentan', () => {
     });
 
     expect(saldo[0].balance).toBe(10);
+    // Y las columnas lo dicen tal cual: 60 de predicación, 0 de crédito
+    // contado, 60 en total. Lo apuntado (8) no aparece porque no contó.
+    expect(saldo[0]).toMatchObject({ horas: 60, credito: 0, total: 60 });
+  });
+
+  it('predicación y crédito se ven aparte, y la suma cuadra con el total', () => {
+    // 40 + 20 → cuentan 15 de crédito (hasta 55); 30 + 10 → cuentan los 10.
+    const saldo = saldoDePrecursores({
+      persons: [persona('ana')],
+      reports: [
+        informe('ana', '2026/01', 40, 20),
+        informe('ana', '2026/02', 30, 10),
+      ],
+      year: '2026',
+      estabaDePrecursor: siempre,
+      nombre,
+    });
+
+    expect(saldo[0]).toMatchObject({
+      horas: 70,
+      credito: 25,
+      total: 95,
+      balance: -5,
+    });
+    expect(saldo[0].horas + saldo[0].credito).toBe(saldo[0].total);
   });
 });
 
