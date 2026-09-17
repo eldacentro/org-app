@@ -120,6 +120,38 @@ export const dbPersonsSave = async (person: PersonType, isNew?: boolean) => {
   await dbUpdatePersonMetadata();
 };
 
+/**
+ * Guarda SOLO uno de los dos ticks de Predicación de una persona.
+ *
+ * Es el guardado de quien no es editor de personas pero sí decide esto: el
+ * superintendente de servicio elige quién conduce salidas y quién sale en los
+ * exhibidores, y hasta ahora no podía marcarlo — la casilla le salía de solo
+ * lectura y la ficha no le enseña botón de Guardar, así que un hermano nuevo no
+ * entraba en sus programas hasta que se lo marcara un administrador.
+ *
+ * ESTRECHO A PROPÓSITO: parte del registro que hay AHORA en la base de datos
+ * —no de la copia del formulario— y toca un único campo. Así no puede llevarse
+ * por delante nada del resto de la ficha, por vieja que esté la pantalla.
+ * El servidor ya acepta las personas que sube el comité de servicio y ya les
+ * manda la ficha completa, así que lo que sube es una tabla íntegra.
+ */
+export const dbPersonsSavePredicacion = async (
+  person_uid: string,
+  campo: 'predicacion_salidas' | 'predicacion_exhibidores',
+  value: boolean
+) => {
+  const person = await appDb.persons.get(person_uid);
+
+  if (!person) {
+    throw new Error('No se encuentra la ficha de esta persona.');
+  }
+
+  person.person_data[campo] = { value, updatedAt: new Date().toISOString() };
+
+  await appDb.persons.put(person);
+  await dbUpdatePersonMetadata();
+};
+
 export const dbPersonsDelete = async (person_uid: string) => {
   try {
     const person = await appDb.persons.get(person_uid);
