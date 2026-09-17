@@ -16,7 +16,7 @@ import { personGetDisplayName } from '@utils/common';
 import { ServiceOutingWeekType } from '@definition/service_outings';
 import { serviceOutingsSettingsState } from '@states/service_outings';
 import { IconCancelFilled, IconInfo } from '@components/icons';
-import { deriveWeekOutingSlots } from '@utils/service_outings';
+import { deriveWeekOutingSlots, outingSlotLabel } from '@utils/service_outings';
 import { isOutingsMonthPublished } from '@services/app/service_outings_publish';
 import { useCurrentUser } from '@hooks/index';
 import { monthNamesState } from '@states/app';
@@ -122,12 +122,6 @@ const ServiceOutingsMeeting = ({
 
     return [...months];
   }, [groupedOutings, settings]);
-
-  const getSlotLabel = (slotType: string): string => {
-    if (slotType.endsWith('_morning')) return 'Mañana';
-    if (slotType.endsWith('_afternoon')) return 'Tarde';
-    return '';
-  };
 
   const getBrotherDisplayName = (personUid: string) => {
     if (!personUid) return '';
@@ -260,7 +254,7 @@ const ServiceOutingsMeeting = ({
                 const brotherName = getBrotherDisplayName(slot.person);
                 const isAssignedToMe = slot.person === userUID;
                 const isCancelled = slot.cancelled;
-                const turnLabel = getSlotLabel(slot.slotType);
+                const turnLabel = outingSlotLabel(slot.slotType, slot.time);
                 const accentColor = 'var(--accent-main)';
 
                 return (

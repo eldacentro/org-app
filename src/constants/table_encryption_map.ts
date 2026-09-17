@@ -266,6 +266,13 @@ export const TABLE_ENCRYPTION_MAP = {
     // publicación son fechas, pero va aquí por la misma razón que el resto —
     // lo que sale de esta congregación va cifrado, sin excepciones sueltas.
     publishedMonthsAt: 'shared',
+    // Los turnos añadidos solo para una semana (la de la visita del
+    // superintendente de circuito). Es un campo NUEVO, así que nace cifrado y
+    // no le toca la espera de PENDIENTES_DE_CIFRAR: ningún dispositivo lo ha
+    // leído nunca en claro. Uno sin actualizar recibe una cadena en un campo
+    // que no conoce y no mira; si guarda esa semana, la cadena vuelve a subir
+    // tal cual y los demás la siguen sabiendo descifrar.
+    extraSlots: 'shared',
     // Faltan aquí cinco campos de Salidas que hoy viajan en claro. NO se
     // añaden todavía a mano: están en PENDIENTES_DE_CIFRAR, más abajo, y el
     // comentario de allí explica por qué el orden importa.

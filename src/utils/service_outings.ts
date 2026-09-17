@@ -1,5 +1,7 @@
 import {
+  ServiceOutingExtraSlotType,
   ServiceOutingSettingsType,
+  ServiceOutingType,
   ServiceOutingWeekType,
 } from '../definition/service_outings';
 
@@ -122,11 +124,82 @@ export const isOutingSlotSuppressedByMonth = (
 export type DerivedOutingSlot = {
   date: string; // "YYYY/MM/DD"
   time: string;
-  slotType: string; // ej. "wednesday_morning"
+  // "wednesday_morning" para un turno de los de siempre;
+  // "wednesday_extra_<id>" para uno añadido solo esa semana. Sigue siendo
+  // único dentro del día, que es lo que necesitan las listas para su `key`.
+  slotType: string;
   person: string;
   location: string;
   cancelled: boolean;
+  /** El id del turno añadido; ausente en los turnos de siempre. */
+  extraId?: string;
 };
+
+export const OUTING_DAY_KEYS = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+] as const;
+
+const HORA_VALIDA = /^([01]\d|2[0-3]):[0-5]\d$/;
+const FECHA_VALIDA = /^\d{4}\/\d{2}\/\d{2}$/;
+
+/**
+ * Los turnos añadidos de una semana, con la forma garantizada.
+ *
+ * `extraSlots` viaja cifrado: un registro que todavía no se haya descifrado lo
+ * trae como una cadena, y de una importación vieja puede llegar cualquier cosa.
+ * Quien pinta turnos no puede reventar por eso, así que todo el que los lea
+ * pasa por aquí: lo que no sea una lista de `{id, date, time}` bien formados
+ * se queda fuera.
+ */
+export const weekExtraSlots = (
+  weekRecord: { extraSlots?: unknown } | undefined | null
+): ServiceOutingExtraSlotType[] => {
+  const lista = weekRecord?.extraSlots;
+
+  if (!Array.isArray(lista)) return [];
+
+  return lista.filter(
+    (turno): turno is ServiceOutingExtraSlotType =>
+      typeof turno === 'object' &&
+      turno !== null &&
+      typeof turno.id === 'string' &&
+      turno.id.length > 0 &&
+      typeof turno.date === 'string' &&
+      FECHA_VALIDA.test(turno.date) &&
+      typeof turno.time === 'string' &&
+      HORA_VALIDA.test(turno.time)
+  );
+};
+
+/**
+ * «Mañana», «Tarde» o «Noche» de un turno.
+ *
+ * Los de siempre lo llevan en el nombre. Uno añadido no es ni de mañana ni de
+ * tarde por definición —es de la hora que se le ponga—, así que se deduce de
+ * ella: hasta las 14:00 mañana, hasta las 20:00 tarde, y después noche.
+ */
+export const outingSlotLabel = (slotType: string, time: string): string => {
+  if (slotType.endsWith('_morning')) return 'Mañana';
+  if (slotType.endsWith('_afternoon')) return 'Tarde';
+
+  const hora = Number((time || '').split(':')[0]);
+
+  if (!Number.isFinite(hora)) return '';
+  if (hora < 14) return 'Mañana';
+  if (hora < 20) return 'Tarde';
+
+  return 'Noche';
+};
+
+/** ¿Es un turno añadido solo esa semana? */
+export const isExtraOutingSlot = (slotType: string): boolean =>
+  slotType.includes('_extra_');
 
 /**
  * Deriva los turnos efectivos de UNA semana (lunes a domingo) a partir de la
@@ -145,6 +218,7 @@ export const deriveWeekOutingSlots = (
     | {
         isCircuitOverseerWeek?: boolean;
         weekOverrideHours?: Record<string, string>;
+        extraSlots?: unknown;
         outings?: {
           date: string;
           time: string;
@@ -175,8 +249,9 @@ export const deriveWeekOutingSlots = (
   const CO_DAYS = ['wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const isCoWeek = !!weekRecord?.isCircuitOverseerWeek;
 
-  const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const dayKeys = OUTING_DAY_KEYS;
   const slots: DerivedOutingSlot[] = [];
+  const extras = weekExtraSlots(weekRecord);
 
   for (let i = 0; i < 7; i++) {
     const date = new Date(monday);
@@ -200,7 +275,9 @@ export const deriveWeekOutingSlots = (
         overrideHours[slotType] ||
         defaultHours[slotType] ||
         (turn === 'morning' ? '10:00' : '17:00');
-      const assigned = outings.find((o) => o.date === dbDateStr && o.time === time);
+      const assigned = outings.find(
+        (o) => o.date === dbDateStr && o.time === time
+      );
 
       const coHere = isCoWeek && CO_DAYS.includes(dayLabel);
 
@@ -213,9 +290,232 @@ export const deriveWeekOutingSlots = (
         cancelled: assigned?.cancelled || false,
       });
     }
+
+    // LOS TURNOS AÑADIDOS de ese día. Salen SIEMPRE: son una decisión expresa
+    // para esa semana, así que ni un turno inhabilitado ni un mes suspendido
+    // los esconden (añadir un turno a una semana de agosto es justo decir «esta
+    // sí»). Lo que no pueden es duplicar una hora que ya existe ese día: las
+    // asignaciones se emparejan por fecha y hora, y dos turnos a la misma hora
+    // se repartirían la misma.
+    const delDia = slots.filter((slot) => slot.date === dbDateStr);
+
+    for (const extra of extras) {
+      if (extra.date !== dbDateStr) continue;
+      if (delDia.some((slot) => slot.time === extra.time)) continue;
+
+      const assigned = outings.find(
+        (o) => o.date === dbDateStr && o.time === extra.time
+      );
+
+      const coHere = isCoWeek && CO_DAYS.includes(dayLabel);
+
+      const turno: DerivedOutingSlot = {
+        date: dbDateStr,
+        time: extra.time,
+        slotType: `${dayLabel}_extra_${extra.id}`,
+        person: assigned?.person || (coHere ? 'CIRCUIT_OVERSEER' : ''),
+        location: assigned?.location || defaultLocation,
+        cancelled: assigned?.cancelled || false,
+        extraId: extra.id,
+      };
+
+      slots.push(turno);
+      delDia.push(turno);
+    }
   }
 
-  return slots;
+  // Por fecha y, dentro del día, por hora: un turno añadido a las 12:00 va
+  // entre el de la mañana y el de la tarde, no al final.
+  return slots.sort(
+    (a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)
+  );
+};
+
+/**
+ * Un turno de una semana tal como lo enseña «Ajustes de la semana»: con la hora
+ * que tiene, la que tendría sin tocar nada, y la que tenía al abrir el diálogo.
+ */
+export type WeekShiftDraft = {
+  /** `slotType` para uno de siempre; el id para uno añadido. */
+  key: string;
+  kind: 'habitual' | 'extra';
+  date: string;
+  dayKey: (typeof OUTING_DAY_KEYS)[number];
+  time: string;
+  /** La hora con la que se abrió: con ella se encuentran sus asignaciones. */
+  originalTime: string;
+  /** Solo los de siempre: la hora de la congregación para ese mes. */
+  habitualTime?: string;
+};
+
+/** Los turnos de una semana, listos para editarse. */
+export const weekShiftDrafts = (
+  settings: ServiceOutingSettingsType | null,
+  weekRecord: Parameters<typeof deriveWeekOutingSlots>[1],
+  weekOf: string
+): WeekShiftDraft[] => {
+  // Las horas «de siempre» son las que saldrían sin ninguna hora a medida.
+  const habituales = new Map(
+    deriveWeekOutingSlots(
+      settings,
+      { ...(weekRecord ?? {}), weekOverrideHours: {}, extraSlots: [] },
+      weekOf
+    ).map((slot) => [slot.slotType, slot.time])
+  );
+
+  return deriveWeekOutingSlots(settings, weekRecord, weekOf).map((slot) => {
+    const dayKey = slot.slotType.split('_')[0] as WeekShiftDraft['dayKey'];
+
+    if (slot.extraId) {
+      return {
+        key: slot.extraId,
+        kind: 'extra',
+        date: slot.date,
+        dayKey,
+        time: slot.time,
+        originalTime: slot.time,
+      };
+    }
+
+    return {
+      key: slot.slotType,
+      kind: 'habitual',
+      date: slot.date,
+      dayKey,
+      time: slot.time,
+      originalTime: slot.time,
+      habitualTime: habituales.get(slot.slotType) ?? slot.time,
+    };
+  });
+};
+
+/** Dos turnos del mismo día a la misma hora: no se puede guardar así. */
+export const weekShiftCollisions = (drafts: WeekShiftDraft[]): string[] => {
+  const vistos = new Map<string, string>();
+  const repetidos = new Set<string>();
+
+  for (const draft of drafts) {
+    const clave = `${draft.date}_${draft.time}`;
+    const previo = vistos.get(clave);
+
+    if (previo) {
+      repetidos.add(previo);
+      repetidos.add(draft.key);
+    } else {
+      vistos.set(clave, draft.key);
+    }
+  }
+
+  return [...repetidos];
+};
+
+export type WeekShiftChanges = {
+  record: ServiceOutingWeekType;
+  /** Turnos que cambian de hora: lo que cuelgue de ellos hay que moverlo. */
+  moved: { date: string; from: string; to: string }[];
+  /** Turnos añadidos que se quitan. */
+  removed: { date: string; time: string }[];
+};
+
+/**
+ * Aplica «Ajustes de la semana» al registro y devuelve el registro nuevo.
+ *
+ * Lo que hace, y que antes no hacía nadie:
+ *
+ *  - LAS ASIGNACIONES SIGUEN A SU TURNO. Una asignación se empareja por fecha y
+ *    hora. Si el sábado pasa de las 9:45 a las 9:30 y la asignación se queda en
+ *    las 9:45, el turno aparece vacío en el programa y —lo grave— el hermano la
+ *    sigue viendo en Mis asignaciones a una hora que ya no existe. Aquí cada
+ *    asignación se mueve con su turno. Se calcula sobre una foto de cómo estaba,
+ *    no una detrás de otra, para que dos turnos que intercambian sus horas no
+ *    se pisen.
+ *  - QUITAR UN TURNO AÑADIDO quita su asignación. Si no, quedaría colgando
+ *    igual que arriba.
+ *  - Solo se guardan las horas que de verdad difieren de las de la
+ *    congregación. Antes se copiaban las catorce, y la semana dejaba de seguir
+ *    a los horarios del mes aunque solo se hubiera tocado una.
+ *
+ * Nada de `undefined`: lo que se vacía se quita con `delete`, y el registro
+ * viaja entero con una sola fecha, así que lo quitado llega quitado.
+ */
+export const applyWeekShiftDrafts = ({
+  weekRecord,
+  weekOf,
+  isCircuitOverseerWeek,
+  drafts,
+}: {
+  weekRecord: ServiceOutingWeekType | undefined;
+  weekOf: string;
+  isCircuitOverseerWeek: boolean;
+  drafts: WeekShiftDraft[];
+}): WeekShiftChanges => {
+  const record: ServiceOutingWeekType = weekRecord
+    ? structuredClone(weekRecord)
+    : { weekOf, outings: [] };
+
+  const previos = weekExtraSlots(weekRecord);
+  const outings: ServiceOutingType[] = (record.outings ?? []).filter(Boolean);
+
+  record.isCircuitOverseerWeek = isCircuitOverseerWeek;
+
+  // 1. Las horas a medida: solo las que difieren.
+  const horas: Record<string, string> = {};
+
+  for (const draft of drafts) {
+    if (draft.kind !== 'habitual') continue;
+    if (draft.time !== (draft.habitualTime ?? draft.time)) {
+      horas[draft.key] = draft.time;
+    }
+  }
+
+  if (Object.keys(horas).length > 0) record.weekOverrideHours = horas;
+  else delete record.weekOverrideHours;
+
+  // 2. Los turnos añadidos.
+  const extras = drafts
+    .filter((draft) => draft.kind === 'extra')
+    .map((draft) => ({ id: draft.key, date: draft.date, time: draft.time }));
+
+  // Una cadena aquí son turnos añadidos que ESTE dispositivo aún no ha sabido
+  // descifrar (los bajó con una versión anterior). Si no se añade ninguno, se
+  // dejan como están: borrarlos sería quitarle a todo el mundo unos turnos que
+  // aquí ni siquiera se han llegado a ver.
+  const sinDescifrar =
+    typeof weekRecord?.extraSlots === 'string' && extras.length === 0;
+
+  if (extras.length > 0) record.extraSlots = extras;
+  else if (!sinDescifrar) delete record.extraSlots;
+
+  // 3. Las asignaciones, sobre una foto de cómo estaban.
+  const destino = new Map<string, string>();
+
+  for (const draft of drafts) {
+    if (draft.time !== draft.originalTime) {
+      destino.set(`${draft.date}_${draft.originalTime}`, draft.time);
+    }
+  }
+
+  const removed = previos
+    .filter((previo) => !extras.some((extra) => extra.id === previo.id))
+    .map((previo) => ({ date: previo.date, time: previo.time }));
+
+  const quitadas = new Set(removed.map((r) => `${r.date}_${r.time}`));
+
+  record.outings = outings
+    .filter((outing) => !quitadas.has(`${outing.date}_${outing.time}`))
+    .map((outing) => {
+      const nueva = destino.get(`${outing.date}_${outing.time}`);
+
+      return nueva ? { ...outing, time: nueva } : outing;
+    });
+
+  const moved = [...destino.entries()].map(([clave, to]) => {
+    const corte = clave.indexOf('_');
+
+    return { date: clave.slice(0, corte), from: clave.slice(corte + 1), to };
+  });
+
+  return { record, moved, removed };
 };
 
 /**
@@ -328,5 +628,57 @@ export const normalizeServiceOutingWeek = <T extends ServiceOutingWeekType>(
     delete week.weekOverrideHours;
   }
 
+  // Los turnos añadidos NO se tocan aquí aunque lleguen con mala forma: quien
+  // los lee pasa por `weekExtraSlots`, que ya descarta lo que no sea una lista
+  // bien formada. Borrarlos del registro sería peor que ignorarlos — una cadena
+  // aún sin descifrar son turnos de verdad que otro dispositivo sí sabe leer.
+
   return week;
+};
+
+/**
+ * Los acompañantes del superintendente de circuito siguen a su turno.
+ *
+ * En la visita, quién sale con él en cada salida se guarda con la clave
+ * `fecha_hora` del turno. Si en «Ajustes de la semana» el sábado pasa de las
+ * 9:45 a las 9:30, esa clave deja de existir: los acompañantes desaparecen de
+ * la página de la visita y —lo peor— siguen viendo en Mis asignaciones una
+ * salida a una hora que ya no hay. Esto devuelve la lista con las claves
+ * movidas, y sin los de un turno añadido que se ha quitado.
+ *
+ * Devuelve la MISMA lista si no hay nada que tocar, para que quien llama pueda
+ * saber con un `===` que no hace falta guardar la visita.
+ */
+export const rekeyOutingCompanions = <T extends { outingKey: string }>(
+  companions: T[],
+  { moved, removed }: Pick<WeekShiftChanges, 'moved' | 'removed'>
+): T[] => {
+  if (!Array.isArray(companions) || companions.length === 0) return companions;
+
+  // Sobre una foto, igual que las asignaciones: dos turnos que intercambian sus
+  // horas no pueden pisarse.
+  const destino = new Map(
+    moved.map((m) => [`${m.date}_${m.from}`, `${m.date}_${m.to}`])
+  );
+  const quitadas = new Set(removed.map((r) => `${r.date}_${r.time}`));
+
+  let tocado = false;
+
+  const resultado = companions
+    .filter((companion) => {
+      if (!quitadas.has(companion.outingKey)) return true;
+
+      tocado = true;
+      return false;
+    })
+    .map((companion) => {
+      const nueva = destino.get(companion.outingKey);
+
+      if (!nueva) return companion;
+
+      tocado = true;
+      return { ...companion, outingKey: nueva };
+    });
+
+  return tocado ? resultado : companions;
 };

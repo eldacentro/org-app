@@ -95,11 +95,19 @@ import {
 } from '@services/dexie/service_outings';
 import { displaySnackNotification } from '@services/states/app';
 import {
+  DerivedOutingSlot,
+  deriveWeekOutingSlots,
   getEffectiveHoursForMonth,
   isOutingsMonthCancelled,
+  isExtraOutingSlot,
   isOutingsMonthFullyCancelled,
-  isOutingSlotSuppressedByMonth,
+  outingSlotLabel,
+  rekeyOutingCompanions,
+  WeekShiftChanges,
 } from '@utils/service_outings';
+import { circuitVisitsState, findVisitForWeek } from '@states/circuit_visit';
+import { dbCircuitVisitSave } from '@services/dexie/circuit_visit';
+import WeekSettingsDialog from './week_settings_dialog';
 // `personIsAway` devuelve el MENSAJE que se le enseña a quien programa (vacío
 // si no hay ausencia); `personIsAwayOn` contesta sí o no. Para decidir hay que
 // usar el segundo: el primero siempre es "algo" en un `if`.
@@ -400,11 +408,7 @@ const PredicacionSalidas = () => {
     open: boolean;
     weekOf: string;
   }>({ open: false, weekOf: '' });
-  const [showAdjustHours, setShowAdjustHours] = useState<boolean>(false);
-  const [weekHoursConfig, setWeekHoursConfig] = useState<
-    Record<string, string>
-  >({});
-  const [tempCOWeek, setTempCOWeek] = useState<boolean>(false);
+  const circuitVisits = useAtomValue(circuitVisitsState);
 
   // Cargar configuración por defecto en Jotai si está vacía
   useEffect(() => {
@@ -423,94 +427,55 @@ const PredicacionSalidas = () => {
     );
   }, [persons]);
 
-  // Generar dinámicamente todos los slots de salidas del mes/año seleccionado
+  // Todos los turnos del mes elegido.
+  //
+  // Salen de `deriveWeekOutingSlots`, la MISMA cuenta que usan Programas
+  // semanales, la página de la visita, la agenda y el PDF. Antes esta página
+  // la repetía a mano —mañana y tarde de cada día, con sus inhabilitados y su
+  // mes suspendido—, y por eso un turno añadido solo para una semana habría
+  // salido en todas partes menos aquí, que es donde se asigna.
+  //
+  // Se recorre semana a semana y se queda con los días que caen dentro del mes:
+  // una semana a caballo entre dos meses enseña en cada uno su trozo.
   const outingsSlotsInMonth = useMemo(() => {
-    // Ya NO se corta en seco cuando el mes está suspendido: si la suspensión
-    // lleva excepciones (keepActiveSlots, ej. sábados), esos turnos deben
-    // seguir apareciendo. La supresión se decide turno a turno más abajo.
-    if (!settings || isOutingsMonthFullyCancelled(settings, currentMonthStr)) {
-      return [];
+    if (!settings) return [];
+
+    const weeks = new Set<string>();
+    const cursor = new Date(selectedYear, selectedMonth, 1);
+
+    while (cursor.getMonth() === selectedMonth) {
+      weeks.add(getWeekOfDate(cursor));
+      cursor.setDate(cursor.getDate() + 1);
     }
 
-    const defaultHours = effectiveHours;
+    const slots: {
+      date: Date;
+      slotType: string;
+      time: string;
+      slotId: string;
+    }[] = [];
 
-    const slots = [];
-    const disabledSlots = settings.disabledSlots || [];
-    // Recorrer todos los días del mes
-    const date = new Date(selectedYear, selectedMonth, 1);
-    while (date.getMonth() === selectedMonth) {
-      const dayOfWeek = date.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
+    for (const weekOf of [...weeks].sort()) {
+      const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
 
-      // Determinar el prefijo del día en inglés
-      let dayLabel = '';
-      if (dayOfWeek === 1) dayLabel = 'monday';
-      else if (dayOfWeek === 2) dayLabel = 'tuesday';
-      else if (dayOfWeek === 3) dayLabel = 'wednesday';
-      else if (dayOfWeek === 4) dayLabel = 'thursday';
-      else if (dayOfWeek === 5) dayLabel = 'friday';
-      else if (dayOfWeek === 6) dayLabel = 'saturday';
-      else if (dayOfWeek === 0) dayLabel = 'sunday';
+      for (const slot of deriveWeekOutingSlots(settings, weekRecord, weekOf)) {
+        if (slot.date.slice(0, 7) !== currentMonthStr) continue;
 
-      if (dayLabel) {
-        const weekOfRecord = getWeekOfDate(date);
-        const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOfRecord);
-        const overrideHours = weekRecord?.weekOverrideHours || {};
+        const [year, month, day] = slot.date.split('/').map(Number);
 
-        // Turno Mañana
-        const morningType = `${dayLabel}_morning`;
-        // Para compatibilidad hacia atrás, si disabledSlots incluye el nombre del día legacy (ej: 'friday'), lo consideramos deshabilitado.
-        // Además se omite si el mes está suspendido y este turno no es una de
-        // las excepciones mantenidas activas (ver isOutingSlotSuppressedByMonth).
-        if (
-          !disabledSlots.includes(morningType) &&
-          !disabledSlots.includes(dayLabel) &&
-          !isOutingSlotSuppressedByMonth(settings, currentMonthStr, morningType)
-        ) {
-          slots.push({
-            date: new Date(date),
-            slotType: morningType,
-            time:
-              overrideHours[morningType] ||
-              defaultHours[morningType as keyof typeof defaultHours] ||
-              '10:00',
-            slotId: `${formatToDbDate(date)}_morning`,
-          });
-        }
-
-        // Turno Tarde
-        const afternoonType = `${dayLabel}_afternoon`;
-        if (
-          !disabledSlots.includes(afternoonType) &&
-          !disabledSlots.includes(dayLabel) &&
-          !isOutingSlotSuppressedByMonth(
-            settings,
-            currentMonthStr,
-            afternoonType
-          )
-        ) {
-          slots.push({
-            date: new Date(date),
-            slotType: afternoonType,
-            time:
-              overrideHours[afternoonType] ||
-              defaultHours[afternoonType as keyof typeof defaultHours] ||
-              '17:00',
-            slotId: `${formatToDbDate(date)}_afternoon`,
-          });
-        }
+        slots.push({
+          date: new Date(year, month - 1, day),
+          slotType: slot.slotType,
+          time: slot.time,
+          // "2026/09/16_morning" como siempre; "2026/09/16_extra_<id>" para uno
+          // añadido. Único en el mes, que es para lo que sirve.
+          slotId: `${slot.date}_${slot.slotType.split('_').slice(1).join('_')}`,
+        });
       }
-
-      date.setDate(date.getDate() + 1);
     }
+
     return slots;
-  }, [
-    selectedYear,
-    selectedMonth,
-    settings,
-    outingsWeeks,
-    effectiveHours,
-    monthCancelled,
-  ]);
+  }, [selectedYear, selectedMonth, settings, outingsWeeks, currentMonthStr]);
 
   const triggerSync = () => {
     import('@services/worker/backupWorker').then(({ default: worker }) =>
@@ -949,54 +914,98 @@ const PredicacionSalidas = () => {
 
   // Abrir diálogo de ajustes de semana
   const handleOpenWeekSettings = (weekOf: string) => {
-    const weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
-    setWeekSettingsDialog({
-      open: true,
-      weekOf,
-    });
-    setTempCOWeek(!!weekRecord?.isCircuitOverseerWeek);
-    setShowAdjustHours(!!weekRecord?.weekOverrideHours);
-    setWeekHoursConfig(weekRecord?.weekOverrideHours || {});
+    setWeekSettingsDialog({ open: true, weekOf });
   };
 
-  // Guardar ajustes de semana
-  const handleSaveWeekSettings = async () => {
-    if (isSavingOuting) return;
+  // La visita programada esa semana, si la hay. De ella salen dos cosas: que la
+  // marca de «semana del superintendente» la gobierna ella (desmarcarla aquí no
+  // serviría: la proyección de la visita la vuelve a poner), y los acompañantes
+  // que cuelgan de cada turno.
+  const weekVisit = useMemo(
+    () =>
+      weekSettingsDialog.weekOf
+        ? findVisitForWeek(circuitVisits, weekSettingsDialog.weekOf)
+        : null,
+    [circuitVisits, weekSettingsDialog.weekOf]
+  );
+
+  const weekConductorOf = (date: string, time: string): string => {
+    const weekRecord = outingsWeeks.find(
+      (w) => w.weekOf === weekSettingsDialog.weekOf
+    );
+    const outing = weekRecord?.outings?.find(
+      (o) => o?.date === date && o?.time === time
+    );
+
+    if (!outing?.person) return '';
+
+    if (outing.person === 'CIRCUIT_OVERSEER') {
+      return 'el superintendente de circuito';
+    }
+
+    if (outing.person.startsWith('SHARED_CONG:')) {
+      return outing.person.replace('SHARED_CONG:', '');
+    }
+
+    const person = persons.find((p) => p.person_uid === outing.person);
+
+    return person
+      ? personGetDisplayName(person, displayNameEnabled, fullnameOption)
+      : '';
+  };
+
+  const weekHasCompanions = (date: string, time: string): boolean =>
+    (weekVisit?.co_companions ?? []).some(
+      (c) => c.outingKey === `${date}_${time}`
+    );
+
+  // Guardar ajustes de semana. Devuelve si se ha guardado, para que
+  // «Autocompletar» no rellene encima de un guardado que ha fallado.
+  const handleSaveWeekSettings = async (
+    changes: WeekShiftChanges,
+    { silent = false }: { silent?: boolean } = {}
+  ): Promise<boolean> => {
+    if (isSavingOuting) return false;
     setIsSavingOuting(true);
 
     try {
       const { weekOf } = weekSettingsDialog;
-      let weekRecord = outingsWeeks.find((w) => w.weekOf === weekOf);
-
-      if (!weekRecord) {
-        weekRecord = {
-          weekOf,
-          outings: [],
-        };
-      } else {
-        weekRecord = structuredClone(weekRecord);
-      }
-
-      weekRecord.isCircuitOverseerWeek = tempCOWeek;
-      if (showAdjustHours) {
-        weekRecord.weekOverrideHours = weekHoursConfig;
-      } else {
-        delete weekRecord.weekOverrideHours;
-      }
+      const weekRecord = changes.record;
 
       await dbServiceOutingsSaveWeek(weekRecord);
+
+      // Los acompañantes del superintendente cuelgan de la fecha y la hora del
+      // turno: si la hora cambia, se mueven con él. La visita solo se guarda si
+      // de verdad hay algo que mover (`rekeyOutingCompanions` devuelve la misma
+      // lista cuando no) — guardarla de más le cambiaría la fecha y saltaría el
+      // aviso de «se ha cambiado desde que se publicó» sin motivo.
+      if (weekVisit) {
+        const companions = rekeyOutingCompanions(
+          weekVisit.co_companions ?? [],
+          changes
+        );
+
+        if (companions !== (weekVisit.co_companions ?? [])) {
+          await dbCircuitVisitSave({ ...weekVisit, co_companions: companions });
+        }
+      }
+
       triggerSync();
       setOutingsWeeks((prev) => {
         const filtered = prev.filter((w) => w.weekOf !== weekOf);
-        return [...filtered, weekRecord!];
+        return [...filtered, weekRecord];
       });
 
-      setWeekSettingsDialog({ open: false, weekOf: '' });
-      displaySnackNotification({
-        header: t('tr_done', 'Hecho'),
-        message: 'Ajustes semanales actualizados correctamente.',
-        severity: 'success',
-      });
+      if (!silent) {
+        setWeekSettingsDialog({ open: false, weekOf: '' });
+        displaySnackNotification({
+          header: t('tr_done', 'Hecho'),
+          message: 'Ajustes de la semana guardados.',
+          severity: 'success',
+        });
+      }
+
+      return true;
     } catch (err) {
       console.error(err);
       displaySnackNotification({
@@ -1004,15 +1013,26 @@ const PredicacionSalidas = () => {
         message: 'Ocurrió un error al guardar los ajustes semanales.',
         severity: 'error',
       });
+
+      return false;
     } finally {
       setIsSavingOuting(false);
     }
   };
 
-  // Autocompletar asignaciones de la semana actual
-  const handleAutofillWeek = async () => {
+  // Autocompletar una semana específica desde el diálogo de ajustes. Primero se
+  // guarda lo que haya pendiente en el diálogo: si no, un turno recién añadido
+  // o una hora recién cambiada no existirían todavía para el autocompletado, y
+  // al cerrarse el diálogo se perderían sin avisar.
+  const handleAutofillWeek = async (changes: WeekShiftChanges | null) => {
     const { weekOf } = weekSettingsDialog;
     if (!weekOf) return;
+
+    if (changes) {
+      const guardado = await handleSaveWeekSettings(changes, { silent: true });
+
+      if (!guardado) return;
+    }
 
     try {
       const count = await outingsStartAutofill(weekOf);
@@ -1139,10 +1159,6 @@ const PredicacionSalidas = () => {
     }
 
     try {
-      const defaultHours = getEffectiveHoursForMonth(settings, pdfMonthStr);
-
-      const disabledSlots = settings.disabledSlots || [];
-
       // Función para abreviar nombres en celdas pequeñas (desactivada por solicitud)
       const getAbbreviatedName = (fullName: string) => {
         if (!fullName || fullName === 'Sin asignar') return 'Sin asignar';
@@ -1155,7 +1171,6 @@ const PredicacionSalidas = () => {
         return fullName; // Devolvemos el nombre completo para que fluya en la fila
       };
 
-      // 1. Determinar qué días de la semana tienen salidas configuradas en este mes
       const weekdaysInfo = [
         { dayOfWeek: 1, label: 'lunes', englishLabel: 'monday' },
         { dayOfWeek: 2, label: 'martes', englishLabel: 'tuesday' },
@@ -1166,49 +1181,7 @@ const PredicacionSalidas = () => {
         { dayOfWeek: 0, label: 'domingo', englishLabel: 'sunday' },
       ];
 
-      const activeDays = new Set<number>();
-      const tempDate = new Date(pdfExportYear, pdfExportMonth, 1);
-      while (tempDate.getMonth() === pdfExportMonth) {
-        const dayOfWeek = tempDate.getDay();
-        let dayLabel = '';
-        if (dayOfWeek === 1) dayLabel = 'monday';
-        else if (dayOfWeek === 2) dayLabel = 'tuesday';
-        else if (dayOfWeek === 3) dayLabel = 'wednesday';
-        else if (dayOfWeek === 4) dayLabel = 'thursday';
-        else if (dayOfWeek === 5) dayLabel = 'friday';
-        else if (dayOfWeek === 6) dayLabel = 'saturday';
-        else if (dayOfWeek === 0) dayLabel = 'sunday';
-
-        if (dayLabel) {
-          // Un turno cuenta como día activo si no está inhabilitado globalmente
-          // y (si el mes está suspendido) es una de las excepciones mantenidas.
-          const morningType = `${dayLabel}_morning`;
-          if (
-            !disabledSlots.includes(morningType) &&
-            !disabledSlots.includes(dayLabel) &&
-            !isOutingSlotSuppressedByMonth(settings, pdfMonthStr, morningType)
-          ) {
-            activeDays.add(dayOfWeek);
-          }
-          const afternoonType = `${dayLabel}_afternoon`;
-          if (
-            !disabledSlots.includes(afternoonType) &&
-            !disabledSlots.includes(dayLabel) &&
-            !isOutingSlotSuppressedByMonth(settings, pdfMonthStr, afternoonType)
-          ) {
-            activeDays.add(dayOfWeek);
-          }
-        }
-        tempDate.setDate(tempDate.getDate() + 1);
-      }
-
-      const weekdaysToShow = weekdaysInfo.filter((info) =>
-        activeDays.has(info.dayOfWeek)
-      );
-      const weekdaysToShowFinal =
-        weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
-
-      // 2. Calcular límites del mes y semanas naturales ( Monday of week )
+      // 1. Las semanas naturales del mes (por su lunes).
       const daysInMonth = new Date(
         pdfExportYear,
         pdfExportMonth + 1,
@@ -1221,6 +1194,44 @@ const PredicacionSalidas = () => {
       }
       const sortedWeekKeys = Array.from(weekKeys).sort();
 
+      // 2. Los turnos de cada día, con la MISMA cuenta que el resto de la app
+      // (`deriveWeekOutingSlots`). Aquí se repetía a mano —mañana y tarde, con
+      // sus inhabilitados y su mes suspendido— y se había quedado atrás en dos
+      // cosas: no habría sacado un turno añadido solo para una semana, y en la
+      // semana del superintendente de circuito dejaba «Sin asignar» los turnos
+      // que en la app y en Programas semanales salen a su nombre.
+      const slotsByDate = new Map<string, DerivedOutingSlot[]>();
+
+      for (const weekKey of sortedWeekKeys) {
+        const weekRecord = outingsWeeks.find((w) => w.weekOf === weekKey);
+
+        for (const slot of deriveWeekOutingSlots(
+          settings,
+          weekRecord,
+          weekKey
+        )) {
+          if (slot.date.slice(0, 7) !== pdfMonthStr) continue;
+
+          if (!slotsByDate.has(slot.date)) slotsByDate.set(slot.date, []);
+          slotsByDate.get(slot.date)!.push(slot);
+        }
+      }
+
+      // 3. Las columnas: los días de la semana con alguna salida ese mes. Un
+      // jueves que solo sale en la semana de la visita ya tiene su columna.
+      const activeDays = new Set<number>();
+
+      for (const dateKey of slotsByDate.keys()) {
+        const [y, m, d] = dateKey.split('/').map(Number);
+        activeDays.add(new Date(y, m - 1, d).getDay());
+      }
+
+      const weekdaysToShow = weekdaysInfo.filter((info) =>
+        activeDays.has(info.dayOfWeek)
+      );
+      const weekdaysToShowFinal =
+        weekdaysToShow.length > 0 ? weekdaysToShow : weekdaysInfo;
+
       const cells: CalendarCellPDF[] = [];
 
       // Construir la cuadrícula fila por fila (semana por semana)
@@ -1229,14 +1240,8 @@ const PredicacionSalidas = () => {
         const mondayDate = new Date(wYear, wMonth - 1, wDay);
 
         for (const dayInfo of weekdaysToShowFinal) {
-          let diffDays = 0;
-          if (dayInfo.dayOfWeek === 1) diffDays = 0;
-          else if (dayInfo.dayOfWeek === 2) diffDays = 1;
-          else if (dayInfo.dayOfWeek === 3) diffDays = 2;
-          else if (dayInfo.dayOfWeek === 4) diffDays = 3;
-          else if (dayInfo.dayOfWeek === 5) diffDays = 4;
-          else if (dayInfo.dayOfWeek === 6) diffDays = 5;
-          else if (dayInfo.dayOfWeek === 0) diffDays = 6;
+          // Lunes 0 … domingo 6.
+          const diffDays = (dayInfo.dayOfWeek + 6) % 7;
 
           const cellDate = new Date(mondayDate);
           cellDate.setDate(mondayDate.getDate() + diffDays);
@@ -1246,107 +1251,35 @@ const PredicacionSalidas = () => {
             cellDate.getFullYear() === pdfExportYear
           ) {
             const dateKey = formatToDbDate(cellDate);
-            const dayOutings: OutingPDFItem[] = [];
 
-            // Comprobar Turno Mañana
-            const morningType = `${dayInfo.englishLabel}_morning`;
-            if (
-              !disabledSlots.includes(morningType) &&
-              !disabledSlots.includes(dayInfo.englishLabel) &&
-              !isOutingSlotSuppressedByMonth(settings, pdfMonthStr, morningType)
-            ) {
-              const weekOfRecord = getWeekOfDate(cellDate);
-              const weekRecord = outingsWeeks.find(
-                (w) => w.weekOf === weekOfRecord
-              );
-              const overrideHours = weekRecord?.weekOverrideHours || {};
-              const timeVal =
-                overrideHours[morningType] ||
-                defaultHours[morningType] ||
-                '10:00';
-              const outing = weekRecord?.outings?.find(
-                (o) => o.date === dateKey && o.time === timeVal
-              );
+            const dayOutings: OutingPDFItem[] = (
+              slotsByDate.get(dateKey) ?? []
+            ).map((slot) => {
               const assignedBrother = persons.find(
-                (b) => b.person_uid === outing?.person
+                (b) => b.person_uid === slot.person
               );
               let brotherName = 'Sin asignar';
               let isAssigned = !!assignedBrother;
 
-              if (outing?.person?.startsWith('SHARED_CONG:')) {
-                brotherName = outing.person.replace('SHARED_CONG:', '');
+              if (slot.person?.startsWith('SHARED_CONG:')) {
+                brotherName = slot.person.replace('SHARED_CONG:', '');
                 isAssigned = true;
-              } else if (outing?.person === 'CIRCUIT_OVERSEER') {
+              } else if (slot.person === 'CIRCUIT_OVERSEER') {
                 brotherName = 'Superintendente de circuito';
                 isAssigned = true;
               } else if (assignedBrother) {
                 brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
               }
 
-              dayOutings.push({
-                id: `${dateKey}_morning`,
-                time: timeVal,
-                location:
-                  outing?.location ||
-                  settings?.locations?.[0] ||
-                  'Salón del Reino',
+              return {
+                id: `${dateKey}_${slot.slotType.split('_').slice(1).join('_')}`,
+                time: slot.time,
+                location: slot.location,
                 brotherName: getAbbreviatedName(brotherName),
                 isAssigned,
-                isCancelled: outing?.cancelled ?? false,
-              });
-            }
-
-            // Comprobar Turno Tarde
-            const afternoonType = `${dayInfo.englishLabel}_afternoon`;
-            if (
-              !disabledSlots.includes(afternoonType) &&
-              !disabledSlots.includes(dayInfo.englishLabel) &&
-              !isOutingSlotSuppressedByMonth(
-                settings,
-                pdfMonthStr,
-                afternoonType
-              )
-            ) {
-              const weekOfRecord = getWeekOfDate(cellDate);
-              const weekRecord = outingsWeeks.find(
-                (w) => w.weekOf === weekOfRecord
-              );
-              const overrideHours = weekRecord?.weekOverrideHours || {};
-              const actualTimeVal =
-                overrideHours[afternoonType] ||
-                defaultHours[afternoonType] ||
-                '17:00';
-              const outing = weekRecord?.outings?.find(
-                (o) => o.date === dateKey && o.time === actualTimeVal
-              );
-              const assignedBrother = persons.find(
-                (b) => b.person_uid === outing?.person
-              );
-              let brotherName = 'Sin asignar';
-              let isAssigned = !!assignedBrother;
-
-              if (outing?.person?.startsWith('SHARED_CONG:')) {
-                brotherName = outing.person.replace('SHARED_CONG:', '');
-                isAssigned = true;
-              } else if (outing?.person === 'CIRCUIT_OVERSEER') {
-                brotherName = 'Superintendente de circuito';
-                isAssigned = true;
-              } else if (assignedBrother) {
-                brotherName = `${assignedBrother.person_data.person_firstname.value} ${assignedBrother.person_data.person_lastname.value}`;
-              }
-
-              dayOutings.push({
-                id: `${dateKey}_afternoon`,
-                time: actualTimeVal,
-                location:
-                  outing?.location ||
-                  settings?.locations?.[0] ||
-                  'Salón del Reino',
-                brotherName: getAbbreviatedName(brotherName),
-                isAssigned,
-                isCancelled: outing?.cancelled ?? false,
-              });
-            }
+                isCancelled: slot.cancelled,
+              };
+            });
 
             cells.push({
               type: 'day',
@@ -1419,7 +1352,16 @@ const PredicacionSalidas = () => {
   const sortedBrothersForSlot = useMemo(() => {
     if (!editDialog.open || !settings) return { recommended: [], others: [] };
 
-    const slotKey = editDialog.timeKey;
+    // Un turno añadido solo esa semana no tiene disponibilidad propia: nadie ha
+    // marcado «jueves por la tarde» si los jueves no se sale. Se recomienda a
+    // quien tenga marcado el turno de siempre que le corresponde por el día y
+    // la hora —para un añadido del miércoles a las 17:00, los del miércoles por
+    // la tarde—. Sin esto la lista salía entera bajo «Otros hermanos».
+    const slotKey = isExtraOutingSlot(editDialog.timeKey)
+      ? `${editDialog.timeKey.split('_')[0]}_${
+          Number(editDialog.time.split(':')[0]) < 14 ? 'morning' : 'afternoon'
+        }`
+      : editDialog.timeKey;
     const availabilityMap = settings.availability || {};
 
     const recommended = [];
@@ -1435,7 +1377,13 @@ const PredicacionSalidas = () => {
     }
 
     return { recommended, others };
-  }, [editDialog.open, editDialog.timeKey, enabledBrothers, settings]);
+  }, [
+    editDialog.open,
+    editDialog.timeKey,
+    editDialog.time,
+    enabledBrothers,
+    settings,
+  ]);
 
   // Una sola lista para el selector de conductor: primero lo que NO es una
   // persona (ninguno, salida compartida, superintendente), luego los
@@ -1832,12 +1780,6 @@ const PredicacionSalidas = () => {
                     (a, b) => a[0].localeCompare(b[0])
                   );
 
-                  const slotLabel = (slotType: string): string => {
-                    if (slotType.endsWith('_morning')) return 'Mañana';
-                    if (slotType.endsWith('_afternoon')) return 'Tarde';
-                    return '';
-                  };
-
                   return sortedWeeks.map(([weekOf, days]) => {
                     const weekLabel = getWeekLabel(weekOf);
                     return (
@@ -1972,7 +1914,13 @@ const PredicacionSalidas = () => {
                                     currentPerson?.person_uid;
                                   const isCancelled =
                                     outing?.cancelled ?? false;
-                                  const label = slotLabel(slot.slotType);
+                                  const label = outingSlotLabel(
+                                    slot.slotType,
+                                    slot.time
+                                  );
+                                  const esAñadido = isExtraOutingSlot(
+                                    slot.slotType
+                                  );
 
                                   return (
                                     <Box
@@ -2126,6 +2074,23 @@ const PredicacionSalidas = () => {
                                             >
                                               {brotherName || 'Sin asignar'}
                                             </Typography>
+                                          )}
+                                          {/* Un turno que solo existe esta
+                                              semana. Se marca aquí y no en la
+                                              columna de la hora: allí una
+                                              etiqueta más larga ensanchaba la
+                                              columna de ESA fila y la línea
+                                              vertical dejaba de caer recta. */}
+                                          {esAñadido && isServiceCommittee && (
+                                            <Badge
+                                              size="small"
+                                              color="accent"
+                                              text="Añadido esta semana"
+                                              sx={{
+                                                marginTop: '4px',
+                                                width: 'fit-content',
+                                              }}
+                                            />
                                           )}
                                         </Box>
 
@@ -2731,16 +2696,6 @@ const PredicacionSalidas = () => {
                                   );
                                 }
 
-                                const slotLabel = (
-                                  slotType: string
-                                ): string => {
-                                  if (slotType.endsWith('_morning'))
-                                    return 'Mañana';
-                                  if (slotType.endsWith('_afternoon'))
-                                    return 'Tarde';
-                                  return '';
-                                };
-
                                 return selectedDaySlots.map((slot, idx) => {
                                   const weekOfRecord = getWeekOfDate(slot.date);
                                   const weekRecord = outingsWeeks.find(
@@ -2776,7 +2731,13 @@ const PredicacionSalidas = () => {
                                     currentPerson?.person_uid;
                                   const isCancelled =
                                     outing?.cancelled ?? false;
-                                  const label = slotLabel(slot.slotType);
+                                  const label = outingSlotLabel(
+                                    slot.slotType,
+                                    slot.time
+                                  );
+                                  const esAñadido = isExtraOutingSlot(
+                                    slot.slotType
+                                  );
 
                                   return (
                                     <Box
@@ -2928,6 +2889,23 @@ const PredicacionSalidas = () => {
                                             >
                                               {brotherName || 'Sin asignar'}
                                             </Typography>
+                                          )}
+                                          {/* Un turno que solo existe esta
+                                              semana. Se marca aquí y no en la
+                                              columna de la hora: allí una
+                                              etiqueta más larga ensanchaba la
+                                              columna de ESA fila y la línea
+                                              vertical dejaba de caer recta. */}
+                                          {esAñadido && isServiceCommittee && (
+                                            <Badge
+                                              size="small"
+                                              color="accent"
+                                              text="Añadido esta semana"
+                                              sx={{
+                                                marginTop: '4px',
+                                                width: 'fit-content',
+                                              }}
+                                            />
                                           )}
                                         </Box>
 
@@ -4540,265 +4518,26 @@ const PredicacionSalidas = () => {
         </Box>
       </Dialog>
 
-      {/* DIÁLOGO DE AJUSTES SEMANALES (SEMANA DEL SUPERINTENDENTE / HORARIOS LOCALES) */}
-      {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
-          márgenes seguros de iOS. Su Paper ya trae el radio y el relleno, así
-          que aquí no se repiten. Ver DESIGN_SYSTEM §6.1. */}
-      <Dialog
+      {/* AJUSTES DE LA SEMANA — la de la visita del superintendente de circuito
+          sobre todo. Vive en su propio fichero: ver `week_settings_dialog`. */}
+      <WeekSettingsDialog
         open={weekSettingsDialog.open}
+        weekOf={weekSettingsDialog.weekOf}
+        weekRecord={outingsWeeks.find(
+          (w) => w.weekOf === weekSettingsDialog.weekOf
+        )}
+        settings={settings}
+        hour24={hour24}
+        saving={isSavingOuting}
+        visitScheduled={!!weekVisit}
+        conductorOf={weekConductorOf}
+        hasCompanions={weekHasCompanions}
         onClose={() =>
           setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
         }
-      >
-        {/* El título llevaba el peso, el color y un tamaño de 18px escritos a
-            mano. Es el título de un diálogo: le toca la "h2" de la escala. */}
-        <Typography className="h2" sx={{ color: 'var(--accent-dark)' }}>
-          Ajustes de la semana
-        </Typography>
-
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
-          <Typography
-            style={{
-              color: 'var(--grey-600)',
-              fontSize: '13px',
-              marginBottom: '8px',
-            }}
-          >
-            Personaliza el comportamiento y los horarios de la{' '}
-            <strong>
-              {weekSettingsDialog.weekOf
-                ? `semana del ${getWeekRange(weekSettingsDialog.weekOf)}`
-                : 'semana'}
-            </strong>
-            .
-          </Typography>
-
-          <FormControlLabel
-            control={
-              <AppSwitch
-                checked={tempCOWeek}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setTempCOWeek(checked);
-                  if (!checked) {
-                    setShowAdjustHours(false);
-                  }
-                }}
-              />
-            }
-            label="Semana del superintendente de circuito"
-            labelPlacement="start"
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '100%',
-              margin: 0,
-            }}
-          />
-
-          {tempCOWeek && !showAdjustHours && (
-            <Box
-              sx={{
-                mt: '12px',
-                p: '16px',
-                borderRadius: 'var(--shape-sm)',
-                backgroundColor: 'var(--accent-100)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                border: '1px solid var(--line)',
-              }}
-            >
-              <Typography
-                style={{
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  color: 'var(--accent-dark)',
-                  margin: 0,
-                }}
-              >
-                ¿Deseas ajustar el horario de las salidas de esta semana?
-              </Typography>
-              <Box sx={{ display: 'flex', gap: '8px' }}>
-                <AppButton
-                  variant="main"
-                  disableAutoStretch
-                  onClick={() => {
-                    setShowAdjustHours(true);
-                    const weekMonthStr = weekSettingsDialog.weekOf.slice(0, 7);
-                    setWeekHoursConfig(
-                      getEffectiveHoursForMonth(settings, weekMonthStr)
-                    );
-                  }}
-                >
-                  Sí
-                </AppButton>
-                {/* Era un <Button> de MUI en crudo con el borde, el color y el
-                    radio escritos a mano, justo al lado de un botón de la app:
-                    uno salía píldora y el otro un rectángulo de 12px, y uno más
-                    pequeño que el otro. Dos botones de la MISMA pregunta no
-                    pueden ser de dos juegos distintos. */}
-                <AppButton
-                  variant="tertiary"
-                  disableAutoStretch
-                  onClick={() => {
-                    setShowAdjustHours(false);
-                  }}
-                >
-                  No
-                </AppButton>
-              </Box>
-            </Box>
-          )}
-
-          {showAdjustHours && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                mt: '16px',
-                maxHeight: '250px',
-                overflowY: 'auto',
-                pr: '8px',
-                borderTop: '1px solid var(--line)',
-                pt: '16px',
-              }}
-            >
-              <Typography
-                style={{
-                  fontWeight: '700',
-                  fontSize: '13px',
-                  color: 'var(--accent-main)',
-                  margin: 0,
-                }}
-              >
-                Horarios específicos de esta semana
-              </Typography>
-              {[
-                { key: 'monday_morning', label: 'Lunes mañana' },
-                { key: 'monday_afternoon', label: 'Lunes tarde' },
-                { key: 'tuesday_morning', label: 'Martes mañana' },
-                { key: 'tuesday_afternoon', label: 'Martes tarde' },
-                { key: 'wednesday_morning', label: 'Miércoles mañana' },
-                { key: 'wednesday_afternoon', label: 'Miércoles tarde' },
-                { key: 'thursday_morning', label: 'Jueves mañana' },
-                { key: 'thursday_afternoon', label: 'Jueves tarde' },
-                { key: 'friday_morning', label: 'Viernes mañana' },
-                { key: 'friday_afternoon', label: 'Viernes tarde' },
-                { key: 'saturday_morning', label: 'Sábado mañana' },
-                { key: 'saturday_afternoon', label: 'Sábado tarde' },
-                { key: 'sunday_morning', label: 'Domingo mañana' },
-                { key: 'sunday_afternoon', label: 'Domingo tarde' },
-              ].map((slot) => {
-                const isSlotDisabled = settings?.disabledSlots?.includes(
-                  slot.key
-                );
-                if (isSlotDisabled) return null;
-
-                const weekEffectiveHours = getEffectiveHoursForMonth(
-                  settings,
-                  weekSettingsDialog.weekOf.slice(0, 7)
-                );
-                const currentVal =
-                  weekHoursConfig[slot.key] ||
-                  weekEffectiveHours[slot.key] ||
-                  (slot.key.endsWith('morning') ? '10:00' : '17:00');
-                return (
-                  <Box
-                    key={slot.key}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '16px',
-                    }}
-                  >
-                    <Typography
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        color: 'var(--black)',
-                      }}
-                    >
-                      {slot.label}
-                    </Typography>
-                    <TimePicker
-                      ampm={!hour24}
-                      value={generateDateFromTime(currentVal)}
-                      onChange={(newDate) => {
-                        const hrs = String(newDate.getHours()).padStart(2, '0');
-                        const mins = String(newDate.getMinutes()).padStart(
-                          2,
-                          '0'
-                        );
-                        setWeekHoursConfig({
-                          ...weekHoursConfig,
-                          [slot.key]: `${hrs}:${mins}`,
-                        });
-                      }}
-                      // `flex: 'none'` no es adorno: el TimePicker compartido trae
-                      // `flex: 1` de serie, que en un contenedor flexible
-                      // gana al `width` — asi que el campo crecia hasta
-                      // llenar el hueco y su borde izquierdo caia donde
-                      // acabase la etiqueta. Con etiquetas de largo distinto
-                      // ("Lunes Manana" vs "Miercoles Manana") la columna de
-                      // campos bajaba en zigzag.
-                      sx={{ flex: 'none', width: '130px' }}
-                    />
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: '8px' }}>
-          {/* Dos arreglos aquí:
-              · El icono. Los cinco "Autocompletar" de la app usan
-                `IconGenerate`; este era el único con otro, y encima el de la
-                bandeja flotante se ve DETRÁS de este diálogo — los dos iconos
-                de la misma acción, a la vez, en la misma pantalla.
-              · El peso. Iba en `tertiary`, igual que "Cancelar", así que la
-                acción que RELLENA la semana entera se leía igual que la que se
-                limpia las manos. En `secondary` (sin contorno) queda claro que
-                es un atajo y no una salida. */}
-          <AppButton
-            variant="secondary"
-            disableAutoStretch
-            startIcon={<IconGenerate />}
-            onClick={handleAutofillWeek}
-          >
-            Autocompletar
-          </AppButton>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <AppButton
-            variant="tertiary"
-            disableAutoStretch
-            onClick={() =>
-              setWeekSettingsDialog({ ...weekSettingsDialog, open: false })
-            }
-          >
-            Cancelar
-          </AppButton>
-          <AppButton
-            variant="main"
-            disableAutoStretch
-            disabled={isSavingOuting}
-            onClick={handleSaveWeekSettings}
-          >
-            Guardar
-          </AppButton>
-        </Box>
-      </Dialog>
+        onSave={(changes) => handleSaveWeekSettings(changes)}
+        onAutofill={handleAutofillWeek}
+      />
     </Box>
   );
 };

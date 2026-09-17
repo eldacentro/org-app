@@ -2,12 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { ServiceOutingSettingsType } from '@definition/service_outings';
 import { countWeeksChangedSincePublish } from '@services/app/month_publish';
 import {
+  applyWeekShiftDrafts,
   deriveWeekOutingSlots,
+  isExtraOutingSlot,
   isOutingSlotSuppressedByMonth,
   isOutingsMonthCancelled,
   isOutingsMonthFullyCancelled,
   normalizeServiceOutingSettings,
   normalizeServiceOutingWeek,
+  outingSlotLabel,
+  rekeyOutingCompanions,
+  weekExtraSlots,
+  weekShiftCollisions,
+  weekShiftDrafts,
 } from './service_outings';
 
 /**
@@ -223,9 +230,9 @@ describe('normalizar la forma de una semana de salidas', () => {
       { isCircuitOverseerWeek: CIFRADO as unknown as boolean },
       '2026/10/12'
     );
-    expect(
-      sinNormalizar.some((s) => s.person === 'CIRCUIT_OVERSEER')
-    ).toBe(true);
+    expect(sinNormalizar.some((s) => s.person === 'CIRCUIT_OVERSEER')).toBe(
+      true
+    );
 
     const normalizada = deriveWeekOutingSlots(
       settings,
@@ -235,7 +242,9 @@ describe('normalizar la forma de una semana de salidas', () => {
       }),
       '2026/10/12'
     );
-    expect(normalizada.some((s) => s.person === 'CIRCUIT_OVERSEER')).toBe(false);
+    expect(normalizada.some((s) => s.person === 'CIRCUIT_OVERSEER')).toBe(
+      false
+    );
   });
 
   it('un booleano de verdad se respeta, tanto true como false', () => {
@@ -298,7 +307,10 @@ describe('normalizar la forma de una semana de salidas', () => {
  * registro entero de una vez. Esto fija las dos direcciones.
  */
 describe('un mes suspendido con excepción se conserva y se puede editar', () => {
-  const AGOSTO = { isCancelledMonth: true, keepActiveSlots: ['saturday_morning'] };
+  const AGOSTO = {
+    isCancelledMonth: true,
+    keepActiveSlots: ['saturday_morning'],
+  };
 
   const conAgosto = () =>
     build({
@@ -323,12 +335,12 @@ describe('un mes suspendido con excepción se conserva y se puede editar', () =>
   it('el sábado por la mañana queda activo; el resto del mes, suprimido', () => {
     const s = normalizeServiceOutingSettings(conAgosto());
 
-    expect(isOutingSlotSuppressedByMonth(s, '2026/08', 'saturday_morning')).toBe(
-      false
-    );
-    expect(isOutingSlotSuppressedByMonth(s, '2026/08', 'wednesday_morning')).toBe(
-      true
-    );
+    expect(
+      isOutingSlotSuppressedByMonth(s, '2026/08', 'saturday_morning')
+    ).toBe(false);
+    expect(
+      isOutingSlotSuppressedByMonth(s, '2026/08', 'wednesday_morning')
+    ).toBe(true);
   });
 
   it('guardar OTRO ajuste no se lleva por delante la suspensión', () => {
@@ -391,5 +403,484 @@ describe('un mes suspendido con excepción se conserva y se puede editar', () =>
     expect(s.monthlyOverrides).toEqual(original.monthlyOverrides);
     expect(s.disabledSlots).toEqual(original.disabledSlots);
     expect(s.sharedSlots).toEqual(original.sharedSlots);
+  });
+});
+
+/**
+ * Turnos añadidos solo para una semana y «Ajustes de la semana».
+ *
+ * El caso real es la visita del superintendente de circuito: esa semana se sale
+ * un miércoles por la tarde que normalmente no existe, y el sábado se queda
+ * antes. Lo que estas pruebas fijan es que añadir, mover y quitar turnos no
+ * deje asignaciones colgando — que es como un hermano acaba viendo en Mis
+ * asignaciones una salida a una hora que ya no hay.
+ */
+describe('turnos añadidos solo para una semana', () => {
+  // Lunes 14 de septiembre de 2026.
+  const WEEK = '2026/09/14';
+
+  const settings = build({
+    defaultHours: {
+      saturday_morning: '09:45',
+      wednesday_morning: '10:00',
+    },
+    // Solo se sale el miércoles y el sábado por la mañana.
+    disabledSlots: [
+      'monday',
+      'tuesday',
+      'thursday',
+      'friday',
+      'sunday',
+      'wednesday_afternoon',
+      'saturday_afternoon',
+    ],
+  });
+
+  it('sin turnos añadidos todo sale como siempre', () => {
+    const slots = deriveWeekOutingSlots(settings, undefined, WEEK);
+
+    expect(slots.map((s) => `${s.slotType}@${s.time}`)).toEqual([
+      'wednesday_morning@10:00',
+      'saturday_morning@09:45',
+    ]);
+  });
+
+  it('un turno añadido sale en su día, ordenado por hora, aunque ese turno esté inhabilitado', () => {
+    const slots = deriveWeekOutingSlots(
+      settings,
+      {
+        extraSlots: [
+          { id: 'x1', date: '2026/09/16', time: '17:00' },
+          { id: 'x2', date: '2026/09/16', time: '08:30' },
+        ],
+      },
+      WEEK
+    );
+
+    expect(slots.map((s) => `${s.date} ${s.time}`)).toEqual([
+      '2026/09/16 08:30',
+      '2026/09/16 10:00',
+      '2026/09/16 17:00',
+      '2026/09/19 09:45',
+    ]);
+    expect(slots[0].extraId).toBe('x2');
+    expect(slots[1].extraId).toBeUndefined();
+    // La clave sigue siendo única dentro del día.
+    expect(new Set(slots.map((s) => `${s.date}_${s.slotType}`)).size).toBe(4);
+  });
+
+  it('en la semana del superintendente, el turno añadido sin conductor lo lleva él', () => {
+    const slots = deriveWeekOutingSlots(
+      settings,
+      {
+        isCircuitOverseerWeek: true,
+        extraSlots: [
+          { id: 'mie', date: '2026/09/16', time: '17:00' },
+          { id: 'mar', date: '2026/09/15', time: '17:00' },
+        ],
+      },
+      WEEK
+    );
+
+    const miercoles = slots.find((s) => s.extraId === 'mie');
+    const martes = slots.find((s) => s.extraId === 'mar');
+
+    expect(miercoles.person).toBe('CIRCUIT_OVERSEER');
+    // El martes llega: ese día no sale con la congregación.
+    expect(martes.person).toBe('');
+  });
+
+  it('un turno añadido con conductor enseña al conductor', () => {
+    const slots = deriveWeekOutingSlots(
+      settings,
+      {
+        isCircuitOverseerWeek: true,
+        extraSlots: [{ id: 'mie', date: '2026/09/16', time: '17:00' }],
+        outings: [
+          {
+            date: '2026/09/16',
+            time: '17:00',
+            person: 'roberto',
+            location: 'Parque',
+            cancelled: false,
+          },
+        ],
+      },
+      WEEK
+    );
+
+    const turno = slots.find((s) => s.extraId === 'mie');
+
+    expect(turno.person).toBe('roberto');
+    expect(turno.location).toBe('Parque');
+  });
+
+  it('un mes suspendido no esconde un turno añadido a propósito', () => {
+    const suspendido = build({
+      ...settings,
+      monthlyOverrides: { '2026/09': { isCancelledMonth: true } },
+    });
+
+    const slots = deriveWeekOutingSlots(
+      suspendido,
+      { extraSlots: [{ id: 'x', date: '2026/09/19', time: '10:00' }] },
+      WEEK
+    );
+
+    expect(slots.map((s) => s.time)).toEqual(['10:00']);
+  });
+
+  it('no duplica una hora que ya existe ese día', () => {
+    const slots = deriveWeekOutingSlots(
+      settings,
+      { extraSlots: [{ id: 'x', date: '2026/09/16', time: '10:00' }] },
+      WEEK
+    );
+
+    expect(slots.filter((s) => s.date === '2026/09/16')).toHaveLength(1);
+  });
+
+  it('de otra semana, mal formado o sin descifrar: se ignora sin romper', () => {
+    expect(weekExtraSlots({ extraSlots: 'U2FsdGVkX1+abc123==' })).toEqual([]);
+    expect(weekExtraSlots({ extraSlots: null })).toEqual([]);
+    expect(
+      weekExtraSlots({
+        extraSlots: [
+          null,
+          { id: '', date: '2026/09/16', time: '17:00' },
+          { id: 'a', date: '16/09/2026', time: '17:00' },
+          { id: 'b', date: '2026/09/16', time: '25:00' },
+          { id: 'ok', date: '2026/09/16', time: '17:00' },
+        ],
+      })
+    ).toEqual([{ id: 'ok', date: '2026/09/16', time: '17:00' }]);
+
+    // Un turno con fecha de otra semana no aparece en esta.
+    const slots = deriveWeekOutingSlots(
+      settings,
+      { extraSlots: [{ id: 'x', date: '2026/09/23', time: '17:00' }] },
+      WEEK
+    );
+
+    expect(slots.some((s) => s.extraId === 'x')).toBe(false);
+  });
+
+  it('la etiqueta de un turno añadido sale de su hora', () => {
+    expect(outingSlotLabel('wednesday_morning', '10:00')).toBe('Mañana');
+    expect(outingSlotLabel('wednesday_afternoon', '17:00')).toBe('Tarde');
+    expect(outingSlotLabel('wednesday_extra_x', '08:30')).toBe('Mañana');
+    expect(outingSlotLabel('wednesday_extra_x', '17:00')).toBe('Tarde');
+    expect(outingSlotLabel('wednesday_extra_x', '20:30')).toBe('Noche');
+    expect(isExtraOutingSlot('wednesday_extra_x')).toBe(true);
+    expect(isExtraOutingSlot('wednesday_morning')).toBe(false);
+  });
+});
+
+describe('ajustes de la semana', () => {
+  const WEEK = '2026/09/14';
+
+  const settings = build({
+    defaultHours: {
+      saturday_morning: '09:45',
+      wednesday_morning: '10:00',
+    },
+    disabledSlots: [
+      'monday',
+      'tuesday',
+      'thursday',
+      'friday',
+      'sunday',
+      'wednesday_afternoon',
+      'saturday_afternoon',
+    ],
+  });
+
+  const semana = () => ({
+    weekOf: WEEK,
+    updatedAt: '2026-09-01T10:00:00.000Z',
+    outings: [
+      {
+        id: 'o-sab',
+        date: '2026/09/19',
+        time: '09:45',
+        person: 'juan',
+        location: 'Salón del Reino',
+        cancelled: false,
+      },
+      {
+        id: 'o-mie',
+        date: '2026/09/16',
+        time: '10:00',
+        person: 'pedro',
+        location: 'Salón del Reino',
+        cancelled: false,
+      },
+    ],
+  });
+
+  it('los borradores traen la hora de siempre para poder volver a ella', () => {
+    const drafts = weekShiftDrafts(
+      settings,
+      { ...semana(), weekOverrideHours: { saturday_morning: '09:30' } },
+      WEEK
+    );
+
+    const sabado = drafts.find((d) => d.key === 'saturday_morning');
+
+    expect(sabado.time).toBe('09:30');
+    expect(sabado.habitualTime).toBe('09:45');
+    expect(sabado.kind).toBe('habitual');
+  });
+
+  it('cambiar la hora de un turno se lleva su asignación', () => {
+    const drafts = weekShiftDrafts(settings, semana(), WEEK).map((d) =>
+      d.key === 'saturday_morning' ? { ...d, time: '09:30' } : d
+    );
+
+    const { record, moved } = applyWeekShiftDrafts({
+      weekRecord: semana(),
+      weekOf: WEEK,
+      isCircuitOverseerWeek: true,
+      drafts,
+    });
+
+    expect(record.weekOverrideHours).toEqual({ saturday_morning: '09:30' });
+    expect(record.outings.find((o) => o.id === 'o-sab').time).toBe('09:30');
+    // La del miércoles no se ha tocado.
+    expect(record.outings.find((o) => o.id === 'o-mie').time).toBe('10:00');
+    expect(moved).toEqual([{ date: '2026/09/19', from: '09:45', to: '09:30' }]);
+
+    // Y el programa enseña a Juan en el turno nuevo, no un hueco.
+    const slots = deriveWeekOutingSlots(settings, record, WEEK);
+
+    expect(slots.find((s) => s.slotType === 'saturday_morning').person).toBe(
+      'juan'
+    );
+  });
+
+  it('dos turnos que intercambian sus horas no se pisan', () => {
+    const base = {
+      ...semana(),
+      extraSlots: [{ id: 'x', date: '2026/09/16', time: '12:00' }],
+      outings: [
+        ...semana().outings,
+        {
+          id: 'o-x',
+          date: '2026/09/16',
+          time: '12:00',
+          person: 'luis',
+          location: 'Salón del Reino',
+          cancelled: false,
+        },
+      ],
+    };
+
+    const drafts = weekShiftDrafts(settings, base, WEEK).map((d) => {
+      if (d.key === 'wednesday_morning') return { ...d, time: '12:00' };
+      if (d.key === 'x') return { ...d, time: '10:00' };
+      return d;
+    });
+
+    const { record } = applyWeekShiftDrafts({
+      weekRecord: base,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: false,
+      drafts,
+    });
+
+    expect(record.outings.find((o) => o.id === 'o-mie').time).toBe('12:00');
+    expect(record.outings.find((o) => o.id === 'o-x').time).toBe('10:00');
+  });
+
+  it('quitar un turno añadido quita su asignación, y solo esa', () => {
+    const base = {
+      ...semana(),
+      extraSlots: [{ id: 'x', date: '2026/09/16', time: '17:00' }],
+      outings: [
+        ...semana().outings,
+        {
+          id: 'o-x',
+          date: '2026/09/16',
+          time: '17:00',
+          person: 'luis',
+          location: 'Salón del Reino',
+          cancelled: false,
+        },
+      ],
+    };
+
+    const drafts = weekShiftDrafts(settings, base, WEEK).filter(
+      (d) => d.key !== 'x'
+    );
+
+    const { record, removed } = applyWeekShiftDrafts({
+      weekRecord: base,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: false,
+      drafts,
+    });
+
+    expect(record.extraSlots).toBeUndefined();
+    expect(record.outings.map((o) => o.id)).toEqual(['o-sab', 'o-mie']);
+    expect(removed).toEqual([{ date: '2026/09/16', time: '17:00' }]);
+  });
+
+  it('devolver una hora a la de siempre quita la hora a medida', () => {
+    const base = {
+      ...semana(),
+      weekOverrideHours: { saturday_morning: '09:30' },
+    };
+
+    const drafts = weekShiftDrafts(settings, base, WEEK).map((d) =>
+      d.key === 'saturday_morning' ? { ...d, time: d.habitualTime } : d
+    );
+
+    const { record } = applyWeekShiftDrafts({
+      weekRecord: base,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: false,
+      drafts,
+    });
+
+    expect('weekOverrideHours' in record).toBe(false);
+    expect(record.isCircuitOverseerWeek).toBe(false);
+  });
+
+  it('una semana sin registro se crea bien', () => {
+    const drafts = [
+      ...weekShiftDrafts(settings, undefined, WEEK),
+      {
+        key: 'nuevo',
+        kind: 'extra' as const,
+        date: '2026/09/17',
+        dayKey: 'thursday' as const,
+        time: '10:00',
+        originalTime: '10:00',
+      },
+    ];
+
+    const { record } = applyWeekShiftDrafts({
+      weekRecord: undefined,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: true,
+      drafts,
+    });
+
+    expect(record).toEqual({
+      weekOf: WEEK,
+      outings: [],
+      isCircuitOverseerWeek: true,
+      extraSlots: [{ id: 'nuevo', date: '2026/09/17', time: '10:00' }],
+    });
+  });
+
+  it('avisa de dos turnos del mismo día a la misma hora', () => {
+    const drafts = [
+      ...weekShiftDrafts(settings, undefined, WEEK),
+      {
+        key: 'choca',
+        kind: 'extra' as const,
+        date: '2026/09/16',
+        dayKey: 'wednesday' as const,
+        time: '10:00',
+        originalTime: '10:00',
+      },
+    ];
+
+    expect(weekShiftCollisions(drafts).sort()).toEqual(
+      ['choca', 'wednesday_morning'].sort()
+    );
+    expect(
+      weekShiftCollisions(weekShiftDrafts(settings, undefined, WEEK))
+    ).toEqual([]);
+  });
+
+  it('no borra unos turnos añadidos que este dispositivo no ha sabido descifrar', () => {
+    const base = {
+      ...semana(),
+      extraSlots: 'U2FsdGVkX1+abc123==' as unknown as [],
+    };
+
+    const { record } = applyWeekShiftDrafts({
+      weekRecord: base,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: false,
+      drafts: weekShiftDrafts(settings, base, WEEK),
+    });
+
+    expect(record.extraSlots).toBe('U2FsdGVkX1+abc123==');
+  });
+
+  it('no modifica el registro que recibe', () => {
+    const base = semana();
+    const copia = structuredClone(base);
+
+    applyWeekShiftDrafts({
+      weekRecord: base,
+      weekOf: WEEK,
+      isCircuitOverseerWeek: true,
+      drafts: weekShiftDrafts(settings, base, WEEK).map((d) => ({
+        ...d,
+        time: '08:00',
+      })),
+    });
+
+    expect(base).toEqual(copia);
+  });
+});
+
+describe('los acompañantes del superintendente siguen a su turno', () => {
+  const companions = [
+    { outingKey: '2026/09/19_09:45', brother: 'juan' },
+    { outingKey: '2026/09/16_17:00', brother: 'pedro' },
+    { outingKey: '2026/09/16_10:00', brother: 'luis' },
+  ];
+
+  it('si el turno cambia de hora, su clave cambia con él', () => {
+    const resultado = rekeyOutingCompanions(companions, {
+      moved: [{ date: '2026/09/19', from: '09:45', to: '09:30' }],
+      removed: [],
+    });
+
+    expect(resultado.map((c) => c.outingKey)).toEqual([
+      '2026/09/19_09:30',
+      '2026/09/16_17:00',
+      '2026/09/16_10:00',
+    ]);
+  });
+
+  it('si se quita un turno añadido, se van sus acompañantes', () => {
+    const resultado = rekeyOutingCompanions(companions, {
+      moved: [],
+      removed: [{ date: '2026/09/16', time: '17:00' }],
+    });
+
+    expect(resultado.map((c) => c.brother)).toEqual(['juan', 'luis']);
+  });
+
+  it('dos turnos que intercambian sus horas no se pisan', () => {
+    const resultado = rekeyOutingCompanions(companions, {
+      moved: [
+        { date: '2026/09/16', from: '10:00', to: '17:00' },
+        { date: '2026/09/16', from: '17:00', to: '10:00' },
+      ],
+      removed: [],
+    });
+
+    expect(resultado.find((c) => c.brother === 'pedro').outingKey).toBe(
+      '2026/09/16_10:00'
+    );
+    expect(resultado.find((c) => c.brother === 'luis').outingKey).toBe(
+      '2026/09/16_17:00'
+    );
+  });
+
+  it('sin nada que tocar devuelve la misma lista: no hay que guardar la visita', () => {
+    expect(
+      rekeyOutingCompanions(companions, {
+        moved: [{ date: '2026/09/18', from: '10:00', to: '11:00' }],
+        removed: [],
+      })
+    ).toBe(companions);
   });
 });

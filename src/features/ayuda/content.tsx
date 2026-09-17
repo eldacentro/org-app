@@ -1378,7 +1378,7 @@ export const AYUDA_SECTIONS: AyudaSection[] = [
           },
           {
             type: 'p',
-            text: 'Además, cada semana tiene su propio icono de ajustes ("Ajustes de la semana"), con dos cosas exclusivas de esa semana: marcarla como "Semana del superintendente de circuito" (para poder asignarle su propia salida) y, si hace falta, un horario especial solo para esa semana concreta.',
+            text: 'Además, cada semana tiene su propio icono de ajustes ("Ajustes de la semana"), con lo que vale solo para esa semana. Se ve la semana entera, día por día: puedes marcarla como "Semana del superintendente de circuito", cambiar la hora de cualquier turno y, con "Añadir turno", poner una salida en un día u hora en que normalmente no hay —un miércoles por la tarde durante la visita, por ejemplo—. Quien conduce un turno se mueve con él si le cambias la hora, y los turnos añadidos salen también en Programas semanales y en la Visita del superintendente.',
           },
         ],
       },
