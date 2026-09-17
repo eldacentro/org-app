@@ -1556,17 +1556,21 @@ const dbRestoreServiceOutings = async (
           // remoto es más nuevo, gana entero (igual que en exhibitors).
           // En ambas ramas se guarda solo si el resultado difiere de lo que ya
           // está en la base: ver isSameRecord.
-          if (remoteItem.weekOf === 'settings') {
-            if (!isSameRecord(localItem, remoteItem)) {
-              dataToUpdate.push(remoteItem);
-            }
-          } else {
-            const newItem = structuredClone(localItem);
-            syncFromRemote(newItem, remoteItem);
-
-            if (!isSameRecord(localItem, newItem)) {
-              dataToUpdate.push(newItem);
-            }
+          //
+          // LAS SEMANAS TAMBIÉN GANAN ENTERAS. Antes pasaban por
+          // `syncFromRemote`, que aquí no aporta nada —el registro lleva UNA
+          // sola fecha, no una por campo, así que no hay nada que decidir campo
+          // a campo— y en cambio tiene un filo: nunca quita lo que solo está en
+          // local. O sea, que todo lo que se QUITABA en un dispositivo no
+          // llegaba nunca a los demás que ya lo tuvieran: retirar a un
+          // conductor dejaba al hermano viendo su salida en Mis asignaciones
+          // para siempre, y quitar una hora a medida o un turno añadido a la
+          // semana del superintendente de circuito no se enteraba nadie.
+          //
+          // Es lo mismo que ya hacen Exhibidores (aquí abajo) y el servidor al
+          // fusionar esta tabla: la semana más nueva gana entera.
+          if (!isSameRecord(localItem, remoteItem)) {
+            dataToUpdate.push(remoteItem);
           }
         }
       }

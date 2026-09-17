@@ -520,6 +520,39 @@ describe('filos conocidos (el esquema los evita, no el motor)', () => {
 
     expect(syncFromRemote(local, remote).comments).toBe('lo que escribí yo');
   });
+
+  it('AVISO: un registro con UNA sola fecha no se fusiona — lo quitado no llegaría quitado', () => {
+    // Una semana de Salidas de predicación: una fecha para todo el registro.
+    // En el dispositivo de un hermano ya estaba Juan asignado y había un turno
+    // añadido; el superintendente de servicio ha quitado las dos cosas.
+    type Semana = {
+      weekOf: string;
+      updatedAt: string;
+      weekOverrideHours?: Record<string, string>;
+      outings: { id: string; date: string; time: string; person: string }[];
+    };
+
+    const local: Semana = {
+      weekOf: '2026/09/14',
+      updatedAt: '2026-09-10T10:00:00.000Z',
+      weekOverrideHours: { saturday_morning: '09:30' },
+      outings: [{ id: 'o1', date: '2026/09/19', time: '09:30', person: 'juan' }],
+    };
+
+    const remote: Semana = {
+      weekOf: '2026/09/14',
+      updatedAt: '2026-09-12T10:00:00.000Z',
+      outings: [],
+    };
+
+    const fusionada = syncFromRemote(structuredClone(local), remote);
+
+    // Juan sigue ahí y la hora a medida también: este motor nunca quita lo que
+    // solo está en local. Por eso `dbRestoreServiceOutings` NO lo usa para las
+    // semanas — la más nueva gana entera, como en Exhibidores y en el servidor.
+    expect(fusionada.outings).toHaveLength(1);
+    expect(fusionada.weekOverrideHours).toEqual({ saturday_morning: '09:30' });
+  });
 });
 
 /**
