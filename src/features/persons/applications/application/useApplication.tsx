@@ -2,7 +2,12 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
-import { personsState } from '@states/persons';
+import { applicationsState, personsState } from '@states/persons';
+import { monthNamesState } from '@states/app';
+import {
+  mesesDeLaSolicitud,
+  solicitudesRepetidas,
+} from '@services/app/ap_applications';
 import { buildPersonFullname } from '@utils/common';
 import { fullnameOptionState, shortDateFormatState } from '@states/settings';
 import { ApplicationProps } from './index.types';
@@ -16,6 +21,8 @@ const useApplication = ({ application }: ApplicationProps) => {
   const persons = useAtomValue(personsState);
   const fullnameOption = useAtomValue(fullnameOptionState);
   const shortDateFormat = useAtomValue(shortDateFormatState);
+  const monthNames = useAtomValue(monthNamesState);
+  const applications = useAtomValue(applicationsState);
 
   const person = useMemo(() => {
     return persons.find(
@@ -48,11 +55,24 @@ const useApplication = ({ application }: ApplicationProps) => {
     return t('tr_submittedOnDate', { date });
   }, [application.submitted, t, shortDateFormat]);
 
+  const months = useMemo(() => {
+    const texto = mesesDeLaSolicitud(application, monthNames);
+
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  }, [application, monthNames]);
+
+  // Se mira contra TODAS las solicitudes, no solo las de esta pestaña: repetir
+  // una que ya está aprobada es igual de repetida.
+  const repeated = useMemo(
+    () => solicitudesRepetidas(applications).has(application.request_id),
+    [applications, application.request_id]
+  );
+
   const handleOpen = () => {
     navigate(`/pioneer-applications/${application.request_id}`);
   };
 
-  return { name, isFemale, submitted, handleOpen };
+  return { name, isFemale, submitted, months, repeated, handleOpen };
 };
 
 export default useApplication;
