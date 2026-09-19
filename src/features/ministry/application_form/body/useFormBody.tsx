@@ -17,9 +17,15 @@ import {
   currentMonthServiceYear,
   formatDate,
 } from '@utils/date';
+import { AP_HORAS, APHours } from '@definition/ministry';
+import { horasDeLaSolicitud } from '@services/app/ap_applications';
 import { ApplicationFormProps } from '../index.types';
 
-const useFormBody = ({ application, onChange }: ApplicationFormProps) => {
+const useFormBody = ({
+  application,
+  onChange,
+  onHoursChange,
+}: ApplicationFormProps) => {
   const { t } = useAppTranslation();
 
   const location = useLocation();
@@ -147,6 +153,26 @@ const useFormBody = ({ application, onChange }: ApplicationFormProps) => {
     return months;
   };
 
+  // Las horas del mes: 30, o 15 en los meses en que la sucursal lo permite.
+  // Una solicitud de antes de que existiera el campo son 30 (ver
+  // `horasDeLaSolicitud`), así que el desplegable nunca sale en blanco.
+  const hours = useMemo(() => horasDeLaSolicitud(application), [application]);
+
+  const hourOptions = useMemo(
+    () => AP_HORAS.map((value) => ({ value, label: `${value} horas` })),
+    []
+  );
+
+  const handleSetHours = (value: APHours) => {
+    const form = structuredClone(application);
+    form.hours = value;
+
+    onChange(form);
+
+    // En la solicitud ya enviada no hay botón de guardar: se guarda al elegir.
+    onHoursChange?.(value);
+  };
+
   const handleToggleContinuous = (value: boolean) => {
     const form = structuredClone(application);
     form.continuous = value;
@@ -170,6 +196,9 @@ const useFormBody = ({ application, onChange }: ApplicationFormProps) => {
     handleSetMonths,
     handleFormatMonths,
     handleToggleContinuous,
+    hours,
+    hourOptions,
+    handleSetHours,
     form_readOnly,
   };
 };

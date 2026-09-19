@@ -105,6 +105,12 @@ export const TABLE_ENCRYPTION_MAP = {
   applications: {
     continuous: 'shared',
     months: 'shared',
+    // Las horas que pide (30 o 15). Campo NUEVO: nace cifrado, así que no le
+    // toca la espera de PENDIENTES_DE_CIFRAR — ningún dispositivo lo ha leído
+    // nunca en claro. Uno sin actualizar recibe una cadena en un campo que no
+    // conoce y ni la mira; si vuelve a subir la solicitud, la devuelve tal cual
+    // y los demás la siguen sabiendo descifrar.
+    hours: 'shared',
     submitted: 'shared',
     status: 'shared',
     coordinator: 'shared',

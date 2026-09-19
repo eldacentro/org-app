@@ -28,6 +28,9 @@ const FormBody = (props: ApplicationFormProps) => {
     handleSetMonths,
     handleFormatMonths,
     handleToggleContinuous,
+    hours,
+    hourOptions,
+    handleSetHours,
     application,
     form_readOnly,
   } = useFormBody(props);
@@ -64,6 +67,28 @@ const FormBody = (props: ApplicationFormProps) => {
                       application?.months?.includes(record.value) ?? false
                     }
                   />
+                </MenuItem>
+              ))}
+            </Select>
+
+            {/* Las horas del mes. Van aquí, pegadas a los meses, porque es la
+                misma decisión: qué meses y con cuántas horas. En un mes en que
+                la sucursal permite las 15, el hermano elige; el comité lo puede
+                corregir después sin tener que pedirle otra solicitud. */}
+            <Select
+              label="Horas al mes"
+              value={hours}
+              onChange={(e) => handleSetHours(Number(e.target.value) as never)}
+              sx={{
+                color: 'var(--black)',
+                width: laptopUp ? '180px' : '100%',
+                flex: 'none',
+              }}
+              readOnly={form_readOnly}
+            >
+              {hourOptions.map((record) => (
+                <MenuItem key={record.value} value={record.value}>
+                  <Typography>{record.label}</Typography>
                 </MenuItem>
               ))}
             </Select>

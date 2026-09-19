@@ -297,12 +297,15 @@ export type APFormOutgoing = {
   continuous: string;
   months: string;
   submitted: string;
+  /** Cifrado como el resto: '30' o '15' dentro del sobre. */
+  hours?: string;
 };
 
 export type APFormIncoming = {
   continuous: string;
   months: string;
   submitted: string;
+  hours?: string;
 };
 
 export type APIUserRequest = {

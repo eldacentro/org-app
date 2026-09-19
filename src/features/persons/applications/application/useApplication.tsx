@@ -5,6 +5,7 @@ import { useAppTranslation } from '@hooks/index';
 import { applicationsState, personsState } from '@states/persons';
 import { monthNamesState } from '@states/app';
 import {
+  horasDeLaSolicitud,
   mesesDeLaSolicitud,
   solicitudesRepetidas,
 } from '@services/app/ap_applications';
@@ -55,10 +56,16 @@ const useApplication = ({ application }: ApplicationProps) => {
     return t('tr_submittedOnDate', { date });
   }, [application.submitted, t, shortDateFormat]);
 
+  // «Octubre y noviembre · 30 h». Los meses y las horas van en la MISMA
+  // etiqueta porque son la misma decisión, y porque cuatro distintivos en una
+  // tarjeta ya no se leen de un vistazo, que es para lo que está la lista.
   const months = useMemo(() => {
     const texto = mesesDeLaSolicitud(application, monthNames);
+    const horas = `${horasDeLaSolicitud(application)} h`;
 
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
+    if (texto.length === 0) return horas;
+
+    return `${texto.charAt(0).toUpperCase()}${texto.slice(1)} · ${horas}`;
   }, [application, monthNames]);
 
   // Se mira contra TODAS las solicitudes, no solo las de esta pestaña: repetir

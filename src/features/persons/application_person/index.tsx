@@ -5,6 +5,7 @@ const PersonApplication = () => {
   const {
     formData,
     handleFormChange,
+    handleHoursChange,
     handleCoordinatorApproved,
     handleCoordinatorRejected,
     handleSecretaryApproved,
@@ -17,6 +18,7 @@ const PersonApplication = () => {
     <ApplicationForm
       application={formData}
       onChange={handleFormChange}
+      onHoursChange={handleHoursChange}
       onCoordinatorApproved={handleCoordinatorApproved}
       onCoordinatorRejected={handleCoordinatorRejected}
       onSecretaryApproved={handleSecretaryApproved}

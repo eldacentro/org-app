@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useAtom, useAtomValue } from 'jotai';
 import { useQueryClient } from '@tanstack/react-query';
 import { IconCheckCircle, IconError } from '@components/icons';
-import { APFormType, APRecordType } from '@definition/ministry';
+import { APFormType, APHours, APRecordType } from '@definition/ministry';
 import { applicationsState, personsState } from '@states/persons';
 import { congAccessCodeState, fullnameOptionState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
@@ -21,6 +21,7 @@ import {
 } from '@services/api/congregation';
 import { getMessageByCode } from '@services/i18n/translation';
 import { buildAPEnrollmentPeriods } from '@services/app/ap_enrollment';
+import { horasDeLaSolicitud } from '@services/app/ap_applications';
 import { dbPersonsSave } from '@services/dexie/persons';
 
 const useApplicationPerson = () => {
@@ -63,10 +64,13 @@ const useApplicationPerson = () => {
     date: application && new Date(application.submitted),
     months: application?.months,
     name: name,
+    hours: horasDeLaSolicitud(application),
     coordinator: application?.coordinator,
     secretary: application?.secretary,
     service_overseer: application?.service_overseer ?? application?.['service'],
   });
+
+  const [savingHours, setSavingHours] = useState(false);
 
   useEffect(() => {
     setFormData({
@@ -74,6 +78,7 @@ const useApplicationPerson = () => {
       date: application && new Date(application.submitted),
       months: application?.months,
       name: name,
+      hours: horasDeLaSolicitud(application),
       coordinator: application?.coordinator,
       secretary: application?.secretary,
       service_overseer:
@@ -290,6 +295,77 @@ const useApplicationPerson = () => {
     }
   };
 
+  /**
+   * Las horas (30 o 15) de una solicitud YA ENVIADA.
+   *
+   * Aquí no hay botón de guardar —la pantalla es el formulario aprobándose—, así
+   * que se guarda al elegir. Es lo único del formulario que el comité puede
+   * cambiar: los meses, la fecha y el nombre son lo que el hermano escribió.
+   *
+   * Se hace con el mismo cuidado que una aprobación: primero se trae lo último
+   * del servidor, para no pisar con una copia vieja la aprobación que otro
+   * acabe de dar desde su móvil.
+   */
+  const handleHoursChange = async (hours: APHours) => {
+    if (savingHours || !application) return;
+
+    setSavingHours(true);
+
+    try {
+      const latestData = await handleRefreshApplications();
+
+      const remote = latestData.applications.find(
+        (record) => record.request_id === application.request_id
+      );
+
+      if (!remote) {
+        return navigate('/pioneer-applications');
+      }
+
+      const local = structuredClone(application);
+      local.coordinator = remote.coordinator || 'waiting';
+      local.secretary = remote.secretary || 'waiting';
+      local.service_overseer = remote.service_overseer || 'waiting';
+      local.status = remote.status;
+      local.hours = hours;
+      local.updatedAt = new Date().toISOString();
+
+      encryptObject({
+        data: local,
+        table: 'applications',
+        accessCode: latestData.code,
+      });
+
+      const updates = await apiCongregationSaveApplication(local);
+
+      setApplications(handleDecryptApplications(updates, latestData.code));
+
+      displaySnackNotification({
+        header: t('tr_done', 'Hecho'),
+        message: `La solicitud queda de ${hours} horas.`,
+        severity: 'success',
+        icon: <IconCheckCircle color="var(--card)" />,
+      });
+    } catch (error) {
+      console.error(error);
+
+      // No se ha guardado: el desplegable vuelve a lo que hay guardado.
+      setFormData((prev) => ({
+        ...prev,
+        hours: horasDeLaSolicitud(application),
+      }));
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode((error as Error).message),
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    } finally {
+      setSavingHours(false);
+    }
+  };
+
   const handleCoordinatorApproved = async () => {
     await handleApprovalChange('coordinator', 'approved');
   };
@@ -317,6 +393,7 @@ const useApplicationPerson = () => {
   return {
     formData,
     handleFormChange,
+    handleHoursChange,
     handleCoordinatorApproved,
     handleCoordinatorRejected,
     handleSecretaryApproved,

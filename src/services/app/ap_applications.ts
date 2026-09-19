@@ -1,4 +1,4 @@
-import type { APRecordType } from '@definition/ministry';
+import type { APHours, APRecordType } from '@definition/ministry';
 
 /**
  * Solicitudes de precursorado auxiliar: lo que hace falta para verlas bien en
@@ -108,3 +108,16 @@ export const mesesDeLaSolicitud = (
 
   return `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}`;
 };
+
+/**
+ * Las horas que pide una solicitud: 30, o 15 en los meses en que se puede.
+ *
+ * Todo lo que enseñe o guarde las horas pasa por aquí, porque las solicitudes
+ * enviadas ANTES de que existiera el campo no lo traen, y una solicitud sin
+ * horas no es una solicitud sin decidir: es la de siempre, la de 30. Escrito
+ * así, un valor raro —de una importación, de un dispositivo más nuevo— tampoco
+ * puede colarse en la pantalla.
+ */
+export const horasDeLaSolicitud = (
+  solicitud: Pick<APRecordType, 'hours'> | undefined | null
+): APHours => (solicitud?.hours === 15 ? 15 : 30);

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { mesesDeLaSolicitud, solicitudesRepetidas } from './ap_applications';
+import {
+  horasDeLaSolicitud,
+  mesesDeLaSolicitud,
+  solicitudesRepetidas,
+} from './ap_applications';
 
 const MESES = [
   'enero',
@@ -159,5 +163,27 @@ describe('los meses de una solicitud, para leerlos', () => {
         hoy
       )
     ).toBe('');
+  });
+});
+
+describe('las horas que pide una solicitud', () => {
+  it('15 cuando se piden 15', () => {
+    expect(horasDeLaSolicitud({ hours: 15 })).toBe(15);
+  });
+
+  it('30 cuando se piden 30', () => {
+    expect(horasDeLaSolicitud({ hours: 30 })).toBe(30);
+  });
+
+  it('una solicitud de antes del campo son 30, no un hueco', () => {
+    expect(horasDeLaSolicitud({})).toBe(30);
+    expect(horasDeLaSolicitud(undefined)).toBe(30);
+    expect(horasDeLaSolicitud(null)).toBe(30);
+  });
+
+  it('cualquier otra cosa se lee como 30', () => {
+    expect(horasDeLaSolicitud({ hours: 0 as never })).toBe(30);
+    expect(horasDeLaSolicitud({ hours: '15' as never })).toBe(30);
+    expect(horasDeLaSolicitud({ hours: 20 as never })).toBe(30);
   });
 });

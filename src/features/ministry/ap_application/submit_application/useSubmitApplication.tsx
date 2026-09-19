@@ -14,6 +14,7 @@ import {
   apiPocketValidateMe,
 } from '@services/api/pocket';
 import { getMessageByCode } from '@services/i18n/translation';
+import { horasDeLaSolicitud } from '@services/app/ap_applications';
 
 const useSubmitApplication = () => {
   const { t } = useAppTranslation();
@@ -44,6 +45,9 @@ const useSubmitApplication = () => {
         continuous: formData.continuous,
         months: formData.months,
         submitted: formData.date.toISOString(),
+        // 30 o 15. Va siempre, también cuando son 30: así el comité ve lo que
+        // el hermano eligió y no tiene que suponerlo.
+        hours: horasDeLaSolicitud(formData),
       };
 
       let accessCode: string;
