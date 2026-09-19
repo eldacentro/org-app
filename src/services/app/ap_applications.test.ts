@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   horasDeLaSolicitud,
+  mesesDe15Horas,
   mesesDeLaSolicitud,
+  puedeElegir15Horas,
   solicitudesRepetidas,
 } from './ap_applications';
 
@@ -185,5 +187,93 @@ describe('las horas que pide una solicitud', () => {
     expect(horasDeLaSolicitud({ hours: 0 as never })).toBe(30);
     expect(horasDeLaSolicitud({ hours: '15' as never })).toBe(30);
     expect(horasDeLaSolicitud({ hours: 20 as never })).toBe(30);
+  });
+});
+
+describe('los meses en que se puede hacer con 15 horas', () => {
+  const año = (year: string, months: string[], _deleted = false) => ({
+    year,
+    months,
+    _deleted,
+    updatedAt: '2026-09-19T10:00:00.000Z',
+  });
+
+  it('junta los meses de todos los años de servicio, ordenados y sin repetir', () => {
+    expect(
+      mesesDe15Horas([
+        año('2027', ['2026/10', '2026/12']),
+        año('2026', ['2026/04']),
+        año('2028', ['2026/10']),
+      ])
+    ).toEqual(['2026/04', '2026/10', '2026/12']);
+  });
+
+  it('un año borrado no cuenta', () => {
+    expect(mesesDe15Horas([año('2027', ['2026/10'], true)])).toEqual([]);
+  });
+
+  it('sin configuración, ninguno — y no revienta', () => {
+    expect(mesesDe15Horas([])).toEqual([]);
+    expect(mesesDe15Horas(undefined)).toEqual([]);
+    expect(mesesDe15Horas(null)).toEqual([]);
+    expect(mesesDe15Horas('U2FsdGVkX18=' as never)).toEqual([]);
+    expect(mesesDe15Horas([null as never, año('2027', null as never)])).toEqual(
+      []
+    );
+  });
+
+  it('descarta un mes con mala forma en vez de colarlo', () => {
+    expect(mesesDe15Horas([año('2027', ['octubre', '2026/10'])])).toEqual([
+      '2026/10',
+    ]);
+  });
+});
+
+describe('cuándo la solicitud deja elegir entre 15 y 30', () => {
+  const DE15 = ['2026/10', '2026/12'];
+
+  it('sí cuando el mes pedido es de 15 horas', () => {
+    expect(
+      puedeElegir15Horas({ months: ['2026/10'], continuous: false }, DE15)
+    ).toBe(true);
+  });
+
+  it('no cuando el mes pedido no lo es', () => {
+    expect(
+      puedeElegir15Horas({ months: ['2026/11'], continuous: false }, DE15)
+    ).toBe(false);
+  });
+
+  it('con varios meses tienen que serlo TODOS', () => {
+    expect(
+      puedeElegir15Horas(
+        { months: ['2026/10', '2026/12'], continuous: false },
+        DE15
+      )
+    ).toBe(true);
+
+    // Diciembre sí, noviembre no: elegir 15 diría que noviembre también vale.
+    expect(
+      puedeElegir15Horas(
+        { months: ['2026/11', '2026/12'], continuous: false },
+        DE15
+      )
+    ).toBe(false);
+  });
+
+  it('«de continuo» nunca: no se sabe qué meses vendrán', () => {
+    expect(
+      puedeElegir15Horas({ months: ['2026/10'], continuous: true }, DE15)
+    ).toBe(false);
+  });
+
+  it('sin meses elegidos todavía, no hay nada que decidir', () => {
+    expect(puedeElegir15Horas({ months: [], continuous: false }, DE15)).toBe(
+      false
+    );
+    expect(puedeElegir15Horas(undefined, DE15)).toBe(false);
+    expect(
+      puedeElegir15Horas({ months: ['2026/10'], continuous: false }, [])
+    ).toBe(false);
   });
 });

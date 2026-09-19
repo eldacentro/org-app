@@ -31,6 +31,7 @@ const FormBody = (props: ApplicationFormProps) => {
     hours,
     hourOptions,
     handleSetHours,
+    showHours,
     application,
     form_readOnly,
   } = useFormBody(props);
@@ -75,23 +76,27 @@ const FormBody = (props: ApplicationFormProps) => {
                 misma decisión: qué meses y con cuántas horas. En un mes en que
                 la sucursal permite las 15, el hermano elige; el comité lo puede
                 corregir después sin tener que pedirle otra solicitud. */}
-            <Select
-              label="Horas al mes"
-              value={hours}
-              onChange={(e) => handleSetHours(Number(e.target.value) as never)}
-              sx={{
-                color: 'var(--black)',
-                width: laptopUp ? '180px' : '100%',
-                flex: 'none',
-              }}
-              readOnly={form_readOnly}
-            >
-              {hourOptions.map((record) => (
-                <MenuItem key={record.value} value={record.value}>
-                  <Typography>{record.label}</Typography>
-                </MenuItem>
-              ))}
-            </Select>
+            {showHours && (
+              <Select
+                label="Horas al mes"
+                value={hours}
+                onChange={(e) =>
+                  handleSetHours(Number(e.target.value) as never)
+                }
+                sx={{
+                  color: 'var(--black)',
+                  width: laptopUp ? '180px' : '100%',
+                  flex: 'none',
+                }}
+                readOnly={form_readOnly}
+              >
+                {hourOptions.map((record) => (
+                  <MenuItem key={record.value} value={record.value}>
+                    <Typography>{record.label}</Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
 
             <Checkbox
               label={t('tr_continuousAP')}

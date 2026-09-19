@@ -3246,38 +3246,50 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
           }
         }
 
-        // El responsable de departamentos NO es editor de ajustes: no puede
-        // subir los ajustes de la congregación, y con razón. Pero la
-        // configuración de SUS departamentos (por semana o por reunión, uno o
-        // dos turnos) vive en cong_settings, así que sin esto la cambiaría en
-        // su móvil, la app diría que se ha guardado y no llegaría a nadie —
-        // exactamente el mismo fallo que tenía el propio programa.
+        // QUIEN NO EDITA LOS AJUSTES, PERO ES DUEÑO DE UN CAMPO QUE VIVE EN
+        // ELLOS. Pasa con dos, y por la misma razón: la pantalla donde se
+        // cambian no es la de ajustes, y quien las usa no tiene —ni debe
+        // tener— permiso sobre los ajustes de la congregación. Sin esto lo
+        // cambiaría en su móvil, la app diría que se ha guardado y no llegaría
+        // a nadie; exactamente el fallo que ya tuvo el programa de
+        // departamentos.
         //
         // Se sube ESE campo y nada más. El backend hace la misma distinción y
         // descarta el resto aunque llegara.
-        if (
-          !settingEditor &&
-          departmentsEditor &&
-          metadata.metadata.cong_settings.send_local &&
-          settings.cong_settings.departments_config
-        ) {
-          const onlyDeptConfig = {
-            departments_config: structuredClone(
+        if (!settingEditor && metadata.metadata.cong_settings.send_local) {
+          const soloLoSuyo: Record<string, unknown> = {};
+
+          if (departmentsEditor && settings.cong_settings.departments_config) {
+            soloLoSuyo.departments_config = structuredClone(
               settings.cong_settings.departments_config
-            ),
-          };
+            );
+          }
 
-          encryptObject({
-            data: onlyDeptConfig,
-            table: 'app_settings',
-            masterKey,
-            accessCode,
-          });
+          // Los meses en que el precursorado auxiliar puede hacerse con 15
+          // horas. Los cuadra el comité de servicio desde el engranaje de
+          // Solicitudes de precursor auxiliar, y un superintendente de servicio
+          // NO es editor de ajustes: sin esto los marcaría en su móvil, la app
+          // diría que se han guardado y la solicitud del hermano seguiría sin
+          // ofrecer las 15 horas para nadie más.
+          if (serviceCommitteeRole && settings.cong_settings.special_months) {
+            soloLoSuyo.special_months = structuredClone(
+              settings.cong_settings.special_months
+            );
+          }
 
-          obj.app_settings = {
-            ...obj.app_settings,
-            cong_settings: onlyDeptConfig,
-          } as typeof obj.app_settings;
+          if (Object.keys(soloLoSuyo).length > 0) {
+            encryptObject({
+              data: soloLoSuyo,
+              table: 'app_settings',
+              masterKey,
+              accessCode,
+            });
+
+            obj.app_settings = {
+              ...obj.app_settings,
+              cong_settings: soloLoSuyo,
+            } as typeof obj.app_settings;
+          }
         }
 
         // include person data
@@ -4090,8 +4102,12 @@ const huellaDe = (data: Record<string, unknown>): Record<string, string> => {
     if (key === 'settings') {
       const ajustes = (value ?? {}) as Record<string, unknown>;
 
-      result.user_settings = fnv1a(JSON.stringify(ajustes.user_settings ?? null));
-      result.cong_settings = fnv1a(JSON.stringify(ajustes.cong_settings ?? null));
+      result.user_settings = fnv1a(
+        JSON.stringify(ajustes.user_settings ?? null)
+      );
+      result.cong_settings = fnv1a(
+        JSON.stringify(ajustes.cong_settings ?? null)
+      );
 
       continue;
     }

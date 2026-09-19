@@ -18,7 +18,11 @@ import {
   formatDate,
 } from '@utils/date';
 import { AP_HORAS, APHours } from '@definition/ministry';
-import { horasDeLaSolicitud } from '@services/app/ap_applications';
+import {
+  horasDeLaSolicitud,
+  mesesDe15Horas,
+  puedeElegir15Horas,
+} from '@services/app/ap_applications';
 import { ApplicationFormProps } from '../index.types';
 
 const useFormBody = ({
@@ -138,7 +142,7 @@ const useFormBody = ({
       form.months = value.toSorted();
     }
 
-    onChange(form);
+    onChange(ajustarHoras(form));
   };
 
   const handleFormatMonths = (values: string[]) => {
@@ -157,6 +161,35 @@ const useFormBody = ({
   // Una solicitud de antes de que existiera el campo son 30 (ver
   // `horasDeLaSolicitud`), así que el desplegable nunca sale en blanco.
   const hours = useMemo(() => horasDeLaSolicitud(application), [application]);
+
+  // Los meses en que se puede con 15 horas los cuadra el comité de servicio en
+  // el engranaje de Solicitudes de precursor auxiliar.
+  const mesesDe15 = useMemo(
+    () => mesesDe15Horas(settings.cong_settings.special_months),
+    [settings]
+  );
+
+  /**
+   * ¿Se enseña el desplegable de horas?
+   *
+   * Solo si los meses pedidos son de 15 horas — si no, no hay nada que elegir y
+   * preguntarlo sería ofrecer algo que no se puede. La excepción es una
+   * solicitud que YA pide 15: se enseña igual, porque si después se quita ese
+   * mes de la lista, esconder lo que el hermano pidió sería peor que decirlo.
+   */
+  const showHours = useMemo(
+    () => puedeElegir15Horas(application, mesesDe15) || hours === 15,
+    [application, mesesDe15, hours]
+  );
+
+  /** Las 15 horas dejan de valer al cambiar los meses: se vuelve a 30. */
+  const ajustarHoras = (form: typeof application) => {
+    if (form.hours === 15 && !puedeElegir15Horas(form, mesesDe15)) {
+      form.hours = 30;
+    }
+
+    return form;
+  };
 
   const hourOptions = useMemo(
     () => AP_HORAS.map((value) => ({ value, label: `${value} horas` })),
@@ -181,7 +214,7 @@ const useFormBody = ({
       form.months = [form.months.at(0)];
     }
 
-    onChange(form);
+    onChange(ajustarHoras(form));
   };
 
   return {
@@ -199,6 +232,7 @@ const useFormBody = ({
     hours,
     hourOptions,
     handleSetHours,
+    showHours,
     form_readOnly,
   };
 };

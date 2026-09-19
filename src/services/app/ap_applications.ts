@@ -1,4 +1,5 @@
 import type { APHours, APRecordType } from '@definition/ministry';
+import type { SpecialMonthType } from '@definition/settings';
 
 /**
  * Solicitudes de precursorado auxiliar: lo que hace falta para verlas bien en
@@ -121,3 +122,55 @@ export const mesesDeLaSolicitud = (
 export const horasDeLaSolicitud = (
   solicitud: Pick<APRecordType, 'hours'> | undefined | null
 ): APHours => (solicitud?.hours === 15 ? 15 : 30);
+
+/**
+ * Los meses 'YYYY/MM' en que el precursorado auxiliar puede hacerse con 15
+ * horas, sacados de la configuración de la congregación.
+ *
+ * Se guardan por año de servicio (`cong_settings.special_months`), con su
+ * lápida, y aquí se aplanan en una sola lista porque a quien pregunta solo le
+ * importa un mes suelto. Un año borrado no cuenta.
+ */
+export const mesesDe15Horas = (
+  specialMonths: SpecialMonthType[] | undefined | null
+): string[] => {
+  if (!Array.isArray(specialMonths)) return [];
+
+  const meses = new Set<string>();
+
+  for (const registro of specialMonths) {
+    if (!registro || registro._deleted) continue;
+    if (!Array.isArray(registro.months)) continue;
+
+    for (const mes of registro.months) {
+      if (typeof mes === 'string' && /^\d{4}\/\d{2}$/.test(mes)) {
+        meses.add(mes);
+      }
+    }
+  }
+
+  return [...meses].sort();
+};
+
+/**
+ * ¿Esta solicitud puede elegir entre 15 y 30 horas?
+ *
+ * Solo si TODOS los meses que pide están marcados como de 15 horas. Con uno
+ * solo que no lo esté, elegir 15 sería decir que ese mes también vale con 15, y
+ * no vale: el requisito tiene que cumplirse en cada mes pedido.
+ *
+ * «De continuo hasta nuevo aviso» nunca: son los meses que vengan, y nadie
+ * puede saber hoy cuáles de ellos serán de 15 horas.
+ */
+export const puedeElegir15Horas = (
+  solicitud: Pick<APRecordType, 'months' | 'continuous'> | undefined | null,
+  mesesDe15: string[]
+): boolean => {
+  if (!solicitud || solicitud.continuous) return false;
+
+  const meses = Array.isArray(solicitud.months) ? solicitud.months : [];
+
+  if (meses.length === 0) return false;
+
+  return meses.every((mes) => mesesDe15.includes(mes));
+};
