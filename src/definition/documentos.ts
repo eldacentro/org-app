@@ -7,8 +7,13 @@ export type DocumentoCategoria = {
 };
 
 export type DocumentoVigencia =
-  '1semana' | '2semanas' | '1mes' | '3meses' |
-  '6meses' | '1anyo' | 'indefinido';
+  | '1semana'
+  | '2semanas'
+  | '1mes'
+  | '3meses'
+  | '6meses'
+  | '1anyo'
+  | 'indefinido';
 
 export type DocumentoArchivo = {
   id: string;
@@ -17,7 +22,7 @@ export type DocumentoArchivo = {
   categoriaId: string;
   fileName: string;
   fileSize: number;
-  fileData?: string;        // solo caché local en IndexedDB, nunca en Firestore
+  fileData?: string; // solo caché local en IndexedDB, nunca en Firestore
   downloadURL: string;
   vigencia: DocumentoVigencia;
   fechaSubida: string;

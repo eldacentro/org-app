@@ -9,6 +9,7 @@ import {
   accountTypeState,
   congAccessCodeState,
   fullnameOptionState,
+  userLocalUIDState,
 } from '@states/settings';
 import { apiUserGetApplications, apiValidateMe } from '@services/api/user';
 import { decryptData, decryptObject } from '@services/encryption';
@@ -55,6 +56,7 @@ const useMainForm = () => {
 
   const fullnameOption = useAtomValue(fullnameOptionState);
   const congAccessCode = useAtomValue(congAccessCodeState);
+  const userUID = useAtomValue(userLocalUIDState);
 
   const [applications, setApplications] = useState<APRecordType[]>([]);
 
@@ -134,7 +136,9 @@ const useMainForm = () => {
     congAccessCode,
   ]);
 
-  return { formData, handleFormChange, applications };
+  const isSelf = !formData.person_uid || formData.person_uid === userUID;
+
+  return { formData, handleFormChange, applications, isSelf };
 };
 
 export default useMainForm;

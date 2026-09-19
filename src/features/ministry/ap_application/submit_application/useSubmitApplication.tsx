@@ -6,7 +6,11 @@ import { currentAPFormState } from '@states/ministry';
 import { displaySnackNotification } from '@services/states/app';
 import { useAppTranslation } from '@hooks/index';
 import { decryptData, encryptObject } from '@services/encryption';
-import { accountTypeState, congAccessCodeState } from '@states/settings';
+import {
+  accountTypeState,
+  congAccessCodeState,
+  userLocalUIDState,
+} from '@states/settings';
 import { apiUserSubmitApplication, apiValidateMe } from '@services/api/user';
 import { APFormOutgoing } from '@definition/api';
 import {
@@ -24,6 +28,7 @@ const useSubmitApplication = () => {
   const formData = useAtomValue(currentAPFormState);
   const congAccessCode = useAtomValue(congAccessCodeState);
   const accountType = useAtomValue(accountTypeState);
+  const userUID = useAtomValue(userLocalUIDState);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -49,6 +54,15 @@ const useSubmitApplication = () => {
         // el hermano eligió y no tiene que suponerlo.
         hours: horasDeLaSolicitud(formData),
       };
+
+      // De quién es. Va FUERA del sobre cifrado —se añade después de cifrar—
+      // porque el servidor tiene que comprobar que quien la manda tiene a esa
+      // persona delegada, y no puede comprobar lo que no puede leer. Si es de
+      // uno mismo no se manda: el servidor ya sabe quién es.
+      const person_uid =
+        formData.person_uid && formData.person_uid !== userUID
+          ? formData.person_uid
+          : undefined;
 
       let accessCode: string;
 
@@ -78,7 +92,10 @@ const useSubmitApplication = () => {
         accessCode,
       });
 
-      const payload = application as unknown as APFormOutgoing;
+      const payload = {
+        ...application,
+        ...(person_uid ? { person_uid } : {}),
+      } as unknown as APFormOutgoing;
 
       if (accountType === 'vip') {
         await apiUserSubmitApplication(payload);

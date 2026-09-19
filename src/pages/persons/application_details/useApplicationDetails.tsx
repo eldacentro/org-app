@@ -45,8 +45,29 @@ const useApplicationDetails = () => {
     );
   }, [application, persons, fullnameOption]);
 
+  /**
+   * Quién la envió, cuando no es el propio solicitante (un padre por su hija).
+   * Lo sella el servidor con la cuenta que hizo la petición, así que el comité
+   * puede fiarse de lo que lee aquí.
+   */
+  const submittedBy = useMemo(() => {
+    const uid = application?.submitted_by;
+
+    if (!uid || uid === application?.person_uid) return '';
+
+    const person = persons.find((record) => record.person_uid === uid);
+
+    if (!person) return 'otra persona';
+
+    return buildPersonFullname(
+      person.person_data.person_lastname.value,
+      person.person_data.person_firstname.value,
+      fullnameOption
+    );
+  }, [application, persons, fullnameOption]);
+
   // notFound se expone para que el componente renderice el <Navigate>
-  return { name, notFound: !application };
+  return { name, submittedBy, notFound: !application };
 };
 
 export default useApplicationDetails;

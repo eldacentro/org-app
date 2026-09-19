@@ -10,6 +10,11 @@ export type APHours = (typeof AP_HORAS)[number];
 export type APFormType = {
   months: string[];
   continuous: boolean;
+  /**
+   * DE QUIÉN es la solicitud. Casi siempre de quien la rellena; puede ser de
+   * una persona delegada (un padre por su hija). Sin valor, de uno mismo.
+   */
+  person_uid?: string;
   /** 30 o 15. Sin valor (solicitudes de antes) se lee como 30. */
   hours?: APHours;
   date: Date;
@@ -21,6 +26,12 @@ export type APFormType = {
 
 export type APRecordType = {
   continuous: boolean;
+  /**
+   * QUIÉN la envió, cuando no es el propio solicitante. Lo pone el servidor con
+   * la cuenta que hizo la petición, así que no se puede falsear desde el móvil.
+   * Viaja en claro, como `person_uid`: es un identificador, no un nombre.
+   */
+  submitted_by?: string;
   /** 30 o 15. Sin valor (solicitudes de antes) se lee como 30. */
   hours?: APHours;
   expired: string;

@@ -78,7 +78,6 @@ export type JoinRequestNotificationType = {
   read?: boolean;
 };
 
-
 export type TerritoryRequestNotificationType = {
   id: 'territory-requests';
   title: string;

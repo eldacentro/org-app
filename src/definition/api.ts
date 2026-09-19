@@ -299,6 +299,12 @@ export type APFormOutgoing = {
   submitted: string;
   /** Cifrado como el resto: '30' o '15' dentro del sobre. */
   hours?: string;
+  /**
+   * De quién es la solicitud. EN CLARO a propósito: el servidor tiene que
+   * comprobar que quien la manda puede hacerlo (ver `user_members_delegate`), y
+   * no puede comprobar lo que no puede leer.
+   */
+  person_uid?: string;
 };
 
 export type APFormIncoming = {

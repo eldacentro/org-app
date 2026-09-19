@@ -1,4 +1,5 @@
 import { Stack } from '@mui/material';
+import Typography from '@components/typography';
 import { Navigate } from 'react-router';
 import { useCurrentUser } from '@hooks/index';
 import { IconDelete } from '@components/icons';
@@ -14,7 +15,7 @@ const ApplicationDetails = () => {
   // admite el borrado. El resto de ancianos ve la solicitud pero no la retira.
   const { isServiceCommittee } = useCurrentUser();
 
-  const { name, notFound } = useApplicationDetails();
+  const { name, submittedBy, notFound } = useApplicationDetails();
 
   const { open, busy, approved, handleOpen, handleClose, handleConfirm } =
     useApplicationDelete();
@@ -36,6 +37,14 @@ const ApplicationDetails = () => {
           )
         }
       />
+
+      {/* Quién la mandó, si no fue el propio solicitante. Se dice porque cambia
+          cómo se lee la firma de abajo: la rellenó otra persona. */}
+      {submittedBy.length > 0 && (
+        <Typography className="body-small-regular" color="var(--ink-2)">
+          Esta solicitud la envió {submittedBy} en su nombre.
+        </Typography>
+      )}
 
       <ApplicationDeleteConfirm
         open={open}

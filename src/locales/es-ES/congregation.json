@@ -125,7 +125,7 @@
   "tr_profileSettings": "Ajustes de cuenta",
   "tr_bindWithRecord": "Vincular con un registro de persona",
   "tr_delegatePersons": "Delegar personas",
-  "tr_delegatePersonsDesc": "Al delegar una persona de la congregación, permites que este usuario vea sus asignaciones de reuniones y envíe sus informes de servicio de campo.",
+  "tr_delegatePersonsDesc": "Al delegar una persona de la congregación, permites que este usuario vea sus asignaciones de reuniones, envíe sus informes de servicio de campo y pueda enviar su solicitud de precursor auxiliar.",
   "tr_delegatedPersons": "Personas delegadas",
   "tr_delegated": "Delegado",
   "tr_myOwn": "Asignaciones que tengo",

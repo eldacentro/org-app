@@ -1,11 +1,11 @@
 import { PublishedMonthsAt } from '@services/app/month_publish';
 
 export type ServiceOutingType = {
-  id: string;        // Ej: "2026-05-26_tue_1000"
-  date: string;      // "2026/05/26"
-  time: string;      // "10:00"
-  person: string;    // person_uid or ""
-  location: string;  // Ej: "Salón del Reino" o personalizada
+  id: string; // Ej: "2026-05-26_tue_1000"
+  date: string; // "2026/05/26"
+  time: string; // "10:00"
+  person: string; // person_uid or ""
+  location: string; // Ej: "Salón del Reino" o personalizada
   cancelled: boolean;
 };
 
@@ -22,13 +22,13 @@ export type ServiceOutingType = {
  * persona la ven sin saber que el turno es añadido.
  */
 export type ServiceOutingExtraSlotType = {
-  id: string;        // estable: para pintarlo y para poder quitarlo
-  date: string;      // "2026/09/16"
-  time: string;      // "17:00"
+  id: string; // estable: para pintarlo y para poder quitarlo
+  date: string; // "2026/09/16"
+  time: string; // "17:00"
 };
 
 export type ServiceOutingWeekType = {
-  weekOf: string;    // "YYYY/MM/DD" (Monday of the week)
+  weekOf: string; // "YYYY/MM/DD" (Monday of the week)
   updatedAt?: string;
   lastModifiedBy?: string;
   outings?: ServiceOutingType[];
@@ -55,7 +55,8 @@ export type ServiceOutingSettingsType = {
   // igual que antes.
   monthlyOverrides?: Record<
     string,
-    Record<string, string> | { isCancelledMonth: boolean; keepActiveSlots?: string[] }
+    | Record<string, string>
+    | { isCancelledMonth: boolean; keepActiveSlots?: string[] }
   >;
   locations: string[];
   availability: {
