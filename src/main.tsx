@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AppRoot from './RootWrap';
-import { getCSSPropertyValue } from '@utils/common';
+import { syncStatusBarColor } from '@utils/common';
 import { leerAlmacen } from '@utils/almacenamiento';
 import Sentry from '@services/sentry';
 import { LANGUAGE_LIST } from './constants';
@@ -52,11 +52,8 @@ const color = getInitialColor();
 const newTheme = `${color}-${theme}`;
 document.documentElement.setAttribute('data-theme', newTheme);
 
-const themeColor = getCSSPropertyValue('--accent-100');
-
-document
-  .querySelector("meta[name='theme-color']")
-  .setAttribute('content', themeColor);
+// El color de la barra de estado, del tema que se acaba de aplicar.
+syncStatusBarColor();
 
 console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
 

@@ -13,14 +13,20 @@ import { VisitingSpeakerType } from '@definition/visiting_speakers';
  * "an empty Fragment" apart from "actually has buttons to show."
  */
 export const hasRenderableContent = (node: ReactNode): boolean => {
-  if (isValidElement<{ children?: ReactNode }>(node) && node.type === Fragment) {
+  if (
+    isValidElement<{ children?: ReactNode }>(node) &&
+    node.type === Fragment
+  ) {
     return hasRenderableContent(node.props.children);
   }
 
   return Children.toArray(node).some((child) => {
     if (typeof child === 'boolean') return false;
 
-    if (isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment) {
+    if (
+      isValidElement<{ children?: ReactNode }>(child) &&
+      child.type === Fragment
+    ) {
       return hasRenderableContent(child.props.children);
     }
 
@@ -290,6 +296,30 @@ export const getCSSPropertyValue = (key: string) => {
     .trim();
 };
 
+/**
+ * Pone la barra de estado del móvil del color del tema elegido.
+ *
+ * Desde que la barra es OPACA —lo que quita la banda borrosa que iOS 26 empezó
+ * a pintar arriba, ver `index.html`— ese color ya no es un adorno del
+ * navegador: es la franja que se ve justo encima de la app, así que si no sigue
+ * al tema se nota una costura.
+ *
+ * A TODAS las etiquetas `theme-color`: hay una por modo (claro y oscuro) y
+ * `querySelector` devolvía siempre la del claro, así que en oscuro la barra se
+ * quedaba con el color fijo del HTML. Se llama desde los TRES sitios que
+ * cambian el tema: el arranque, el interruptor claro/oscuro y el selector de
+ * color.
+ */
+export const syncStatusBarColor = () => {
+  const color = getCSSPropertyValue('--accent-100');
+
+  if (!color) return;
+
+  document
+    .querySelectorAll("meta[name='theme-color']")
+    .forEach((meta) => meta.setAttribute('content', color));
+};
+
 export const updatedAtOverride = <T extends object>(object: T): T => {
   const objectKeys = Object.keys(object);
 
@@ -327,7 +357,6 @@ export const normalizeForSearch = (str: string) => {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 };
-
 
 /**
  * Pone en mayúscula la PRIMERA letra y deja el resto como está.

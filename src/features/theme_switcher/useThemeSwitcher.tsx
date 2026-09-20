@@ -7,6 +7,7 @@ import {
 } from '@states/app';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { themeFollowOSEnabledState } from '@states/settings';
+import { syncStatusBarColor } from '@utils/common';
 
 const useThemeSwitcher = () => {
   const [appTheme, setAppThemeName] = useAtom(appThemeNameState);
@@ -23,13 +24,7 @@ const useThemeSwitcher = () => {
 
       document.documentElement.setAttribute('data-theme', newTheme);
 
-      const themeColor = getComputedStyle(
-        document.documentElement
-      ).getPropertyValue('--accent-100');
-
-      document
-        .querySelector("meta[name='theme-color']")
-        .setAttribute('content', themeColor);
+      syncStatusBarColor();
     },
     [color]
   );

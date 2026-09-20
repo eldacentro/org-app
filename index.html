@@ -99,11 +99,32 @@
   <link rel="stylesheet" href="notosanshebrew.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content, viewport-fit=cover" />
   <meta name="theme-color" content="#F0F4FA" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#151519" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#0F1117" media="(prefers-color-scheme: dark)" />
   <meta name="apple-mobile-web-app-title" content="Elda Centro" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!--
+    LA BARRA DE ESTADO, OPACA. No es un gusto: es lo único que quita la banda
+    borrosa que iOS 26 empezó a pintar arriba y que iOS 27 dejó bien visible.
+
+    Con "black-translucent" la página se pinta DEBAJO del reloj, y desde iOS 26
+    el sistema rellena ese hueco con el efecto de cristal de Liquid Glass
+    siempre que no encuentra un color sólido en el borde de arriba —y aquí no lo
+    encuentra, porque la barra de título es transparente mientras no se
+    desplaza—. No hay forma de desactivarlo: ni una propiedad de CSS, ni una
+    etiqueta, y `env(safe-area-inset-top)` tampoco crece para poder taparlo.
+    Apple no lo documenta en las notas de Safari 27.
+
+    Sin "black-translucent" la vista web empieza DEBAJO de una barra de estado
+    opaca: no queda hueco que rellenar y no hay banda. El color de esa barra lo
+    pone `theme-color`, que la app mantiene al día con el tema elegido (ver
+    `main.tsx` y `useThemeSwitcher`). A cambio se pierde el pintar por debajo
+    del reloj, que esta app no aprovechaba: su contenido ya empezaba más abajo.
+
+    `viewport-fit=cover` se queda: sigue haciendo falta abajo (la barra de
+    inicio) y a los lados en horizontal.
+  -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>Elda Centro</title>
   <meta name="description" content="App de gestión para la congregación Elda Centro" />
   <meta property="og:title" content="Elda Centro" />
