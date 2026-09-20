@@ -7,6 +7,7 @@ import {
 } from '@states/app';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { themeFollowOSEnabledState } from '@states/settings';
+import { escribirAlmacen } from '@utils/almacenamiento';
 import { syncStatusBarColor } from '@utils/common';
 
 const useThemeSwitcher = () => {
@@ -60,6 +61,15 @@ const useThemeSwitcher = () => {
 
     setIsOpenConfirm(false);
   };
+
+  // El espejo de «seguir el tema del sistema» en `localStorage`. Lo leen, antes
+  // de que exista React y con la base de datos local aún cerrada, el script de
+  // `index.html` —que decide el color de la barra de estado— y `main.tsx`. Sin
+  // él, una app puesta a seguir al sistema abría con el tema de la sesión
+  // anterior si el móvil había cambiado de claro a oscuro mientras tanto.
+  useEffect(() => {
+    escribirAlmacen('theme_follow_os', followOSTheme ? '1' : '0');
+  }, [followOSTheme]);
 
   useEffect(() => {
     if (!followOSTheme) return;

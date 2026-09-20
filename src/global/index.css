@@ -1167,6 +1167,15 @@ body {
       rgba(var(--accent-dark-base), 0.1),
       transparent 55%
     );
+  /* El aura no llega al borde de arriba del todo: entra desde nada en los
+     primeros 48 px. Es lo que deja ese borde de un color liso y conocido —el
+     primer tramo del degradado de `.screen`, o sea `--status-bar`— para que la
+     barra de estado de la app instalada pueda casar con él exactamente. Sin
+     esto el aura teñía el borde y la barra quedaba como una franja aparte, que
+     era justo el defecto. 48 px es corto a propósito: por debajo de la barra de
+     título el aura sigue igual de fuerte que antes y la subida no se ve. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 48px);
+  mask-image: linear-gradient(to bottom, transparent 0px, #000 48px);
 }
 
 /* ---------- TOP BAR ---------- */
@@ -1261,6 +1270,28 @@ body {
     rgba(var(--accent-100-base), 1) 60px,
     rgba(var(--accent-150-base), 1) 280px
   ) !important;
+}
+
+/* EL COLOR DE LA BARRA DE ESTADO — el primer tramo de esos dos degradados,
+   escrito una sola vez para que no se pueda desparejar.
+
+   En la app instalada la barra de estado es opaca (ver el comentario de
+   `apple-mobile-web-app-status-bar-style` en `index.html`) y su color lo pone
+   `theme-color`, que `syncStatusBarColor` mantiene al día. Venía puesto a
+   `--accent-100`, que ERA el color de arriba de la página hasta que este
+   degradado pasó a empezar en blanco: desde entonces la barra y la página de
+   debajo ya no casaban y quedaba una franja. Medido en los diez temas, la
+   diferencia iba de 2 a 25 puntos sobre 255, y la peor era la del azul, que es
+   el de serie.
+
+   Aquí se declara una vez y de ahí lo leen `syncStatusBarColor` y el script de
+   arranque de `index.html`. Si algún día cambia el degradado, cambia esto. */
+[data-theme$='-light'] {
+  --status-bar: #ffffff;
+}
+
+[data-theme$='-dark'] {
+  --status-bar: rgba(var(--accent-100-base), 1);
 }
 
 /* Hueco para la barra de acciones flotante. Lo publica `layouts/bottom_menu`

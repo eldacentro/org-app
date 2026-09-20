@@ -310,8 +310,17 @@ export const getCSSPropertyValue = (key: string) => {
  * cambian el tema: el arranque, el interruptor claro/oscuro y el selector de
  * color.
  */
+/**
+ * El color de la barra de estado, igual al del borde de arriba de la página.
+ *
+ * `--status-bar` lo declara `global/index.css` junto al degradado de `.screen`
+ * del que sale, para que no se puedan desparejar. `--accent-100` queda de
+ * reserva por si se lee antes de que la hoja de estilos esté aplicada: era el
+ * valor de antes y se acerca bastante.
+ */
 export const syncStatusBarColor = () => {
-  const color = getCSSPropertyValue('--accent-100');
+  const color =
+    getCSSPropertyValue('--status-bar') || getCSSPropertyValue('--accent-100');
 
   if (!color) return;
 

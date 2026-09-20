@@ -24,6 +24,19 @@ const getInitialColor = () => {
 };
 
 const getInitialTheme = () => {
+  // Con «seguir el tema del sistema» puesto manda el sistema, no el último
+  // tema guardado: si el móvil cambió de claro a oscuro con la app cerrada,
+  // lo guardado es de la sesión anterior. El interruptor está en los ajustes
+  // sincronizados, que aquí aún no se han abierto, así que se lee el espejo
+  // que deja `useThemeSwitcher`. Misma regla que el script de `index.html`,
+  // que decide antes el color de la barra de estado: si las dos no coinciden,
+  // la app abre con un destello del tema contrario.
+  if (leerAlmacen('theme_follow_os') === '1') {
+    return matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  }
+
   const savedTheme = leerAlmacen('theme');
 
   if (!savedTheme) return 'light';

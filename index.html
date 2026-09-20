@@ -98,7 +98,14 @@
   <link rel="stylesheet" href="notosansjp.css" />
   <link rel="stylesheet" href="notosanshebrew.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content, viewport-fit=cover" />
-  <meta name="theme-color" content="#F0F4FA" media="(prefers-color-scheme: light)" />
+  <!--
+    El color de la barra de estado antes de que haya CSS. Son los dos valores
+    de `--status-bar` del tema azul, que es el de serie (ver el bloque
+    EL COLOR DE LA BARRA DE ESTADO en `global/index.css`). En cuanto la hoja de
+    estilos está puesta, `syncStatusBarColor` afina el tono del esquema
+    elegido; estos dos solo tienen que acertar con CLARO U OSCURO.
+  -->
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0F1117" media="(prefers-color-scheme: dark)" />
   <script>
     /*
@@ -130,6 +137,14 @@
 
       De paso se aplica ya `data-theme`, y así un tema oscuro deja de abrir con
       un destello claro.
+
+      LO DE «SEGUIR EL TEMA DEL SISTEMA» — ese interruptor vive en los ajustes
+      sincronizados, o sea en la base de datos local, que aquí todavía no está
+      abierta. Por eso `useThemeSwitcher` deja una copia suya en
+      `localStorage['theme_follow_os']`: no es el ajuste, es un espejo, y solo
+      lo usa este script. Con él puesto se pregunta al sistema en vez de mirar
+      el último tema guardado, que si el móvil cambió de claro a oscuro con la
+      app cerrada ya no vale.
     */
     (function () {
       try {
@@ -150,7 +165,14 @@
           }
         };
 
-        var tema = valorDe(leer('theme'), 'light');
+        var sigueAlSistema = leer('theme_follow_os') === '1';
+
+        var tema = sigueAlSistema
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light'
+          : valorDe(leer('theme'), 'light');
+
         var color = valorDe(leer('color'), 'blue');
 
         document.documentElement.setAttribute('data-theme', color + '-' + tema);
