@@ -174,3 +174,37 @@ export const puedeElegir15Horas = (
 
   return meses.every((mes) => mesesDe15.includes(mes));
 };
+
+/**
+ * ¿Le queda a esta persona OTRA solicitud aprobada que cubra alguno de esos
+ * meses?
+ *
+ * Se pregunta al mover una solicitud de persona: la inscripción de precursor
+ * auxiliar de esos meses solo se le puede retirar a quien la tenía si no le
+ * queda otra solicitud aprobada que la justifique. Si la tiene, quitarla sería
+ * borrarle un nombramiento de verdad.
+ */
+export const otraAprobadaCubre = (
+  solicitudes: Pick<
+    APRecordType,
+    'request_id' | 'person_uid' | 'months' | 'status'
+  >[],
+  person_uid: string,
+  request_id: string,
+  months: string[]
+): boolean => {
+  const pedidos = new Set(Array.isArray(months) ? months : []);
+
+  if (pedidos.size === 0) return false;
+
+  return (solicitudes ?? []).some((solicitud) => {
+    if (!solicitud) return false;
+    if (solicitud.request_id === request_id) return false;
+    if (solicitud.person_uid !== person_uid) return false;
+    if (solicitud.status !== 'approved') return false;
+
+    const suyos = Array.isArray(solicitud.months) ? solicitud.months : [];
+
+    return suyos.some((mes) => pedidos.has(mes));
+  });
+};

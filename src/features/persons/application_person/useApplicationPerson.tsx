@@ -9,19 +9,21 @@ import { congAccessCodeState, fullnameOptionState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
 import { useAppTranslation } from '@hooks/index';
 import { displaySnackNotification } from '@services/states/app';
-import { CongregationUpdatesResponseType } from '@definition/api';
-import {
-  decryptData,
-  decryptObject,
-  encryptObject,
-} from '@services/encryption';
+import { encryptObject } from '@services/encryption';
 import {
   apiCongregationDeleteApplication,
   apiCongregationSaveApplication,
 } from '@services/api/congregation';
 import { getMessageByCode } from '@services/i18n/translation';
-import { buildAPEnrollmentPeriods } from '@services/app/ap_enrollment';
+import {
+  addAPEnrollments,
+  buildAPEnrollmentPeriods,
+} from '@services/app/ap_enrollment';
 import { horasDeLaSolicitud } from '@services/app/ap_applications';
+import {
+  decryptApplications,
+  refreshApplications,
+} from '@services/app/ap_applications_sync';
 import { dbPersonsSave } from '@services/dexie/persons';
 
 const useApplicationPerson = () => {
@@ -91,41 +93,10 @@ const useApplicationPerson = () => {
   const handleDecryptApplications = (
     applications: APRecordType[],
     code: string
-  ) => {
-    const result = applications.map((application) => {
-      const data = structuredClone(application);
-      decryptObject({ data, table: 'applications', accessCode: code });
+  ) => decryptApplications(applications, code);
 
-      return data;
-    });
-
-    return result;
-  };
-
-  const handleRefreshApplications = async () => {
-    await queryClient.refetchQueries({ queryKey: ['congregation_updates'] });
-    const updates: CongregationUpdatesResponseType = queryClient.getQueryData([
-      'congregation_updates',
-    ]);
-
-    if (!updates) {
-      throw new Error(t('tr_internalError'));
-    }
-
-    if (updates.status !== 200) {
-      throw new Error(updates.result.message);
-    }
-
-    const remoteCode = updates.result.cong_access_code;
-    const code = decryptData(remoteCode, congAccessCode, 'access_code');
-
-    const applications = handleDecryptApplications(
-      updates.result.applications,
-      code
-    );
-
-    return { applications, code };
-  };
+  const handleRefreshApplications = () =>
+    refreshApplications({ queryClient, congAccessCode });
 
   /**
    * Aprobar no es solo cambiar el estado de la solicitud: la persona tiene que
@@ -153,41 +124,17 @@ const useApplicationPerson = () => {
       return;
     }
 
-    const person = structuredClone(findPerson);
-
     const periods = buildAPEnrollmentPeriods(application.months);
 
     if (periods.length === 0) return;
 
-    let added = 0;
+    // Idempotente: volver a pulsar "aprobar" sobre una solicitud ya aprobada
+    // llegaba a apilar una inscripción 'AP' repetida por cada pulsación.
+    // `addAPEnrollments` devuelve la MISMA ficha si no hay nada que añadir, y
+    // es la misma cuenta que usa el cambio de persona (`handleReassign`).
+    const person = addAPEnrollments(findPerson, periods);
 
-    for (const period of periods) {
-      // Idempotente a propósito: volver a pulsar "aprobar" sobre una solicitud
-      // ya aprobada llegaba hasta aquí y apilaba una inscripción 'AP' repetida
-      // por cada pulsación, y luego había que limpiarlas a mano en la ficha.
-      const exists = person.person_data.enrollments.some(
-        (record) =>
-          record._deleted === false &&
-          record.enrollment === 'AP' &&
-          record.start_date === period.start_date &&
-          record.end_date === period.end_date
-      );
-
-      if (exists) continue;
-
-      person.person_data.enrollments.push({
-        id: crypto.randomUUID(),
-        enrollment: 'AP',
-        _deleted: false,
-        start_date: period.start_date,
-        end_date: period.end_date,
-        updatedAt: new Date().toISOString(),
-      });
-
-      added++;
-    }
-
-    if (added === 0) return;
+    if (person === findPerson) return;
 
     await dbPersonsSave(person);
 

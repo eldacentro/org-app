@@ -3,6 +3,7 @@ import {
   horasDeLaSolicitud,
   mesesDe15Horas,
   mesesDeLaSolicitud,
+  otraAprobadaCubre,
   puedeElegir15Horas,
   solicitudesRepetidas,
 } from './ap_applications';
@@ -274,6 +275,70 @@ describe('cuándo la solicitud deja elegir entre 15 y 30', () => {
     expect(puedeElegir15Horas(undefined, DE15)).toBe(false);
     expect(
       puedeElegir15Horas({ months: ['2026/10'], continuous: false }, [])
+    ).toBe(false);
+  });
+});
+
+describe('mover una solicitud de persona: ¿se le puede retirar la inscripción?', () => {
+  const base = {
+    request_id: 'a1',
+    person_uid: 'padre',
+    months: ['2026/10'],
+    status: 'approved',
+  };
+
+  it('sí cuando no le queda ninguna otra aprobada de esos meses', () => {
+    expect(otraAprobadaCubre([base], 'padre', 'a1', ['2026/10'])).toBe(false);
+  });
+
+  it('no cuando le queda otra aprobada que pisa algún mes', () => {
+    expect(
+      otraAprobadaCubre(
+        [base, { ...base, request_id: 'a2', months: ['2026/10', '2026/11'] }],
+        'padre',
+        'a1',
+        ['2026/10']
+      )
+    ).toBe(true);
+  });
+
+  it('otra suya pero de otros meses no cuenta', () => {
+    expect(
+      otraAprobadaCubre(
+        [base, { ...base, request_id: 'a2', months: ['2026/12'] }],
+        'padre',
+        'a1',
+        ['2026/10']
+      )
+    ).toBe(false);
+  });
+
+  it('otra sin aprobar todavía tampoco', () => {
+    expect(
+      otraAprobadaCubre(
+        [base, { ...base, request_id: 'a2', status: 'waiting' }],
+        'padre',
+        'a1',
+        ['2026/10']
+      )
+    ).toBe(false);
+  });
+
+  it('la de otra persona no cuenta', () => {
+    expect(
+      otraAprobadaCubre(
+        [base, { ...base, request_id: 'a2', person_uid: 'otro' }],
+        'padre',
+        'a1',
+        ['2026/10']
+      )
+    ).toBe(false);
+  });
+
+  it('sin meses o sin lista, no revienta', () => {
+    expect(otraAprobadaCubre([], 'padre', 'a1', [])).toBe(false);
+    expect(
+      otraAprobadaCubre(undefined as never, 'padre', 'a1', ['2026/10'])
     ).toBe(false);
   });
 });

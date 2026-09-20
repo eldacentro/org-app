@@ -1,3 +1,4 @@
+import type { PersonType } from '@definition/person';
 import { groupConsecutiveMonths } from '@utils/date';
 import { formatDate } from '@utils/date';
 
@@ -45,4 +46,94 @@ export const buildAPEnrollmentPeriods = (
 
     return { start_date, end_date };
   });
+};
+
+/**
+ * ¿Tiene esta persona una inscripción de precursor auxiliar VIVA para ese
+ * periodo exacto?
+ */
+const tienePeriodo = (person: PersonType, period: APEnrollmentPeriod) =>
+  (person.person_data.enrollments ?? []).some(
+    (record) =>
+      record._deleted === false &&
+      record.enrollment === 'AP' &&
+      record.start_date === period.start_date &&
+      record.end_date === period.end_date
+  );
+
+/**
+ * Deja en la ficha las inscripciones de precursor auxiliar de esos periodos.
+ *
+ * Idempotente: lo que ya está no se duplica. Es la cuenta que hace la
+ * aprobación de una solicitud, y también la que hace falta al MOVER una
+ * solicitud de persona —si no, la inscripción se queda en quien no era—.
+ *
+ * Devuelve la MISMA persona si no había nada que añadir, para que quien llama
+ * sepa con un `===` que no hace falta guardar.
+ */
+export const addAPEnrollments = (
+  person: PersonType,
+  periods: APEnrollmentPeriod[]
+): PersonType => {
+  const faltan = (periods ?? []).filter(
+    (period) => !tienePeriodo(person, period)
+  );
+
+  if (faltan.length === 0) return person;
+
+  const nueva = structuredClone(person);
+
+  for (const period of faltan) {
+    nueva.person_data.enrollments.push({
+      id: crypto.randomUUID(),
+      enrollment: 'AP',
+      _deleted: false,
+      start_date: period.start_date,
+      end_date: period.end_date,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  return nueva;
+};
+
+/**
+ * Retira de la ficha las inscripciones de precursor auxiliar de esos periodos.
+ *
+ * Con LÁPIDA (`_deleted` y fecha nueva), nunca sacándolas de la lista: así el
+ * borrado llega a los demás dispositivos. Solo toca los periodos EXACTOS que se
+ * le pasan —los que creó la solicitud que se está moviendo—, así que una
+ * inscripción puesta a mano con otras fechas no se toca.
+ *
+ * Devuelve la MISMA persona si no había nada que quitar.
+ */
+export const removeAPEnrollments = (
+  person: PersonType,
+  periods: APEnrollmentPeriod[]
+): PersonType => {
+  const sobran = (periods ?? []).filter((period) =>
+    tienePeriodo(person, period)
+  );
+
+  if (sobran.length === 0) return person;
+
+  const nueva = structuredClone(person);
+
+  for (const record of nueva.person_data.enrollments) {
+    if (record._deleted) continue;
+    if (record.enrollment !== 'AP') continue;
+
+    const coincide = sobran.some(
+      (period) =>
+        record.start_date === period.start_date &&
+        record.end_date === period.end_date
+    );
+
+    if (!coincide) continue;
+
+    record._deleted = true;
+    record.updatedAt = new Date().toISOString();
+  }
+
+  return nueva;
 };

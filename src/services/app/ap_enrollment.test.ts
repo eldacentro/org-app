@@ -1,64 +1,96 @@
 import { describe, expect, it } from 'vitest';
-import { buildAPEnrollmentPeriods } from './ap_enrollment';
+import type { PersonType } from '@definition/person';
+import {
+  addAPEnrollments,
+  buildAPEnrollmentPeriods,
+  removeAPEnrollments,
+} from './ap_enrollment';
 
-describe('buildAPEnrollmentPeriods', () => {
-  it('un solo mes cubre ese mes entero', () => {
-    expect(buildAPEnrollmentPeriods(['2026/08'])).toEqual([
-      { start_date: '2026/08/01', end_date: '2026/08/31' },
-    ]);
+const persona = (
+  enrollments: PersonType['person_data']['enrollments'] = []
+): PersonType =>
+  ({
+    person_uid: 'p1',
+    person_data: { enrollments },
+  }) as PersonType;
+
+const inscripcion = (
+  id: string,
+  start_date: string,
+  end_date: string,
+  extra: Partial<PersonType['person_data']['enrollments'][number]> = {}
+) => ({
+  id,
+  enrollment: 'AP' as const,
+  _deleted: false,
+  start_date,
+  end_date,
+  updatedAt: '2026-09-01T10:00:00.000Z',
+  ...extra,
+});
+
+describe('inscripciones de precursor auxiliar de una solicitud', () => {
+  const OCTUBRE = buildAPEnrollmentPeriods(['2026/10']);
+
+  it('añade la que falta', () => {
+    const resultado = addAPEnrollments(persona(), OCTUBRE);
+
+    expect(resultado.person_data.enrollments).toHaveLength(1);
+    expect(resultado.person_data.enrollments[0]).toMatchObject({
+      enrollment: 'AP',
+      _deleted: false,
+      start_date: '2026/10/01',
+      end_date: '2026/10/31',
+    });
   });
 
-  it('cierra en el día 30 cuando el mes tiene 30', () => {
-    expect(buildAPEnrollmentPeriods(['2026/09'])).toEqual([
-      { start_date: '2026/09/01', end_date: '2026/09/30' },
-    ]);
+  it('no duplica la que ya está, y devuelve la misma persona', () => {
+    const ficha = persona([inscripcion('e1', '2026/10/01', '2026/10/31')]);
+
+    expect(addAPEnrollments(ficha, OCTUBRE)).toBe(ficha);
   });
 
-  it('febrero de año bisiesto cierra el 29', () => {
-    expect(buildAPEnrollmentPeriods(['2028/02'])).toEqual([
-      { start_date: '2028/02/01', end_date: '2028/02/29' },
-    ]);
-  });
+  it('retira con lápida, sin sacarla de la lista', () => {
+    const ficha = persona([inscripcion('e1', '2026/10/01', '2026/10/31')]);
 
-  it('febrero de año normal cierra el 28', () => {
-    expect(buildAPEnrollmentPeriods(['2026/02'])).toEqual([
-      { start_date: '2026/02/01', end_date: '2026/02/28' },
-    ]);
-  });
+    const resultado = removeAPEnrollments(ficha, OCTUBRE);
 
-  it('meses consecutivos se agrupan en un solo periodo', () => {
-    expect(buildAPEnrollmentPeriods(['2026/09', '2026/10', '2026/11'])).toEqual(
-      [{ start_date: '2026/09/01', end_date: '2026/11/30' }]
+    expect(resultado.person_data.enrollments).toHaveLength(1);
+    expect(resultado.person_data.enrollments[0]._deleted).toBe(true);
+    expect(resultado.person_data.enrollments[0].updatedAt).not.toBe(
+      '2026-09-01T10:00:00.000Z'
     );
   });
 
-  it('agrupa a través del cambio de año', () => {
-    expect(buildAPEnrollmentPeriods(['2026/12', '2027/01'])).toEqual([
-      { start_date: '2026/12/01', end_date: '2027/01/31' },
+  it('no toca una inscripción de otras fechas ni de otro tipo', () => {
+    const ficha = persona([
+      inscripcion('e1', '2026/11/01', '2026/11/30'),
+      inscripcion('e2', '2026/10/01', '2026/10/31', { enrollment: 'FR' }),
     ]);
+
+    expect(removeAPEnrollments(ficha, OCTUBRE)).toBe(ficha);
   });
 
-  it('meses sueltos dan periodos separados', () => {
-    expect(buildAPEnrollmentPeriods(['2026/08', '2026/11'])).toEqual([
-      { start_date: '2026/08/01', end_date: '2026/08/31' },
-      { start_date: '2026/11/01', end_date: '2026/11/30' },
-    ]);
+  it('no modifica la ficha que recibe', () => {
+    const ficha = persona([inscripcion('e1', '2026/10/01', '2026/10/31')]);
+    const copia = structuredClone(ficha);
+
+    addAPEnrollments(ficha, buildAPEnrollmentPeriods(['2026/12']));
+    removeAPEnrollments(ficha, OCTUBRE);
+
+    expect(ficha).toEqual(copia);
   });
 
-  it('no depende del orden en que lleguen los meses', () => {
-    expect(buildAPEnrollmentPeriods(['2026/11', '2026/09', '2026/10'])).toEqual(
-      [{ start_date: '2026/09/01', end_date: '2026/11/30' }]
+  it('meses seguidos son UNA inscripción, no dos', () => {
+    const resultado = addAPEnrollments(
+      persona(),
+      buildAPEnrollmentPeriods(['2026/10', '2026/11'])
     );
-  });
 
-  it('descarta duplicados en vez de partir el periodo', () => {
-    expect(buildAPEnrollmentPeriods(['2026/09', '2026/09', '2026/10'])).toEqual(
-      [{ start_date: '2026/09/01', end_date: '2026/10/31' }]
-    );
-  });
-
-  it('sin meses no hay inscripción que crear', () => {
-    expect(buildAPEnrollmentPeriods([])).toEqual([]);
-    expect(buildAPEnrollmentPeriods(undefined)).toEqual([]);
+    expect(resultado.person_data.enrollments).toHaveLength(1);
+    expect(resultado.person_data.enrollments[0]).toMatchObject({
+      start_date: '2026/10/01',
+      end_date: '2026/11/30',
+    });
   });
 });
