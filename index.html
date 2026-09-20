@@ -100,6 +100,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content, viewport-fit=cover" />
   <meta name="theme-color" content="#F0F4FA" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0F1117" media="(prefers-color-scheme: dark)" />
+  <script>
+    /*
+      EL COLOR DE LA BARRA DE ESTADO, DECIDIDO ANTES DE PINTAR NADA.
+
+      EL FALLO QUE ESTO ARREGLA — en Android, en algunos dispositivos, la barra
+      de estado se quedaba en blanco CON LOS ICONOS EN BLANCO: la hora y la
+      batería desaparecían.
+
+      El fondo de esa barra lo pone `theme-color`, y el color de sus iconos lo
+      elige el sistema a partir de ese fondo: claro pide iconos oscuros, oscuro
+      los pide blancos. Pero esa decisión se toma UNA vez, con el valor que hay
+      al abrir, y hay móviles que no la rehacen si el color cambia después.
+
+      Y aquí cambiaba siempre que el tema de la APP no coincidía con el del
+      SISTEMA, que es algo que esta app permite: las dos etiquetas de arriba se
+      eligen por `prefers-color-scheme` —o sea, por el sistema—, así que con el
+      móvil en oscuro y la app en claro se abría con fondo oscuro (iconos
+      blancos) y un instante después `syncStatusBarColor` lo pasaba a claro. En
+      los móviles que no rehacen la cuenta: blanco sobre blanco.
+
+      Así que aquí se deja ya puesto el valor del tema de la app. Manda lo
+      guardado en `localStorage` —la misma clave que lee `main.tsx`—, y los
+      colores salen de las propias etiquetas de arriba, para no tener una
+      segunda copia de la paleta que se quede vieja. El tono exacto del esquema
+      de color (azul, verde…) lo afina `syncStatusBarColor` un instante después;
+      lo que no puede esperar es CLARO U OSCURO, que es lo que decide si los
+      iconos se ven.
+
+      De paso se aplica ya `data-theme`, y así un tema oscuro deja de abrir con
+      un destello claro.
+    */
+    (function () {
+      try {
+        var leer = function (clave) {
+          try {
+            return window.localStorage.getItem(clave);
+          } catch (e) {
+            return null;
+          }
+        };
+
+        var valorDe = function (guardado, pordefecto) {
+          if (!guardado) return pordefecto;
+          try {
+            return JSON.parse(guardado);
+          } catch (e) {
+            return guardado;
+          }
+        };
+
+        var tema = valorDe(leer('theme'), 'light');
+        var color = valorDe(leer('color'), 'blue');
+
+        document.documentElement.setAttribute('data-theme', color + '-' + tema);
+
+        var claro = document.querySelector(
+          "meta[name='theme-color'][media*='light']"
+        );
+        var oscuro = document.querySelector(
+          "meta[name='theme-color'][media*='dark']"
+        );
+
+        if (!claro || !oscuro) return;
+
+        var elegido = (tema === 'dark' ? oscuro : claro).getAttribute('content');
+
+        var metas = document.querySelectorAll("meta[name='theme-color']");
+
+        for (var i = 0; i < metas.length; i++) {
+          metas[i].setAttribute('content', elegido);
+        }
+      } catch (e) {
+        /* Sin almacenamiento se queda como estaba: el tema del sistema. */
+      }
+    })();
+  </script>
   <meta name="apple-mobile-web-app-title" content="Elda Centro" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
