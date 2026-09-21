@@ -1167,15 +1167,32 @@ body {
       rgba(var(--accent-dark-base), 0.1),
       transparent 55%
     );
-  /* El aura no llega al borde de arriba del todo: entra desde nada en los
-     primeros 48 px. Es lo que deja ese borde de un color liso y conocido —el
-     primer tramo del degradado de `.screen`, o sea `--status-bar`— para que la
-     barra de estado de la app instalada pueda casar con él exactamente. Sin
-     esto el aura teñía el borde y la barra quedaba como una franja aparte, que
-     era justo el defecto. 48 px es corto a propósito: por debajo de la barra de
-     título el aura sigue igual de fuerte que antes y la subida no se ve. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 48px);
-  mask-image: linear-gradient(to bottom, transparent 0px, #000 48px);
+  /* El aura no llega al borde de arriba: entra desde nada a lo largo de 48 px.
+     Es lo que deja ese borde de un color liso y conocido —`--status-bar`— para
+     que la franja sólida de la barra de estado case con él exactamente. Sin
+     esto el aura teñía el borde y la barra quedaba como una pieza aparte, que
+     era justo el defecto.
+
+     La cuenta empieza DONDE ACABA LA BARRA DE ESTADO, no en el borde de la
+     pantalla: con `black-translucent` la página se pinta por debajo del reloj,
+     así que sus primeros `env(safe-area-inset-top)` píxeles están tapados por
+     la franja. Contando desde cero, el aura ya estaba casi entera justo debajo
+     de la franja y ahí aparecía un escalón.
+
+     48 px es corto a propósito: por debajo de la barra de título el aura sigue
+     igual de fuerte que siempre y la subida no se ve. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent env(safe-area-inset-top, 0px),
+    #000 calc(env(safe-area-inset-top, 0px) + 48px)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent env(safe-area-inset-top, 0px),
+    #000 calc(env(safe-area-inset-top, 0px) + 48px)
+  );
 }
 
 /* ---------- TOP BAR ---------- */
@@ -1292,6 +1309,38 @@ body {
 
 [data-theme$='-dark'] {
   --status-bar: rgba(var(--accent-100-base), 1);
+}
+
+/* LA BARRA DE ESTADO, SÓLIDA — lo que quita la banda borrosa de iOS 26/27.
+
+   Con `black-translucent` la página se pinta por debajo del reloj. Desde iOS 26
+   el sistema rellena ese hueco con el cristal de Liquid Glass CUANDO NO
+   ENCUENTRA UN COLOR SÓLIDO en el borde de arriba, y aquí no lo encontraba: la
+   barra de título es transparente mientras no se desplaza, así que lo que había
+   bajo el reloj era contenido que se movía. iOS 27 dejó esa banda bien visible.
+
+   Esto pone un bloque opaco del alto exacto de la barra de estado. Del color de
+   `--status-bar`, que es el del borde de arriba de la página, así que no se ve
+   como una pieza aparte: se lee como que la app llega hasta el reloj. Y como el
+   color sale del tema, sigue al modo claro/oscuro solo — que es justo lo que se
+   perdía al poner la barra opaca con `default`.
+
+   Va por debajo de la barra de título (1199, `zIndex.drawer - 1` en
+   `layouts/navbar`) para que al desplazar el cristal pase por encima como
+   siempre, y por encima del contenido, que es lo que no debe verse ahí.
+
+   En un aparato sin barra de estado bajo la página —un ordenador, o iOS con la
+   barra opaca— `env(safe-area-inset-top)` vale 0 y esto no pinta nada. */
+.screen::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background-color: var(--status-bar);
+  z-index: 1198;
+  pointer-events: none;
 }
 
 /* Hueco para la barra de acciones flotante. Lo publica `layouts/bottom_menu`

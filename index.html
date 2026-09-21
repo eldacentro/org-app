@@ -202,27 +202,28 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <!--
-    LA BARRA DE ESTADO, OPACA. No es un gusto: es lo único que quita la banda
-    borrosa que iOS 26 empezó a pintar arriba y que iOS 27 dejó bien visible.
+    "black-translucent" SE QUEDA. NO LO CAMBIES A "default".
 
-    Con "black-translucent" la página se pinta DEBAJO del reloj, y desde iOS 26
-    el sistema rellena ese hueco con el efecto de cristal de Liquid Glass
-    siempre que no encuentra un color sólido en el borde de arriba —y aquí no lo
-    encuentra, porque la barra de título es transparente mientras no se
-    desplaza—. No hay forma de desactivarlo: ni una propiedad de CSS, ni una
-    etiqueta, y `env(safe-area-inset-top)` tampoco crece para poder taparlo.
-    Apple no lo documenta en las notas de Safari 27.
+    Lo cambié a "default" el 2026-09-20 para matar la banda borrosa de iOS 26/27
+    y fue un error que costó una reinstalación: en iOS los tres valores de esta
+    etiqueta son fijos y NINGUNO sigue al tema de la app. Con "default" la barra
+    se queda CLARA siempre, así que en tema oscuro quedaba una franja blanca
+    arriba que no había forma de teñir — `theme-color` no la toca.
 
-    Sin "black-translucent" la vista web empieza DEBAJO de una barra de estado
-    opaca: no queda hueco que rellenar y no hay banda. El color de esa barra lo
-    pone `theme-color`, que la app mantiene al día con el tema elegido (ver
-    `main.tsx` y `useThemeSwitcher`). A cambio se pierde el pintar por debajo
-    del reloj, que esta app no aprovechaba: su contenido ya empezaba más abajo.
+    Con "black-translucent" la página se pinta por debajo del reloj, y entonces
+    el color de la barra es sencillamente el de la página: sigue al tema solo y
+    no hay costura. Eso es lo que esta app quiere.
 
-    `viewport-fit=cover` se queda: sigue haciendo falta abajo (la barra de
-    inicio) y a los lados en horizontal.
+    LA BANDA BORROSA se ataca por otro sitio: desde iOS 26 el sistema rellena el
+    hueco del reloj con el cristal de Liquid Glass cuando no encuentra un color
+    sólido en el borde de arriba, y aquí no lo encontraba porque la barra de
+    título es transparente mientras no se desplaza. Ahora sí lo hay: ver
+    LA BARRA DE ESTADO, SÓLIDA en `global/index.css`.
+
+    `viewport-fit=cover` es imprescindible con esto: es lo que hace que
+    `env(safe-area-inset-top)` valga lo que mide la barra de estado.
   -->
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Elda Centro</title>
   <meta name="description" content="App de gestión para la congregación Elda Centro" />
   <meta property="og:title" content="Elda Centro" />
