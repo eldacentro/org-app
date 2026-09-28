@@ -7,7 +7,6 @@ import { atom } from 'jotai';
 import { appLangState } from './app';
 import { settingSchema } from '@services/dexie/schema';
 import { buildPersonFullname } from '@utils/common';
-import { currentServiceYear } from '@utils/date';
 import {
   FirstDayWeekOption,
   FullnameOption,
@@ -329,20 +328,20 @@ export const congCountryState = atom((get) => {
   return settings.cong_settings.country_code;
 });
 
-export const congSpecialMonthsState = atom((get) => {
-  const settings = get(settingsState);
-
-  const result = settings.cong_settings.special_months.filter((record) => {
-    if (record._deleted) return false;
-
-    const currentYear = currentServiceYear();
-    const previousYear = String(+currentYear - 1);
-
-    return record.year >= previousYear;
-  });
-
-  return result.sort((a, b) => a.year.localeCompare(b.year));
-});
+/*
+ * AQUÍ HABÍA `congSpecialMonthsState`, los «meses de 15 horas» de la
+ * congregación. Se ha quitado a propósito (2026-09-28).
+ *
+ * Lo leían la meta de horas del mes y la gráfica del año como si dijera cuántas
+ * horas le tocan a cada uno, y no lo dice: dice qué meses PERMITEN las 15, no
+ * quién las pidió. Con eso, a un precursor auxiliar continuo —que siempre es de
+ * 30— le salían 15 en el informe. La meta sale ahora de la inscripción de la
+ * persona (`apEnrollmentHours`, en `services/app/ap_enrollment`).
+ *
+ * Quien necesite los meses para OFRECER la opción de 15 en la solicitud, que
+ * use `mesesDe15Horas(settings.cong_settings.special_months)`, que es para lo
+ * único que sirven.
+ */
 
 export const congDataSyncState = atom((get) => {
   const settings = get(settingsState);

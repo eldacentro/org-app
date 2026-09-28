@@ -175,6 +175,17 @@ describe('las horas del mes de un precursor auxiliar', () => {
       expect(apEnrollmentHours(p, '2026/10')).toBe(30);
     });
 
+    // El mes puede estar aprobado para 15 y el hermano haber pedido 30: manda
+    // lo que pidió. Aquí ni siquiera se consulta la configuración de la
+    // congregación, que es justo lo que arregla el fallo.
+    it('quien pide 30 en un mes de 15 se queda con 30', () => {
+      const p = persona([
+        inscripcion('e1', '2026/10/01', '2026/10/31', { hours: 30 }),
+      ]);
+
+      expect(apEnrollmentHours(p, '2026/10')).toBe(30);
+    });
+
     it('el precursorado auxiliar CONTINUO es siempre de 30', () => {
       const p = persona([
         inscripcion('e1', '2026/09/01', null as unknown as string),
