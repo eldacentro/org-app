@@ -16,6 +16,7 @@ import {
   refreshApplications,
 } from '@services/app/ap_applications_sync';
 import {
+  horasDeLaSolicitud,
   mesesDeLaSolicitud,
   otraAprobadaCubre,
 } from '@services/app/ap_applications';
@@ -171,7 +172,11 @@ const useApplicationReassign = () => {
         );
 
         if (nueva) {
-          const conInscripcion = addAPEnrollments(nueva, periods);
+          const conInscripcion = addAPEnrollments(
+            nueva,
+            periods,
+            horasDeLaSolicitud(application)
+          );
 
           if (conInscripcion !== nueva) await dbPersonsSave(conInscripcion);
         }

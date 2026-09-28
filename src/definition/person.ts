@@ -1,4 +1,5 @@
 import { AssignmentCode } from './assignment';
+import { APHours } from './ministry';
 
 export const ALL_PRIVILEGE_TYPES = ['elder', 'ms'] as const;
 export type PrivilegeType = (typeof ALL_PRIVILEGE_TYPES)[number];
@@ -53,6 +54,22 @@ type EnrollmentHistoryType = {
   enrollment: EnrollmentType;
   start_date: string;
   end_date: string;
+  /**
+   * Las horas del mes, SOLO en una inscripción de precursor auxiliar ('AP')
+   * nacida de una solicitud: 15 si el hermano pidió y le aprobaron las 15, y
+   * nada en cualquier otro caso.
+   *
+   * Vive aquí y no se deduce de los «meses de 15 horas» de la congregación
+   * porque esa configuración dice qué meses LO PERMITEN, no quién lo pidió.
+   * Leyéndola como si fuera la meta, a un precursor auxiliar continuo —que
+   * siempre es de 30— le salían 15 en el informe. La meta es de la persona, y
+   * la inscripción es lo único de la persona que está en el dispositivo:
+   * las solicitudes viven en el servidor y un publicador normal ni las recibe.
+   *
+   * Sin valor = 30. Nunca se escribe un 30 explícito: así una inscripción
+   * puesta a mano, o de antes de que existiera el campo, se lee igual.
+   */
+  hours?: APHours;
 };
 
 export const ALL_DEPARTMENT_TYPES = [

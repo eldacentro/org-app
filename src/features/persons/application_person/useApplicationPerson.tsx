@@ -132,7 +132,16 @@ const useApplicationPerson = () => {
     // llegaba a apilar una inscripción 'AP' repetida por cada pulsación.
     // `addAPEnrollments` devuelve la MISMA ficha si no hay nada que añadir, y
     // es la misma cuenta que usa el cambio de persona (`handleReassign`).
-    const person = addAPEnrollments(findPerson, periods);
+    // Las horas van A LA INSCRIPCIÓN, no solo a la solicitud: la meta del mes
+    // que enseña el informe sale de ahí, y las solicitudes ni siquiera están en
+    // el dispositivo del publicador. `addAPEnrollments` también corrige las
+    // horas de una inscripción que ya estaba, para que cambiar 15↔30 después de
+    // aprobar llegue hasta el informe.
+    const person = addAPEnrollments(
+      findPerson,
+      periods,
+      horasDeLaSolicitud(application)
+    );
 
     if (person === findPerson) return;
 
@@ -285,7 +294,22 @@ const useApplicationPerson = () => {
 
       const updates = await apiCongregationSaveApplication(local);
 
-      setApplications(handleDecryptApplications(updates, latestData.code));
+      const newApplications = handleDecryptApplications(
+        updates,
+        latestData.code
+      );
+
+      setApplications(newApplications);
+
+      // Si ya estaba aprobada, la inscripción tiene que enterarse del cambio:
+      // es de donde el informe saca la meta del mes.
+      const newApplication = newApplications.find(
+        (record) => record.request_id === application.request_id
+      );
+
+      if (newApplication?.status === 'approved') {
+        await handlePersonUpdate(newApplication);
+      }
 
       displaySnackNotification({
         header: t('tr_done', 'Hecho'),

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation } from '@hooks/index';
 import { APRecordType } from '@definition/ministry';
@@ -11,6 +11,12 @@ import {
 } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { personIsEnrollmentActive } from '@services/app/persons';
+import {
+  buildAPEnrollmentPeriods,
+  setAPEnrollmentHours,
+} from '@services/app/ap_enrollment';
+import { horasDeLaSolicitud } from '@services/app/ap_applications';
+import { dbPersonsSave } from '@services/dexie/persons';
 import { buildPersonFullname } from '@utils/common';
 import { formatDate } from '@utils/date';
 import ListItems from './list_items';
@@ -111,6 +117,55 @@ const useApplications = () => {
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [persons_active, search, fullnameOption]);
+
+  /**
+   * Repaso de lo ya aprobado: que las inscripciones lleven las horas.
+   *
+   * Las horas empezaron guardándose solo en la solicitud, y la meta del mes se
+   * sacaba de los «meses de 15 horas» de la congregación. Ahora sale de la
+   * inscripción, así que lo aprobado ANTES de este cambio se quedaría sin ellas
+   * y quien pidió 15 vería 30. Esto lo rellena solo la primera vez que el
+   * comité abre esta pantalla, que es quien tiene las solicitudes: en el
+   * dispositivo de un publicador normal no están.
+   *
+   * Solo CORRIGE lo que ya existe (`setAPEnrollmentHours`), nunca crea una
+   * inscripción: una que se quitara a mano no puede volver por abrir una
+   * pantalla. Y solo guarda a quien de verdad cambia, así que en cuanto está
+   * todo al día no escribe nada y no despierta a la sincronización.
+   */
+  useEffect(() => {
+    let cancelado = false;
+
+    const repasar = async () => {
+      for (const application of applications_approved) {
+        if (cancelado) return;
+
+        const person = persons.find(
+          (record) => record.person_uid === application.person_uid
+        );
+
+        if (!person) continue;
+
+        const periods = buildAPEnrollmentPeriods(application.months);
+
+        if (periods.length === 0) continue;
+
+        const actualizada = setAPEnrollmentHours(
+          person,
+          periods,
+          horasDeLaSolicitud(application)
+        );
+
+        if (actualizada !== person) await dbPersonsSave(actualizada);
+      }
+    };
+
+    repasar().catch((error) => console.error(error));
+
+    return () => {
+      cancelado = true;
+    };
+  }, [applications_approved, persons]);
 
   // En "Este mes" no se cuentan solicitudes sino personas sirviendo, así que
   // el rótulo cambia con la pestaña — si no, decía "Solicitudes: 2" encima de

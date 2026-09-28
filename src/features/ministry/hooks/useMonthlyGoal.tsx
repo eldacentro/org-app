@@ -1,14 +1,19 @@
 import { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
-import { congSpecialMonthsState } from '@states/settings';
 import { personIsEnrollmentActive } from '@services/app/persons';
+import { apEnrollmentHours } from '@services/app/ap_enrollment';
 import { PersonType } from '@definition/person';
-import { SpecialMonthType } from '@definition/settings';
 
 /**
- * Meta de horas mensual de precursor (auxiliar o regular) para un mes
- * concreto — 30h (o 15h en un mes especial designado por la congregación)
- * para AP, 50h para FR. `undefined` si la persona no es precursora ese mes.
+ * Meta de horas mensual de precursor (auxiliar o regular) para un mes concreto
+ * — 50 h el regular, y el auxiliar 30, o 15 solo si pidió las 15 y se las
+ * aprobaron ese mes. `undefined` si la persona no es precursora ese mes.
+ *
+ * ESTO SALÍA MAL (2026-09-28). La meta se sacaba de los «meses de 15 horas» de
+ * la congregación: si el mes estaba marcado, 15 para TODO el que fuera
+ * precursor auxiliar. Pero esa configuración dice qué meses lo permiten, no
+ * quién lo pidió — así que a un precursor auxiliar continuo, que siempre es de
+ * 30, le aparecían 15 en el informe. Ahora la meta sale de la inscripción de la
+ * persona, que es donde la aprobación deja lo que de verdad se le aprobó.
  *
  * Función pura (sin hooks) para que se pueda llamar en bucle por mes, p. ej.
  * desde `yearly_chart/useYearlyChart.tsx`, sin duplicar esta regla de
@@ -16,8 +21,7 @@ import { SpecialMonthType } from '@definition/settings';
  */
 export const computeMonthlyGoal = (
   person: PersonType | undefined,
-  month: string,
-  specialMonths: SpecialMonthType[]
+  month: string
 ) => {
   if (!person) return undefined;
 
@@ -27,10 +31,7 @@ export const computeMonthlyGoal = (
   const isFR = personIsEnrollmentActive(person, 'FR', month);
 
   if (isAP) {
-    const isSpecial = specialMonths.find((record) =>
-      record.months.includes(month)
-    );
-    value = isSpecial ? 15 : 30;
+    value = apEnrollmentHours(person, month) ?? 30;
   }
 
   if (isFR) {
@@ -46,11 +47,9 @@ export const computeMonthlyGoal = (
  * meta sin duplicar esta lógica una tercera vez.
  */
 const useMonthlyGoal = (person: PersonType | undefined, month: string) => {
-  const specialMonths = useAtomValue(congSpecialMonthsState);
-
   const goal = useMemo(() => {
-    return computeMonthlyGoal(person, month, specialMonths);
-  }, [person, month, specialMonths]);
+    return computeMonthlyGoal(person, month);
+  }, [person, month]);
 
   return goal;
 };

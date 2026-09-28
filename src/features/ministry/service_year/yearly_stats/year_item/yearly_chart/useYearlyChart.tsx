@@ -7,7 +7,6 @@ import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useCurrentUser } from '@hooks/index';
 import { monthShortNamesState } from '@states/app';
-import { congSpecialMonthsState } from '@states/settings';
 import { currentMonthServiceYear } from '@utils/date';
 import useMonthlyStats from '../../../monthly_stats/useMontlyStats';
 import useMinistryYearlyRecord from '@features/ministry/hooks/useMinistryYearlyRecord';
@@ -92,7 +91,6 @@ const useYearlyChart = (year: string) => {
   const { monthsList } = useMonthlyStats();
   const { yearlyReports, yearlyCongReports } = useMinistryYearlyRecord(year);
   const monthShortNames = useAtomValue(monthShortNamesState);
-  const specialMonths = useAtomValue(congSpecialMonthsState);
 
   const months = useMemo<YearlyChartMonth[]>(() => {
     const currentMonth = currentMonthServiceYear();
@@ -110,7 +108,7 @@ const useYearlyChart = (year: string) => {
         month,
         label: monthShortNames[monthIndex],
         hours,
-        goal: computeMonthlyGoal(person, month, specialMonths),
+        goal: computeMonthlyGoal(person, month),
         isCurrent: month === currentMonth,
         isAhead: month > currentMonth,
         hasReport,
@@ -122,7 +120,6 @@ const useYearlyChart = (year: string) => {
     yearlyReports,
     monthShortNames,
     person,
-    specialMonths,
   ]);
 
   return { months };
