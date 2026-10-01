@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { TerritoryAssignedNotificationType } from '@definition/notification';
 import Button from '@components/button';
+import { IconError } from '@components/icons';
+import { displaySnackNotification } from '@services/states/app';
 
 import { useNavigate } from 'react-router';
 import {
@@ -61,7 +63,18 @@ const TerritoryAssignedNotice = ({
         notice.id
       );
     } catch (e) {
+      // Que se vea. Esto solo se anotaba en la consola, así que cuando fallaba
+      // —y falló— el hermano pulsaba el botón y no pasaba nada de nada: ni se
+      // iba el aviso ni aparecía un motivo. Mismo aviso que en el panel de
+      // inicio, que sí lo decía.
       console.error('No se pudo responder al cierre de campaña', e);
+
+      displaySnackNotification({
+        header: 'No se ha podido guardar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
     } finally {
       setRespondiendo(false);
     }

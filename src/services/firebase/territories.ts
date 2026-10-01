@@ -229,6 +229,30 @@ const deleteTerritoryFiles = async (
 };
 
 // ─── Suscripciones (onSnapshot, tiempo real) ───────────────────────────────
+/**
+ * EL `id` SALE DEL DOCUMENTO, no de lo que haya escrito dentro.
+ *
+ * Esto leía solo `d.data()`, así que cada registro se quedaba con el `id` que
+ * alguien se hubiera acordado de guardar DENTRO. Casi todos los escritores lo
+ * guardan (`saveNotice`, `saveZone`, `saveTerritory`… usan el mismo valor como
+ * id del documento), pero el aviso de «Campaña terminada» se escribía con un
+ * `crypto.randomUUID()` como id del documento y sin `id` en los campos. Ese
+ * aviso llegaba sin identificador, y entonces:
+ *
+ *  - contestar «Sí, lo trabajé» marcaba la asignación pero NO podía marcar el
+ *    aviso como leído, así que la pregunta se quedaba ahí para siempre y
+ *    parecía que el botón no hacía nada;
+ *  - `markNoticeRead` salía por el `if (!notice.id) return`, en silencio.
+ *
+ * Tomándolo del documento, los avisos que ya están guardados se arreglan solos
+ * al leerlos: no hace falta migrar nada. En todas estas colecciones el id del
+ * documento ES el id del registro, así que no puede contradecir a nada.
+ */
+export const filaConId = (d: {
+  id: string;
+  data: () => Record<string, unknown>;
+}): Record<string, unknown> => ({ ...d.data(), id: d.id });
+
 const subscribe = <T>(
   col: ReturnType<typeof collection>,
   map: (data: Record<string, unknown>) => T,
@@ -237,7 +261,7 @@ const subscribe = <T>(
 ): (() => void) =>
   onSnapshot(
     col,
-    (snap) => onUpdate(snap.docs.map((d) => map(d.data()))),
+    (snap) => onUpdate(snap.docs.map((d) => map(filaConId(d)))),
     (error) => console.error(`Error en suscripción de ${label}:`, error)
   );
 
@@ -1227,8 +1251,14 @@ export const closeCampaign = async (
     const nombre = territorio
       ? `${territorio.numero}${territorio.nombre ? ` — ${territorio.nombre}` : ''}`
       : 'tu territorio';
+    // El `id` va también DENTRO del aviso, como en `saveNotice`: el documento y
+    // sus campos tienen que decir lo mismo. Lo que de verdad arregla los avisos
+    // ya escritos es que `subscribe` lo tome del documento, pero dejar aquí un
+    // registro incompleto sería dejar la trampa puesta.
+    const avisoId = crypto.randomUUID();
     ops.push((b) =>
-      b.set(fsDoc(noticesCol(congId), crypto.randomUUID()), {
+      b.set(fsDoc(noticesCol(congId), avisoId), {
+        id: avisoId,
         personUid: a.personUid,
         title: AVISO_CAMPANA_TITULO,
         mensaje: `Ha terminado «${campaign.nombre}». ¿Llegaste a trabajar el territorio ${nombre}?`,
