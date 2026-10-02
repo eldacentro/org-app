@@ -99,6 +99,16 @@
   <link rel="stylesheet" href="notosanshebrew.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content, viewport-fit=cover" />
   <!--
+    EL ICONO DE LA PANTALLA DE INICIO. Va aquí arriba, y no junto a los demás
+    `link`, porque el script de abajo lo retoca y necesita que ya exista.
+
+    iOS lee este enlace EN EL MOMENTO en que se pulsa «Añadir a pantalla de
+    inicio», del DOM que haya entonces — no del HTML original. Por eso se puede
+    elegir: si la app está en tema oscuro, se apunta al icono oscuro antes de
+    que nadie comparta nada. Ver `syncHomeScreenIcon` en `utils/common.ts`.
+  -->
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="/img/icon/apple-touch-icon.png" />
+  <!--
     El color de la barra de estado antes de que haya CSS. Son los dos valores
     de `--status-bar` del tema azul, que es el de serie (ver el bloque
     EL COLOR DE LA BARRA DE ESTADO en `global/index.css`). En cuanto la hoja de
@@ -193,6 +203,19 @@
         for (var i = 0; i < metas.length; i++) {
           metas[i].setAttribute('content', elegido);
         }
+
+        // Y el icono de la pantalla de inicio, por lo mismo: quien comparte la
+        // página nada más abrirla no le da tiempo a React a nada.
+        var icono = document.getElementById('apple-touch-icon');
+
+        if (icono) {
+          icono.setAttribute(
+            'href',
+            tema === 'dark'
+              ? '/img/icon/apple-touch-icon-dark.png'
+              : '/img/icon/apple-touch-icon.png'
+          );
+        }
       } catch (e) {
         /* Sin almacenamiento se queda como estaba: el tema del sistema. */
       }
@@ -232,7 +255,6 @@
   <meta property="og:url" content="https://eldacentro.com" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Elda Centro" />
-  <link rel="apple-touch-icon" href="/img/icon/apple-touch-icon.png" />
   <link rel="apple-touch-startup-image"
     media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
     href="img/splashscreen/iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png" />

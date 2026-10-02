@@ -8,7 +8,7 @@ import {
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import { themeFollowOSEnabledState } from '@states/settings';
 import { escribirAlmacen } from '@utils/almacenamiento';
-import { syncStatusBarColor } from '@utils/common';
+import { syncHomeScreenIcon, syncStatusBarColor } from '@utils/common';
 
 const useThemeSwitcher = () => {
   const [appTheme, setAppThemeName] = useAtom(appThemeNameState);
@@ -26,6 +26,10 @@ const useThemeSwitcher = () => {
       document.documentElement.setAttribute('data-theme', newTheme);
 
       syncStatusBarColor();
+
+      // Y el icono que se llevaría a la pantalla de inicio: quien cambia a
+      // oscuro y acto seguido comparte la página, se lleva el oscuro.
+      syncHomeScreenIcon();
     },
     [color]
   );

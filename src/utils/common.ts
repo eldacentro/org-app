@@ -329,6 +329,39 @@ export const syncStatusBarColor = () => {
     .forEach((meta) => meta.setAttribute('content', color));
 };
 
+/**
+ * El icono de la pantalla de inicio, del tema que tenga puesto la app.
+ *
+ * ES LO ÚNICO QUE SE PUEDE HACER, y funciona porque iOS no lee el HTML que
+ * sirvió el servidor: lee el DOM **en el instante** en que se pulsa «Añadir a
+ * pantalla de inicio». Así que no hace falta que iOS admita variantes —no las
+ * admite, ver `public/img/icon/LEEME.md`—: basta con que cuando el usuario
+ * comparta la página el enlace ya esté apuntando al icono que le corresponde.
+ *
+ * Manda el tema de la APP, no el del sistema: es el que se ve en pantalla y el
+ * que el usuario reconoce como suyo.
+ *
+ * El icono queda congelado en el que hubiera al añadirlo. Cambiar de tema
+ * después no cambia el que ya está en la pantalla de inicio — para eso hay que
+ * quitarlo y volver a añadirlo, que es lo mismo que pasa al cambiar el dibujo.
+ */
+export const syncHomeScreenIcon = () => {
+  const link = document.getElementById('apple-touch-icon');
+
+  if (!link) return;
+
+  const oscuro = document.documentElement
+    .getAttribute('data-theme')
+    ?.endsWith('-dark');
+
+  link.setAttribute(
+    'href',
+    oscuro
+      ? '/img/icon/apple-touch-icon-dark.png'
+      : '/img/icon/apple-touch-icon.png'
+  );
+};
+
 export const updatedAtOverride = <T extends object>(object: T): T => {
   const objectKeys = Object.keys(object);
 

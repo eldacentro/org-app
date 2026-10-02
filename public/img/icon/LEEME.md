@@ -93,6 +93,33 @@ Lo comprobado, para no volver a investigarlo:
 Así que el trabajo de Icon Composer solo se aprovecha el día que haya una app
 nativa de verdad. Guarda el `.icon` igualmente: es la fuente.
 
+## Sí hay icono oscuro en iOS, y es cosa nuestra (2026-10-02)
+
+iOS no admite variantes (arriba), pero **tampoco hace falta que las admita**:
+el icono se captura EN EL MOMENTO de pulsar «Añadir a pantalla de inicio», y lo
+que iOS lee entonces es el **DOM**, no el HTML que sirvió el servidor. Así que
+basta con que el enlace apunte al icono bueno cuando el usuario comparte.
+
+- `index.html` trae `<link id="apple-touch-icon" …>` **antes** del script de
+  arranque, para que ese script pueda retocarlo antes de pintar nada.
+- `syncHomeScreenIcon()` (`utils/common.ts`) lo pone según `data-theme`. Se
+  llama desde `main.tsx` y desde el interruptor de tema, al lado de
+  `syncStatusBarColor()`.
+- Manda el tema de la **app**, no el del sistema: es el que se ve en pantalla.
+
+| Tema de la app | Icono |
+| --- | --- |
+| claro | `apple-touch-icon.png` |
+| oscuro | `apple-touch-icon-dark.png` |
+
+El oscuro sale de la variante **Dark** de `Icons.icon` (Icon Composer), a 180.
+Las variantes Clear y Tinted no sirven aquí: son efectos que el sistema compone
+con el fondo de pantalla, y horneadas en un PNG plano se ven apagadas.
+
+**El icono queda congelado** en el que hubiera al añadirlo. Cambiar de tema
+después no cambia el que ya está en la pantalla de inicio: hay que quitarlo y
+volver a añadirlo. Eso no es un fallo, es cómo funciona un acceso directo web.
+
 ## El icono de iOS lleva la silueta de Apple, y está bien
 
 **iOS compone sobre NEGRO lo que sea transparente** y después recorta con su

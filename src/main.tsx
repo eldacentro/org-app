@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AppRoot from './RootWrap';
-import { syncStatusBarColor } from '@utils/common';
+import { syncHomeScreenIcon, syncStatusBarColor } from '@utils/common';
 import { leerAlmacen } from '@utils/almacenamiento';
 import Sentry from '@services/sentry';
 import { LANGUAGE_LIST } from './constants';
@@ -67,6 +67,11 @@ document.documentElement.setAttribute('data-theme', newTheme);
 
 // El color de la barra de estado, del tema que se acaba de aplicar.
 syncStatusBarColor();
+
+// Y el icono de la pantalla de inicio, por si alguien comparte la página ahora
+// mismo. El script de `index.html` ya lo dejó puesto antes de pintar; esto lo
+// reafirma con el tema que React acaba de resolver, que es el que manda.
+syncHomeScreenIcon();
 
 console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
 
