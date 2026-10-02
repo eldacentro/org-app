@@ -93,36 +93,31 @@ Lo comprobado, para no volver a investigarlo:
 Así que el trabajo de Icon Composer solo se aprovecha el día que haya una app
 nativa de verdad. Guarda el `.icon` igualmente: es la fuente.
 
-## La regla que SÍ importa: el icono de iOS va a sangre y sin transparencia
+## El icono de iOS lleva la silueta de Apple, y está bien
 
-**iOS compone sobre NEGRO lo que sea transparente**, y después recorta con su
-squircle. Si el icono trae sus propias esquinas redondeadas y el hueco va
-transparente, hay que comparar los dos redondeos — y el de iOS es menos
-redondo de lo que parece:
+**iOS compone sobre NEGRO lo que sea transparente** y después recorta con su
+squircle. De ahí la duda razonable: si el icono trae sus propias esquinas
+redondeadas y el hueco va transparente, ¿asoma negro?
 
-| | Redondeo |
-| --- | --- |
-| Squircle de iOS | ~22,4 % del lado (40 px en 180) |
-| `apple-touch-icon.png` de ahora | **31,7 %** del lado (57 px en 180) |
+Aquí **no**. Comprobado comparando el perfil de transparencia de
+`apple-touch-icon.png` con el que exporta **Icon Composer**, que es la
+herramienta de Apple y dibuja la silueta oficial: **la máxima diferencia entre
+las dos es de 1 px sobre 256**. Son la misma forma. Lo que iOS recorta es
+exactamente lo que ya está transparente, así que no queda reborde.
 
-Como el del icono es MAYOR, su esquina transparente no cae entera dentro de lo
-que iOS recorta: **queda un reborde negro en las cuatro esquinas**. Son 1.708
-píxeles totalmente transparentes (y 2.264 no opacos) de 32.400. Medido sobre el
-fichero, no estimado.
+> El 2026-10-02 escribí aquí lo contrario —que el icono redondeaba el 31,7 % y
+> la máscara el 22,4 %, y que por eso salían esquinas negras—. **Estaba mal.**
+> Comparaba dos cosas distintas: el 31,7 % es dónde empieza a haber píxel opaco
+> en la primera FILA de un squircle, y el 22,4 % era un radio de esquina
+> nominal. Y la simulación que lo "confirmaba" usaba una superelipse de
+> exponente 5, más cuadrada que la forma real de Apple, así que el negro lo
+> ponía mi propia máscara. Queda escrito para que nadie lo repita.
 
-Por eso el icono de Android se ve limpio y el de iOS no: el de Android va a
-sangre (`icon-maskable.svg`, fondo hasta el borde) y el de iOS lleva su propia
-silueta recortada.
-
-**Qué exportar entonces,** venga de Icon Composer o de donde sea:
-
-- Cuadrado completo, **sin esquinas redondeadas propias** y **sin canal alfa**.
-  El redondeo lo pone iOS.
-- 180×180 para `apple-touch-icon.png`. Un 1024×1024 como maestro no sobra.
-- Opaco de verdad: lo que quede translúcido se verá negro, no blanco.
-
-Y recuerda lo de siempre: en el teléfono el icono no cambia hasta quitar la app
-de la pantalla de inicio y volver a añadirla.
+**Qué exportar entonces,** si algún día se cambia el dibujo: lo más seguro es
+exportarlo **desde Icon Composer**, que ya da la silueta correcta, a 1024 y a
+180. Si se genera por otro camino, o se respeta esa misma silueta, o se va a
+sangre y sin canal alfa y que redondee iOS — lo que no vale es inventarse un
+redondeo intermedio.
 
 ## Un aviso
 
