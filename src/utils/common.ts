@@ -1,4 +1,5 @@
 import { Children, Fragment, isValidElement, ReactNode } from 'react';
+import { leerAlmacen } from '@utils/almacenamiento';
 import { PersonType } from '@definition/person';
 import { FullnameOption } from '@definition/settings';
 import { VisitingSpeakerType } from '@definition/visiting_speakers';
@@ -354,11 +355,20 @@ export const syncHomeScreenIcon = () => {
     .getAttribute('data-theme')
     ?.endsWith('-dark');
 
+  if (!oscuro) {
+    link.setAttribute('href', '/img/icon/apple-touch-icon.png');
+    return;
+  }
+
+  // En oscuro hay dos: el libro en azul o en blanco. Lo elige cada uno en Mi
+  // perfil y se guarda en su dispositivo (`icono_oscuro`).
+  const blanco = leerAlmacen('icono_oscuro')?.replace(/"/g, '') === 'blanco';
+
   link.setAttribute(
     'href',
-    oscuro
-      ? '/img/icon/apple-touch-icon-dark.png'
-      : '/img/icon/apple-touch-icon.png'
+    blanco
+      ? '/img/icon/apple-touch-icon-dark-blanco.png'
+      : '/img/icon/apple-touch-icon-dark.png'
   );
 };
 

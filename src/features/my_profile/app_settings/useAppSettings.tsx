@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { dbAppSettingsUpdate } from '@services/dexie/settings';
 import {
   backupIntervalState,
@@ -8,6 +8,8 @@ import {
   midweekExportPersonalState,
 } from '@states/settings';
 import { useBreakpoints, useCurrentUser } from '@hooks/index';
+import { iconoOscuroState } from '@states/app';
+import { syncHomeScreenIcon } from '@utils/common';
 
 const useAppSettings = () => {
   const { laptopUp } = useBreakpoints();
@@ -15,6 +17,8 @@ const useAppSettings = () => {
   // Quién ve el interruptor de exportación a PDF: solo quien tenga algún
   // documento que exportar. Ver `canExportAnySchedule` en useCurrentUser.
   const { canExportAnySchedule, isElder } = useCurrentUser();
+
+  const [iconoOscuro, setIconoOscuro] = useAtom(iconoOscuroState);
 
   const autoBackupInterval = useAtomValue(backupIntervalState);
   const followOSTheme = useAtomValue(themeFollowOSEnabledState);
@@ -96,7 +100,20 @@ const useAppSettings = () => {
     setPdfExportPersonalEnabled(pdfExportPersonal);
   }, [pdfExportPersonal]);
 
+  /**
+   * El icono oscuro del iPhone. Al cambiarlo se reapunta el enlace del
+   * `apple-touch-icon` AHORA MISMO: quien lo elige suele hacerlo justo antes de
+   * volver a añadir la app a la pantalla de inicio, y iOS lee ese enlace en ese
+   * momento. Esperar al siguiente arranque sería llegar tarde.
+   */
+  const handleUpdateIconoOscuro = (value: 'azul' | 'blanco') => {
+    setIconoOscuro(value);
+    syncHomeScreenIcon();
+  };
+
   return {
+    iconoOscuro,
+    handleUpdateIconoOscuro,
     autoSyncInterval,
     handleUpdateSyncInterval,
     laptopUp,

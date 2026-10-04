@@ -27,6 +27,8 @@ const AppSettings = () => {
     handleSwitchMidweekExport,
     isElder,
     canExportAnySchedule,
+    iconoOscuro,
+    handleUpdateIconoOscuro,
   } = useAppSettings();
 
   return (
@@ -129,6 +131,54 @@ const AppSettings = () => {
 
           <ColorSchemeSwitcher />
         </Box>
+
+        {/* El icono del iPhone en tema oscuro.
+            Va aquí, al lado del esquema de color, porque es lo mismo: cómo se
+            ve la app. Y es un ajuste de ESTE dispositivo —como el tema—, no de
+            la cuenta: el icono de la pantalla de inicio es de cada teléfono. */}
+        <SwitcherContainer>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: laptopUp ? 'center' : 'flex-start',
+              gap: '16px',
+              justifyContent: 'space-between',
+              flexGrow: 1,
+              flexDirection: laptopUp ? 'row' : 'column',
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Typography>Icono en tema oscuro</Typography>
+              <Typography
+                className="label-small-regular"
+                color="var(--grey-350)"
+              >
+                El de la pantalla de inicio del iPhone. Se aplica al volver a
+                añadir la app desde Safari: el icono que ya está puesto no
+                cambia solo.
+              </Typography>
+            </Box>
+            <Select
+              label="Icono"
+              value={iconoOscuro}
+              onChange={(e) =>
+                handleUpdateIconoOscuro(e.target.value as 'azul' | 'blanco')
+              }
+              sx={{ maxWidth: '200px' }}
+            >
+              <MenuItem value="azul">
+                <Typography className="body-regular" color="var(--black)">
+                  Libro azul
+                </Typography>
+              </MenuItem>
+              <MenuItem value="blanco">
+                <Typography className="body-regular" color="var(--black)">
+                  Libro blanco
+                </Typography>
+              </MenuItem>
+            </Select>
+          </Box>
+        </SwitcherContainer>
       </SettingWithBorderContainer>
     </ProfileItemContainer>
   );

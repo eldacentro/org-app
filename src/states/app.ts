@@ -52,6 +52,19 @@ export const isLoginOpenState = atom(false);
 
 export const appLangState = atom(localStorageGetItem('ui_lang'));
 
+/**
+ * Qué icono oscuro se lleva a la pantalla de inicio del iPhone: el libro en
+ * azul (el de siempre) o en blanco.
+ *
+ * Se guarda en el DISPOSITIVO, como el tema y el esquema de color, y no en los
+ * ajustes sincronizados: el icono de la pantalla de inicio es de cada teléfono,
+ * y no tiene sentido que elegirlo aquí le cambie el icono al de otro.
+ */
+export const iconoOscuroState = atomWithStorage<'azul' | 'blanco'>(
+  'icono_oscuro',
+  'azul'
+);
+
 export const appFontState = atomWithStorage('font', 'Figtree');
 
 export const appThemeState = atom((get) => {

@@ -120,6 +120,29 @@ con el fondo de pantalla, y horneadas en un PNG plano se ven apagadas.
 después no cambia el que ya está en la pantalla de inicio: hay que quitarlo y
 volver a añadirlo. Eso no es un fallo, es cómo funciona un acceso directo web.
 
+## Los tres iconos de iOS, y quién elige cuál
+
+| Fichero | Cuándo |
+| --- | --- |
+| `apple-touch-icon.png` | tema claro |
+| `apple-touch-icon-dark.png` | tema oscuro, libro azul (por defecto) |
+| `apple-touch-icon-dark-blanco.png` | tema oscuro, libro blanco |
+
+El de blanco NO se volvió a exportar de Icon Composer: se recoloreó el propio
+export oscuro (`scratchpad/libro_blanco.py` el día que se hizo). Así se conserva
+tal cual lo de Apple —fondo, degradado, sombra y la silueta oficial— y solo
+cambia el color del libro. El peso de cada píxel es continuo, no un umbral, para
+que el borde antialiasado no quede dentado.
+
+La elección vive en `localStorage['icono_oscuro']` (`'azul'` | `'blanco'`), es
+de CADA DISPOSITIVO —como el tema— y se cambia en Mi cuenta → Ajustes de la
+aplicación. La leen `syncHomeScreenIcon()` y el script de arranque de
+`index.html`, igual que el tema.
+
+Al cambiarla se reapunta el enlace en el acto, porque quien la toca suele estar
+a punto de volver a añadir la app a la pantalla de inicio, y es justo entonces
+cuando iOS lee ese enlace.
+
 ## El icono de iOS lleva la silueta de Apple, y está bien
 
 **iOS compone sobre NEGRO lo que sea transparente** y después recorta con su

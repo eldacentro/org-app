@@ -209,10 +209,16 @@
         var icono = document.getElementById('apple-touch-icon');
 
         if (icono) {
+          // En oscuro hay dos, el libro en azul o en blanco, y lo elige cada
+          // uno en Mi perfil. Se guarda en el dispositivo, como el tema.
+          var blanco = (leer('icono_oscuro') || '').replace(/"/g, '') === 'blanco';
+
           icono.setAttribute(
             'href',
             tema === 'dark'
-              ? '/img/icon/apple-touch-icon-dark.png'
+              ? blanco
+                ? '/img/icon/apple-touch-icon-dark-blanco.png'
+                : '/img/icon/apple-touch-icon-dark.png'
               : '/img/icon/apple-touch-icon.png'
           );
         }
