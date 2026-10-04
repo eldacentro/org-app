@@ -17,12 +17,14 @@ import {
 } from '@icons/index';
 import { useDocumentos } from '@features/documentos/useDocumentos';
 import { unseenDocumentosCountState } from '@states/documentos';
+import { esAncianoState } from '@states/settings';
 
 const CongregationDashboard = () => {
   const { t } = useAppTranslation();
   const navigate = useNavigate();
 
   const { isElder, isPersonViewer } = useCurrentUser();
+  const esAnciano = useAtomValue(esAncianoState);
 
   useDocumentos(); // Para cargar los documentos en el estado
   const unseenCount = useAtomValue(unseenDocumentosCountState);
@@ -170,6 +172,35 @@ const CongregationDashboard = () => {
             <path d="M9 6l6 6-6 6" />
           </svg>
         </button>
+
+        {/* Asuntos del cuerpo de ancianos — ANCIANO DE VERDAD, no `isElder`,
+            que incluye a los administradores. Lo pidió el cuerpo de ancianos y
+            esta tarjeta no le puede salir a nadie más; la puerta de verdad la
+            guarda el servidor, que no manda esa tabla a quien no lo es. */}
+        {esAnciano && (
+          <button
+            type="button"
+            className="tile-item c-blue active-press full-width"
+            onClick={() => handleTileClick('/congregation/asuntos-ancianos')}
+          >
+            <div className="ti">
+              <IconInformationBoard color="var(--brand)" width={22} height={22} />
+            </div>
+            <div className="tile-body">
+              <div className="tile-name">Asuntos del cuerpo de ancianos</div>
+            </div>
+            <svg
+              className="chev-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        )}
 
         {/* Visita del Superintendente de Circuito — SOLO ancianos, y siempre:
             es la herramienta de quien la organiza, y se organiza con mucha

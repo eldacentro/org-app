@@ -305,6 +305,34 @@ export const TABLE_ENCRYPTION_MAP = {
     publishedMonths: 'shared',
     publishedMonthsAt: 'shared',
   },
+  /*
+    EL TABLÓN DEL CUERPO DE ANCIANOS.
+
+    `id`, `updatedAt` y `_deleted` van EN CLARO a propósito: son lo único que el
+    servidor necesita para fusionar asunto por asunto —cuál es cuál, cuál es más
+    nuevo y cuál está borrado— y lo que no puede leer no lo puede comparar (ver
+    la memoria de fusión por registro: comparar fechas cifradas con sal
+    aleatoria es echarlo a suertes).
+
+    Todo lo demás va con la LLAVE MAESTRA, no con el código de acceso: así una
+    cuenta de publicador no puede leerlo ni aunque el fichero le llegara por
+    error, porque esa llave no la tiene. Quien de verdad decide quién lo recibe
+    es el servidor, que solo se lo manda a los ancianos.
+  */
+  asuntos_ancianos: {
+    id: 'public',
+    updatedAt: 'public',
+    _deleted: 'public',
+    titulo: 'private',
+    detalle: 'private',
+    propuestoPor: 'private',
+    propuestoEl: 'private',
+    asignadoA: 'private',
+    tratadoEl: 'private',
+    tratadoPor: 'private',
+    acuerdo: 'private',
+    urgente: 'private',
+  },
   responsabilidades: {
     cuerpoAncianos: 'shared',
     cargosAncianos: 'shared',

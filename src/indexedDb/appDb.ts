@@ -83,6 +83,10 @@ import {
   responsabilidadesSchema,
 } from './tables/responsabilidades';
 import {
+  AsuntosAncianosTable,
+  asuntosAncianosSchema,
+} from './tables/asuntos_ancianos';
+import {
   PendingPushTable,
   pendingPushSchema,
 } from './tables/pending_push';
@@ -131,6 +135,7 @@ type DexieTables = PersonsTable &
   ServiceOutingTable &
   ExhibitorTable &
   ResponsabilidadesTable &
+  AsuntosAncianosTable &
   PendingPushTable &
   DocumentosTable &
   LimpiezaTable &
@@ -440,6 +445,31 @@ appDb.version(24).stores({
   ...publicTalkOverrideSchema,
   ...circuitVisitSchema,
   ...songOverrideSchema,
+});
+
+// v25: el tablón del cuerpo de ancianos (`asuntos_ancianos`). Un registro por
+// asunto, para que dos ancianos puedan apuntar a la vez sin pisarse.
+appDb.version(25).stores({
+  ...schema,
+  ...metadataSchema,
+  ...delegatedFieldServiceReportsSchema,
+  ...weekTypeSchema,
+  ...publicTalkSchema,
+  ...songSchema,
+  ...upcomingEventsSchema,
+  ...departmentsScheduleSchema,
+  ...serviceOutingsSchema,
+  ...exhibitorsSchema,
+  ...responsabilidadesSchema,
+  ...pendingPushSchema,
+  ...documentosSchema,
+  ...limpiezaSchema,
+  ...territoriesSchema,
+  ...evacuacionConfigSchema,
+  ...publicTalkOverrideSchema,
+  ...circuitVisitSchema,
+  ...songOverrideSchema,
+  ...asuntosAncianosSchema,
 });
 
 appDb.on('populate', function () {

@@ -33,6 +33,7 @@ import { mergeOutgoingTalks } from './outgoingTalksMerge';
 import { ExhibitorWeekType } from '@definition/exhibitors';
 import { CircuitVisitType } from '@definition/circuit_visit';
 import { ResponsabilidadesType } from '@definition/responsabilidades';
+import { AsuntoAncianosType } from '@definition/asuntos_ancianos';
 import { LimpiezaConfig } from '@definition/limpieza';
 import { PlanEvacuacion } from '@definition/evacuacion';
 import { PublicTalkOverrideType } from '@definition/public_talks';
@@ -281,6 +282,7 @@ const dbGetTableData = async () => {
     const territory_settings = await appDb.territory_settings.toArray();
     const circuit_overseer_visits =
       await appDb.circuit_overseer_visits.toArray();
+    const asuntos_ancianos = await appDb.asuntos_ancianos.toArray();
 
     const congId = speakers_congregations.find(
       (record) =>
@@ -329,6 +331,7 @@ const dbGetTableData = async () => {
       service_outings,
       exhibitors,
       responsabilidades,
+      asuntos_ancianos,
       sources,
       meeting_attendance,
       metadata,
@@ -1890,6 +1893,64 @@ const dbRestoreCircuitVisits = async (
   }
 };
 
+/**
+ * El tablón del cuerpo de ancianos, al bajar.
+ *
+ * Fusión por REGISTRO con lo más nuevo ganando entero, igual que las visitas
+ * del superintendente: cada asunto lleva su `updatedAt` hermano de sus datos, y
+ * `syncFromRemote` solo sabe proteger cargas anidadas con fecha propia — aquí
+ * pisaría la edición local recién hecha.
+ *
+ * Sin llave maestra no se toca NADA. Pasa en una cuenta de publicador: el
+ * servidor no le manda esta tabla, pero si por lo que fuera le llegara, sin la
+ * llave el contenido se queda cifrado y guardarlo sería meter basura en su base
+ * de datos y, peor, re-subirla.
+ */
+const dbRestoreAsuntosAncianos = async (
+  backupData: BackupDataType,
+  accessCode: string,
+  masterKey?: string
+) => {
+  try {
+    if (!backupData.asuntos_ancianos) return;
+
+    if (!masterKey) return;
+
+    const remotos = (
+      backupData.asuntos_ancianos as AsuntoAncianosType[]
+    ).map((data) => {
+      decryptObject({
+        data,
+        table: 'asuntos_ancianos',
+        accessCode,
+        masterKey,
+      });
+
+      return data;
+    });
+
+    const locales = await appDb.asuntos_ancianos.toArray();
+
+    const aGuardar = remotos.filter((remoto) => {
+      const local = locales.find((record) => record.id === remoto.id);
+
+      if (!local) return true;
+
+      // Lo más nuevo gana entero. Y si no cambia nada, no se escribe: un `put`
+      // idéntico despierta a `useLiveQuery` y redibuja el tablón entero.
+      if ((local.updatedAt ?? '') >= (remoto.updatedAt ?? '')) return false;
+
+      return !isSameRecord(local, remoto);
+    });
+
+    if (aGuardar.length > 0) {
+      await appDb.asuntos_ancianos.bulkPut(aGuardar);
+    }
+  } catch (error) {
+    throw new Error(`asuntos_ancianos: ${error.message}`);
+  }
+};
+
 const dbInsertMetadata = async (metadata: Record<string, string>) => {
   const oldMetadata = await appDb.metadata.get(1);
 
@@ -2637,6 +2698,10 @@ const dbRestoreFromBackup = async (
         dbRestoreCircuitVisits(backupData, accessCode)
       );
 
+      await safe('asuntos_ancianos', () =>
+        dbRestoreAsuntosAncianos(backupData, accessCode, masterKey)
+      );
+
       await safe('user_bible_studies', () =>
         dbRestoreUserStudies(backupData, accessCode)
       );
@@ -2999,6 +3064,7 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
       service_outings,
       exhibitors,
       responsabilidades,
+      asuntos_ancianos,
       limpieza_config,
       evacuacion_config,
       public_talks_override,
@@ -3582,6 +3648,34 @@ export const dbExportDataBackup = async (backupData: BackupDataType) => {
 
             obj.responsabilidades = toBackup;
           }
+        }
+
+        /*
+          EL TABLÓN DEL CUERPO DE ANCIANOS.
+
+          `elderRole` a secas, SIN `adminRole`: es la única tabla de la app que
+          un administrador no sube ni baja por ser administrador. Lo pidió el
+          cuerpo de ancianos y aquí es donde se cumple de verdad; la interfaz
+          solo esconde el enlace. El servidor hace lo mismo por su lado, que es
+          lo que impide que llegue a quien no toca.
+
+          Se suben TODOS los asuntos, lápidas incluidas: un borrado que no viaje
+          se queda en el móvil de quien lo hizo y el asunto reaparece en los
+          demás al siguiente ciclo.
+        */
+        if (elderRole && metadata.metadata.asuntos_ancianos?.send_local) {
+          obj.asuntos_ancianos = asuntos_ancianos.map((record) => {
+            const toBackup = structuredClone(record);
+
+            encryptObject({
+              data: toBackup,
+              table: 'asuntos_ancianos',
+              accessCode,
+              masterKey,
+            });
+
+            return toBackup;
+          });
         }
 
         // include limpieza_config data

@@ -819,6 +819,26 @@ export const publishersSortState = atom((get) => {
   );
 });
 
+/**
+ * ANCIANO DE VERDAD, no «anciano a efectos de permisos».
+ *
+ * `isElderState` (aquí abajo) devuelve `true` para cualquier administrador, que
+ * es lo correcto en casi toda la app: quien administra necesita ver lo que ven
+ * los ancianos para poder arreglarlo. En el tablón del cuerpo de ancianos NO:
+ * el cuerpo pidió un sitio suyo, y «suyo» quiere decir por nombramiento, no por
+ * permisos de la aplicación.
+ *
+ * Esto es solo la mitad visible. La otra, la que de verdad cuenta, está en el
+ * servidor: no manda ni acepta esa tabla de nadie que no sea anciano.
+ */
+export const esAncianoState = atom((get) => {
+  const accountType = get(accountTypeState);
+
+  if (accountType === 'pocket') return false;
+
+  return get(congRoleState).includes('elder');
+});
+
 export const isElderState = atom((get) => {
   const isAdmin = get(adminRoleState);
   const accountType = get(accountTypeState);

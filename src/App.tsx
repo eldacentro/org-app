@@ -20,7 +20,11 @@ import rtlPlugin from '@mui/stylis-plugin-rtl';
 import FeatureFlagsWrapper from '@wrapper/feature_flags';
 import RouteProtected from '@components/route_protected';
 import { determineAppLocale } from '@services/app';
-import { firstDayWeekState, congIDState } from '@states/settings';
+import {
+  congIDState,
+  esAncianoState,
+  firstDayWeekState,
+} from '@states/settings';
 import { LANGUAGE_LIST } from './constants';
 import { triggerAutoBackup } from '@services/app/backupScheduler';
 import { triggerRetentionPurge } from '@services/app/retention';
@@ -48,6 +52,9 @@ const Documentos = lazy(() => import('@pages/congregation/documentos'));
 const Limpieza = lazy(() => import('@pages/congregation/limpieza'));
 const Territorios = lazy(() => import('@pages/congregation/territories'));
 const CircuitVisit = lazy(() => import('@pages/congregation/circuit_visit'));
+const AsuntosAncianos = lazy(
+  () => import('@pages/congregation/asuntos_ancianos')
+);
 const Ausencias = lazy(() => import('@pages/congregation/ausencias'));
 
 const MyProfile = lazy(() => import('@pages/my_profile'));
@@ -147,6 +154,19 @@ const AppointedPublicTalkRoute = () => {
 const ElderRoute = () => {
   const { isElder } = useCurrentUser();
   return <RouteProtected allowed={isElder} />;
+};
+
+/**
+ * El tablón del cuerpo de ancianos: ANCIANO DE VERDAD, no administrador.
+ *
+ * `ElderRoute` deja pasar a cualquier administrador, que es lo correcto en
+ * todo lo demás. Aquí no: el cuerpo de ancianos pidió un sitio suyo. Esto solo
+ * esconde la página; quien de verdad guarda la puerta es el servidor, que no
+ * manda ni acepta esa tabla de quien no es anciano.
+ */
+const SoloAncianosRoute = () => {
+  const esAnciano = useAtomValue(esAncianoState);
+  return <RouteProtected allowed={esAnciano} />;
 };
 
 const PersonEditorRoute = () => {
@@ -358,6 +378,17 @@ const App = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 children: [
                   { path: '/persons', element: <PersonsAll /> },
                   { path: '/persons/:id', element: <PersonDetails /> },
+                ],
+              },
+
+              // solo quien tiene el nombramiento de anciano
+              {
+                element: <SoloAncianosRoute />,
+                children: [
+                  {
+                    path: '/congregation/asuntos-ancianos',
+                    element: <AsuntosAncianos />,
+                  },
                 ],
               },
 

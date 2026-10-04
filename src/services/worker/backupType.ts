@@ -33,6 +33,8 @@ export type BackupDataType = {
   service_outings?: object;
   exhibitors?: object;
   responsabilidades?: object;
+  /** El tablón del cuerpo de ancianos. Solo viaja si quien sincroniza lo es. */
+  asuntos_ancianos?: object;
   sources?: object;
   meeting_attendance?: object;
   upcoming_events?: UpcomingEventType[];
