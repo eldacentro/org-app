@@ -75,7 +75,7 @@ const useAsuntosAncianos = () => {
       .sort((a, b) => (b.tratadoEl ?? '').localeCompare(a.tratadoEl ?? ''));
   }, [vivos]);
 
-  /** Lo que tengo yo encima. Es el «contador» que pidió el cuerpo. */
+  /** De lo que soy responsable yo. Es el «contador» que pidió el cuerpo. */
   const mios = useMemo(
     () => pendientes.filter((asunto) => asunto.asignadoA === yo),
     [pendientes, yo]
@@ -86,7 +86,7 @@ const useAsuntosAncianos = () => {
     [pendientes]
   );
 
-  /** Para el desplegable de «encargar a»: los ancianos, por nombre. */
+  /** Para el desplegable de «responsable»: los ancianos, por nombre. */
   const opcionesAncianos = useMemo(() => {
     return ancianos
       .map((person) => ({

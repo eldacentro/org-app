@@ -189,8 +189,8 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
             color={asunto.asignadoA ? 'accent' : 'grey'}
             text={
               asunto.asignadoA
-                ? `Encargado a ${nombreDe(asunto.asignadoA)}`
-                : 'Sin encargar'
+                ? `Responsable: ${nombreDe(asunto.asignadoA)}`
+                : 'Sin responsable'
             }
           />
         )}
@@ -274,8 +274,8 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
               filled
               text={
                 mios.length === 1
-                  ? 'Tienes 1 asunto encargado'
-                  : `Tienes ${mios.length} asuntos encargados`
+                  ? 'Eres responsable de 1 asunto'
+                  : `Eres responsable de ${mios.length} asuntos`
               }
             />
           )}
@@ -285,8 +285,8 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
               color="grey"
               text={
                 sinAsignar === 1
-                  ? '1 sin encargar'
-                  : `${sinAsignar} sin encargar`
+                  ? '1 sin responsable'
+                  : `${sinAsignar} sin responsable`
               }
             />
           )}

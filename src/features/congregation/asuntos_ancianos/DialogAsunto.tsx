@@ -42,7 +42,7 @@ const DialogAsunto = ({
 }: DialogAsuntoProps) => {
   const [titulo, setTitulo] = useState('');
   const [detalle, setDetalle] = useState('');
-  const [encargado, setEncargado] = useState<Opcion | null>(null);
+  const [responsable, setResponsable] = useState<Opcion | null>(null);
   const [urgente, setUrgente] = useState(false);
 
   // Al abrir se parte de lo que haya guardado. Mientras está abierto manda lo
@@ -53,7 +53,7 @@ const DialogAsunto = ({
     setTitulo(asunto?.titulo ?? '');
     setDetalle(asunto?.detalle ?? '');
     setUrgente(asunto?.urgente ?? false);
-    setEncargado(
+    setResponsable(
       opcionesAncianos.find((record) => record.id === asunto?.asignadoA) ?? null
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,7 +74,7 @@ const DialogAsunto = ({
       </Box>
 
       <TextField
-        label="El asunto"
+        label="Asunto"
         placeholder="Por ejemplo: revisar el horario de limpieza del salón"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
@@ -82,7 +82,7 @@ const DialogAsunto = ({
       />
 
       <TextField
-        label="Detalle (opcional)"
+        label="Detalles (opcional)"
         placeholder="Lo que haga falta saber para tratarlo"
         value={detalle}
         onChange={(e) => setDetalle(e.target.value)}
@@ -92,12 +92,12 @@ const DialogAsunto = ({
 
       <AutoComplete
         fullWidth
-        label="Encargado a (opcional)"
+        label="Responsable (opcional)"
         options={opcionesAncianos}
-        value={encargado}
+        value={responsable}
         isOptionEqualToValue={(o: Opcion, v: Opcion) => o.id === v.id}
         getOptionLabel={(o: Opcion) => o.etiqueta}
-        onChange={(_, value: Opcion | null) => setEncargado(value)}
+        onChange={(_, value: Opcion | null) => setResponsable(value)}
       />
 
       <Checkbox
@@ -125,7 +125,7 @@ const DialogAsunto = ({
             onGuardar({
               titulo,
               detalle,
-              asignadoA: encargado?.id ?? '',
+              asignadoA: responsable?.id ?? '',
               urgente,
             })
           }
