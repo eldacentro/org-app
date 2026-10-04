@@ -101,7 +101,7 @@ const DialogAsunto = ({
       />
 
       <Checkbox
-        label="No puede esperar a la próxima reunión"
+        label="Urgente"
         checked={urgente}
         onChange={(e) => setUrgente(e.target.checked)}
       />

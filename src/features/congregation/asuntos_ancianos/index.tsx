@@ -180,7 +180,7 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
 
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '8px' }}>
         {asunto.urgente && !enHistorial && (
-          <Badge size="small" color="red" filled text="No puede esperar" />
+          <Badge size="small" color="red" filled text="Urgente" />
         )}
 
         {!enHistorial && (
@@ -264,12 +264,6 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Lo primero que hay que saber al abrir: esto no lo ve nadie más. */}
-      <Typography className="body-small-regular" color="var(--ink-3)">
-        Solo lo veis quienes tenéis el nombramiento de anciano. No les llega ni
-        a los administradores de la aplicación.
-      </Typography>
-
       {/* El «contador» que pedía el cuerpo: lo mío, y lo que no es de nadie. */}
       {(mios.length > 0 || sinAsignar > 0) && (
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '8px' }}>
