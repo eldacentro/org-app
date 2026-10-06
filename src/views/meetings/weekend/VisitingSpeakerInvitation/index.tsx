@@ -145,10 +145,81 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           ) : null}
         </PdfNote>
 
+        {/* Los comentarios y, si la lleva, la oración final. El «además» solo
+            aparece cuando el programa de esa semana se la ha asignado de
+            verdad: ver `closingPrayer`. */}
         <Text style={parrafo}>
-          Agradecemos de corazón tu buena disposición y esfuerzo. Si por alguna
-          causa de fuerza mayor no pudieras cumplir con esta asignación, te
-          rogamos que nos lo comuniques con la mayor antelación posible.
+          Si te es posible y así lo permiten las circunstancias, nos agradaría
+          disfrutar de tus comentarios y de los de quienes te acompañen en el
+          estudio de La Atalaya de esa semana.
+          {props.closingPrayer
+            ? ' Además, nos gustaría asignarte la oración final de la reunión.'
+            : ''}
+        </Text>
+
+        {/* La cena. Solo sale si hay a dónde contestar. */}
+        {props.dinner && (props.dinner.url || props.dinner.email) ? (
+          <PdfCard title="La cena" style={{ marginBottom: space.lg }}>
+            <Text style={{ ...text.body, lineHeight: 1.5 }}>
+              La congregación ha hecho los preparativos necesarios para que, si
+              lo deseáis, tú y quienes te acompañen podáis cenar con una familia
+              después de la reunión. Ten la amabilidad de indicarnos si os
+              quedaréis y cuántos seréis en total, al menos una semana antes de
+              tu discurso.
+            </Text>
+
+            {props.dinner.url ? (
+              <Link src={props.dinner.url}>
+                <Text
+                  style={{
+                    fontSize: size.body,
+                    fontWeight: 700,
+                    color: color.accent,
+                    marginTop: space.sm,
+                  }}
+                >
+                  Contestar aquí, en dos toques
+                </Text>
+              </Link>
+            ) : null}
+
+            {props.dinner.email ? (
+              <Link src={`mailto:${props.dinner.email}`}>
+                <Text
+                  style={{
+                    ...text.meta,
+                    color: color.accent,
+                    marginTop: props.dinner.url ? 2 : space.sm,
+                  }}
+                >
+                  {props.dinner.url ? 'O escríbenos a ' : ''}
+                  {props.dinner.email}
+                </Text>
+              </Link>
+            ) : null}
+          </PdfCard>
+        ) : null}
+
+        {/* El combustible. Con nombres, que es lo que falta cuando llega el
+            momento de pedirlo. */}
+        {props.expenses?.coordinator || props.expenses?.fallback ? (
+          <Text style={parrafo}>
+            Si lo necesitas, puedes pasar los gastos de combustible al
+            coordinador del cuerpo de ancianos
+            {props.expenses.coordinator ? `, ${props.expenses.coordinator}` : ''}
+            {props.expenses.fallback
+              ? `, y en su ausencia a quien conduce el estudio de La Atalaya, ${props.expenses.fallback}`
+              : ''}
+            .
+          </Text>
+        ) : null}
+
+        <Text style={parrafo}>
+          Agradecemos de corazón tu buena disposición y esfuerzo, y el que
+          contribuyas a que los hermanos reciban alimento espiritual bien
+          preparado. Si por alguna causa de fuerza mayor no pudieras cumplir con
+          esta asignación, te rogamos que nos lo comuniques con la mayor
+          antelación posible.
         </Text>
 
         {props.mediaEmail ? (

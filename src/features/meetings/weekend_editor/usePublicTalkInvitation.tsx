@@ -16,6 +16,9 @@ import {
 } from '@states/visiting_speakers';
 import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 import { publicTalksLocaleState } from '@states/public_talks';
+import { schedulesState } from '@states/schedules';
+import { userDataViewState } from '@states/settings';
+import { schedulesGetData } from '@services/app/schedules';
 import { useAppTranslation } from '@hooks/index';
 import React from 'react';
 import VisitingSpeakerInvitation from '@views/meetings/weekend/VisitingSpeakerInvitation';
@@ -44,6 +47,14 @@ const usePublicTalkInvitation = (
   const talksData = useAtomValue(publicTalksLocaleState);
   const speakersEmail = useAtomValue(publicTalkSpeakersEmailState);
   const speakersCongregations = useAtomValue(speakersCongregationsActiveState);
+  const schedules = useAtomValue(schedulesState);
+  const dataView = useAtomValue(userDataViewState);
+
+  /** El programa de esa semana, de donde salen la oración final y La Atalaya. */
+  const schedule = useMemo(
+    () => schedules.find((record) => record.weekOf === weekOf),
+    [schedules, weekOf]
+  );
 
   // Speaker Info
   const speakerInfo = useMemo(() => {
@@ -164,6 +175,40 @@ const usePublicTalkInvitation = (
     return assistantsUids.map((uid) => resolveCoordinatorInfo(uid));
   }, [assistantsUids, resolveCoordinatorInfo]);
 
+  /**
+   * ¿Lleva además la oración final?
+   *
+   * Se mira el PROGRAMA, no se da por hecho: la carta solo lo dice cuando de
+   * verdad se le ha asignado. Si se diera por supuesto, el orador llegaría
+   * preparado para una oración que no le toca — o al revés, que es peor.
+   */
+  const closingPrayer = useMemo(() => {
+    if (!schedule || !speakerUid) return false;
+
+    const asignacion = schedulesGetData(
+      schedule,
+      'weekend_meeting.closing_prayer',
+      dataView
+    ) as { value?: string } | undefined;
+
+    return asignacion?.value === speakerUid;
+  }, [schedule, speakerUid, dataView]);
+
+  /** Quien conduce el estudio de La Atalaya esa semana. */
+  const wtConductorName = useMemo(() => {
+    if (!schedule) return '';
+
+    const asignacion = schedulesGetData(
+      schedule,
+      'weekend_meeting.wt_study.conductor',
+      dataView
+    ) as { value?: string } | undefined;
+
+    if (!asignacion?.value) return '';
+
+    return resolveCoordinatorInfo(asignacion.value).name;
+  }, [schedule, dataView, resolveCoordinatorInfo]);
+
   const handleGenerate = async () => {
     if (!speakerName) return;
 
@@ -186,6 +231,18 @@ const usePublicTalkInvitation = (
           congCoordinatorInfo.email ||
           ''
         }
+        closingPrayer={closingPrayer}
+        dinner={{
+          email:
+            speakersEmail ||
+            ptcCoordinatorInfo.email ||
+            congCoordinatorInfo.email ||
+            '',
+        }}
+        expenses={{
+          coordinator: congCoordinatorInfo.name,
+          fallback: wtConductorName,
+        }}
       />
     );
 
