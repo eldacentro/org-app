@@ -25,9 +25,20 @@
  * Los trozos, y por qué cada uno:
  *   · `any-pointer: coarse`  — se maneja con el dedo. Deja fuera cualquier
  *                              ventana de escritorio.
- *   · pose 1: `portrait`, `max-width: 599px` (compacto) y
- *             `min-aspect-ratio: 5/8` (0,625: más ancho respecto a su alto
- *             que cualquier iPhone, y más estrecho que el Duo).
+ *   · pose 1: `portrait`, `max-width: 599px` (compacto),
+ *             `min-height: 600px` y `min-aspect-ratio: 5/8` (0,625: más ancho
+ *             respecto a su alto que cualquier iPhone, y más estrecho que el
+ *             Duo).
+ *
+ *             EL `min-height` NO ES DECORATIVO. Sin él, bastaba con ABRIR EL
+ *             TECLADO en un móvil normal para que esto se cumpliera: el
+ *             `viewport` lleva `interactive-widget=resizes-content`, así que al
+ *             salir el teclado la pantalla se queda corta —un iPhone de 390x844
+ *             pasa a 390x400— y de golpe es «corta y ancha». La app se creía un
+ *             Duo plegado y se llevaba los controles al lado derecho mientras se
+ *             escribía. El Duo cerrado mide 678 de alto, así que 600 lo deja
+ *             pasar a él y deja fuera a cualquier teléfono con el teclado
+ *             abierto.
  *   · pose 2: `landscape`, `min-width: 800px`, y alto entre 560 y 700: por
  *             encima de un teléfono girado, por debajo de cualquier iPad.
  *
@@ -35,4 +46,4 @@
  * la otra. No se puede importar desde CSS, así que se deja dicho aquí.
  */
 export const CARRIL_LATERAL_QUERY =
-  '(any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8), (any-pointer: coarse) and (orientation: landscape) and (min-width: 800px) and (min-height: 560px) and (max-height: 700px)';
+  '(any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-height: 600px) and (min-aspect-ratio: 5/8), (any-pointer: coarse) and (orientation: landscape) and (min-width: 800px) and (min-height: 560px) and (max-height: 700px)';

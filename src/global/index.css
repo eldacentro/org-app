@@ -2954,6 +2954,12 @@ body {
    un iPad apaisado es más alto y no entra. La interior en vertical (626x890)
    se queda con la barra de arriba, como dice la guía.
 
+   EL `min-height: 600px` ES LO QUE IMPIDE QUE EL TECLADO DISPARE ESTO. Con
+   `interactive-widget=resizes-content`, al salir el teclado la pantalla se
+   queda corta (un iPhone de 390x844 pasa a 390x400) y cumplía lo de «corta y
+   ancha»: escribir en un campo mandaba los controles al lado derecho. El Duo
+   cerrado mide 678 de alto y sigue entrando.
+
    La condición es la MISMA cadena que `CARRIL_LATERAL_QUERY` en
    src/constants/pantalla.ts, donde está explicado trozo a trozo. Si se toca
    una, se toca la otra. Ningún iPhone actual entra: son todos más alargados.
@@ -2962,7 +2968,7 @@ body {
    clases de emotion del botón sin `!important`, igual que en el escalón.
    ══════════════════════════════════════════════════════════════════════════ */
 
-@media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-aspect-ratio: 5/8),
+@media (any-pointer: coarse) and (orientation: portrait) and (max-width: 599px) and (min-height: 600px) and (min-aspect-ratio: 5/8),
   (any-pointer: coarse) and (orientation: landscape) and (min-width: 800px) and (min-height: 560px) and (max-height: 700px) {
   /* Alguna página envuelve sus botones en una caja propia en fila (el
      Catálogo de oradores, que lleva dentro el campo oculto de importar). El
