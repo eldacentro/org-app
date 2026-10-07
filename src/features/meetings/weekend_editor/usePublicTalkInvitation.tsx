@@ -19,6 +19,8 @@ import { publicTalksLocaleState } from '@states/public_talks';
 import { schedulesState } from '@states/schedules';
 import { congIDState } from '@states/settings';
 import { crearInvitacionOrador } from '@services/firebase/speaker_invitations';
+import { sendEmailNotification } from '@services/firebase/email';
+import { displaySnackNotification } from '@services/states/app';
 import { userDataViewState } from '@states/settings';
 import { schedulesGetData } from '@services/app/schedules';
 import { useAppTranslation } from '@hooks/index';
@@ -72,6 +74,8 @@ const usePublicTalkInvitation = (
   // Si el orador ya no está en el catálogo (se borró), se usa el nombre
   // que ya se guardó junto con el uid al momento de asignarlo (ver
   // `schedulesSaveAssignment`) en vez de dejar la invitación sin nombre.
+  const speakerEmail = speakerInfo?.speaker_data.person_email?.value ?? '';
+
   const speakerName = speakerInfo
     ? `${speakerInfo.speaker_data.person_firstname.value} ${speakerInfo.speaker_data.person_lastname.value}`
     : speakerUid
@@ -212,6 +216,43 @@ const usePublicTalkInvitation = (
     return resolveCoordinatorInfo(asignacion.value).name;
   }, [schedule, dataView, resolveCoordinatorInfo]);
 
+  /**
+   * EL ENLACE PARA QUE CONTESTE.
+   *
+   * Se crea al mandar la invitación y no al asignar al orador: si naciera al
+   * asignarlo, cada cambio de orador dejaría enlaces huérfanos vivos durante
+   * meses. `crearInvitacionOrador` reutiliza el que ya hubiera para esa semana y
+   * ese orador — si cada envío generase uno nuevo, él podría contestar en uno y
+   * la congregación estar mirando otro.
+   *
+   * Si falla (sin conexión), devuelve cadena vacía y la invitación sale IGUAL
+   * con el correo de siempre: quedarse sin carta por no poder crear un enlace
+   * sería cambiar una molestia por un problema.
+   */
+  const crearEnlace = async () => {
+    if (!congId || !speakerUid) return '';
+
+    try {
+      const token = await crearInvitacionOrador(congId, {
+        weekOf,
+        speakerUid,
+        speakerName,
+        congName,
+        congAddress,
+        dateLocale: weekDateLocale,
+        time,
+        talkNumber: selectedTalkNumber ? String(selectedTalkNumber) : '',
+        talkTitle: outlineTitle,
+        closingPrayer,
+      });
+
+      return `${window.location.origin}/#/o/${congId}/${token}`;
+    } catch (error) {
+      console.error('No se pudo crear el enlace de respuesta', error);
+      return '';
+    }
+  };
+
   const handleGenerate = async () => {
     if (!speakerName) return;
 
@@ -228,28 +269,7 @@ const usePublicTalkInvitation = (
       correo de siempre: quedarse sin invitación por no poder crear un enlace
       sería cambiar una molestia por un problema.
     */
-    let enlace = '';
-
-    if (congId && speakerUid) {
-      try {
-        const token = await crearInvitacionOrador(congId, {
-          weekOf,
-          speakerUid,
-          speakerName,
-          congName,
-          congAddress,
-          dateLocale: weekDateLocale,
-          time,
-          talkNumber: selectedTalkNumber ? String(selectedTalkNumber) : '',
-          talkTitle: outlineTitle,
-          closingPrayer,
-        });
-
-        enlace = `${window.location.origin}/#/o/${congId}/${token}`;
-      } catch (error) {
-        console.error('No se pudo crear el enlace de respuesta', error);
-      }
-    }
+    const enlace = await crearEnlace();
 
     const document = (
       <VisitingSpeakerInvitation
@@ -295,7 +315,68 @@ const usePublicTalkInvitation = (
     await generateAndSharePdf(document, fileName, t);
   };
 
+  /**
+   * LA MISMA INVITACIÓN, POR CORREO.
+   *
+   * Manda el texto de la carta y el enlace para contestar. No sustituye al PDF
+   * —hay quien prefiere pasarlo por WhatsApp—: es el otro camino para lo mismo.
+   *
+   * No se manda nada si el orador no tiene correo en el catálogo: sería un
+   * botón que parece funcionar y no hace nada.
+   */
+  const handleSendEmail = async () => {
+    if (!speakerEmail || !speakerName) return;
+
+    const enlace = await crearEnlace();
+
+    const linea = (texto: string) =>
+      `<p style="margin:0 0 14px 0;">${texto}</p>`;
+
+    const html = [
+      linea(`Querido hermano ${speakerName}:`),
+      linea(
+        'Nos alegra mucho contar con tu visita y te extendemos una afectuosa invitación para presentar el discurso público en nuestra congregación.'
+      ),
+      linea(
+        `<strong>${weekDateLocale}${time ? ` · ${time}` : ''}</strong>` +
+          (outlineTitle
+            ? `<br>${selectedTalkNumber ? `N.º ${selectedTalkNumber} · ` : ''}${outlineTitle}`
+            : '') +
+          (congAddress ? `<br>${congAddress}` : '')
+      ),
+      linea(
+        'Si te es posible y así lo permiten las circunstancias, nos agradaría disfrutar de tus comentarios y de aquellos que te acompañen en el estudio de La Atalaya de esa semana. Si es así, nos gustaría asignarte la oración final de la reunión.'
+      ),
+      linea(
+        'La congregación ha hecho los preparativos necesarios para que, si lo deseas, tú y tus acompañantes podáis cenar con una familia después de la reunión. Por favor, ten la amabilidad de indicarnos si cenarás y cuántos en total seréis, al menos una semana antes de tu discurso.'
+      ),
+      enlace
+        ? `<p style="margin:24px 0;"><a class="btn" href="${enlace}">Contestar aquí, en dos toques</a></p>`
+        : '',
+      linea(
+        'Si por alguna razón no pudieses cumplir con tu asignación, por favor, hazlo saber a la mayor brevedad posible.'
+      ),
+      linea(
+        `Deseosos de poder estar juntos y disfrutar de una excelente reunión, te mandamos nuestro cariño,<br>Congregación ${congName}.`
+      ),
+    ].join('');
+
+    await sendEmailNotification(
+      speakerEmail,
+      `Invitación para el discurso público · ${weekDateLocale}`,
+      html
+    );
+
+    displaySnackNotification({
+      header: 'Invitación enviada',
+      message: `Se ha mandado a ${speakerEmail}.`,
+      severity: 'success',
+    });
+  };
+
   return {
+    speakerEmail,
+    handleSendEmail,
     handleGenerate,
     speakerName,
   };

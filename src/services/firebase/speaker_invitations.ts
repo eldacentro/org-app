@@ -1,5 +1,6 @@
 import {
   Timestamp,
+  getDoc,
   collection,
   doc as fsDoc,
   getDocFromServer,
@@ -13,6 +14,7 @@ import { firestore } from './index';
 import { generateShareToken } from '@services/encryption/share';
 import {
   SpeakerAnswerType,
+  SpeakerDinnerType,
   SpeakerInvitationType,
 } from '@definition/speaker_invitation';
 
@@ -124,4 +126,38 @@ export const responderInvitacion = async (
 /** Anula un enlace. No se puede resucitar: la regla solo deja ir a `true`. */
 export const anularInvitacion = async (congId: string, token: string) => {
   await updateDoc(fsDoc(coleccion(congId), token), { revoked: true });
+};
+
+// ─── La cena, que es cosa de la congregación ────────────────────────────────
+
+const docCena = (congId: string, token: string) =>
+  fsDoc(
+    firestore,
+    `congregation/${congId}/speaker_invitations/${token}/privado/cena`
+  );
+
+/**
+ * Con quién cena el orador. Exige sesión por la regla de Firestore: esto no lo
+ * puede leer quien abre el enlace.
+ */
+export const leerCena = async (
+  congId: string,
+  token: string
+): Promise<SpeakerDinnerType | null> => {
+  const snap = await getDoc(docCena(congId, token));
+
+  if (!snap.exists()) return null;
+
+  return snap.data() as SpeakerDinnerType;
+};
+
+export const guardarCena = async (
+  congId: string,
+  token: string,
+  datos: Omit<SpeakerDinnerType, 'updatedAt'>
+) => {
+  await setDoc(docCena(congId, token), {
+    ...datos,
+    updatedAt: new Date().toISOString(),
+  });
 };

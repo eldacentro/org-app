@@ -47,3 +47,19 @@ export type SpeakerAnswerType = {
   comentario: string;
   respondidoEl: string;
 };
+
+/**
+ * CON QUIÉN CENA, que es cosa de la congregación y no del orador.
+ *
+ * Vive en una subcolección aparte que exige sesión: el documento de la
+ * invitación se lee sin autenticar, así que esto allí se lo llevaría quien
+ * tuviera el enlace. Y guarda el IDENTIFICADOR de la familia, no su nombre — el
+ * nombre lo resuelve la app en el dispositivo.
+ */
+export type SpeakerDinnerType = {
+  /** `person_uid` de quien acoge. Vacío = todavía sin decidir. */
+  familiaUid: string;
+  /** Lo que haga falta recordar: alergias, que recogen ellos, la hora… */
+  notas: string;
+  updatedAt: string;
+};

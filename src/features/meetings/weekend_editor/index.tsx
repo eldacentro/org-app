@@ -50,7 +50,7 @@ import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
 import WeekNavigator from '@features/meetings/week_navigator';
 import usePublicTalkInvitation from './usePublicTalkInvitation';
-import EstadoRespuesta from '@features/meetings/invitacion_orador/EstadoRespuesta';
+import PanelInvitacion from '@features/meetings/invitacion_orador/PanelInvitacion';
 import { IconMail } from '@components/icons';
 
 const WeekendEditor = () => {
@@ -104,15 +104,16 @@ const WeekendEditor = () => {
 
   const { selectedTalk } = usePublicTalkSelector(selectedWeek);
 
-  const { handleGenerate, speakerName } = usePublicTalkInvitation(
-    selectedWeek,
-    weekDateLocale,
-    weekendMeetingTime,
-    selectedTalk?.talk_number,
-    speaker1Uid,
-    talkType,
-    speaker1Name
-  );
+  const { handleGenerate, speakerName, speakerEmail, handleSendEmail } =
+    usePublicTalkInvitation(
+      selectedWeek,
+      weekDateLocale,
+      weekendMeetingTime,
+      selectedTalk?.talk_number,
+      speaker1Uid,
+      talkType,
+      speaker1Name
+    );
 
   return (
     <EditorContainer>
@@ -291,9 +292,11 @@ const WeekendEditor = () => {
                       arriba, antes de los campos: es lo primero que se quiere
                       saber al abrir la semana, y no se enseña nada mientras no
                       haya invitación que seguir. */}
-                  <EstadoRespuesta
+                  <PanelInvitacion
                     weekOf={selectedWeek}
                     speakerUid={speaker1Uid}
+                    speakerEmail={speakerEmail}
+                    onEnviarCorreo={handleSendEmail}
                   />
 
                   {weekType !== Week.CO_VISIT && (
