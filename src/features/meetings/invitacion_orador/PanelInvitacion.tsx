@@ -8,18 +8,26 @@ import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { IconCheckCircle, IconError } from '@components/icons';
 import { personsActiveState } from '@states/persons';
+import { fieldGroupsState } from '@states/field_service_groups';
+import { schedulesState } from '@states/schedules';
+import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { congIDState, fullnameOptionState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
 import { displaySnackNotification } from '@services/states/app';
 import {
+  SpeakerDinnerRotationType,
   SpeakerDinnerType,
   SpeakerInvitationType,
 } from '@definition/speaker_invitation';
 import {
+  anotarRespuesta,
   buscarInvitacion,
   guardarCena,
+  guardarRotacionCenas,
   leerCena,
+  leerRotacionCenas,
 } from '@services/firebase/speaker_invitations';
+import DialogRotacionCenas from './DialogRotacionCenas';
 
 type Opcion = { id: string; etiqueta: string };
 
@@ -45,6 +53,8 @@ const PanelInvitacion = ({
 }) => {
   const congId = useAtomValue(congIDState);
   const persons = useAtomValue(personsActiveState);
+  const grupos = useAtomValue(fieldGroupsState);
+  const schedules = useAtomValue(schedulesState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [invitacion, setInvitacion] = useState<SpeakerInvitationType | null>(
@@ -56,6 +66,58 @@ const PanelInvitacion = ({
   const [notas, setNotas] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [rotacion, setRotacion] = useState<SpeakerDinnerRotationType | null>(
+    null
+  );
+  const [abrirRotacion, setAbrirRotacion] = useState(false);
+  const [anotando, setAnotando] = useState(false);
+
+  /**
+   * A qué grupo le toca acoger esta semana.
+   *
+   * Se usa EL MISMO motor que la rotación de Limpieza: ya sabe saltarse las
+   * semanas sin reunión y respetar un cambio puesto a mano. Un segundo motor
+   * que hiciera casi lo mismo acabaría portándose distinto justo en los bordes
+   * raros, que es donde duele.
+   */
+  const grupoQueToca = useMemo(() => {
+    if (!rotacion?.fechaInicio) return null;
+
+    return calcularGrupoReunion(
+      {
+        id: 'cenas',
+        updatedAt: rotacion.updatedAt,
+        fechaInicio: rotacion.fechaInicio,
+        grupoInicio: rotacion.grupoInicio,
+        gruposParticipantes: rotacion.gruposParticipantes,
+        overrides: rotacion.overrides,
+      },
+      weekOf,
+      'weekend',
+      grupos,
+      schedules
+    );
+  }, [rotacion, weekOf, grupos, schedules]);
+
+  const nombreGrupo = useMemo(() => {
+    if (!grupoQueToca) return '';
+
+    return (
+      grupos.find((g) => g.group_id === grupoQueToca)?.group_data.name ||
+      'ese grupo'
+    );
+  }, [grupoQueToca, grupos]);
+
+  /** Quién está en el grupo al que le toca, para ofrecerlo primero. */
+  const delGrupo = useMemo(() => {
+    if (!grupoQueToca) return new Set<string>();
+
+    const grupo = grupos.find((g) => g.group_id === grupoQueToca);
+
+    return new Set(
+      (grupo?.group_data.members ?? []).map((m) => m.person_uid)
+    );
+  }, [grupoQueToca, grupos]);
 
   const opciones = useMemo(
     () =>
@@ -68,8 +130,18 @@ const PanelInvitacion = ({
             fullnameOption
           ),
         }))
-        .sort((a, b) => a.etiqueta.localeCompare(b.etiqueta)),
-    [persons, fullnameOption]
+        // Primero quien está en el grupo al que le toca: es a quien se va a
+        // elegir nueve de cada diez veces. Los demás siguen estando, porque
+        // alguna semana se cambia y no hay por qué pelearse con la app.
+        .sort((a, b) => {
+          const ga = delGrupo.has(a.id) ? 0 : 1;
+          const gb = delGrupo.has(b.id) ? 0 : 1;
+
+          if (ga !== gb) return ga - gb;
+
+          return a.etiqueta.localeCompare(b.etiqueta);
+        }),
+    [persons, fullnameOption, delGrupo]
   );
 
   const cargar = useCallback(async () => {
@@ -89,7 +161,12 @@ const PanelInvitacion = ({
         return;
       }
 
-      const laCena = await leerCena(congId, dato.token);
+      const [laCena, laRotacion] = await Promise.all([
+        leerCena(congId, dato.token),
+        leerRotacionCenas(congId),
+      ]);
+
+      setRotacion(laRotacion);
 
       setCena(laCena);
       setFamilia(
@@ -140,6 +217,43 @@ const PanelInvitacion = ({
   };
 
   // Sin invitación y sin correo al que mandarla no hay nada que hacer aquí.
+  /**
+   * Anotar la respuesta por él.
+   *
+   * Casi siempre contestará por WhatsApp o por teléfono. Si lo único que se
+   * pudiera registrar fuera lo que él escribe en el enlace, el panel enseñaría
+   * «sin contestar» en semanas ya resueltas, y entonces no sirve de nada.
+   */
+  const anotar = async (datos: {
+    asistira: boolean;
+    cena: boolean;
+    comensales: number;
+  }) => {
+    if (!invitacion || anotando) return;
+
+    setAnotando(true);
+
+    try {
+      await anotarRespuesta(congId, invitacion.token, {
+        ...datos,
+        comentario: invitacion.respuesta?.comentario ?? '',
+      });
+
+      await cargar();
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: 'No se ha podido guardar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    } finally {
+      setAnotando(false);
+    }
+  };
+
   if (!invitacion && !(speakerEmail && onEnviarCorreo)) return null;
 
   const respuesta = invitacion?.respuesta;
@@ -209,6 +323,53 @@ const PanelInvitacion = ({
         </Box>
       ) : null}
 
+      {/* Lo contesta él por el enlace, o lo anotas tú si te lo dice por otro
+          lado. Las dos cosas escriben en el mismo sitio. */}
+      {invitacion ? (
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '8px' }}>
+          <Button
+            variant={respuesta?.asistira ? 'main' : 'secondary'}
+            disableAutoStretch
+            disabled={anotando}
+            onClick={() =>
+              anotar({
+                asistira: true,
+                cena: respuesta?.cena ?? false,
+                comensales: respuesta?.comensales ?? 0,
+              })
+            }
+          >
+            Viene
+          </Button>
+          <Button
+            variant={
+              respuesta && !respuesta.asistira ? 'main' : 'secondary'
+            }
+            disableAutoStretch
+            disabled={anotando}
+            onClick={() => anotar({ asistira: false, cena: false, comensales: 0 })}
+          >
+            No viene
+          </Button>
+          {respuesta?.asistira ? (
+            <Button
+              variant={respuesta.cena ? 'main' : 'secondary'}
+              disableAutoStretch
+              disabled={anotando}
+              onClick={() =>
+                anotar({
+                  asistira: true,
+                  cena: !respuesta.cena,
+                  comensales: respuesta.cena ? 0 : respuesta.comensales || 2,
+                })
+              }
+            >
+              {respuesta.cena ? 'Quita la cena' : 'Se queda a cenar'}
+            </Button>
+          ) : null}
+        </Stack>
+      ) : null}
+
       {respuesta?.comentario ? (
         <Typography className="body-small-regular" color="var(--ink-2)">
           «{respuesta.comentario}»
@@ -218,6 +379,30 @@ const PanelInvitacion = ({
       {/* La familia que le acoge: solo si de verdad se queda a cenar. */}
       {respuesta?.asistira && respuesta.cena && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* A quién le toca esta semana, y por dónde se cambia la rotación. */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography className="label-small-regular" color="var(--ink-3)">
+              {grupoQueToca
+                ? `Esta semana le toca a ${nombreGrupo}`
+                : 'No hay rotación de cenas puesta'}
+            </Typography>
+            <Button
+              variant="small"
+              disableAutoStretch
+              onClick={() => setAbrirRotacion(true)}
+            >
+              {grupoQueToca ? 'Rotación' : 'Poner rotación'}
+            </Button>
+          </Box>
+
           {!editando && (
             <Box
               sx={{
@@ -290,6 +475,39 @@ const PanelInvitacion = ({
           )}
         </Box>
       )}
+      <DialogRotacionCenas
+        open={abrirRotacion}
+        rotacion={rotacion}
+        guardando={guardando}
+        onClose={() => setAbrirRotacion(false)}
+        onGuardar={async (datos) => {
+          setGuardando(true);
+
+          try {
+            await guardarRotacionCenas(congId, datos);
+            await cargar();
+            setAbrirRotacion(false);
+
+            displaySnackNotification({
+              header: 'Hecho',
+              message: 'Rotación de cenas guardada.',
+              severity: 'success',
+              icon: <IconCheckCircle color="var(--card)" />,
+            });
+          } catch (error) {
+            console.error(error);
+
+            displaySnackNotification({
+              header: 'No se ha podido guardar',
+              message: 'Comprueba tu conexión e inténtalo de nuevo.',
+              severity: 'error',
+              icon: <IconError color="var(--card)" />,
+            });
+          } finally {
+            setGuardando(false);
+          }
+        }}
+      />
     </Box>
   );
 };

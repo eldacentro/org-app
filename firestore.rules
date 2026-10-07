@@ -235,6 +235,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // A qué grupo le toca acoger la cena del orador cada semana. Son
+    // identificadores de grupo y una fecha; exige sesión como todo lo demás.
+    match /congregation/{congId}/speaker_dinner/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
     // ── Señal de sincronización casi-instantánea ──
     // Solo contiene nombres de tabla + timestamps de versión (cero datos,
     // el E2E sigue intacto). La escribe únicamente el backend con Admin SDK

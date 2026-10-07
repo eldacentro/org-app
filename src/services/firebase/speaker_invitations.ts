@@ -14,6 +14,7 @@ import { firestore } from './index';
 import { generateShareToken } from '@services/encryption/share';
 import {
   SpeakerAnswerType,
+  SpeakerDinnerRotationType,
   SpeakerDinnerType,
   SpeakerInvitationType,
 } from '@definition/speaker_invitation';
@@ -157,6 +158,55 @@ export const guardarCena = async (
   datos: Omit<SpeakerDinnerType, 'updatedAt'>
 ) => {
   await setDoc(docCena(congId, token), {
+    ...datos,
+    updatedAt: new Date().toISOString(),
+  });
+};
+
+/**
+ * Lo que anota la congregación cuando el orador contesta POR OTRO LADO.
+ *
+ * Casi siempre contestará por WhatsApp o por teléfono, no por el enlace. Si lo
+ * único que se pudiera registrar fuera lo que él escribe, el panel enseñaría
+ * «sin contestar» a semanas que están resueltas, y entonces no sirve para nada.
+ *
+ * Esta va con sesión, así que la regla la deja escribir sin más: lo que no
+ * puede tocar nadie, ni con sesión, es la caducidad ni resucitar un enlace.
+ */
+export const anotarRespuesta = async (
+  congId: string,
+  token: string,
+  respuesta: Omit<SpeakerAnswerType, 'respondidoEl'>
+) => {
+  await updateDoc(fsDoc(coleccion(congId), token), {
+    respuesta: {
+      ...respuesta,
+      comentario: respuesta.comentario.slice(0, 300),
+      respondidoEl: new Date().toISOString(),
+    },
+  });
+};
+
+// ─── La rotación de cenas ───────────────────────────────────────────────────
+
+const docRotacion = (congId: string) =>
+  fsDoc(firestore, `congregation/${congId}/speaker_dinner/rotacion`);
+
+export const leerRotacionCenas = async (
+  congId: string
+): Promise<SpeakerDinnerRotationType | null> => {
+  const snap = await getDoc(docRotacion(congId));
+
+  if (!snap.exists()) return null;
+
+  return snap.data() as SpeakerDinnerRotationType;
+};
+
+export const guardarRotacionCenas = async (
+  congId: string,
+  datos: Omit<SpeakerDinnerRotationType, 'updatedAt'>
+) => {
+  await setDoc(docRotacion(congId), {
     ...datos,
     updatedAt: new Date().toISOString(),
   });
