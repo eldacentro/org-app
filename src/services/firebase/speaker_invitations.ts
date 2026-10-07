@@ -1,5 +1,6 @@
 import {
   Timestamp,
+  deleteField,
   getDoc,
   collection,
   doc as fsDoc,
@@ -184,6 +185,24 @@ export const anotarRespuesta = async (
       comentario: respuesta.comentario.slice(0, 300),
       respondidoEl: new Date().toISOString(),
     },
+  });
+};
+
+/**
+ * Deja la invitación como si nadie hubiera contestado.
+ *
+ * Hace falta porque anotar a mano se equivoca: se marca «viene» en la semana de
+ * al lado, o alguien lo da por confirmado de oídas. Sin esto, el único arreglo
+ * sería elegir entre dos mentiras —«viene» o «no viene»—, y «todavía no se
+ * sabe» es la verdad y es además lo que hay que perseguir.
+ *
+ * Se BORRA el campo en vez de guardar un hueco: así vuelve a estar exactamente
+ * como antes de que nadie tocara nada, y el panel lo cuenta como pendiente sin
+ * tener que saber de un tercer estado.
+ */
+export const borrarRespuesta = async (congId: string, token: string) => {
+  await updateDoc(fsDoc(coleccion(congId), token), {
+    respuesta: deleteField(),
   });
 };
 

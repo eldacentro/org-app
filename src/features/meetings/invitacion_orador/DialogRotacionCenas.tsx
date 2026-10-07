@@ -9,6 +9,8 @@ import MenuItem from '@components/menuitem';
 import Select from '@components/select';
 import Typography from '@components/typography';
 import { fieldGroupsState } from '@states/field_service_groups';
+import { useAppTranslation } from '@hooks/index';
+import { nombreDeGrupo } from './nombreGrupo';
 import { SpeakerDinnerRotationType } from '@definition/speaker_invitation';
 
 /**
@@ -33,6 +35,8 @@ const DialogRotacionCenas = ({
     datos: Omit<SpeakerDinnerRotationType, 'updatedAt'>
   ) => Promise<void>;
 }) => {
+  const { t } = useAppTranslation();
+
   const grupos = useAtomValue(fieldGroupsState);
 
   const activos = grupos
@@ -58,7 +62,10 @@ const DialogRotacionCenas = ({
   }, [open]);
 
   const nombre = (id: string) =>
-    activos.find((g) => g.group_id === id)?.group_data.name || 'Grupo';
+    nombreDeGrupo(
+      activos.find((g) => g.group_id === id),
+      t
+    );
 
   return (
     <Dialog open={open} onClose={onClose}>

@@ -9,6 +9,8 @@ import TextField from '@components/textfield';
 import { IconCheckCircle, IconError } from '@components/icons';
 import { personsActiveState } from '@states/persons';
 import { fieldGroupsState } from '@states/field_service_groups';
+import { useAppTranslation } from '@hooks/index';
+import { nombreDeGrupo } from './nombreGrupo';
 import { schedulesState } from '@states/schedules';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
 import { congIDState, fullnameOptionState } from '@states/settings';
@@ -21,6 +23,7 @@ import {
 } from '@definition/speaker_invitation';
 import {
   anotarRespuesta,
+  borrarRespuesta,
   buscarInvitacion,
   guardarCena,
   guardarRotacionCenas,
@@ -51,6 +54,8 @@ const PanelInvitacion = ({
   speakerEmail?: string;
   onEnviarCorreo?: () => Promise<void>;
 }) => {
+  const { t } = useAppTranslation();
+
   const congId = useAtomValue(congIDState);
   const persons = useAtomValue(personsActiveState);
   const grupos = useAtomValue(fieldGroupsState);
@@ -102,11 +107,11 @@ const PanelInvitacion = ({
   const nombreGrupo = useMemo(() => {
     if (!grupoQueToca) return '';
 
-    return (
-      grupos.find((g) => g.group_id === grupoQueToca)?.group_data.name ||
-      'ese grupo'
+    return nombreDeGrupo(
+      grupos.find((g) => g.group_id === grupoQueToca),
+      t
     );
-  }, [grupoQueToca, grupos]);
+  }, [grupoQueToca, grupos, t]);
 
   /** Quién está en el grupo al que le toca, para ofrecerlo primero. */
   const delGrupo = useMemo(() => {
@@ -254,6 +259,29 @@ const PanelInvitacion = ({
     }
   };
 
+  /** Deja la semana como si nadie hubiera contestado. */
+  const olvidar = async () => {
+    if (!invitacion || anotando) return;
+
+    setAnotando(true);
+
+    try {
+      await borrarRespuesta(congId, invitacion.token);
+      await cargar();
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: 'No se ha podido guardar',
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+        severity: 'error',
+        icon: <IconError color="var(--card)" />,
+      });
+    } finally {
+      setAnotando(false);
+    }
+  };
+
   if (!invitacion && !(speakerEmail && onEnviarCorreo)) return null;
 
   const respuesta = invitacion?.respuesta;
@@ -351,6 +379,16 @@ const PanelInvitacion = ({
           >
             No viene
           </Button>
+          {respuesta ? (
+            <Button
+              variant="tertiary"
+              disableAutoStretch
+              disabled={anotando}
+              onClick={olvidar}
+            >
+              Todavía no se sabe
+            </Button>
+          ) : null}
           {respuesta?.asistira ? (
             <Button
               variant={respuesta.cena ? 'main' : 'secondary'}
