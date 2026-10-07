@@ -9,6 +9,7 @@ import {
   SourceWeekIncomingType,
   SourceWeekType,
 } from '@definition/sources';
+import { AssignmentCode } from '@definition/assignment';
 import { assignmentTypeAYFOnlyState } from '@states/assignment';
 import { dbSourcesSave } from '@services/dexie/sources';
 import { dbSchedCheck } from '@services/dexie/schedules';
@@ -66,6 +67,69 @@ export const sourcesImportJW = async (dataJw) => {
   }
 
   return result;
+};
+
+/**
+ * CÓMO SE RECONOCE CADA PARTE DE «SEAMOS MEJORES MAESTROS».
+ *
+ * El material no trae un código: trae el NOMBRE de la parte, y la app lo
+ * compara con su propia traducción para saber de cuál se trata. Si no casa
+ * ninguna, cae en 127 («Análisis con el auditorio»), que es una parte de
+ * hermanos.
+ *
+ * EL FALLO QUE ESTO ARREGLA (2026-10-07): a partir del 2 de noviembre de 2026
+ * la edición ESPAÑOLA cambió la redacción a primera persona del plural
+ * —«Empecemos conversaciones» donde antes decía «Empiece conversaciones»—. Como
+ * la comparación era exacta, dejaron de casar las tres partes de estudiante de
+ * golpe y noviembre entero se convirtió en «Análisis con el auditorio»: no se
+ * podía poner a NINGUNA hermana en toda la sección. Comprobado contra el
+ * material: 40 partes afectadas entre noviembre de 2026 y febrero de 2027.
+ *
+ * El inglés no cambió, así que esto es cosa de la traducción y no del arreglo.
+ * Si otra lengua hace lo mismo, se añade aquí su línea y ya está.
+ */
+const ETIQUETAS_RENOMBRADAS: Record<string, AssignmentCode> = {
+  // Español, desde el 2 de noviembre de 2026.
+  'empecemos conversaciones': AssignmentCode.MM_StartingConversation,
+  'hagamos revisitas': AssignmentCode.MM_FollowingUp,
+  'hagamos discipulos': AssignmentCode.MM_MakingDisciples,
+  'expliquemos nuestras creencias': AssignmentCode.MM_ExplainingBeliefs,
+};
+
+/**
+ * Para comparar nombres de partes: sin tildes, sin mayúsculas, sin espacios de
+ * más y sin el espacio de ancho cero que el material cuela a veces.
+ */
+const limpiarEtiqueta = (valor: string) =>
+  (valor ?? '')
+    .replace(/\u200B/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+/**
+ * De cómo el material llama a una parte, al código de asignación.
+ *
+ * Exportada para poder probarla: es la cuenta de la que depende que una parte
+ * de estudiante se pueda asignar a una hermana.
+ */
+export const tipoDeParteAYF = (
+  etiqueta: string,
+  lista: { label: string; value: number }[]
+): number => {
+  const buscada = limpiarEtiqueta(etiqueta);
+
+  if (buscada.length === 0) return AssignmentCode.MM_Discussion;
+
+  const exacta = lista.find((tipo) => limpiarEtiqueta(tipo.label) === buscada);
+
+  if (exacta) return exacta.value;
+
+  // Lo último, igual que antes: una parte que no se reconoce se trata como
+  // análisis con el auditorio.
+  return ETIQUETAS_RENOMBRADAS[buscada] ?? AssignmentCode.MM_Discussion;
 };
 
 const remapAssignmentType = (week: string, type: number) => {
@@ -154,11 +218,7 @@ const sourcesFormatAndSaveData = async (
         obj.midweek_meeting.ayf_count = { [source_lang]: src.mwb_ayf_count };
 
         assType =
-          assTypeList.find(
-            (type) =>
-              type.label.replace(/\u200B/g, '') ===
-              src.mwb_ayf_part1_type.replace(/\u200B/g, '')
-          )?.value || 127;
+          tipoDeParteAYF(src.mwb_ayf_part1_type, assTypeList);
 
         assType = remapAssignmentType(obj.weekOf, assType);
 
@@ -171,11 +231,7 @@ const sourcesFormatAndSaveData = async (
 
         if (cnAYF > 1) {
           assType =
-            assTypeList.find(
-              (type) =>
-                type.label.replace(/\u200B/g, '') ===
-                src.mwb_ayf_part2_type.replace(/\u200B/g, '')
-            )?.value || 127;
+            tipoDeParteAYF(src.mwb_ayf_part2_type, assTypeList);
 
           assType = remapAssignmentType(obj.weekOf, assType);
 
@@ -189,11 +245,7 @@ const sourcesFormatAndSaveData = async (
 
         if (cnAYF > 2) {
           assType =
-            assTypeList.find(
-              (type) =>
-                type.label.replace(/\u200B/g, '') ===
-                src.mwb_ayf_part3_type.replace(/\u200B/g, '')
-            )?.value || 127;
+            tipoDeParteAYF(src.mwb_ayf_part3_type, assTypeList);
 
           assType = remapAssignmentType(obj.weekOf, assType);
 
@@ -207,11 +259,7 @@ const sourcesFormatAndSaveData = async (
 
         if (cnAYF > 3) {
           assType =
-            assTypeList.find(
-              (type) =>
-                type.label.replace(/\u200B/g, '') ===
-                src.mwb_ayf_part4_type.replace(/\u200B/g, '')
-            )?.value || 127;
+            tipoDeParteAYF(src.mwb_ayf_part4_type, assTypeList);
 
           assType = remapAssignmentType(obj.weekOf, assType);
 

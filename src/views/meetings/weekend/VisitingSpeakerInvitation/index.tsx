@@ -145,81 +145,80 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           ) : null}
         </PdfNote>
 
-        {/* Los comentarios y, si la lleva, la oración final. El «además» solo
-            aparece cuando el programa de esa semana se la ha asignado de
-            verdad: ver `closingPrayer`. */}
+        {/* DE AQUÍ ABAJO, LAS PALABRAS SON LAS DE RUBÉN, no una reescritura.
+            Se pidió expresamente que la carta fuera tal cual él la manda, así
+            que solo se han corregido tildes ("efectué" → "efectúe") y se deja
+            el correo como dato, no escrito a mano, para que siga al que esté
+            configurado. No la "mejores" sin preguntarle: es la voz de la
+            congregación, no la nuestra. */}
         <Text style={parrafo}>
           Si te es posible y así lo permiten las circunstancias, nos agradaría
-          disfrutar de tus comentarios y de los de quienes te acompañen en el
-          estudio de La Atalaya de esa semana.
-          {props.closingPrayer
-            ? ' Además, nos gustaría asignarte la oración final de la reunión.'
-            : ''}
+          disfrutar de tus comentarios y de aquellos que te acompañen en el
+          estudio de La Atalaya de esa semana. Si es así, nos gustaría asignarte
+          la oración final de la reunión.
         </Text>
 
-        {/* La cena. Solo sale si hay a dónde contestar. */}
-        {props.dinner && (props.dinner.url || props.dinner.email) ? (
-          <PdfCard title="La cena" style={{ marginBottom: space.lg }}>
-            <Text style={{ ...text.body, lineHeight: 1.5 }}>
-              La congregación ha hecho los preparativos necesarios para que, si
-              lo deseáis, tú y quienes te acompañen podáis cenar con una familia
-              después de la reunión. Ten la amabilidad de indicarnos si os
-              quedaréis y cuántos seréis en total, al menos una semana antes de
-              tu discurso.
-            </Text>
-
-            {props.dinner.url ? (
-              <Link src={props.dinner.url}>
-                <Text
-                  style={{
-                    fontSize: size.body,
-                    fontWeight: 700,
-                    color: color.accent,
-                    marginTop: space.sm,
-                  }}
-                >
-                  Contestar aquí, en dos toques
-                </Text>
-              </Link>
-            ) : null}
-
-            {props.dinner.email ? (
+        <Text style={parrafo}>
+          La congregación ha hecho los preparativos necesarios para que, si lo
+          deseas, tú y tus acompañantes podáis cenar con una familia después de
+          la reunión. Por favor, ten la amabilidad de indicarnos si cenarás y
+          cuántos en total seréis
+          {props.dinner?.email ? (
+            <>
+              ; para ello, puedes mandarnos un email a{' '}
               <Link src={`mailto:${props.dinner.email}`}>
-                <Text
-                  style={{
-                    ...text.meta,
-                    color: color.accent,
-                    marginTop: props.dinner.url ? 2 : space.sm,
-                  }}
-                >
-                  {props.dinner.url ? 'O escríbenos a ' : ''}
-                  {props.dinner.email}
-                </Text>
+                <Text style={{ color: color.accent }}>{props.dinner.email}</Text>
               </Link>
-            ) : null}
-          </PdfCard>
-        ) : null}
+            </>
+          ) : (
+            ''
+          )}
+          , al menos una semana antes de tu discurso.
+        </Text>
 
-        {/* El combustible. Con nombres, que es lo que falta cuando llega el
-            momento de pedirlo. */}
-        {props.expenses?.coordinator || props.expenses?.fallback ? (
-          <Text style={parrafo}>
-            Si lo necesitas, puedes pasar los gastos de combustible al
-            coordinador del cuerpo de ancianos
-            {props.expenses.coordinator ? `, ${props.expenses.coordinator}` : ''}
-            {props.expenses.fallback
-              ? `, y en su ausencia a quien conduce el estudio de La Atalaya, ${props.expenses.fallback}`
-              : ''}
-            .
-          </Text>
+        {/* El enlace de respuesta en dos toques, cuando lo haya. Va aparte y
+            DESPUÉS de su párrafo: la carta sigue diciendo lo que él escribió, y
+            esto es un atajo que se añade, no algo que le cambie las palabras. */}
+        {props.dinner?.url ? (
+          <Link src={props.dinner.url}>
+            <Text
+              style={{
+                fontSize: size.body,
+                fontWeight: 700,
+                color: color.accent,
+                marginTop: -space.sm,
+                marginBottom: space.md,
+              }}
+            >
+              O contesta aquí, en dos toques
+            </Text>
+          </Link>
         ) : null}
 
         <Text style={parrafo}>
-          Agradecemos de corazón tu buena disposición y esfuerzo, y el que
-          contribuyas a que los hermanos reciban alimento espiritual bien
-          preparado. Si por alguna causa de fuerza mayor no pudieras cumplir con
-          esta asignación, te rogamos que nos lo comuniques con la mayor
-          antelación posible.
+          Indicarte también que, en caso de necesitarlo, puedes pasarle los
+          gastos de combustible al CCA de la congregación
+          {props.expenses?.coordinator ? `, ${props.expenses.coordinator}` : ''}
+          , y en su ausencia al conductor de La Atalaya
+          {props.expenses?.fallback ? `, ${props.expenses.fallback}` : ''}.
+        </Text>
+
+        <Text style={parrafo}>
+          Agradecemos mucho el esfuerzo que haces por contribuir a que los
+          hermanos reciban alimento espiritual bien preparado y necesario;
+          recuerda que con tu fiel servicio sagrado colaboras en que todo se
+          efectúe decentemente y por arreglo.
+        </Text>
+
+        <Text style={parrafo}>
+          Si por alguna razón no pudieses cumplir con tu asignación, por favor,
+          hazlo saber a la mayor brevedad posible.
+        </Text>
+
+        <Text style={{ ...parrafo, marginBottom: space.lg }}>
+          Deseosos de poder estar juntos y disfrutar de una excelente reunión,
+          te mandamos nuestro cariño,{'\n'}
+          Congregación {props.congregationName}.
         </Text>
 
         {props.mediaEmail ? (
