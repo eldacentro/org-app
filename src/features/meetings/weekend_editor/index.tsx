@@ -50,6 +50,7 @@ import WeekendMeeting from '../weekly_schedules/weekend_meeting';
 import WeekTypeSelector from '../week_type_selector';
 import WeekNavigator from '@features/meetings/week_navigator';
 import usePublicTalkInvitation from './usePublicTalkInvitation';
+import EstadoRespuesta from '@features/meetings/invitacion_orador/EstadoRespuesta';
 import { IconMail } from '@components/icons';
 
 const WeekendEditor = () => {
@@ -286,6 +287,15 @@ const WeekendEditor = () => {
                     ) : undefined
                   }
                 >
+                  {/* Lo que ha contestado el orador a su invitación. Va aquí
+                      arriba, antes de los campos: es lo primero que se quiere
+                      saber al abrir la semana, y no se enseña nada mientras no
+                      haya invitación que seguir. */}
+                  <EstadoRespuesta
+                    weekOf={selectedWeek}
+                    speakerUid={speaker1Uid}
+                  />
+
                   {weekType !== Week.CO_VISIT && (
                     <PublicTalkTypeSelector week={selectedWeek} />
                   )}

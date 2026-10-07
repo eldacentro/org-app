@@ -17,6 +17,8 @@ import {
 import { speakersCongregationsActiveState } from '@states/speakers_congregations';
 import { publicTalksLocaleState } from '@states/public_talks';
 import { schedulesState } from '@states/schedules';
+import { congIDState } from '@states/settings';
+import { crearInvitacionOrador } from '@services/firebase/speaker_invitations';
 import { userDataViewState } from '@states/settings';
 import { schedulesGetData } from '@services/app/schedules';
 import { useAppTranslation } from '@hooks/index';
@@ -48,6 +50,7 @@ const usePublicTalkInvitation = (
   const speakersEmail = useAtomValue(publicTalkSpeakersEmailState);
   const speakersCongregations = useAtomValue(speakersCongregationsActiveState);
   const schedules = useAtomValue(schedulesState);
+  const congId = useAtomValue(congIDState);
   const dataView = useAtomValue(userDataViewState);
 
   /** El programa de esa semana, de donde salen la oración final y La Atalaya. */
@@ -212,6 +215,42 @@ const usePublicTalkInvitation = (
   const handleGenerate = async () => {
     if (!speakerName) return;
 
+    /*
+      EL ENLACE PARA QUE CONTESTE, creado al generar la carta.
+
+      Se hace aquí y no antes porque es cuando de verdad hace falta: si se
+      creara al asignar al orador, cada cambio de orador dejaría enlaces
+      huérfanos vivos durante meses. `crearInvitacionOrador` reutiliza el que ya
+      hubiera para esa semana y ese orador — si cada carta generase uno nuevo,
+      él podría contestar en uno y nosotros estar mirando otro.
+
+      Si falla (sin conexión, por ejemplo), la carta se genera IGUAL con el
+      correo de siempre: quedarse sin invitación por no poder crear un enlace
+      sería cambiar una molestia por un problema.
+    */
+    let enlace = '';
+
+    if (congId && speakerUid) {
+      try {
+        const token = await crearInvitacionOrador(congId, {
+          weekOf,
+          speakerUid,
+          speakerName,
+          congName,
+          congAddress,
+          dateLocale: weekDateLocale,
+          time,
+          talkNumber: selectedTalkNumber ? String(selectedTalkNumber) : '',
+          talkTitle: outlineTitle,
+          closingPrayer,
+        });
+
+        enlace = `${window.location.origin}/#/o/${congId}/${token}`;
+      } catch (error) {
+        console.error('No se pudo crear el enlace de respuesta', error);
+      }
+    }
+
     const document = (
       <VisitingSpeakerInvitation
         speakerName={speakerName}
@@ -233,6 +272,7 @@ const usePublicTalkInvitation = (
         }
         closingPrayer={closingPrayer}
         dinner={{
+          url: enlace || undefined,
           email:
             speakersEmail ||
             ptcCoordinatorInfo.email ||

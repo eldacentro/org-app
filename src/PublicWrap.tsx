@@ -2,6 +2,7 @@ import { useAtomValue } from 'jotai';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { appThemeState } from '@states/app';
 import PublicTerritoryPage from '@features/territories/public/PublicTerritoryPage';
+import PaginaInvitacionOrador from '@features/meetings/invitacion_orador/publica';
 import '@global/global.css';
 import '@global/index.css';
 import '@services/firebase/index';
@@ -25,7 +26,14 @@ const PublicWrap = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <PublicTerritoryPage />
+      {/* Dos clases de invitado, y cada una abre lo suyo: `#/t/` es quien
+          recibe un territorio compartido y `#/o/` el orador visitante que
+          viene a contestar a su carta. */}
+      {window.location.hash.startsWith('#/o/') ? (
+        <PaginaInvitacionOrador />
+      ) : (
+        <PublicTerritoryPage />
+      )}
     </ThemeProvider>
   );
 };

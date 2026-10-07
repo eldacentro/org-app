@@ -152,6 +152,77 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // ── La invitación al orador visitante ────────────────────────────────
+    //
+    // Un documento por invitación, cuyo ID es un token aleatorio de 24 bytes.
+    // El orador lo abre desde el enlace de su carta, SIN cuenta, y contesta dos
+    // cosas: si vendrá y si se queda a cenar.
+    //
+    // OJO: ESTA ES LA ÚNICA ESCRITURA SIN SESIÓN DE TODA LA APLICACIÓN. Los
+    // enlaces de territorio solo se leen. Por eso la regla de abajo es tan
+    // estrecha: quien no está autenticado solo puede tocar `respuesta`, con los
+    // tipos y los topes comprobados aquí, y únicamente mientras el enlace esté
+    // vivo. Todo lo demás —la fecha, el discurso, a quién pertenece— queda
+    // congelado para él.
+    //
+    // Lo que el documento contiene es lo que ya dice la carta que se le manda:
+    // su nombre, la fecha, la hora, el discurso y la dirección del Salón. Nada
+    // de terceros, ni teléfonos ni correos de nadie más.
+    //
+    // Enumerar exige sesión, así que nadie puede recorrer la colección: sin el
+    // token no se llega al documento, y el token son 192 bits.
+    match /congregation/{congId}/speaker_invitations/{token} {
+      function noCaducado() {
+        return request.time < resource.data.get('expiresAt', timestamp.date(2000, 1, 1));
+      }
+
+      // `.get('revoked', true)` falla en cerrado: si el campo faltara, el
+      // enlace se da por anulado en vez de por abierto.
+      function vivo() {
+        return resource.data.get('revoked', true) == false && noCaducado();
+      }
+
+      // Una respuesta bien formada. Se comprueba AQUÍ y no solo en la página:
+      // la página se la salta cualquiera que llame a la API a mano.
+      function respuestaValida(r) {
+        return r.keys().hasOnly(['asistira', 'cena', 'comensales', 'comentario', 'respondidoEl'])
+          && r.asistira is bool
+          && r.cena is bool
+          && r.comensales is int
+          && r.comensales >= 0
+          && r.comensales <= 20
+          && r.comentario is string
+          && r.comentario.size() <= 300
+          && r.respondidoEl is string
+          && r.respondidoEl.size() <= 40;
+      }
+
+      allow get: if request.auth != null || vivo();
+      allow list: if request.auth != null;
+
+      // Crear: con techo de vida, igual que los enlaces de territorio. Sin
+      // esto, un reloj adelantado deja un enlace abierto durante años.
+      allow create: if request.auth != null
+        && request.resource.data.revoked == false
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt < request.time + duration.value(200, 'd');
+
+      allow update: if
+        // Con sesión: la congregación puede anular y refrescar, pero nunca
+        // resucitar un enlace anulado ni estirarle la caducidad.
+        (request.auth != null
+          && request.resource.data.expiresAt == resource.data.expiresAt
+          && (request.resource.data.revoked == resource.data.revoked
+              || request.resource.data.revoked == true))
+        // Sin sesión: el orador, y SOLO su respuesta.
+        || (request.auth == null
+            && vivo()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['respuesta'])
+            && respuestaValida(request.resource.data.respuesta));
+
+      allow delete: if request.auth != null;
+    }
+
     // ── Señal de sincronización casi-instantánea ──
     // Solo contiene nombres de tabla + timestamps de versión (cero datos,
     // el E2E sigue intacto). La escribe únicamente el backend con Admin SDK

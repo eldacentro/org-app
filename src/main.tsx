@@ -78,12 +78,15 @@ console.info(`Elda Centro: version ${import.meta.env.PACKAGE_VERSION}`);
 const container = document.getElementById('root');
 
 // ── Enlace público de territorio ────────────────────────────────────────────
-// Quien abre `#/t/...` es un invitado sin cuenta (p. ej. el superintendente de
-// circuito). Se le monta una raíz mínima y se sale ANTES de abrir la base de
+// Quien abre `#/t/...` (un territorio compartido) o `#/o/...` (la invitación de
+// un orador visitante) es un invitado sin cuenta. Se le monta una raíz mínima y se sale ANTES de abrir la base de
 // datos local, registrar el service worker o pedir almacenamiento persistente:
 // nada de eso le sirve, y Dexie en navegación privada le plantaría encima la
 // pantalla de recuperación de base de datos.
-if (window.location.hash.startsWith('#/t/')) {
+if (
+  window.location.hash.startsWith('#/t/') ||
+  window.location.hash.startsWith('#/o/')
+) {
   import('./PublicWrap')
     .then(({ default: PublicWrap }) => {
       createRoot(container).render(
