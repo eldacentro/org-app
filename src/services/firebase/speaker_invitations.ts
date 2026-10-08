@@ -58,6 +58,25 @@ export const crearInvitacionOrador = async (
   return token;
 };
 
+/**
+ * TODAS las invitaciones de la congregación.
+ *
+ * Hace falta enteras porque el turno de la cena de una semana depende de lo que
+ * pasó en las anteriores: si el orador no se quedó, ese grupo no gastó turno
+ * (ver `services/app/rotacion_cenas`). Con la fecha sola no se puede saber.
+ *
+ * Exige sesión: la regla solo deja enumerar a quien la tiene.
+ */
+export const listarInvitaciones = async (
+  congId: string
+): Promise<SpeakerInvitationType[]> => {
+  const snap = await getDocs(coleccion(congId));
+
+  return snap.docs
+    .map((d) => ({ ...(d.data() as SpeakerInvitationType), token: d.id }))
+    .filter((inv) => !inv.revoked);
+};
+
 /** La invitación de una semana y un orador, si la hay. */
 export const buscarInvitacion = async (
   congId: string,
@@ -130,7 +149,55 @@ export const anularInvitacion = async (congId: string, token: string) => {
   await updateDoc(fsDoc(coleccion(congId), token), { revoked: true });
 };
 
-// ─── La cena, que es cosa de la congregación ────────────────────────────────
+/**
+ * Lo que anota la congregación cuando el orador contesta POR OTRO LADO.
+ *
+ * Casi siempre contestará por WhatsApp o por teléfono. Si lo único registrable
+ * fuera lo que él escribe en el enlace, el panel enseñaría «sin contestar» en
+ * semanas ya resueltas y no serviría de nada.
+ */
+export const anotarRespuesta = async (
+  congId: string,
+  token: string,
+  respuesta: Omit<SpeakerAnswerType, 'respondidoEl'>
+) => {
+  await updateDoc(fsDoc(coleccion(congId), token), {
+    respuesta: {
+      ...respuesta,
+      comentario: respuesta.comentario.slice(0, 300),
+      respondidoEl: new Date().toISOString(),
+    },
+  });
+};
+
+/**
+ * Deja la invitación como si nadie hubiera contestado.
+ *
+ * Anotar a mano se equivoca: se marca «viene» en la semana de al lado, o
+ * alguien lo da por confirmado de oídas. Sin esto, el único arreglo sería
+ * elegir entre dos mentiras, y «todavía no se sabe» es la verdad.
+ *
+ * Y ahora pesa más que antes: una semana sin respuesta NO gasta turno de cena,
+ * así que dejarla mal puesta descoloca la rotación de las siguientes.
+ *
+ * Se BORRA el campo en vez de guardar un hueco, para que vuelva a estar
+ * exactamente como antes de que nadie tocara nada.
+ */
+export const borrarRespuesta = async (congId: string, token: string) => {
+  await updateDoc(fsDoc(coleccion(congId), token), {
+    respuesta: deleteField(),
+  });
+};
+
+// ─── Las notas de la cena ───────────────────────────────────────────────────
+//
+// Aquí vivía también a qué FAMILIA se le asignaba. Se quitó el 2026-10-08: la
+// cena se le encarga a un GRUPO y el grupo se organiza por dentro, que es como
+// se hace de verdad. Queda la nota suelta por si hay algo que recordar.
+//
+// Sigue en una subcolección que EXIGE SESIÓN: el documento de la invitación se
+// lee sin autenticar, así que lo que se guardara allí se lo llevaría quien
+// tuviera el enlace.
 
 const docCena = (congId: string, token: string) =>
   fsDoc(
@@ -138,10 +205,6 @@ const docCena = (congId: string, token: string) =>
     `congregation/${congId}/speaker_invitations/${token}/privado/cena`
   );
 
-/**
- * Con quién cena el orador. Exige sesión por la regla de Firestore: esto no lo
- * puede leer quien abre el enlace.
- */
 export const leerCena = async (
   congId: string,
   token: string
@@ -161,48 +224,6 @@ export const guardarCena = async (
   await setDoc(docCena(congId, token), {
     ...datos,
     updatedAt: new Date().toISOString(),
-  });
-};
-
-/**
- * Lo que anota la congregación cuando el orador contesta POR OTRO LADO.
- *
- * Casi siempre contestará por WhatsApp o por teléfono, no por el enlace. Si lo
- * único que se pudiera registrar fuera lo que él escribe, el panel enseñaría
- * «sin contestar» a semanas que están resueltas, y entonces no sirve para nada.
- *
- * Esta va con sesión, así que la regla la deja escribir sin más: lo que no
- * puede tocar nadie, ni con sesión, es la caducidad ni resucitar un enlace.
- */
-export const anotarRespuesta = async (
-  congId: string,
-  token: string,
-  respuesta: Omit<SpeakerAnswerType, 'respondidoEl'>
-) => {
-  await updateDoc(fsDoc(coleccion(congId), token), {
-    respuesta: {
-      ...respuesta,
-      comentario: respuesta.comentario.slice(0, 300),
-      respondidoEl: new Date().toISOString(),
-    },
-  });
-};
-
-/**
- * Deja la invitación como si nadie hubiera contestado.
- *
- * Hace falta porque anotar a mano se equivoca: se marca «viene» en la semana de
- * al lado, o alguien lo da por confirmado de oídas. Sin esto, el único arreglo
- * sería elegir entre dos mentiras —«viene» o «no viene»—, y «todavía no se
- * sabe» es la verdad y es además lo que hay que perseguir.
- *
- * Se BORRA el campo en vez de guardar un hueco: así vuelve a estar exactamente
- * como antes de que nadie tocara nada, y el panel lo cuenta como pendiente sin
- * tener que saber de un tercer estado.
- */
-export const borrarRespuesta = async (congId: string, token: string) => {
-  await updateDoc(fsDoc(coleccion(congId), token), {
-    respuesta: deleteField(),
   });
 };
 

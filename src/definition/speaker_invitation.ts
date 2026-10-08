@@ -57,9 +57,12 @@ export type SpeakerAnswerType = {
  * nombre lo resuelve la app en el dispositivo.
  */
 export type SpeakerDinnerType = {
-  /** `person_uid` de quien acoge. Vacío = todavía sin decidir. */
-  familiaUid: string;
-  /** Lo que haga falta recordar: alergias, que recogen ellos, la hora… */
+  /**
+   * Lo que haga falta recordar: alergias, la hora, quién le lleva…
+   *
+   * Aquí hubo también a qué FAMILIA se le asignaba. Se quitó el 2026-10-08: la
+   * cena se le encarga a un GRUPO, y el grupo se organiza por dentro.
+   */
   notas: string;
   updatedAt: string;
 };

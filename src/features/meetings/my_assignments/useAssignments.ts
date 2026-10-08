@@ -33,6 +33,7 @@ import { resolveAssignmentDate } from '@utils/assignments';
 import { dbLimpiezaGetConfig } from '@services/dexie/limpieza';
 import { getMyExhibitorTurns } from '@utils/exhibitors';
 import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
+import useCenaDeMiGrupo from '@features/meetings/invitacion_orador/useCenaDeMiGrupo';
 import {
   midweekMeetingWeekdayState,
   weekendMeetingWeekdayState,
@@ -144,6 +145,15 @@ const useMyAssignments = () => {
       document.removeEventListener('visibilitychange', checkDay);
     };
   }, []);
+
+  /**
+   * La cena del orador visitante, para quien lleva el grupo al que le toca.
+   *
+   * Sus datos vienen de Firestore —como todo el módulo del orador— y no de la
+   * base de datos local, así que se piden aquí fuera y entran en el cálculo
+   * como una entrada más.
+   */
+  const { semanas: cenasDeMiGrupo } = useCenaDeMiGrupo();
 
   const isSetup = useMemo(() => {
     return userUID.length === 0;
@@ -751,6 +761,34 @@ const useMyAssignments = () => {
     };
 
     const ownAssignments = filterAssignments(userUID);
+
+    // La cena del orador entra como una asignación más, para que salga donde se
+    // mira «qué tengo yo esta semana» y no en un rincón aparte.
+    for (const cena of cenasDeMiGrupo) {
+      ownAssignments.push({
+        id: `CENA_ORADOR_${cena.weekOf}`,
+        weekOf: cena.weekOf,
+        weekOfFormatted: formatDate(new Date(cena.weekOf), shortDateFormat),
+        actualDate: cena.weekOf,
+        assignment: {
+          code: 0 as AssignmentHistoryType['assignment']['code'],
+          person: userUID,
+          key: `CENA_ORADOR_${cena.weekOf}` as AssignmentHistoryType['assignment']['key'],
+          dataView: 'main',
+          title: 'Cena con el orador visitante',
+          descItems: [
+            {
+              icon: 'clean',
+              text: cena.speakerName
+                ? `A tu grupo le toca acoger a ${cena.speakerName}${
+                    cena.comensales ? ` · ${cena.comensales} a la mesa` : ''
+                  }`
+                : 'A tu grupo le toca acoger la cena',
+            },
+          ],
+        },
+      } as AssignmentHistoryType);
+    }
     const delegateAssignments = delegateMembers.flatMap((uid) =>
       filterAssignments(uid)
     );
@@ -820,6 +858,7 @@ const useMyAssignments = () => {
     schedules,
     circuitVisits,
     dayTick,
+    cenasDeMiGrupo,
   ]);
 
   const setBadge = useSetAtom(myAssignmentsBadgeState);

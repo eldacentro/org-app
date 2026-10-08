@@ -1,20 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import AutoComplete from '@components/autocomplete';
 import Badge from '@components/badge';
 import Button from '@components/button';
 import Typography from '@components/typography';
 import TextField from '@components/textfield';
 import { IconCheckCircle, IconError } from '@components/icons';
-import { personsActiveState } from '@states/persons';
 import { fieldGroupsState } from '@states/field_service_groups';
 import { useAppTranslation } from '@hooks/index';
 import { nombreDeGrupo } from './nombreGrupo';
-import { schedulesState } from '@states/schedules';
-import { calcularGrupoReunion } from '@services/limpieza/calcularRotacion';
-import { congIDState, fullnameOptionState } from '@states/settings';
-import { buildPersonFullname } from '@utils/common';
+import { grupoDeLaSemana } from '@services/app/rotacion_cenas';
+import { congIDState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import {
   SpeakerDinnerRotationType,
@@ -29,10 +25,9 @@ import {
   guardarRotacionCenas,
   leerCena,
   leerRotacionCenas,
+  listarInvitaciones,
 } from '@services/firebase/speaker_invitations';
 import DialogRotacionCenas from './DialogRotacionCenas';
-
-type Opcion = { id: string; etiqueta: string };
 
 /**
  * LO QUE PASA CON LA INVITACIÓN DE ESTE ORADOR, en la propia semana.
@@ -57,17 +52,14 @@ const PanelInvitacion = ({
   const { t } = useAppTranslation();
 
   const congId = useAtomValue(congIDState);
-  const persons = useAtomValue(personsActiveState);
   const grupos = useAtomValue(fieldGroupsState);
-  const schedules = useAtomValue(schedulesState);
-  const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [invitacion, setInvitacion] = useState<SpeakerInvitationType | null>(
     null
   );
   const [cena, setCena] = useState<SpeakerDinnerType | null>(null);
   const [editando, setEditando] = useState(false);
-  const [familia, setFamilia] = useState<Opcion | null>(null);
+  const [historial, setHistorial] = useState<SpeakerInvitationType[]>([]);
   const [notas, setNotas] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -80,29 +72,19 @@ const PanelInvitacion = ({
   /**
    * A qué grupo le toca acoger esta semana.
    *
-   * Se usa EL MISMO motor que la rotación de Limpieza: ya sabe saltarse las
-   * semanas sin reunión y respetar un cambio puesto a mano. Un segundo motor
-   * que hiciera casi lo mismo acabaría portándose distinto justo en los bordes
-   * raros, que es donde duele.
+   * El turno lo gasta la CENA, no el calendario: si el orador no se queda, ese
+   * grupo sigue teniendo turno. Por eso hace falta el historial entero y no
+   * vale el motor de Limpieza — ver `services/app/rotacion_cenas`.
    */
-  const grupoQueToca = useMemo(() => {
-    if (!rotacion?.fechaInicio) return null;
-
-    return calcularGrupoReunion(
-      {
-        id: 'cenas',
-        updatedAt: rotacion.updatedAt,
-        fechaInicio: rotacion.fechaInicio,
-        grupoInicio: rotacion.grupoInicio,
-        gruposParticipantes: rotacion.gruposParticipantes,
-        overrides: rotacion.overrides,
-      },
-      weekOf,
-      'weekend',
-      grupos,
-      schedules
-    );
-  }, [rotacion, weekOf, grupos, schedules]);
+  const grupoQueToca = useMemo(
+    () =>
+      grupoDeLaSemana(weekOf, {
+        invitaciones: historial,
+        rotacion,
+        grupos,
+      }),
+    [weekOf, historial, rotacion, grupos]
+  );
 
   const nombreGrupo = useMemo(() => {
     if (!grupoQueToca) return '';
@@ -112,42 +94,6 @@ const PanelInvitacion = ({
       t
     );
   }, [grupoQueToca, grupos, t]);
-
-  /** Quién está en el grupo al que le toca, para ofrecerlo primero. */
-  const delGrupo = useMemo(() => {
-    if (!grupoQueToca) return new Set<string>();
-
-    const grupo = grupos.find((g) => g.group_id === grupoQueToca);
-
-    return new Set(
-      (grupo?.group_data.members ?? []).map((m) => m.person_uid)
-    );
-  }, [grupoQueToca, grupos]);
-
-  const opciones = useMemo(
-    () =>
-      persons
-        .map((person) => ({
-          id: person.person_uid,
-          etiqueta: buildPersonFullname(
-            person.person_data.person_lastname?.value ?? '',
-            person.person_data.person_firstname?.value ?? '',
-            fullnameOption
-          ),
-        }))
-        // Primero quien está en el grupo al que le toca: es a quien se va a
-        // elegir nueve de cada diez veces. Los demás siguen estando, porque
-        // alguna semana se cambia y no hay por qué pelearse con la app.
-        .sort((a, b) => {
-          const ga = delGrupo.has(a.id) ? 0 : 1;
-          const gb = delGrupo.has(b.id) ? 0 : 1;
-
-          if (ga !== gb) return ga - gb;
-
-          return a.etiqueta.localeCompare(b.etiqueta);
-        }),
-    [persons, fullnameOption, delGrupo]
-  );
 
   const cargar = useCallback(async () => {
     if (!congId || !speakerUid) {
@@ -166,22 +112,21 @@ const PanelInvitacion = ({
         return;
       }
 
-      const [laCena, laRotacion] = await Promise.all([
+      const [laCena, laRotacion, todas] = await Promise.all([
         leerCena(congId, dato.token),
         leerRotacionCenas(congId),
+        listarInvitaciones(congId),
       ]);
 
       setRotacion(laRotacion);
+      setHistorial(todas);
 
       setCena(laCena);
-      setFamilia(
-        opciones.find((record) => record.id === laCena?.familiaUid) ?? null
-      );
       setNotas(laCena?.notas ?? '');
     } catch (error) {
       console.error('No se pudo leer la invitación del orador', error);
     }
-  }, [congId, weekOf, speakerUid, opciones]);
+  }, [congId, weekOf, speakerUid]);
 
   useEffect(() => {
     cargar();
@@ -193,17 +138,14 @@ const PanelInvitacion = ({
     setGuardando(true);
 
     try {
-      await guardarCena(congId, invitacion.token, {
-        familiaUid: familia?.id ?? '',
-        notas: notas.trim(),
-      });
+      await guardarCena(congId, invitacion.token, { notas: notas.trim() });
 
       await cargar();
       setEditando(false);
 
       displaySnackNotification({
         header: 'Hecho',
-        message: 'Anotado quién le acoge.',
+        message: 'Nota guardada.',
         severity: 'success',
         icon: <IconCheckCircle color="var(--card)" />,
       });
@@ -285,11 +227,6 @@ const PanelInvitacion = ({
   if (!invitacion && !(speakerEmail && onEnviarCorreo)) return null;
 
   const respuesta = invitacion?.respuesta;
-
-  const nombreFamilia = cena?.familiaUid
-    ? (opciones.find((record) => record.id === cena.familiaUid)?.etiqueta ??
-      'Alguien que ya no está')
-    : '';
 
   return (
     <Box
@@ -441,6 +378,8 @@ const PanelInvitacion = ({
             </Button>
           </Box>
 
+          {/* La nota de la cena. A quién se le encarga es el GRUPO, de arriba:
+              dentro del grupo ya se organizan ellos, que es como se hace. */}
           {!editando && (
             <Box
               sx={{
@@ -451,41 +390,21 @@ const PanelInvitacion = ({
                 flexWrap: 'wrap',
               }}
             >
-              <Typography
-                className="body-small-regular"
-                color={nombreFamilia ? 'var(--ink)' : 'var(--orange-dark)'}
-              >
-                {nombreFamilia
-                  ? `Cena en casa de ${nombreFamilia}`
-                  : 'Todavía no hay familia que le acoja'}
+              <Typography className="label-small-regular" color="var(--ink-3)">
+                {cena?.notas || 'Sin notas'}
               </Typography>
               <Button
                 variant="small"
                 disableAutoStretch
                 onClick={() => setEditando(true)}
               >
-                {nombreFamilia ? 'Cambiar' : 'Asignar familia'}
+                {cena?.notas ? 'Cambiar nota' : 'Añadir nota'}
               </Button>
             </Box>
           )}
 
-          {!editando && cena?.notas ? (
-            <Typography className="label-small-regular" color="var(--ink-3)">
-              {cena.notas}
-            </Typography>
-          ) : null}
-
           {editando && (
             <>
-              <AutoComplete
-                fullWidth
-                label="Cena en casa de"
-                options={opciones}
-                value={familia}
-                isOptionEqualToValue={(o: Opcion, v: Opcion) => o.id === v.id}
-                getOptionLabel={(o: Opcion) => o.etiqueta}
-                onChange={(_, value: Opcion | null) => setFamilia(value)}
-              />
               <TextField
                 label="Notas (opcional)"
                 placeholder="La hora, alergias, quién le lleva…"
