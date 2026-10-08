@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { FieldServiceGroupType } from '@definition/field_service_groups';
+import { SchedWeekType } from '@definition/schedules';
+import { Week } from '@definition/week_type';
+import { SpeakerDinnerRotationType } from '@definition/speaker_invitation';
 import { grupoPorSemana } from './rotacion_cenas';
 
 const grupo = (id: string, sort_index: number) =>
@@ -10,7 +13,7 @@ const grupo = (id: string, sort_index: number) =>
 
 const GRUPOS = [grupo('g1', 0), grupo('g2', 1), grupo('g3', 2)];
 
-const ROTACION = {
+const ROTACION: SpeakerDinnerRotationType = {
   fechaInicio: '2026-11-01T00:00:00.000Z',
   grupoInicio: 'g1',
   gruposParticipantes: ['g1', 'g2', 'g3'],
@@ -115,6 +118,34 @@ describe('la rotación de cenas del orador', () => {
         grupos: [],
       }).size
     ).toBe(0);
+  });
+
+  // En la semana de la visita del superintendente el discurso lo da él: no hay
+  // orador visitante ni cena. Si gastara turno, un grupo perdería el suyo por
+  // una semana en la que no había nada que acoger.
+  it('la semana de la visita del superintendente no cuenta ni gasta turno', () => {
+    const programas = [
+      {
+        weekOf: '2026/11/08',
+        weekend_meeting: { week_type: [{ type: 'main', value: Week.CO_VISIT }] },
+      },
+    ] as unknown as SchedWeekType[];
+
+    const t = grupoPorSemana({
+      invitaciones: [
+        inv('2026/11/01', true),
+        inv('2026/11/08', true),
+        inv('2026/11/15', true),
+      ],
+      rotacion: ROTACION,
+      grupos: GRUPOS,
+      schedules: programas,
+    });
+
+    expect(t.get('2026/11/01')).toBe('g1');
+    expect(t.has('2026/11/08')).toBe(false);
+    // El turno sigue donde estaba: después del 1 va el 2, no el 3.
+    expect(t.get('2026/11/15')).toBe('g2');
   });
 
   it('un grupo borrado sale de la rotación', () => {

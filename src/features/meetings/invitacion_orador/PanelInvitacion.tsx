@@ -9,7 +9,11 @@ import { IconCheckCircle, IconError } from '@components/icons';
 import { fieldGroupsState } from '@states/field_service_groups';
 import { useAppTranslation } from '@hooks/index';
 import { nombreDeGrupo } from './nombreGrupo';
-import { grupoDeLaSemana } from '@services/app/rotacion_cenas';
+import {
+  esSemanaDeVisita,
+  grupoDeLaSemana,
+} from '@services/app/rotacion_cenas';
+import { schedulesState } from '@states/schedules';
 import { congIDState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import {
@@ -53,6 +57,7 @@ const PanelInvitacion = ({
 
   const congId = useAtomValue(congIDState);
   const grupos = useAtomValue(fieldGroupsState);
+  const schedules = useAtomValue(schedulesState);
 
   const [invitacion, setInvitacion] = useState<SpeakerInvitationType | null>(
     null
@@ -82,8 +87,9 @@ const PanelInvitacion = ({
         invitaciones: historial,
         rotacion,
         grupos,
+        schedules,
       }),
-    [weekOf, historial, rotacion, grupos]
+    [weekOf, historial, rotacion, grupos, schedules]
   );
 
   const nombreGrupo = useMemo(() => {
@@ -223,6 +229,10 @@ const PanelInvitacion = ({
       setAnotando(false);
     }
   };
+
+  // En la semana de la visita del superintendente el discurso lo da él: no hay
+  // orador visitante al que invitar, así que aquí no hay nada que enseñar.
+  if (esSemanaDeVisita(weekOf, schedules)) return null;
 
   if (!invitacion && !(speakerEmail && onEnviarCorreo)) return null;
 

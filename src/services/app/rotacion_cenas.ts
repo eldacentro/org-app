@@ -1,4 +1,6 @@
 import { FieldServiceGroupType } from '@definition/field_service_groups';
+import { SchedWeekType } from '@definition/schedules';
+import { Week } from '@definition/week_type';
 import {
   SpeakerDinnerRotationType,
   SpeakerInvitationType,
@@ -24,15 +26,24 @@ import {
  * Una semana sin contestar todavía no gasta turno: hasta que no se sabe si
  * cenan, no se sabe. Las semanas siguientes siguen enseñando ese mismo grupo,
  * que es lo honesto, y se recolocan solas en cuanto conteste.
+ *
+ * Y la SEMANA DE LA VISITA DEL SUPERINTENDENTE DE CIRCUITO queda fuera: ahí el
+ * discurso lo da él, no hay orador visitante y no hay cena que repartir. Ni sale
+ * en el panel, ni gasta turno, ni aparece en «Mis asignaciones» — si gastara
+ * turno, un grupo perdería el suyo por una semana en la que no había nada que
+ * acoger.
  */
 export const grupoPorSemana = ({
   invitaciones,
   rotacion,
   grupos,
+  schedules,
 }: {
   invitaciones: Pick<SpeakerInvitationType, 'weekOf' | 'respuesta'>[];
   rotacion: SpeakerDinnerRotationType | null;
   grupos: FieldServiceGroupType[];
+  /** Para dejar fuera la semana de la visita del superintendente. */
+  schedules?: SchedWeekType[];
 }): Map<string, string> => {
   const turnos = new Map<string, string>();
 
@@ -56,6 +67,7 @@ export const grupoPorSemana = ({
 
   const enOrden = invitaciones
     .filter((inv) => inv.weekOf && inv.weekOf >= desde)
+    .filter((inv) => !esSemanaDeVisita(inv.weekOf, schedules))
     .sort((a, b) => a.weekOf.localeCompare(b.weekOf));
 
   let indice = Math.max(0, activos.indexOf(rotacion.grupoInicio));
@@ -98,3 +110,27 @@ export const grupoDeLaSemana = (
   weekOf: string,
   datos: Parameters<typeof grupoPorSemana>[0]
 ): string | null => grupoPorSemana(datos).get(weekOf) ?? null;
+
+/**
+ * ¿Es la semana de la visita del superintendente de circuito?
+ *
+ * Ese fin de semana el discurso lo da él: no hay orador visitante al que
+ * invitar ni cena que repartir. Se mira el programa de la semana, que es donde
+ * vive el tipo de semana.
+ */
+export const esSemanaDeVisita = (
+  weekOf: string,
+  schedules?: SchedWeekType[]
+): boolean => {
+  if (!schedules?.length) return false;
+
+  const semana = schedules.find((record) => record.weekOf === weekOf);
+
+  if (!semana) return false;
+
+  return (
+    semana.weekend_meeting?.week_type?.some(
+      (record) => record.value === Week.CO_VISIT
+    ) ?? false
+  );
+};

@@ -19,6 +19,7 @@ import { publicTalksLocaleState } from '@states/public_talks';
 import { schedulesState } from '@states/schedules';
 import { congIDState } from '@states/settings';
 import { crearInvitacionOrador } from '@services/firebase/speaker_invitations';
+import { esSemanaDeVisita } from '@services/app/rotacion_cenas';
 import { sendEmailNotification } from '@services/firebase/email';
 import { displaySnackNotification } from '@services/states/app';
 import { userDataViewState } from '@states/settings';
@@ -231,6 +232,11 @@ const usePublicTalkInvitation = (
    */
   const crearEnlace = async () => {
     if (!congId || !speakerUid) return '';
+
+    // En la semana de la visita del superintendente no hay orador visitante al
+    // que invitar. Crear el enlace igualmente dejaría una invitación fantasma
+    // que además gastaría turno en la rotación de cenas.
+    if (esSemanaDeVisita(weekOf, schedules)) return '';
 
     try {
       const token = await crearInvitacionOrador(congId, {

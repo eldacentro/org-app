@@ -10,7 +10,11 @@ import {
   leerRotacionCenas,
   listarInvitaciones,
 } from '@services/firebase/speaker_invitations';
-import { grupoPorSemana } from '@services/app/rotacion_cenas';
+import {
+  esSemanaDeVisita,
+  grupoPorSemana,
+} from '@services/app/rotacion_cenas';
+import { schedulesState } from '@states/schedules';
 
 /**
  * LAS CENAS QUE LE TOCAN A MI GRUPO, para enseñárselas a quien las organiza.
@@ -29,6 +33,7 @@ const useCenaDeMiGrupo = () => {
   const congId = useAtomValue(congIDState);
   const yo = useAtomValue(userLocalUIDState);
   const grupos = useAtomValue(fieldGroupsState);
+  const schedules = useAtomValue(schedulesState);
 
   const [invitaciones, setInvitaciones] = useState<SpeakerInvitationType[]>([]);
   const [rotacion, setRotacion] = useState<SpeakerDinnerRotationType | null>(
@@ -81,10 +86,18 @@ const useCenaDeMiGrupo = () => {
   const semanas = useMemo(() => {
     if (misGrupos.size === 0) return [];
 
-    const turnos = grupoPorSemana({ invitaciones, rotacion, grupos });
+    const turnos = grupoPorSemana({
+      invitaciones,
+      rotacion,
+      grupos,
+      schedules,
+    });
 
     return invitaciones
       .filter((inv) => {
+        // La semana de la visita del superintendente no tiene orador visitante.
+        if (esSemanaDeVisita(inv.weekOf, schedules)) return false;
+
         const grupo = turnos.get(inv.weekOf);
 
         if (!grupo || !misGrupos.has(grupo)) return false;
@@ -99,7 +112,7 @@ const useCenaDeMiGrupo = () => {
         comensales: inv.respuesta?.comensales ?? 0,
         dateLocale: inv.dateLocale,
       }));
-  }, [invitaciones, rotacion, grupos, misGrupos]);
+  }, [invitaciones, rotacion, grupos, misGrupos, schedules]);
 
   return { semanas };
 };
