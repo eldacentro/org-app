@@ -8,6 +8,7 @@ import {
 } from '@states/app';
 import { congIDState, congRoleState, JWLangState } from '@states/settings';
 import { currentAuthUser } from '@services/firebase/auth';
+import { conLimite } from '@utils/con_limite';
 
 export const apiDefault = async (user?: User) => {
   const apiHost = store.get(apiHostState);
@@ -25,7 +26,14 @@ export const apiDefault = async (user?: User) => {
 
   const authUser = user || currentAuthUser();
   const userUID = authUser?.uid;
-  const idToken = authUser ? await authUser.getIdToken() : undefined;
+  // Con tope. `apiFetch` ya no deja colgada ninguna petición, pero el token se
+  // pide ANTES, aquí, y eso podía no volver nunca (Firebase atascado en su
+  // almacén del iPhone): todas las llamadas al servidor —validar la cuenta,
+  // reconectar, cerrar sesión— se quedaban esperando sin decir nada. Ver
+  // `@utils/con_limite`.
+  const idToken = authUser
+    ? await conLimite(authUser.getIdToken(), 15_000, 'getIdToken')
+    : undefined;
 
   return {
     apiHost,

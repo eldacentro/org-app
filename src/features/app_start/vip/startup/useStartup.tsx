@@ -6,6 +6,7 @@ import {
   congregationCreateStepState,
   cookiesConsentState,
   offlineOverrideState,
+  reentrarCuentaState,
   userIDState,
   vipOnboardingStepState,
 } from '@states/app';
@@ -15,6 +16,7 @@ import {
   setIsAppLoad,
   setIsSetup,
   setOfflineOverride,
+  setReentrarCuenta,
 } from '@services/states/app';
 import { getTranslation } from '@services/i18n/translation';
 import { dbAppSettingsGet } from '@services/dexie/settings';
@@ -40,6 +42,7 @@ const useStartup = () => {
   const setUserID = useSetAtom(userIDState);
 
   const isOfflineOverride = useAtomValue(offlineOverrideState);
+  const reentrar = useAtomValue(reentrarCuentaState);
   const congID = useAtomValue(congIDState);
   const cookiesConsent = useAtomValue(cookiesConsentState);
   const apiHost = useAtomValue(apiHostState);
@@ -70,6 +73,17 @@ const useStartup = () => {
 
     try {
       setIsLoading(true);
+
+      // La persona ha pulsado «Volver a entrar». Va lo PRIMERO, antes del
+      // atajo que abre la app con los datos del dispositivo: ese atajo era el
+      // que la devolvía a la app, otra vez desconectada, sin dejarle llegar
+      // nunca a la pantalla de acceso. Ver `reentrarCuentaState`.
+      if (reentrar) {
+        setIsLoading(false);
+        setIsStart(false);
+        showSignin();
+        return;
+      }
 
       // Fetch the most up-to-date settings directly from Dexie to avoid Jotai asynchronous update race conditions
       const settings = await dbAppSettingsGet();
@@ -238,6 +252,11 @@ const useStartup = () => {
         }
 
         await userSignOut();
+        // Misma pantalla que «Volver a entrar»: dice que no se ha borrado
+        // nada, deja volver a la app si ahora no se puede, y al entrar
+        // recarga para arrancar ya con sesión. Antes, tras entrar con Google
+        // aquí, el arranque ya había terminado y nadie seguía adelante.
+        setReentrarCuenta(true);
         setIsLoading(false);
         showSignin();
         return;
@@ -342,6 +361,7 @@ const useStartup = () => {
       startupRunningRef.current = false;
     }
   }, [
+    reentrar,
     isOfflineOverride,
     step,
     showSignin,
@@ -353,6 +373,32 @@ const useStartup = () => {
     user,
     congID,
   ]);
+
+  // Volver a entrar: en cuanto Google confirma la sesión, se recarga y la app
+  // arranca como siempre, ya con sesión. El arranque normal es el que sabe
+  // reponer la sesión del servidor y validar la cuenta; repetirlo aquí sería
+  // duplicar todo eso. Solo en el PASO de no tener sesión a tenerla: si al
+  // entrar aquí ya la había (cerrar sesión se atascó), recargar en el acto
+  // haría un bucle — ahí recarga el propio botón de Google.
+  const autenticadoAlReentrarRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!reentrar || isAuthLoading) {
+      autenticadoAlReentrarRef.current = null;
+      return;
+    }
+
+    // Se sigue cada cambio, no solo el primero: al entrar aquí el cierre de
+    // sesión puede no haberse reflejado todavía (sigue «con sesión» un
+    // instante), y entonces el paso a «sin sesión» y luego a «con sesión»
+    // es el que cuenta.
+    const antes = autenticadoAlReentrarRef.current;
+    autenticadoAlReentrarRef.current = isAuthenticated;
+
+    if (antes === false && isAuthenticated) {
+      window.location.reload();
+    }
+  }, [reentrar, isAuthenticated, isAuthLoading]);
 
   // Reactively show the email-link-auth screen whenever the URL carries a
   // pending ?code= param. Doesn't reset back to 'none' when the param is

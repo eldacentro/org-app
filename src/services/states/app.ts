@@ -9,6 +9,7 @@ import {
   appSeverityState,
   appSnackOpenState,
   congAccountConnectedState,
+  reentrarCuentaState,
   isAccountChooseState,
   isAppLoadState,
   isEmailBlockedState,
@@ -135,6 +136,10 @@ export const setIsSetup = (value: boolean) => {
 
 export const setCongAccountConnected = (value: boolean) => {
   store.set(congAccountConnectedState, value);
+};
+
+export const setReentrarCuenta = (value: boolean) => {
+  store.set(reentrarCuentaState, value);
 };
 
 export const setIsAppLoad = (value: boolean) => {

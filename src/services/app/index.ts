@@ -65,6 +65,7 @@ import { settingSchema } from '@services/dexie/schema';
 import { dbUpcomingEventsCleanup } from '@services/dexie/upcoming_events';
 import appDb from '@db/appDb';
 import { dbSpeakersCongregationsSetName } from '@services/dexie/speakers_congregations';
+import { conLimite, intentarConLimite } from '@utils/con_limite';
 
 export const loadApp = () => {
   const appLang = store.get(appLangState);
@@ -97,7 +98,8 @@ export const runUpdater = async () => {
   const lastLang = localStorage.getItem('last_run_updater_lang') || '';
   const lastVersion = localStorage.getItem('last_run_updater_version') || '';
 
-  const needsStaticUpdate = currentLang !== lastLang || currentVersion !== lastVersion;
+  const needsStaticUpdate =
+    currentLang !== lastLang || currentVersion !== lastVersion;
 
   if (needsStaticUpdate) {
     // Las cuatro tablas derivadas se rehacen leyendo TODOS los idiomas de la
@@ -154,11 +156,109 @@ export const runUpdater = async () => {
   ]);
 };
 
+/**
+ * Borra una base IndexedDB sin esperar más de la cuenta.
+ *
+ * `deleteDatabase` no termina mientras alguien la tenga abierta (Firebase,
+ * el sincronizador, otra pestaña): se queda «bloqueada» hasta que la cierran.
+ * Se pide y se espera un poco; si sigue bloqueada, la petición queda en cola
+ * en el navegador y se completa al cerrarse la página, que es justo lo que
+ * viene después.
+ */
+const borrarBaseIndexedDB = (nombre: string) =>
+  new Promise<void>((resolve) => {
+    try {
+      const peticion = indexedDB.deleteDatabase(nombre);
+      peticion.onsuccess = () => resolve();
+      peticion.onerror = () => resolve();
+      peticion.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
 
-export const handleDeleteDatabase = async () => {
+/**
+ * Lo que hace borrar la app de la pantalla de inicio y volver a instalarla,
+ * pero desde dentro.
+ *
+ * Era el último recurso que acababa usando la gente cuando cerrar sesión no
+ * servía: el cierre de sesión borraba los datos de la congregación, pero se
+ * dejaba la sesión de Google guardada por Firebase, la caché de Firestore,
+ * las claves guardadas en el dispositivo y la propia app en caché. Si lo que
+ * estaba roto era cualquiera de esas cosas, al volver a entrar seguía roto.
+ *
+ * La app en caché (service worker) solo se borra CON internet: sin él, la
+ * página no podría volver a cargarse hasta tener cobertura.
+ */
+const limpiarTodoElDispositivo = async () => {
+  const nombres = new Set<string>([
+    'firebaseLocalStorageDb',
+    'firebase-heartbeat-database',
+    'firebase-installations-database',
+    'firebase-messaging-database',
+  ]);
+
+  try {
+    // Safari 14+, Chrome 71+. Donde no exista, quedan los de arriba.
+    const todas = await conLimite(indexedDB.databases(), 2_000, 'databases');
+    for (const db of todas) if (db.name) nombres.add(db.name);
+  } catch {
+    // Seguimos con la lista conocida.
+  }
+
+  nombres.delete('organized'); // ya la borra `dbAppDelete`
+
+  await intentarConLimite(
+    Promise.all([...nombres].map(borrarBaseIndexedDB)),
+    3_000,
+    'borrar bases'
+  );
+
+  try {
+    sessionStorage.clear();
+  } catch {
+    // Sin almacén de sesión no hay nada que limpiar.
+  }
+
+  if (!navigator.onLine) return;
+
+  await intentarConLimite(
+    (async () => {
+      if ('caches' in window) {
+        const claves = await caches.keys();
+        await Promise.all(claves.map((clave) => caches.delete(clave)));
+      }
+
+      if ('serviceWorker' in navigator) {
+        const registros = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registros.map((registro) => registro.unregister()));
+      }
+    })(),
+    3_000,
+    'borrar la app en caché'
+  );
+};
+
+/**
+ * Borra lo de la congregación de este dispositivo y cierra la sesión.
+ *
+ * Cada paso tiene tope: antes cualquiera podía no volver (Dexie esperando a
+ * que el sincronizador soltara la base, Firebase atascado en su almacén) y la
+ * pantalla se quedaba con el «espere» para siempre. Pase lo que pase, se
+ * termina recargando, que es lo que de verdad cierra todo lo abierto.
+ *
+ * `limpiezaCompleta` es para el cierre de sesión que pide la persona: deja el
+ * dispositivo como recién instalado. Los borrados automáticos (la cuenta ya no
+ * existe, cambió de congregación) no lo necesitan.
+ */
+export const handleDeleteDatabase = async ({
+  limpiezaCompleta = false,
+}: { limpiezaCompleta?: boolean } = {}) => {
   setRootModalOpen(true);
-  await dbAppDelete();
-  await userSignOut();
+  await intentarConLimite(dbAppDelete(), 5_000, 'dbAppDelete');
+  await intentarConLimite(userSignOut(), 4_000, 'signOut');
+
+  if (limpiezaCompleta) await limpiarTodoElDispositivo();
 
   const freezeKeys = [
     'userConsent',

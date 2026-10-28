@@ -26,7 +26,7 @@ import {
   IconHome,
   IconSynced,
 } from '@icons/index';
-import { useAppTranslation, useFirebaseAuth } from '@hooks/index';
+import { useAppTranslation } from '@hooks/index';
 
 import { NavBarType } from './index.types';
 import useNavbar from './useNavbar';
@@ -94,8 +94,6 @@ const NavBar = ({ isSupported }: NavBarType) => {
   const { t } = useAppTranslation();
   const theme = useTheme();
 
-  const { isAuthenticated } = useFirebaseAuth();
-
   const {
     anchorEl,
     handleCloseMore,
@@ -114,6 +112,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
     handleGoDashboard,
     isAppLoad,
     handleReconnectAccount,
+    reconectando,
     handleOpenRealApp,
     handleBack,
     tablet600Up,
@@ -606,6 +605,7 @@ const NavBar = ({ isSupported }: NavBarType) => {
                                   disableRipple
                                   sx={menuStyle}
                                   onClick={handleReconnectAccount}
+                                  disabled={reconectando}
                                 >
                                   <ListItemIcon
                                     sx={{
@@ -619,13 +619,20 @@ const NavBar = ({ isSupported }: NavBarType) => {
                                   </ListItemIcon>
                                   <ListItemText>
                                     <Typography className="body-regular">
-                                      {t('tr_reconnectAccount')}
+                                      {reconectando
+                                        ? 'Reconectando…'
+                                        : t('tr_reconnectAccount')}
                                     </Typography>
                                   </ListItemText>
                                 </MenuItem>
                               )}
 
-                            {isAuthenticated && (
+                            {/* Siempre que haya una cuenta en el dispositivo. Antes
+                                exigía sesión de Google viva, así que se
+                                escondía justo cuando más falta hacía: con la
+                                sesión perdida, la cuenta en rojo y nada más
+                                que tocar en este menú. */}
+                            {!isTest && !isAppLoad && (
                               <MenuItem
                                 disableRipple
                                 sx={menuStyle}

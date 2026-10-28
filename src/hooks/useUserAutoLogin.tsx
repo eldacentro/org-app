@@ -159,6 +159,12 @@ const useUserAutoLogin = () => {
           });
 
           await userSignOut();
+          // Sin sesión no hay conexión. Antes la bandera se quedaba en
+          // «conectada»: el icono seguía bien, la sincronización fallaba por
+          // detrás y no salía ningún aviso. Ahora sale el aviso de cuenta
+          // desconectada con «Volver a entrar», que lleva a la pantalla de
+          // acceso sin borrar nada.
+          setCongConnected(false);
           return;
         }
 

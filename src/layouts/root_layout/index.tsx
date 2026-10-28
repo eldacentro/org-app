@@ -15,6 +15,7 @@ import AppFeedback from '@features/app_feedback';
 import AppReminders from '@features/reminders';
 import AppUpdater from '@features/app_updater';
 import Contact from '@features/contact';
+import AvisoCuentaDesconectada from '@features/cuenta_desconectada';
 import DashboardSkeletonLoader from '@features/dashboard/skeleton_loader';
 import DemoNotice from '@features/demo/notice';
 import DemoStartup from '@features/demo/start';
@@ -125,6 +126,11 @@ const RootLayout = ({ updatePwa }: { updatePwa: VoidFunction }) => {
                 {isOpenContact && <Contact />}
                 {isOpenAbout && <About updatePwa={updatePwa} />}
                 {isOpenSupport && <Support />}
+
+                {/* En TODAS las pantallas, no solo en el Inicio: quien está
+                    rellenando su informe o editando un programa es justo quien
+                    tiene que saber que eso no está llegando a nadie. */}
+                <AvisoCuentaDesconectada />
 
                 <Suspense
                   fallback={

@@ -13,6 +13,7 @@ import {
 import { getTranslation } from '@services/i18n/translation';
 import { dbAppSettingsSaveProfilePic } from '@services/dexie/settings';
 import worker from '@services/worker/backupWorker';
+import { conLimite } from '@utils/con_limite';
 
 type AuthState = {
   isAuthenticated: boolean;
@@ -45,17 +46,51 @@ const setAuthState = (patch: Partial<AuthState>) => {
   emit();
 };
 
+/**
+ * Manda el token al sincronizador sin hacer esperar a nadie.
+ *
+ * El worker no sabe pedirse un token por su cuenta. Pero conseguirlo puede
+ * tardar —o no volver—: si el que hay caducó, Firebase va a la red a por uno
+ * nuevo, y en el iPhone, tras un rato en segundo plano, puede quedarse
+ * atascado en su almacén. Por eso va siempre aparte y con tope.
+ */
+const mandarTokenAlWorker = (user: User) => {
+  conLimite(user.getIdToken(), 15_000, 'token para el worker')
+    .then((value) => worker.postMessage({ field: 'idToken', value }))
+    // Sin red no se puede refrescar; el ciclo de sync ya sabe recuperarse.
+    .catch((error) => console.error('Firebase token refresh error:', error));
+};
+
 const initAuthOnce = () => {
   if (initialized) return;
   initialized = true;
 
   const auth = getAuth();
 
+  // RED DE SEGURIDAD DEL ARRANQUE. El arranque espera a que Firebase diga si
+  // hay sesión (`loading`), y eso depende de leer su almacén. Si esa lectura
+  // no vuelve, la app se quedaba en el cargador PARA SIEMPRE, y lo único que
+  // lo arreglaba era borrar la app de la pantalla de inicio y volver a
+  // instalarla. A los 10 s se deja de esperar con lo que se sepa: los datos
+  // del dispositivo ya permiten abrir, y si luego Firebase contesta, el estado
+  // se corrige solo.
+  setTimeout(() => {
+    if (!authState.loading) return;
+    console.error('Firebase auth: sin respuesta en 10 s, se abre sin esperar');
+    const user = auth.currentUser;
+    setAuthState({
+      user: user ?? undefined,
+      isAuthenticated: Boolean(user),
+      loading: false,
+    });
+  }, 10_000);
+
   const start = async () => {
     try {
       // Resolve any pending redirect ONCE for the whole app (crucial for mobile
       // login). Blocks `loading` from clearing before the redirect is processed.
-      await getRedirectResult(auth);
+      // Con tope: es una lectura del almacén, y ver arriba.
+      await conLimite(getRedirectResult(auth), 8_000, 'getRedirectResult');
     } catch (error) {
       console.error('Firebase redirect error:', error);
     }
@@ -71,27 +106,23 @@ const initAuthOnce = () => {
     //
     // `onIdTokenChanged` sí salta en cada renovación, unos cinco minutos antes
     // de que caduque. Con esto el worker nunca llega a usar uno vencido.
-    onIdTokenChanged(auth, async (currentUser: User | null) => {
+    onIdTokenChanged(auth, (currentUser: User | null) => {
       if (!currentUser) return;
-
-      try {
-        worker.postMessage({
-          field: 'idToken',
-          value: await currentUser.getIdToken(),
-        });
-      } catch (error) {
-        // Sin red no se puede refrescar; el ciclo de sync ya sabe recuperarse.
-        console.error('Firebase token refresh error:', error);
-      }
+      mandarTokenAlWorker(currentUser);
     });
 
-    onAuthStateChanged(auth, async (currentUser: User | null) => {
+    onAuthStateChanged(auth, (currentUser: User | null) => {
       try {
         if (currentUser) {
-          worker.postMessage({
-            field: 'idToken',
-            value: await currentUser.getIdToken(),
-          });
+          // ANTES aquí se ESPERABA al token antes de decir que había sesión.
+          // Si al abrir la app el token había caducado y no había buena
+          // cobertura —el iPhone recién despertado, saliendo del wifi—, pedirlo
+          // fallaba, se saltaba al `catch` de abajo y la sesión quedaba como
+          // «no hay» durante TODA la visita: sin validar la cuenta, sin
+          // reconexión automática, con el icono en rojo y sin forma de salir de
+          // ahí más que cerrando la app. Que haya sesión no depende del token:
+          // el usuario ya está. El token va aparte y sin hacer esperar.
+          mandarTokenAlWorker(currentUser);
 
           if (currentUser.providerData.length > 1) {
             displaySnackNotification({

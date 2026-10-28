@@ -105,6 +105,8 @@ const useAutoReconnect = () => {
         }
       }
 
+      const inicio = Date.now();
+
       await queryClient.invalidateQueries({ queryKey: [queryKey] });
 
       // La consulta ya trae la respuesta buena; leerla del caché evita
@@ -112,9 +114,17 @@ const useAutoReconnect = () => {
       // (react-query reutiliza la referencia cuando el resultado es idéntico,
       // y entonces ese efecto no corre). Solo se toca la bandera de conexión:
       // del resto —roles, congregación, borrados— sigue encargándose él.
-      const data = queryClient.getQueryData<{ status: number }>([queryKey]);
+      //
+      // Pero tiene que ser la respuesta de AHORA. Si la petición de este
+      // intento falla (sin red, el servidor caído), react-query conserva el
+      // último dato bueno —el 200 de hace horas— y leerlo sin más marcaba la
+      // cuenta como conectada sin estarlo: el icono se ponía bien, la
+      // sincronización fallaba por detrás y nadie se enteraba.
+      const estado = queryClient.getQueryState<{ status: number }>([queryKey]);
+      const fresca =
+        estado?.status === 'success' && estado.dataUpdatedAt >= inicio;
 
-      if (data?.status === 200) {
+      if (fresca && estado.data?.status === 200) {
         setCongAccountConnected(true);
         worker.postMessage('startWorker');
       }

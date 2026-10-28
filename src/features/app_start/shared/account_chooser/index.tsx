@@ -1,4 +1,7 @@
 import { Box, Button, Fade } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import { reentrarCuentaState } from '@states/app';
+import AppButton from '@components/button';
 import IconLoading from '@components/icon_loading';
 import { IconError, IconGoogle } from '@icons/index';
 import useAccountChooser from './useAccountChooser';
@@ -15,6 +18,11 @@ const AccountChooser = () => {
     variant,
     hideMessage,
   } = useAccountChooser();
+
+  // Se llega aquí desde «Volver a entrar», con la app ya instalada y sus
+  // datos en el dispositivo: el saludo de bienvenida no pega, y hay que dejar
+  // claro que no se ha perdido nada — y una salida si ahora no puede.
+  const reentrar = useAtomValue(reentrarCuentaState);
 
   return (
     <Box
@@ -34,7 +42,7 @@ const AccountChooser = () => {
           // cuatro píxeles y tampoco se aplicaba.
           sx={{ fontWeight: 800, lineHeight: 1.2 }}
         >
-          Bienvenido a Elda Centro
+          {reentrar ? 'Vuelve a entrar' : 'Bienvenido a Elda Centro'}
         </Typography>
         <Typography
           className="body-regular"
@@ -45,8 +53,9 @@ const AccountChooser = () => {
             maxWidth: '380px',
           }}
         >
-          Inicia sesión con tu cuenta para acceder a los programas, asignaciones
-          y predicación.
+          {reentrar
+            ? 'La sesión de este dispositivo se había cerrado. Entra con la misma cuenta de Google de siempre: no se ha borrado nada y lo encontrarás todo igual.'
+            : 'Inicia sesión con tu cuenta para acceder a los programas, asignaciones y predicación.'}
         </Typography>
       </Box>
 
@@ -101,12 +110,24 @@ const AccountChooser = () => {
         </Button>
       </Box>
 
-      <Typography
-        className="body-small-regular"
-        sx={{ fontSize: '12px', marginTop: '8px', color: 'var(--grey-300)' }}
-      >
-        ¿No tienes acceso? Habla con un anciano
-      </Typography>
+      {reentrar ? (
+        // Recargar devuelve a la app con lo que hay en el dispositivo: la
+        // marca de «volver a entrar» vive solo en memoria y se olvida.
+        <AppButton
+          variant="tertiary"
+          onClick={() => window.location.reload()}
+          disabled={isAuthProcessing}
+        >
+          Ahora no, volver a la aplicación
+        </AppButton>
+      ) : (
+        <Typography
+          className="body-small-regular"
+          sx={{ fontSize: '12px', marginTop: '8px', color: 'var(--grey-300)' }}
+        >
+          ¿No tienes acceso? Habla con un anciano
+        </Typography>
+      )}
 
       <Fade in={isVisible} unmountOnExit timeout={150}>
         <Box>

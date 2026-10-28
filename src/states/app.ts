@@ -368,6 +368,47 @@ export const appMessageIconState = atom<ReactElement>(null as ReactElement);
 
 export const congAccountConnectedState = atom(false);
 
+/**
+ * La persona ha pedido VOLVER A ENTRAR con su cuenta.
+ *
+ * El arranque abre la app directamente cuando el dispositivo tiene datos y
+ * claves, sin pasar por la pantalla de acceso —es lo que deja usarla sin
+ * cobertura—. Pero eso hacía imposible volver a entrar cuando la sesión se
+ * perdía: el botón llevaba al arranque, el arranque veía datos y devolvía a la
+ * app, otra vez desconectada. Con esto el arranque enseña la pantalla de
+ * acceso aunque haya datos. Vive solo en memoria: al recargar se olvida, y la
+ * app vuelve a abrir como siempre.
+ */
+export const reentrarCuentaState = atom(false);
+
+/**
+ * Cómo acabó el último intento de reconectar a mano.
+ *
+ * - `conectada`: hecho.
+ * - `sin_red`: el dispositivo no tiene internet.
+ * - `servidor`: el servidor no contesta bien; no es cosa de la cuenta.
+ * - `reentrar`: la sesión de este dispositivo ya no vale; hay que volver a
+ *   entrar con la cuenta (sin borrar nada).
+ * - `vinculo`: cuenta sin Google (pocket) cuyo dispositivo ya no está
+ *   vinculado; hace falta un código nuevo.
+ * - `atascada`: el propio navegador no contesta (el almacén del iPhone tras
+ *   un rato en segundo plano); se arregla recargando.
+ */
+export type ResultadoReconexion =
+  | 'conectada'
+  | 'sin_red'
+  | 'servidor'
+  | 'reentrar'
+  | 'vinculo'
+  | 'atascada';
+
+export const reconexionState = atom<{
+  intentando: boolean;
+  resultado: ResultadoReconexion | null;
+  /** Intentos a mano seguidos sin éxito. */
+  fallos: number;
+}>({ intentando: false, resultado: null, fallos: 0 });
+
 export const themeOptionsState = atom((get) => {
   const isLight = get(isDarkThemeState);
 
