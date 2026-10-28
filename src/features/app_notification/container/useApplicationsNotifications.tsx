@@ -1,12 +1,16 @@
 import { useEffect, useMemo } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
-import { applicationsNewState } from '@states/persons';
+import { applicationsNewState, personsState } from '@states/persons';
 import {
   applicationsSeenState,
   notificationsState,
 } from '@states/notification';
-import { pruneSeenApplications } from '@services/app/applications_seen';
+import { congRoleState } from '@states/settings';
+import {
+  pruneSeenApplications,
+  solicitudesQueAvisan,
+} from '@services/app/applications_seen';
 import { PioneerApplicationNotificationType } from '@definition/notification';
 
 /**
@@ -27,6 +31,12 @@ import { PioneerApplicationNotificationType } from '@definition/notification';
  *   solicitud, así que el aviso solo sería ruido.
  * - El aviso se retira en cuanto se ABRE la solicitud, aunque siga pendiente
  *   de aprobar: ya está vista, y sigue en su página, que es donde se atiende.
+ *   También se puede quitar del aviso sin abrirla.
+ *
+ * Y no avisa de lo que ya está resuelto para quien mira —su parte hecha, los
+ * meses pasados, el hermano ya apuntado como auxiliar—: ver
+ * `solicitudesQueAvisan`. Sin eso, cada vez que alguien volvía a entrar en su
+ * cuenta le salían otra vez todas.
  */
 const useApplicationsNotifications = () => {
   const { t } = useAppTranslation();
@@ -36,6 +46,8 @@ const useApplicationsNotifications = () => {
   const setNotifications = useSetAtom(notificationsState);
 
   const applications = useAtomValue(applicationsNewState);
+  const persons = useAtomValue(personsState);
+  const congRole = useAtomValue(congRoleState);
   const [seen, setSeen] = useAtom(applicationsSeenState);
 
   const pendingIds = useMemo(() => {
@@ -51,16 +63,17 @@ const useApplicationsNotifications = () => {
   }, [pendingIds, setSeen]);
 
   const entries = useMemo(() => {
-    const seenIds = new Set(seen);
-
-    return applications
-      .filter((record) => !seenIds.has(record.request_id))
-      .map((record) => ({
-        request_id: record.request_id,
-        person_uid: record.person_uid,
-        months: record.months ?? [],
-      }));
-  }, [applications, seen]);
+    return solicitudesQueAvisan({
+      solicitudes: applications,
+      vistas: seen,
+      misPapeles: congRole,
+      personas: persons,
+    }).map((record) => ({
+      request_id: record.request_id,
+      person_uid: record.person_uid,
+      months: record.months ?? [],
+    }));
+  }, [applications, seen, congRole, persons]);
 
   const lastSubmitted = useMemo(() => {
     if (entries.length === 0) return '';

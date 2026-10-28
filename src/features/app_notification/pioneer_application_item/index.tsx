@@ -5,6 +5,8 @@ import { PioneerApplicationEntry } from '@definition/notification';
 import { personsState } from '@states/persons';
 import { fullnameOptionState } from '@states/settings';
 import { isAppNotificationOpenState, monthNamesState } from '@states/app';
+import { applicationsSeenState } from '@states/notification';
+import { markApplicationSeen } from '@services/app/applications_seen';
 import { buildPersonFullname, capitalizarPrimera } from '@utils/common';
 import { groupConsecutiveMonths } from '@utils/date';
 import Typography from '@components/typography';
@@ -23,6 +25,7 @@ const PioneerApplicationItem = ({
   const monthNames = useAtomValue(monthNamesState);
 
   const setOpen = useSetAtom(isAppNotificationOpenState);
+  const setSeen = useSetAtom(applicationsSeenState);
   const navigate = useNavigate();
 
   const person = persons.find((p) => p.person_uid === entry.person_uid);
@@ -56,6 +59,13 @@ const PioneerApplicationItem = ({
     navigate(`/pioneer-applications/${entry.request_id}`);
   };
 
+  // Quitarla del aviso sin abrirla: para la que ya se ha resuelto por otro
+  // camino, o la que se atenderá más tarde desde su página. La solicitud no
+  // se toca; solo deja de salir aquí, en este dispositivo.
+  const handleDismiss = () => {
+    setSeen(markApplicationSeen(entry.request_id));
+  };
+
   return (
     <Box
       sx={{
@@ -81,7 +91,13 @@ const PioneerApplicationItem = ({
           )}
         </Stack>
 
-        <Stack direction="row" justifyContent="flex-start" sx={{ mt: 1 }}>
+        <Stack
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="center"
+          spacing={1}
+          sx={{ mt: 1 }}
+        >
           <Button
             variant="main"
             onClick={handleOpenApplication}
@@ -104,6 +120,31 @@ const PioneerApplicationItem = ({
           >
             Ver solicitud
           </Button>
+          <Box
+            component="button"
+            type="button"
+            onClick={handleDismiss}
+            sx={{
+              border: 'none',
+              background: 'none',
+              padding: '8px 4px',
+              cursor: 'pointer',
+              font: 'inherit',
+              whiteSpace: 'nowrap',
+              '&:focus-visible': {
+                outline: '2px solid var(--accent-main)',
+                outlineOffset: '2px',
+                borderRadius: 'var(--shape-xs)',
+              },
+            }}
+          >
+            <Typography
+              className="body-small-semibold"
+              color="var(--accent-dark)"
+            >
+              Quitar aviso
+            </Typography>
+          </Box>
         </Stack>
       </Stack>
     </Box>

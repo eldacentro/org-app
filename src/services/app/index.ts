@@ -66,6 +66,7 @@ import { dbUpcomingEventsCleanup } from '@services/dexie/upcoming_events';
 import appDb from '@db/appDb';
 import { dbSpeakersCongregationsSetName } from '@services/dexie/speakers_congregations';
 import { conLimite, intentarConLimite } from '@utils/con_limite';
+import { AP_APPLICATIONS_SEEN_KEY } from '@services/app/applications_seen';
 
 export const loadApp = () => {
   const appLang = store.get(appLangState);
@@ -266,6 +267,10 @@ export const handleDeleteDatabase = async ({
     'theme',
     'app_font',
     'ui_lang',
+    // Qué solicitudes de precursor auxiliar ya se vieron o se quitaron del
+    // aviso. Son solo identificadores, nada de la congregación; borrarlos
+    // hacía que al volver a entrar en la cuenta salieran otra vez todas.
+    AP_APPLICATIONS_SEEN_KEY,
   ];
 
   const storageKeys = Object.keys(localStorage).filter(
