@@ -11,6 +11,7 @@ import Badge from '@components/badge';
 import FilterChip from '@components/filter_chip';
 import PanelToolbar, { RielChips } from '@components/panel_toolbar';
 import { IconDelete } from '@components/icons';
+import SegmentedControl from '@components/segmented_control';
 import {
   TerritoryCard,
   EstadoBadge,
@@ -30,6 +31,7 @@ import {
   TerritoryZone,
 } from '@definition/territories';
 import {
+  cambiarEstadoAsignacion,
   deleteAssignment,
   updateAssignmentNote,
   TERRITORY_NO_KEY_MESSAGE,
@@ -45,6 +47,29 @@ import { usePersonName } from '@features/territories/usePersonName';
 
 type Filter = 'all' | 'assigned' | 'unassigned';
 
+/**
+ * Cómo se entregó, a la vista en cada fila.
+ *
+ * No se veía en ningún sitio de esta pestaña: una devolución sin trabajar y
+ * una entrega trabajada salían iguales, con sus dos fechas y nada más. Así
+ * que nadie podía darse cuenta de que el hermano se había equivocado de
+ * botón, que es justo lo que hay que poder ver para corregirlo.
+ */
+const EstadoEntrega = ({ a }: { a: TerritoryAssignment }) => {
+  if (!a.returnedAt) return null;
+  // La campaña se cerró sola y el hermano aún no ha dicho si lo trabajó:
+  // está guardada como "sin trabajar" a la espera, pero decirlo así sería
+  // dar por hecho lo que todavía no se sabe.
+  if (a.cierrePendiente) {
+    return <Badge size="small" color="orange" text="Sin confirmar" />;
+  }
+  return a.status === 'trabajado' ? (
+    <Badge size="small" color="green" text="Trabajado" />
+  ) : (
+    <Badge size="small" color="grey" text="Sin trabajar" />
+  );
+};
+
 type Props = {
   onView: (t: Territory) => void;
   onAsignar: (t: Territory) => void;
@@ -59,7 +84,7 @@ const TerritoryAssignmentCard = ({
   onView,
   onAsignar,
   onEntregar,
-  onEditNote,
+  onEdit,
   onDelete,
   resolveName,
   dateFormat,
@@ -72,7 +97,7 @@ const TerritoryAssignmentCard = ({
   onView: (t: Territory) => void;
   onAsignar: (t: Territory) => void;
   onEntregar: (a: TerritoryAssignment) => void;
-  onEditNote: (a: TerritoryAssignment) => void;
+  onEdit: (a: TerritoryAssignment) => void;
   onDelete: (a: TerritoryAssignment) => void;
   resolveName: (uid: string) => string;
   dateFormat: string;
@@ -162,6 +187,7 @@ const TerritoryAssignmentCard = ({
                 {activeOrLatest.isCampaign && (
                   <Badge size="small" color="accent" text="Campaña" />
                 )}
+                <EstadoEntrega a={activeOrLatest} />
                 {/* Que lo tenga compartido con otro hermano durante la salida
                     no es una asignación ni cuenta para nada —el territorio
                     sigue siendo de quien lo tiene, y en el S-13 y el
@@ -200,9 +226,9 @@ const TerritoryAssignmentCard = ({
               <Button
                 variant="tertiary"
                 disableAutoStretch
-                onClick={() => onEditNote(activeOrLatest)}
+                onClick={() => onEdit(activeOrLatest)}
               >
-                Nota
+                Editar
               </Button>
               <Button
                 variant="small"
@@ -261,6 +287,7 @@ const TerritoryAssignmentCard = ({
                           {a.isCampaign && (
                             <Badge size="small" color="accent" text="Campaña" />
                           )}
+                          <EstadoEntrega a={a} />
                         </Stack>
                         <Typography
                           className="label-small-regular"
@@ -278,9 +305,9 @@ const TerritoryAssignmentCard = ({
                         <Button
                           variant="small"
                           disableAutoStretch
-                          onClick={() => onEditNote(a)}
+                          onClick={() => onEdit(a)}
                         >
-                          Nota
+                          Editar
                         </Button>
                         <Button
                           variant="small"
@@ -328,56 +355,97 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
   const [search, setSearch] = useState('');
   const { confirm, ConfirmDialogNode } = useConfirm();
 
-  // ── Diálogo de edición de nota ──────────────────────────────────────────────
+  // ── Diálogo de edición de la asignación ───────────────────────────────────
+  // Antes solo se podía tocar la nota. Ahora también CÓMO se entregó, que es
+  // lo que de verdad hay que corregir cuando el hermano pulsa el botón que no
+  // era: lo devolvió "sin trabajar" habiéndolo trabajado, y el territorio se
+  // quedaba sin su fecha, fuera de "En descanso" y mal en el S-13.
   const [editTarget, setEditTarget] = useState<TerritoryAssignment | null>(
     null
   );
   const [noteValue, setNoteValue] = useState('');
+  const [statusValue, setStatusValue] = useState<'trabajado' | 'no_trabajado'>(
+    'trabajado'
+  );
   const noteRef = useRef<HTMLInputElement>(null);
 
-  const openNoteDialog = (a: TerritoryAssignment) => {
+  const openEditDialog = (a: TerritoryAssignment) => {
     setEditTarget(a);
     // Si la nota vino cifrada y aquí no se puede descifrar, NO se carga
     // en el campo: volver a guardarla la cifraría por segunda vez y
     // quedaría ilegible para todos.
     setNoteValue(isStillEncrypted(a.notas) ? '' : (a.notas ?? ''));
+    setStatusValue(a.status === 'trabajado' ? 'trabajado' : 'no_trabajado');
   };
 
-  const closeNoteDialog = () => setEditTarget(null);
+  const closeEditDialog = () => setEditTarget(null);
 
-  const [savingNote, setSavingNote] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
   /** La nota actual está cifrada y no se puede leer aquí: se bloquea la
    *  edición para no sobrescribirla ni cifrarla dos veces. */
   const noteLocked = isStillEncrypted(editTarget?.notas);
 
-  const saveNote = async () => {
+  // Qué ha cambiado de verdad. Guardar sin cambios no escribe nada, y con
+  // la nota bloqueada sigue pudiéndose corregir el estado.
+  const cambiaEstado = Boolean(
+    editTarget?.returnedAt &&
+    // Una de fin de campaña pendiente se guarda como "sin trabajar" a la
+    // espera: confirmarla como tal también es una respuesta.
+    (statusValue !== editTarget.status || editTarget.cierrePendiente)
+  );
+  const cambiaNota =
+    !noteLocked &&
+    Boolean(editTarget) &&
+    noteValue.trim() !== (editTarget?.notas ?? '').trim();
+
+  const saveEdit = async () => {
     if (!editTarget) return;
-    setSavingNote(true);
+    if (!cambiaEstado && !cambiaNota) {
+      closeEditDialog();
+      return;
+    }
+    setSavingEdit(true);
     try {
-      await updateAssignmentNote(
-        congId,
-        editTarget.id,
-        noteValue.trim() || undefined,
-        masterKey ?? ''
-      );
+      if (cambiaEstado) {
+        const territory =
+          territories.find((t) => t.id === editTarget.territoryId) ?? null;
+        await cambiarEstadoAsignacion(
+          congId,
+          editTarget,
+          statusValue,
+          territory
+        );
+      }
+      if (cambiaNota) {
+        await updateAssignmentNote(
+          congId,
+          editTarget.id,
+          noteValue.trim() || undefined,
+          masterKey ?? ''
+        );
+      }
       displaySnackNotification({
         severity: 'success',
-        header: 'Nota guardada',
-        message: 'La nota ha sido guardada correctamente.',
+        header: 'Asignación corregida',
+        message: cambiaEstado
+          ? statusValue === 'trabajado'
+            ? 'Ahora consta como trabajado, y el territorio cuenta esa fecha.'
+            : 'Ahora consta como sin trabajar.'
+          : 'La nota se ha guardado.',
       });
-      closeNoteDialog();
+      closeEditDialog();
     } catch (err) {
       console.error(err);
       displaySnackNotification({
         severity: 'error',
-        header: 'Error',
+        header: 'No se pudo guardar',
         message:
           (err as Error)?.message === TERRITORY_NO_KEY_MESSAGE
             ? 'Esa nota se guarda cifrada y en este dispositivo falta la llave maestra. Pídesela a un anciano y vuelve a entrar.'
-            : 'No se pudo guardar la nota.',
+            : 'Comprueba la conexión e inténtalo otra vez.',
       });
     } finally {
-      setSavingNote(false);
+      setSavingEdit(false);
     }
   };
   // ───────────────────────────────────────────────────────────────────────────
@@ -419,7 +487,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
     }
   };
 
-  const handleEditNote = (a: TerritoryAssignment) => openNoteDialog(a);
+  const handleEdit = (a: TerritoryAssignment) => openEditDialog(a);
 
   const byZone = useMemo(() => {
     const lower = search.trim().toLowerCase();
@@ -536,7 +604,7 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
                   onView={onView}
                   onAsignar={onAsignar}
                   onEntregar={onEntregar}
-                  onEditNote={handleEditNote}
+                  onEdit={handleEdit}
                   onDelete={handleDelete}
                   resolveName={resolveName}
                   dateFormat={settings.dateFormat}
@@ -548,15 +616,64 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         </Box>
       ))}
 
-      {/* ── Diálogo de edición de nota ─────────────────────────────────── */}
+      {/* ── Diálogo de edición de la asignación ─────────────────────────── */}
       {/* El Dialog del sistema, no el de MUI en crudo: es el que pone los
           márgenes seguros de iOS. Su Paper ya trae el ancho, el radio, el
           fondo y la sombra, así que aquí no se repiten. Ver DESIGN_SYSTEM
           §6.1. */}
-      <Dialog open={!!editTarget} onClose={closeNoteDialog}>
-        <Typography className="h2" sx={{ color: 'var(--ink)' }}>
-          Editar nota
-        </Typography>
+      <Dialog open={!!editTarget} onClose={closeEditDialog}>
+        <Box>
+          <Typography className="h2" sx={{ color: 'var(--ink)' }}>
+            Editar asignación
+          </Typography>
+          {editTarget && (
+            <Typography
+              className="body-small-regular"
+              sx={{ color: 'var(--ink-2)', mt: 0.5 }}
+            >
+              {(() => {
+                const t = territories.find(
+                  (x) => x.id === editTarget.territoryId
+                );
+                const z = zones.find((x) => x.id === t?.zoneId);
+                const nombre = t
+                  ? `${z?.nombre ?? ''} ${territoryLabel(t)}`.trim()
+                  : 'Territorio';
+                return `${nombre} · ${resolveName(editTarget.personUid)}`;
+              })()}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Solo en las ya entregadas: una en curso todavía no se ha entregado
+            de ninguna manera, y para eso está «Entregar». */}
+        {editTarget?.returnedAt && (
+          <Box>
+            <Typography
+              className="body-small-semibold"
+              sx={{ color: 'var(--ink)', mb: 1 }}
+            >
+              Cómo se entregó
+            </Typography>
+            <SegmentedControl
+              ariaLabel="Cómo se entregó"
+              tabs={['Trabajado', 'Sin trabajar']}
+              active={statusValue === 'trabajado' ? 0 : 1}
+              onChange={(i) =>
+                setStatusValue(i === 0 ? 'trabajado' : 'no_trabajado')
+              }
+            />
+            {editTarget.cierrePendiente && (
+              <Typography
+                className="label-small-regular"
+                sx={{ color: 'var(--ink-2)', mt: 1, display: 'block' }}
+              >
+                Se cerró con la campaña y el hermano aún no ha dicho si lo
+                trabajó. Si lo guardas aquí, ya no se le preguntará.
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <TextField
           inputRef={noteRef}
@@ -584,17 +701,17 @@ const AsignacionesTab = ({ onView, onAsignar, onEntregar }: Props) => {
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <Button
             variant="tertiary"
-            onClick={closeNoteDialog}
-            disabled={savingNote}
+            onClick={closeEditDialog}
+            disabled={savingEdit}
           >
             Cancelar
           </Button>
           <Button
             variant="main"
-            onClick={saveNote}
-            disabled={savingNote || noteLocked}
+            onClick={saveEdit}
+            disabled={savingEdit || (!cambiaEstado && !cambiaNota)}
           >
-            {savingNote ? 'Guardando…' : 'Guardar'}
+            {savingEdit ? 'Guardando…' : 'Guardar'}
           </Button>
         </Box>
       </Dialog>

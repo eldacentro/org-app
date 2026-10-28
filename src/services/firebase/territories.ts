@@ -42,6 +42,7 @@ import {
   AVISO_CAMPANA_TITULO,
   dueAtDeAsignacion,
   ENC_PREFIX,
+  fechaTrasCorregirEntrega,
 } from '@services/app/territories';
 
 // ─── Colección helpers ─────────────────────────────────────────────────────
@@ -182,7 +183,10 @@ export const uploadTerritoryImage = async (
   blob: Blob
 ): Promise<string> => {
   const storage = getStorage();
-  const r = ref(storage, `congregation/${congId}/territories/${territoryId}.png`);
+  const r = ref(
+    storage,
+    `congregation/${congId}/territories/${territoryId}.png`
+  );
   await uploadBytes(r, blob);
   return getDownloadURL(r);
 };
@@ -192,7 +196,10 @@ export const deleteTerritoryImage = async (
   territoryId: string
 ): Promise<void> => {
   const storage = getStorage();
-  const r = ref(storage, `congregation/${congId}/territories/${territoryId}.png`);
+  const r = ref(
+    storage,
+    `congregation/${congId}/territories/${territoryId}.png`
+  );
   await deleteObject(r).catch((error) => {
     const err = error as Error & { code?: string };
     if (err.code !== 'storage/object-not-found') throw error;
@@ -205,7 +212,10 @@ export const uploadTerritoryKml = async (
   blob: Blob
 ): Promise<string> => {
   const storage = getStorage();
-  const r = ref(storage, `congregation/${congId}/territories/${territoryId}.kml`);
+  const r = ref(
+    storage,
+    `congregation/${congId}/territories/${territoryId}.kml`
+  );
   await uploadBytes(r, blob);
   return getDownloadURL(r);
 };
@@ -296,7 +306,10 @@ export const subscribeAssignments = (
   subscribe(
     assignmentsCol(congId),
     (d) =>
-      ({ ...d, notas: dec(d.notas as string, key, 'assignment.notas') }) as TerritoryAssignment,
+      ({
+        ...d,
+        notas: dec(d.notas as string, key, 'assignment.notas'),
+      }) as TerritoryAssignment,
     cb,
     'asignaciones'
   );
@@ -338,7 +351,10 @@ export const fetchPersonTerritoryHistory = async (
   }
 
   return assignmentsSnap.docs.map((doc) => {
-    const assignment = { ...doc.data(), notas: undefined } as TerritoryAssignment;
+    const assignment = {
+      ...doc.data(),
+      notas: undefined,
+    } as TerritoryAssignment;
 
     return {
       assignment,
@@ -582,8 +598,12 @@ export const deleteTerritoryCompleto = async (
   // para siempre, invisibles desde la app y sin forma de purgarlas — datos
   // personales de vecinos que ya no tenían por qué seguir guardados.
   const [assignSnap, locSnap, shareSnap, campSnap] = await Promise.all([
-    getDocs(query(assignmentsCol(congId), where('territoryId', '==', territoryId))),
-    getDocs(query(locationsCol(congId), where('territoryId', '==', territoryId))),
+    getDocs(
+      query(assignmentsCol(congId), where('territoryId', '==', territoryId))
+    ),
+    getDocs(
+      query(locationsCol(congId), where('territoryId', '==', territoryId))
+    ),
     // Los enlaces públicos guardan un snapshot CIFRADO del territorio, con
     // sus direcciones "No visitar" dentro, y al lado la clave envuelta con
     // la clave de la congregación. Si no se borran aquí, borrar un
@@ -591,10 +611,17 @@ export const deleteTerritoryCompleto = async (
     // íntegra de esos datos viva para siempre, sin ninguna pantalla desde la
     // que verla o eliminarla.
     getDocs(query(sharesCol(congId), where('territoryId', '==', territoryId))),
-    getDocs(query(campaignsCol(congId), where('territoryIds', 'array-contains', territoryId))),
+    getDocs(
+      query(
+        campaignsCol(congId),
+        where('territoryIds', 'array-contains', territoryId)
+      )
+    ),
   ]);
 
-  const refs = [...assignSnap.docs, ...locSnap.docs, ...shareSnap.docs].map((d) => d.ref);
+  const refs = [...assignSnap.docs, ...locSnap.docs, ...shareSnap.docs].map(
+    (d) => d.ref
+  );
   for (let i = 0; i < refs.length; i += 450) {
     const batch = writeBatch(firestore);
     refs.slice(i, i + 450).forEach((r) => batch.delete(r));
@@ -659,7 +686,8 @@ export const updateAssignmentNote = (
 /** Mensaje mostrado cuando dos responsables intentan asignar el mismo
  *  territorio casi a la vez — el segundo pierde la carrera y ve este error
  *  igual que si el territorio ya hubiera estado asignado de antes. */
-export const TERRITORY_ALREADY_ASSIGNED_MESSAGE = 'Este territorio ya está asignado';
+export const TERRITORY_ALREADY_ASSIGNED_MESSAGE =
+  'Este territorio ya está asignado';
 
 /**
  * Abre una asignación nueva de forma segura frente a condiciones de
@@ -791,7 +819,10 @@ export const finalizeAssignmentBatch = async (
     }
 
     if (Object.keys(territoryUpdate).length > 0) {
-      batch.update(fsDoc(territoriesCol(congId), territory.id), territoryUpdate);
+      batch.update(
+        fsDoc(territoriesCol(congId), territory.id),
+        territoryUpdate
+      );
     }
   }
 
@@ -821,6 +852,100 @@ export const finalizeAssignmentBatch = async (
     });
   } catch (err) {
     console.error('No se pudieron cerrar los avisos del territorio', err);
+  }
+
+  await batch.commit();
+};
+
+/**
+ * Corrige CÓMO se entregó una asignación ya cerrada: trabajado o sin trabajar.
+ *
+ * Pasa más de lo que parece: el hermano pulsa «Devolver sin trabajar» cuando
+ * quería «Entregar», o la campaña se cerró y contestó lo que no era. Hasta
+ * ahora no había forma de arreglarlo; lo único que se podía hacer era borrar
+ * la asignación, y con ella se iba del S-13 la constancia de que lo tuvo.
+ *
+ * Lo delicado es la fecha de último trabajo del territorio, que es la que
+ * decide "En descanso", el orden de "sin trabajar hace más" y el S-13:
+ *
+ * - Pasar a TRABAJADO la adelanta, como cualquier entrega: solo si es más
+ *   reciente que la que ya tiene.
+ * - Pasar a SIN TRABAJAR solo la toca si la que tiene salió de ESTA misma
+ *   entrega. Entonces vuelve a la de la última entrega trabajada que quede
+ *   —o a ninguna—. Si es de otra entrega, o vino importada de Territory
+ *   Helper sin asignación detrás, se deja como está: no es de esta.
+ *
+ * Las demás entregas se leen del SERVIDOR, como al borrar: la lista en
+ * memoria puede venir de la caché de disco.
+ *
+ * Si la asignación esperaba la respuesta del fin de campaña, contestarla aquí
+ * cuenta como respuesta: se apaga la pregunta y se da por leído el aviso, para
+ * que al hermano no le pregunte la app algo que el responsable ya decidió.
+ */
+export const cambiarEstadoAsignacion = async (
+  congId: string,
+  assignment: TerritoryAssignment,
+  status: 'trabajado' | 'no_trabajado',
+  territory: Territory | null
+): Promise<void> => {
+  const returnedAt = assignment.returnedAt;
+  if (!returnedAt) {
+    throw new Error('Solo se puede cambiar una asignación ya entregada.');
+  }
+
+  const now = new Date().toISOString();
+  const batch = writeBatch(firestore);
+
+  batch.update(fsDoc(assignmentsCol(congId), assignment.id), {
+    status,
+    cierrePendiente: false,
+    updatedAt: now,
+  });
+
+  if (territory) {
+    const actual = territory.lastWorkedAt ?? null;
+
+    // Las demás entregas solo hacen falta para retroceder la fecha, y solo
+    // retrocede si la que tiene es la de esta entrega: en los demás casos no
+    // se gasta una lectura.
+    const otras =
+      status === 'no_trabajado' && actual === returnedAt
+        ? (
+            await getDocsFromServer(
+              query(
+                assignmentsCol(congId),
+                where('territoryId', '==', territory.id)
+              )
+            )
+          ).docs
+            .filter((d) => d.id !== assignment.id)
+            .map((d) => d.data() as TerritoryAssignment)
+            .filter((a) => a.returnedAt && a.status === 'trabajado')
+            .map((a) => a.returnedAt!)
+        : [];
+
+    const nueva = fechaTrasCorregirEntrega(actual, returnedAt, status, otras);
+
+    if (nueva !== actual) {
+      batch.update(fsDoc(territoriesCol(congId), territory.id), {
+        lastWorkedAt: nueva,
+        updatedAt: now,
+      });
+    }
+  }
+
+  // Cosmético frente a lo de arriba: si no se pueden leer los avisos, el
+  // cambio se guarda igual y el aviso, como mucho, se queda puesto.
+  try {
+    const avisos = await getDocs(
+      query(noticesCol(congId), where('assignmentId', '==', assignment.id))
+    );
+    avisos.forEach((d) => {
+      if ((d.data() as TerritoryNotice).leido) return;
+      batch.update(d.ref, { leido: true });
+    });
+  } catch (err) {
+    console.error('No se pudieron cerrar los avisos de la asignación', err);
   }
 
   await batch.commit();
@@ -1014,7 +1139,9 @@ export const backfillOpenAssignmentLocks = async (
     if (!a.returnedAt) openByTerritory.set(a.territoryId, a.id);
   });
 
-  const unmigrated = territories.filter((t) => t.openAssignmentId === undefined);
+  const unmigrated = territories.filter(
+    (t) => t.openAssignmentId === undefined
+  );
   if (unmigrated.length === 0) return;
 
   await Promise.all(
@@ -1023,7 +1150,9 @@ export const backfillOpenAssignmentLocks = async (
         const territoryRef = fsDoc(territoriesCol(congId), t.id);
         const snap = await tx.get(territoryRef);
         if (snap.data()?.openAssignmentId !== undefined) return; // ya migrado
-        tx.update(territoryRef, { openAssignmentId: openByTerritory.get(t.id) ?? null });
+        tx.update(territoryRef, {
+          openAssignmentId: openByTerritory.get(t.id) ?? null,
+        });
       }).catch((err) => {
         console.error(`Failed to backfill openAssignmentId for ${t.id}:`, err);
       })
@@ -1338,7 +1467,9 @@ export const deleteCampaign = async (
   // 2. Borrar y liberar candados, troceando por el límite de 500 ops por
   //    batch (una campaña muy antigua puede acumular mucho historial).
   const ops: Array<(b: ReturnType<typeof writeBatch>) => void> = [
-    ...snap.docs.map((d) => (b: ReturnType<typeof writeBatch>) => b.delete(d.ref)),
+    ...snap.docs.map(
+      (d) => (b: ReturnType<typeof writeBatch>) => b.delete(d.ref)
+    ),
     ...lockedTerritories.map(
       (t) => (b: ReturnType<typeof writeBatch>) =>
         b.update(fsDoc(territoriesCol(congId), t.id), {
@@ -1451,7 +1582,9 @@ export const fetchTerritoryBackupData = async (
     read(requestsCol(congId)),
     read(noticesCol(congId)),
     read(tagsCol(congId)),
-    getDocs(collection(firestore, 'congregation', congId, 'territory_settings')),
+    getDocs(
+      collection(firestore, 'congregation', congId, 'territory_settings')
+    ),
   ]);
 
   return {

@@ -115,7 +115,11 @@ export const dueAtDeAsignacion = (
  * falta (registros anteriores a que existiera `dueAt`).
  */
 export const estaAtrasada = (
-  assignment: { assignedAt: string; dueAt?: string; returnedAt?: string | null },
+  assignment: {
+    assignedAt: string;
+    dueAt?: string;
+    returnedAt?: string | null;
+  },
   daysUntilOverdue: number,
   now: Date = new Date()
 ): boolean => {
@@ -213,10 +217,7 @@ export const getZoneColor = (
   return zones.find((z) => z.id === zoneId)?.color ?? '#306CB4';
 };
 
-export const getZoneName = (
-  zoneId: string,
-  zones: TerritoryZone[]
-): string => {
+export const getZoneName = (zoneId: string, zones: TerritoryZone[]): string => {
   return zones.find((z) => z.id === zoneId)?.nombre ?? '—';
 };
 
@@ -349,7 +350,10 @@ export const isLightColor = (color: string): boolean => {
   const hex = color.trim().replace('#', '');
   const full =
     hex.length === 3
-      ? hex.split('').map((c) => c + c).join('')
+      ? hex
+          .split('')
+          .map((c) => c + c)
+          .join('')
       : hex.length === 6
         ? hex
         : null;
@@ -366,4 +370,32 @@ export const isLightColor = (color: string): boolean => {
 
   // Umbral: por encima de esto, el blanco da menos de 3:1 de contraste.
   return luminance > 0.4;
+};
+
+/**
+ * La fecha de último trabajo que debe quedarle al territorio al corregir
+ * cómo se entregó una de sus asignaciones (ver `cambiarEstadoAsignacion`).
+ *
+ * - A trabajado: avanza a la de esta entrega si es más reciente.
+ * - A sin trabajar: solo cambia si la que tiene salió de ESTA entrega; vuelve
+ *   entonces a la última entrega trabajada que quede, o a ninguna. Una fecha
+ *   que no es de esta entrega —de otra, o importada sin asignación detrás—
+ *   no se toca.
+ *
+ * `otrasTrabajadas` son las fechas de devolución de las DEMÁS entregas
+ * trabajadas del territorio, sin esta. Fechas ISO en UTC: se comparan como
+ * texto.
+ */
+export const fechaTrasCorregirEntrega = (
+  actual: string | null,
+  returnedAt: string,
+  status: 'trabajado' | 'no_trabajado',
+  otrasTrabajadas: string[]
+): string | null => {
+  if (status === 'trabajado') {
+    return !actual || returnedAt > actual ? returnedAt : actual;
+  }
+  if (actual !== returnedAt) return actual;
+  const restantes = [...otrasTrabajadas].sort();
+  return restantes[restantes.length - 1] ?? null;
 };
