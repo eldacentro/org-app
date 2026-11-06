@@ -10,10 +10,11 @@ import { fieldGroupsState } from '@states/field_service_groups';
 import { useAppTranslation } from '@hooks/index';
 import { nombreDeGrupo } from './nombreGrupo';
 import {
+  calcularTurnosCena,
   esSemanaDeVisita,
-  grupoDeLaSemana,
 } from '@services/app/rotacion_cenas';
 import { schedulesState } from '@states/schedules';
+import { formatDate, getWeekDate } from '@utils/date';
 import { congIDState } from '@states/settings';
 import { displaySnackNotification } from '@services/states/app';
 import {
@@ -81,16 +82,19 @@ const PanelInvitacion = ({
    * grupo sigue teniendo turno. Por eso hace falta el historial entero y no
    * vale el motor de Limpieza — ver `services/app/rotacion_cenas`.
    */
-  const grupoQueToca = useMemo(
+  const turno = useMemo(
     () =>
-      grupoDeLaSemana(weekOf, {
+      calcularTurnosCena({
         invitaciones: historial,
         rotacion,
         grupos,
         schedules,
-      }),
+        hoy: formatDate(getWeekDate(new Date()), 'yyyy/MM/dd'),
+      }).find((t) => t.weekOf === weekOf) ?? null,
     [weekOf, historial, rotacion, grupos, schedules]
   );
+
+  const grupoQueToca = turno?.grupo ?? null;
 
   const nombreGrupo = useMemo(() => {
     if (!grupoQueToca) return '';
@@ -375,9 +379,11 @@ const PanelInvitacion = ({
             }}
           >
             <Typography className="label-small-regular" color="var(--ink-3)">
-              {grupoQueToca
-                ? `Esta semana le toca a ${nombreGrupo}`
-                : 'No hay rotación de cenas puesta'}
+              {!grupoQueToca
+                ? 'No hay rotación de cenas puesta'
+                : turno?.decidido
+                  ? `Esta semana le toca a ${nombreGrupo}`
+                  : `Le tocaría a ${nombreGrupo}, si no cambia lo que contesten las semanas anteriores`}
             </Typography>
             <Button
               variant="small"

@@ -159,6 +159,13 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
         // corregía) el crédito aprobado desaparecía sin dejar rastro.
         approved: report.report_data.hours.credit?.approved ?? 0,
         value: record.hours_credits,
+        // De qué es cada hora: el tope de 55 es solo para el crédito de LDC.
+        // Un móvil sin actualizar no lo manda, y entonces se deja el que había.
+        ...(Array.isArray(record.credit_entries)
+          ? { entries: record.credit_entries }
+          : report.report_data.hours.credit?.entries
+            ? { entries: report.report_data.hours.credit.entries }
+            : {}),
       };
       report.report_data.report_date = record.report_month;
       report.report_data.shared_ministry = record.shared_ministry;

@@ -1,3 +1,4 @@
+import { CreditEntry } from '@services/app/credit_entries';
 /**
  * Las horas del mes de un precursor auxiliar: 30, o 15 en los meses en que la
  * sucursal lo permite. La solicitud dice CUÁL de las dos pide el hermano; el
@@ -53,6 +54,11 @@ export type IncomingReport = {
   comments: string;
   hours: number;
   hours_credits: number;
+  /**
+   * De qué es cada hora de crédito. Lo mandan los móviles desde 2026-11; uno
+   * sin actualizar no lo manda. Ver `services/app/credit_hours.ts`.
+   */
+  credit_entries?: CreditEntry[];
   report_month: string;
   shared_ministry: boolean;
   updatedAt: string;

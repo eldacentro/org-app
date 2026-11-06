@@ -1,4 +1,5 @@
 import {
+  creditEntriesOf,
   effectiveCreditHours,
   rawCreditHours,
 } from '@services/app/credit_hours';
@@ -91,7 +92,8 @@ const useYearDetails = (year: string) => {
         acc +
         effectiveCreditHours(
           current.report_data.hours.field_service,
-          rawCreditHours(current.report_data.hours.credit)
+          rawCreditHours(current.report_data.hours.credit),
+          creditEntriesOf(current.report_data.hours.credit)
         ),
       0
     );

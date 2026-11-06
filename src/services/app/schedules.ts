@@ -2575,7 +2575,11 @@ export const schedulesMidweekGetTiming = ({
     }
   }
 
-  timing.lc_part1 = timeAddMinutes(timing.lc_middle_song, 5);
+  // La canción del medio: 4 minutos, no 5. Es como lo hace Elda Centro desde
+  // siempre en sus programas (canción a las 20:31-20:32 y «Nuestra vida
+  // cristiana» a las 20:35), y con 5 todo lo que viene después —la vida
+  // cristiana, el estudio, la conclusión— salía un minuto tarde.
+  timing.lc_part1 = timeAddMinutes(timing.lc_middle_song, 4);
 
   time = sourcesPartTiming(source, 'lc_part1', dataView, lang);
   timing.lc_part2 = timeAddMinutes(timing.lc_part1, time);
@@ -2603,7 +2607,10 @@ export const schedulesMidweekGetTiming = ({
     time = sourcesPartTiming(source, 'lc_cbs', dataView, lang);
     timing.concluding_comments = timeAddMinutes(timing.cbs, time);
 
-    timing.pgm_end = timeAddMinutes(timing.concluding_comments, 3);
+    timing.pgm_end = cancionFinal(
+      timing.pgm_start,
+      timeAddMinutes(timing.concluding_comments, 3)
+    );
   }
 
   if (week_type === Week.CO_VISIT) {
@@ -2616,10 +2623,37 @@ export const schedulesMidweekGetTiming = ({
 
     timing.co_talk = timeAddMinutes(timing.concluding_comments, 3);
 
-    timing.pgm_end = timeAddMinutes(timing.co_talk, CO_TALK_DURATION_MINUTES);
+    timing.pgm_end = cancionFinal(
+      timing.pgm_start,
+      timeAddMinutes(timing.co_talk, CO_TALK_DURATION_MINUTES)
+    );
   }
 
   return timing;
+};
+
+/**
+ * La hora de la canción final.
+ *
+ * La reunión dura 1 hora y 45 minutos con canciones y oraciones (S-38), así que
+ * la canción y la oración del final empiezan a los 100 minutos: las 21:25 en
+ * una reunión de las 19:45. Es lo que ponen los programas de Elda Centro, que
+ * dejan la conclusión a las 21:20 y la canción a las 21:25. Antes la canción iba
+ * pegada a la conclusión (21:23 o 21:24). Si algo se alarga y la conclusión
+ * termina más tarde, manda eso.
+ */
+const cancionFinal = (inicio: string, finConclusion: string) => {
+  const enMinutos = (hora: string) => {
+    const [h, m] = hora.split(':').map(Number);
+
+    return h * 60 + m;
+  };
+
+  const prevista = timeAddMinutes(inicio, 100);
+
+  return enMinutos(finConclusion) > enMinutos(prevista)
+    ? finConclusion
+    : prevista;
 };
 
 export const schedulesMidweekData = (

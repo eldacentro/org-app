@@ -126,3 +126,54 @@ describe('las dos formas en que vienen las horas', () => {
     expect(monthlyCreditedTotal(campo, credito)).toBe(55);
   });
 });
+
+/**
+ * El tope es SOLO para el crédito de LDC (y lo que no se sabe de qué es). El de
+ * la Escuela del Servicio de Precursor, la SKE y el curso de idioma cuenta
+ * entero (lo pidió Carlos el 2026-11-06).
+ */
+describe('qué crédito tiene tope y cuál no', () => {
+  const escuela = { type: 'pioneer_school', hours: 30 };
+  const ldc = { type: 'theocratic_assignments', hours: 15 };
+
+  it('35 h + 30 de la escuela de precursores = 65, sin tope', () => {
+    expect(monthlyCreditedTotal(35, 30, [escuela])).toBe(65);
+  });
+
+  it('la SKE y el curso de idioma tampoco tienen tope', () => {
+    expect(monthlyCreditedTotal(50, 25, [{ type: 'language_course', hours: 25 }])).toBe(75);
+    expect(monthlyCreditedTotal(10, 160, [{ type: 'ske', hours: 160 }])).toBe(170);
+  });
+
+  it('el de LDC sigue rellenando solo hasta 55', () => {
+    expect(monthlyCreditedTotal(45, 15, [ldc])).toBe(55);
+  });
+
+  it('«otro» sigue con tope, como el de LDC', () => {
+    expect(monthlyCreditedTotal(50, 10, [{ type: 'other', hours: 10 }])).toBe(55);
+  });
+
+  it('mezclados: la escuela entera, el LDC hasta 55 con la predicación', () => {
+    // 45 de predicación: el LDC solo cabe 10 de 15; la escuela suma sus 30.
+    expect(effectiveCreditHours(45, 45, [escuela, ldc])).toBe(40);
+    expect(monthlyCreditedTotal(45, 45, [escuela, ldc])).toBe(85);
+  });
+
+  it('sin desglose no se sabe de qué es: se topa como antes', () => {
+    expect(monthlyCreditedTotal(35, 30)).toBe(55);
+    expect(monthlyCreditedTotal(35, 30, [])).toBe(55);
+  });
+
+  it('si se aprobó menos de lo desglosado, manda lo aprobado', () => {
+    expect(effectiveCreditHours(40, 20, [escuela])).toBe(20);
+  });
+
+  it('entradas rotas no cuentan como exentas', () => {
+    expect(
+      monthlyCreditedTotal(50, 10, [
+        { type: 'pioneer_school', hours: Number.NaN },
+        { hours: 10 },
+      ])
+    ).toBe(55);
+  });
+});

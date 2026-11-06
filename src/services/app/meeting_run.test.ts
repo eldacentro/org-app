@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildMeetingRunView,
   buildMidweekRunParts,
+  consejoPorParte,
   DRIFT_ABANDONADA,
+  runAbandonada,
   minutesToTime,
   readMeetingRun,
   runDesfase,
@@ -204,12 +206,10 @@ describe('la canción y la oración, cada una por su lado', () => {
     const enCancion = buildMeetingRunView({
       run: base,
       parts,
-      formatTime: (t) => t,
     });
     const enOracion = buildMeetingRunView({
       run: { ...base, index: 1 },
       parts,
-      formatTime: (t) => t,
     });
 
     expect(enCancion.status.pgm_start).toBe('current');
@@ -425,16 +425,6 @@ describe('arrancar lejos de la hora de la reunión', () => {
     expect(runDesfase({ ...run, drift: 3, offset: undefined })).toBe(3);
   });
 
-  it('las horas de las partes se corren con el desplazamiento COMPLETO', () => {
-    // Los dos números son distintos a propósito: al hermano se le dice que la
-    // reunión va en hora, pero los relojitos tienen que decir cuándo va a pasar
-    // cada cosa DE VERDAD, no la hora del programa impreso.
-    const parts = buildMidweekRunParts(SEMANA_NORMAL);
-    const view = buildMeetingRunView({ run, parts, formatTime: (t) => t });
-
-    expect(view.drift).toBe(0);
-    expect(view.shifted.tgw_talk).toBe('17:36'); // 19:51 menos 135 minutos
-  });
 });
 
 describe('cómo se pinta el programa', () => {
@@ -450,7 +440,7 @@ describe('cómo se pinta el programa', () => {
     drift: 2,
   };
 
-  const view = buildMeetingRunView({ run, parts, formatTime: (t) => t });
+  const view = buildMeetingRunView({ run, parts });
 
   it('lo de antes queda hecho, lo de ahora en curso, lo demás por venir', () => {
     expect(view.status.tgw_talk).toBe('done');
@@ -459,53 +449,32 @@ describe('cómo se pinta el programa', () => {
     expect(view.status.cbs).toBe('upcoming');
   });
 
-  it('las partes que quedan enseñan la hora corrida', () => {
-    expect(view.shifted.tgw_bible_reading).toBe('20:13'); // 20:11 + 2
-    expect(view.shifted.cbs).toBe('20:47'); // 20:45 + 2
-  });
-
-  it('la que está sonando y las ya hechas NO se corren', () => {
-    // Correrle la hora a algo que ya ha pasado sería reescribir la historia, y
-    // a la que suena ahora le quitaría la única hora que importa: la suya.
-    expect(view.shifted.tgw_gems).toBeUndefined();
-    expect(view.shifted.tgw_talk).toBeUndefined();
-  });
-
-  it('sin desfase no se corre ninguna hora', () => {
-    const enHora = buildMeetingRunView({
-      run: { ...run, drift: 0 },
-      parts,
-      formatTime: (t) => t,
-    });
-
-    expect(enHora.shifted).toEqual({});
+  it('las horas del programa NO se corren con el retraso', () => {
+    // Antes cambiaban solas cada minuto mientras alguien llevaba la reunión.
+    // Son las del programa; el retraso lo dice la barra.
+    expect(view).not.toHaveProperty('shifted');
   });
 
   it('terminada la reunión, el programa vuelve a verse como siempre', () => {
-    // Y no con todos los relojitos apagados: la página se sigue mirando el
-    // resto de la semana y parecería desactivada. Lo que pasó lo cuenta el
-    // resumen de abajo, no el programa.
     const terminada = buildMeetingRunView({
       run: { ...run, finishedAt: instante(21, 20) },
       parts,
-      formatTime: (t) => t,
     });
 
     expect(terminada.finished).toBe(true);
     expect(terminada.status).toEqual({});
-    expect(terminada.shifted).toEqual({});
   });
 
-  it('el formato de la hora lo pone quien llama', () => {
-    // De 24 a 12 horas es una preferencia de la cuenta, y este cálculo no mira
-    // ajustes: si lo hiciera, restar horas dejaría de ser fiable.
-    const doce = buildMeetingRunView({
+  it('las notas solo salen si quien llama las pasa (al presidente)', () => {
+    expect(view.notes).toEqual({});
+
+    const conNotas = buildMeetingRunView({
       run,
       parts,
-      formatTime: (t) => `${t} PM`,
+      notas: { tgw_gems: 'buen comentario' },
     });
 
-    expect(doce.shifted.cbs).toBe('20:47 PM');
+    expect(conNotas.notes.tgw_gems).toBe('buen comentario');
   });
 });
 
@@ -617,5 +586,108 @@ describe('lo que se guarda', () => {
     ).not.toThrow();
 
     globalThis.localStorage = previo;
+  });
+});
+
+/**
+ * «Dice 5 min y son 4»: la lectura de la Biblia y las asignaciones de
+ * estudiante tienen en el programa su tiempo MÁS un minuto de consejo. Ese
+ * minuto no es del estudiante.
+ */
+describe('el minuto de consejo', () => {
+  // ayf_part1 (4 min) y ayf_part2 (4 min) con consejo; el resto, análisis.
+  const consejo = consejoPorParte(
+    { ayf_part1: 101, ayf_part2: 102, ayf_part3: 127 },
+    127
+  );
+  const parts = buildMidweekRunParts(SEMANA_NORMAL, {
+    consejoMinutos: consejo,
+  });
+  const de = (key: string) => parts.find((part) => part.key === key)!;
+
+  it('la lectura de la Biblia dura 4, no los 5 de su hueco', () => {
+    expect(de('tgw_bible_reading').seconds).toBe(4 * 60);
+  });
+
+  it('una asignación de 4 minutos dura 4, no 5', () => {
+    expect(de('ayf_part1').seconds).toBe(3 * 60); // hueco de 4 = 3 + consejo
+    expect(de('ayf_part2').seconds).toBe(4 * 60); // hueco de 5 = 4 + consejo
+  });
+
+  it('el consejo se da al principio de la parte siguiente', () => {
+    // ayf_part1 empieza a las 20:16, pero su paso empieza un minuto antes: el
+    // consejo de la lectura es suyo.
+    expect(de('ayf_part1').startMinutes).toBe(timeToMinutes('20:15'));
+    expect(de('ayf_part1').windowSeconds).toBe(4 * 60);
+  });
+
+  it('una canción que empieza con un consejo hay que arrancarla a mano', () => {
+    // Si no, contaría el consejo como canción y se pasaría sola antes de tiempo.
+    expect(de('lc_middle_song').presented).toBe(true);
+  });
+
+  it('el horario total no cambia: el retraso se mide igual', () => {
+    const sin = buildMidweekRunParts(SEMANA_NORMAL);
+    const finDe = (lista: typeof parts) =>
+      lista.map((p) => p.startMinutes + (p.windowSeconds ?? p.seconds) / 60);
+
+    // Cada paso termina donde terminaba el hueco, salvo los que ceden su
+    // consejo, que terminan un minuto antes y ese minuto lo empieza el siguiente.
+    expect(finDe(parts).at(-1)).toBe(finDe(sin).at(-1));
+
+    const lectura = de('tgw_bible_reading');
+    expect(
+      runDrift({
+        part: lectura,
+        partStartedAt: instante(20, 11),
+        now: instante(20, 13),
+      })
+    ).toBe(0);
+  });
+
+  it('los análisis con el auditorio no llevan consejo', () => {
+    expect(consejo.ayf_part3).toBeUndefined();
+    expect(consejo.tgw_bible_reading).toBe(1);
+  });
+});
+
+describe('una reunión abandonada se da por terminada al mirarla', () => {
+  const run: MeetingRunRecord = {
+    weekOf: '2026/08/17',
+    dataView: 'main',
+    startedAt: instante(19, 45),
+    partStartedAt: instante(20, 0),
+    index: 3,
+    actual: {},
+    drift: 0,
+  };
+
+  it('en plena reunión, no', () => {
+    expect(runAbandonada(run, instante(20, 30))).toBe(false);
+  });
+
+  it('una parte que lleva tres horas, sí', () => {
+    expect(runAbandonada(run, instante(23, 1))).toBe(true);
+  });
+
+  it('terminada, nunca', () => {
+    expect(
+      runAbandonada({ ...run, finishedAt: instante(21, 0) }, instante(23, 59))
+    ).toBe(false);
+  });
+});
+
+describe('la conclusión', () => {
+  it('dura 3 minutos aunque su hueco llegue hasta la canción final', () => {
+    const parts = buildMidweekRunParts({
+      ...SEMANA_NORMAL,
+      concluding_comments: '21:20',
+      pgm_end: '21:25',
+    });
+    const conclusion = parts.find((p) => p.key === 'concluding_comments')!;
+
+    expect(conclusion.seconds).toBe(3 * 60);
+    // El retraso se mide con el hueco entero: hasta las 21:25 se va en hora.
+    expect(conclusion.windowSeconds).toBe(5 * 60);
   });
 });

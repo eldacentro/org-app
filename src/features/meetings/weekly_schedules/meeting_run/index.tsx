@@ -42,7 +42,10 @@ const MeetingRunBar = ({
 }) => {
   const {
     disponible,
+    cargado,
     esAnciano,
+    puedeAnotar,
+    notas,
     esPresidente,
     soloLectura,
     quienLaLleva,
@@ -71,12 +74,10 @@ const MeetingRunBar = ({
   /**
    * Se abre el paso para que los recuadros del programa puedan editar.
    *
-   * Solo cuando hay reunión empezada y se lleva desde aquí: sin eso no hay
-   * dónde guardar una nota, y al que solo mira no se le ofrece escribir.
+   * Solo al presidente de ese día: las notas son suyas, se quedan en su
+   * teléfono y nadie más las ve.
    */
   const setEditor = useSetAtom(meetingRunNoteEditorState);
-
-  const puedeAnotar = !!run && !soloLectura && esAnciano;
 
   useEffect(() => {
     setEditor(puedeAnotar ? { anotar: anotarPorRelojito, info } : null);
@@ -93,9 +94,11 @@ const MeetingRunBar = ({
   // que se pintan solos desde `PartTiming` con lo que publica quien la lleva.
   if (!disponible || !esAnciano) return null;
 
-  // Sin nada empezado, solo se ofrece el día de la reunión y a su hora.
+  // Sin nada empezado, solo se ofrece el día de la reunión y a su hora. Y no
+  // antes de saber si ya la lleva otro: pulsar entonces arrancaba una reunión
+  // nueva encima de la del presidente.
   if (!run) {
-    if (!enHorario) return null;
+    if (!enHorario || !cargado) return null;
 
     return (
       <Box
@@ -152,17 +155,19 @@ const MeetingRunBar = ({
           onReopen={atras}
           onDiscard={descartar}
           onNote={setNotaDe}
+          notas={notas}
           soloLectura={soloLectura}
+          puedeAnotar={puedeAnotar}
         />
 
         {/* Terminada la reunión también se puede apuntar: es cuando de verdad
             hay tiempo de escribir, y todavía te acuerdas. */}
-        {parteNota && !soloLectura && (
+        {parteNota && puedeAnotar && (
           <NoteDialog
             open
             label={info[parteNota.key]?.label ?? 'Esta parte'}
             person={info[parteNota.key]?.person}
-            value={run.notes?.[parteNota.key]}
+            value={notas[parteNota.key]}
             onClose={() => setNotaDe(null)}
             onSave={(texto) => {
               anotar(parteNota.key, texto);
@@ -192,7 +197,7 @@ const MeetingRunBar = ({
   const parteNotable =
     presentando && run.index > 0 ? parts[run.index - 1] : parteActual;
 
-  const notaActual = parteNotable ? run.notes?.[parteNotable.key] : undefined;
+  const notaActual = parteNotable ? notas[parteNotable.key] : undefined;
 
   const tieneNota = (notaActual?.length ?? 0) > 0;
 
@@ -393,8 +398,9 @@ const MeetingRunBar = ({
           )}
 
           {/* Apuntar algo de la parte que está sonando. Al lado del reloj y no
-              escondido en la lista: si hay que buscarlo, no se usa. */}
-          {!soloLectura && (
+              escondido en la lista: si hay que buscarlo, no se usa. Solo el
+              presidente, aunque la reunión la lleve otro. */}
+          {puedeAnotar && (
             <IconButton
               onClick={() => setNotaAbierta(true)}
               aria-label="Apuntar algo de esta parte"
@@ -445,7 +451,7 @@ const MeetingRunBar = ({
           )}
         </Box>
 
-        {parteNotable && !soloLectura && (
+        {parteNotable && puedeAnotar && (
           <NoteDialog
             open={notaAbierta}
             label={info[parteNotable.key]?.label ?? 'Esta parte'}

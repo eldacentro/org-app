@@ -15,9 +15,8 @@ import NoteDialog from '../meeting_run/note_dialog';
  * suya, se toca para cambiarla o borrarla, y se puede apuntar sobre una parte
  * que ya pasó sin tener que volver a ella con la barra.
  *
- * No se pinta nada para quien no puede escribir ni tiene nada que leer: al que
- * solo mira le llegan vacías salvo que la congregación las haya compartido, y a
- * un publicador no le llegan nunca, porque viajan cifradas con la llave maestra.
+ * Solo las ve y las escribe el presidente de ese día, y solo en su teléfono:
+ * a cualquier otro no le llega ninguna, así que no se pinta nada.
  */
 const PartNote = ({ partKey }: { partKey: string }) => {
   const run = useMeetingRunPart(partKey);

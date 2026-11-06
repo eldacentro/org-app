@@ -11,10 +11,14 @@ import {
   listarInvitaciones,
 } from '@services/firebase/speaker_invitations';
 import {
+  calcularTurnosCena,
   esSemanaDeVisita,
-  grupoPorSemana,
+  unaPorSemana,
 } from '@services/app/rotacion_cenas';
 import { schedulesState } from '@states/schedules';
+import { useAppTranslation } from '@hooks/index';
+import { formatDate, getWeekDate } from '@utils/date';
+import { nombreDeGrupo } from './nombreGrupo';
 
 /**
  * LAS CENAS QUE LE TOCAN A MI GRUPO, para enseñárselas a quien las organiza.
@@ -24,12 +28,20 @@ import { schedulesState } from '@states/schedules';
  * busca una familia dentro— y quien tiene que moverlo es el que lo lleva. Si le
  * saliera a los treinta, nadie se daría por aludido.
  *
+ * SOLO LAS DECIDIDAS. Una cena sale cuando el orador ya dijo que se queda Y
+ * todas las semanas anteriores de la rotación están resueltas. Antes salía en
+ * cuanto el orador decía que sí, aunque la semana anterior siguiera sin
+ * contestar — y si esa contestaba que sí, la cena pasaba al grupo siguiente:
+ * a un superintendente se le quitaba una cena que ya estaba organizando y al
+ * otro le aparecía de golpe.
+ *
  * Los datos vienen de Firestore, como todo el módulo del orador, así que esto
  * va aparte del resto de «Mis asignaciones», que lee de la base de datos local.
  * Si falla, devuelve una lista vacía: una asignación de más que no aparece es
  * molesto, pero una pantalla que no carga lo es mucho más.
  */
 const useCenaDeMiGrupo = () => {
+  const { t } = useAppTranslation();
   const congId = useAtomValue(congIDState);
   const yo = useAtomValue(userLocalUIDState);
   const grupos = useAtomValue(fieldGroupsState);
@@ -82,37 +94,52 @@ const useCenaDeMiGrupo = () => {
     );
   }, [grupos, yo]);
 
-  /** Las semanas en que le toca a un grupo mío Y el orador se queda a cenar. */
+  const turnos = useMemo(
+    () =>
+      calcularTurnosCena({
+        invitaciones,
+        rotacion,
+        grupos,
+        schedules,
+        hoy: formatDate(getWeekDate(new Date()), 'yyyy/MM/dd'),
+      }),
+    [invitaciones, rotacion, grupos, schedules]
+  );
+
+  /** Las semanas decididas en que le toca a un grupo mío y se cena. */
   const semanas = useMemo(() => {
     if (misGrupos.size === 0) return [];
 
-    const turnos = grupoPorSemana({
-      invitaciones,
-      rotacion,
-      grupos,
-      schedules,
-    });
+    // La misma invitación que cuenta en la rueda: la vigente de cada semana.
+    const porSemana = new Map(
+      unaPorSemana(invitaciones).map((inv) => [inv.weekOf, inv])
+    );
 
-    return invitaciones
-      .filter((inv) => {
+    return turnos
+      .filter((turno) => {
         // La semana de la visita del superintendente no tiene orador visitante.
-        if (esSemanaDeVisita(inv.weekOf, schedules)) return false;
+        if (esSemanaDeVisita(turno.weekOf, schedules)) return false;
 
-        const grupo = turnos.get(inv.weekOf);
-
-        if (!grupo || !misGrupos.has(grupo)) return false;
-
-        // Solo si de verdad se queda. Mientras no se sepa no se le dice a
-        // nadie que organice una cena que a lo mejor no hay.
-        return Boolean(inv.respuesta?.asistira && inv.respuesta.cena);
+        // Solo si de verdad se queda y ya no se puede mover. Mientras no se
+        // sepa, no se le dice a nadie que organice una cena que a lo mejor no
+        // es suya.
+        return turno.decidido && turno.gasta && misGrupos.has(turno.grupo);
       })
-      .map((inv) => ({
-        weekOf: inv.weekOf,
-        speakerName: inv.speakerName,
-        comensales: inv.respuesta?.comensales ?? 0,
-        dateLocale: inv.dateLocale,
-      }));
-  }, [invitaciones, rotacion, grupos, misGrupos, schedules]);
+      .map((turno) => {
+        const inv = porSemana.get(turno.weekOf);
+
+        return {
+          weekOf: turno.weekOf,
+          speakerName: inv?.speakerName ?? '',
+          comensales: inv?.respuesta?.comensales ?? 0,
+          dateLocale: inv?.dateLocale ?? '',
+          grupo: nombreDeGrupo(
+            grupos.find((g) => g.group_id === turno.grupo),
+            t
+          ),
+        };
+      });
+  }, [turnos, invitaciones, grupos, misGrupos, schedules, t]);
 
   return { semanas };
 };

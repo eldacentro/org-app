@@ -1,4 +1,5 @@
 import {
+  creditEntriesOf,
   effectiveCreditHours,
   monthlyCreditedTotal,
   rawCreditHours,
@@ -49,7 +50,8 @@ const getMonthData = (
     const { hours } = congReport.report_data;
     const credit = effectiveCreditHours(
       hours.field_service,
-      rawCreditHours(hours.credit)
+      rawCreditHours(hours.credit),
+      creditEntriesOf(hours.credit)
     );
 
     return { hours: hours.field_service + credit, hasReport: true };
@@ -71,7 +73,11 @@ const getMonthData = (
     );
 
     return {
-      hours: monthlyCreditedTotal(campo, creditToHours(hours.credit)),
+      hours: monthlyCreditedTotal(
+        campo,
+        creditToHours(hours.credit),
+        creditEntriesOf(hours.credit)
+      ),
       hasReport: true,
     };
   }

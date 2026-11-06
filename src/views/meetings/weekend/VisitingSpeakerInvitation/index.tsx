@@ -7,8 +7,8 @@ import {
   PdfNote,
   Sheet,
   color,
+  compact,
   periodo,
-  size,
   space,
   text,
 } from '@views/design';
@@ -28,6 +28,11 @@ import { CoordinatorInfo, VisitingSpeakerInvitationProps } from './index.types';
  * 3. Una **tarjeta de contacto** con los auxiliares primero y el coordinador
  *    al final. Sustituye a la firma: quien recibe esta hoja no necesita una
  *    rúbrica, necesita a quién llamar.
+ *
+ * Va SIEMPRE en modo compacto (PDF_DESIGN_SYSTEM.md, «Modo compacto»): a 9,5
+ * con interlínea 1,6, con dos auxiliares, el enlace de respuesta y la tarjeta
+ * multimedia, la tarjeta de contacto —que no se parte— se iba entera a una
+ * segunda hoja casi en blanco. Comprobado renderizando el PDF.
  */
 
 /** Uno de los contactos del pie: rótulo del cargo, nombre, teléfono y correo. */
@@ -53,9 +58,10 @@ const Contacto = ({
 const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
   const parrafo = {
     ...text.body,
-    lineHeight: 1.6,
+    fontSize: compact.body,
+    lineHeight: 1.5,
     textAlign: 'justify' as const,
-    marginBottom: space.md,
+    marginBottom: space.sm + 1,
   };
 
   const auxiliares = (props.assistants ?? []).filter((a) => a?.name);
@@ -70,6 +76,7 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           .filter(Boolean)
           .join(' · ')}
         documentName="Invitación al orador visitante"
+        dense
       >
         <Text style={{ ...parrafo, marginBottom: space.sm }}>
           Querido hermano {props.speakerName}:
@@ -183,11 +190,11 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           <Link src={props.dinner.url}>
             <Text
               style={{
-                fontSize: size.body,
+                fontSize: compact.body,
                 fontWeight: 700,
                 color: color.accent,
-                marginTop: -space.sm,
-                marginBottom: space.md,
+                marginTop: -space.xs,
+                marginBottom: space.sm + 1,
               }}
             >
               O contesta aquí, en dos toques
@@ -215,7 +222,7 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
           hazlo saber a la mayor brevedad posible.
         </Text>
 
-        <Text style={{ ...parrafo, marginBottom: space.lg }}>
+        <Text style={{ ...parrafo, marginBottom: compact.cardGap }}>
           Deseosos de poder estar juntos y disfrutar de una excelente reunión,
           te mandamos nuestro cariño,{'\n'}
           Congregación {props.congregationName}.
@@ -224,9 +231,11 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
         {props.mediaEmail ? (
           <PdfCard
             title="Contenido multimedia"
-            style={{ marginBottom: space.lg }}
+            style={{ marginBottom: compact.cardGap }}
           >
-            <Text style={{ ...text.body, lineHeight: 1.5 }}>
+            <Text
+              style={{ ...text.body, fontSize: compact.body, lineHeight: 1.45 }}
+            >
               Si usas imágenes o vídeos en tu discurso, puedes traerlos en un
               pendrive o enviarlos con antelación —mejor como lista de
               reproducción de JW Library—. Por favor, envía cualquier contenido
@@ -235,10 +244,10 @@ const VisitingSpeakerInvitation = (props: VisitingSpeakerInvitationProps) => {
             <Link src={`mailto:${props.mediaEmail}`}>
               <Text
                 style={{
-                  fontSize: size.body,
+                  fontSize: compact.body,
                   fontWeight: 700,
                   color: color.accent,
-                  marginTop: space.sm,
+                  marginTop: space.xs,
                 }}
               >
                 {props.mediaEmail}

@@ -15,6 +15,18 @@
  * O sea: el crédito rellena hasta 55 y ni una más. La predicación no tiene
  * techo.
  *
+ * PERO EL TOPE ES SOLO PARA EL CRÉDITO DE LDC y demás asignaciones
+ * teocráticas (corregido el 2026-11-06, lo pidió Carlos). El de la Escuela del
+ * Servicio de Precursor, la Escuela para Evangelizadores del Reino (SKE) y el
+ * curso de idioma cuenta ENTERO: 35 h + 30 de la escuela = 65, no 55. Hasta
+ * entonces se topaba cualquier crédito.
+ *
+ * Para saber de qué es cada hora hace falta el desglose (`hours.credit.entries`,
+ * ver `credit_entries.ts`). Un crédito SIN desglose —los migrados de TsWin, los
+ * de antes de que el desglose viajara con el informe del móvil— no se sabe de
+ * qué es, y se sigue topando entero como hasta ahora. El tope del LDC se mide
+ * contra la predicación sola, sin contar el crédito de las escuelas.
+ *
  * PARA QUÉ SIRVE Y PARA QUÉ NO: esto es el control del propio precursor y del
  * comité de servicio. A la sucursal se mandan SOLO las horas de predicación,
  * sin crédito ninguno — así que este cálculo no debe tocar nunca lo que sale en
@@ -25,36 +37,88 @@
  * hermano, que es de los errores que tardan meses en verse.
  */
 
-/** Ni la predicación ni el crédito juntos pasan de aquí en un mes. */
+/** La predicación y el crédito de LDC juntos no pasan de aquí en un mes. */
 export const CREDIT_MONTHLY_CAP = 55;
 
 /**
- * El crédito que cuenta ese mes: el que quepa hasta 55, y nunca negativo.
+ * Los motivos de crédito que NO tienen tope: cuentan enteros. Son los de
+ * `CreditEntryType` (credit_entries.ts), escritos aquí a mano para que este
+ * fichero siga sin dependencias.
+ */
+export const CREDIT_TYPES_WITHOUT_CAP = [
+  'pioneer_school',
+  'ske',
+  'language_course',
+] as const;
+
+/** Lo mínimo que hace falta de una entrada del desglose. */
+type CreditEntryLike = { type?: string; hours?: number };
+
+/**
+ * Las horas de crédito que van sin tope, sacadas del desglose. Nunca más que
+ * el crédito total: si el secretario aprobó menos de lo desglosado, manda lo
+ * aprobado.
+ */
+const creditWithoutCap = (credit: number, entries?: CreditEntryLike[]) => {
+  if (!Array.isArray(entries) || entries.length === 0) return 0;
+
+  const exento = entries.reduce((total, entry) => {
+    const hours = Number(entry?.hours);
+
+    if (!Number.isFinite(hours) || hours <= 0) return total;
+
+    return (CREDIT_TYPES_WITHOUT_CAP as readonly string[]).includes(
+      entry?.type ?? ''
+    )
+      ? total + hours
+      : total;
+  }, 0);
+
+  return Math.min(credit, exento);
+};
+
+/**
+ * El crédito que cuenta ese mes, nunca negativo: el de las escuelas entero, y
+ * el de LDC (o sin desglose) solo lo que quepa hasta 55 con la predicación.
  *
- * Si la predicación ya llega o pasa de 55, el crédito no suma nada.
+ * Si la predicación ya llega o pasa de 55, el crédito de LDC no suma nada.
  */
 export const effectiveCreditHours = (
   fieldService: number,
-  credit: number
+  credit: number,
+  entries?: CreditEntryLike[]
 ): number => {
   const campo = Number.isFinite(fieldService) ? Math.max(0, fieldService) : 0;
   const cred = Number.isFinite(credit) ? Math.max(0, credit) : 0;
 
-  return Math.min(cred, Math.max(0, CREDIT_MONTHLY_CAP - campo));
+  const sinTope = creditWithoutCap(cred, entries);
+  const conTope = cred - sinTope;
+
+  return sinTope + Math.min(conTope, Math.max(0, CREDIT_MONTHLY_CAP - campo));
 };
 
 /**
- * El total del mes a efectos de control: predicación más el crédito que quepa.
+ * El total del mes a efectos de control: predicación más el crédito que cuenta.
  *
  * La predicación entra ENTERA aunque pase de 55; el tope solo recorta crédito.
  */
 export const monthlyCreditedTotal = (
   fieldService: number,
-  credit: number
+  credit: number,
+  entries?: CreditEntryLike[]
 ): number => {
   const campo = Number.isFinite(fieldService) ? Math.max(0, fieldService) : 0;
 
-  return campo + effectiveCreditHours(campo, credit);
+  return campo + effectiveCreditHours(campo, credit, entries);
+};
+
+/** El desglose de un crédito, venga en la forma que venga. */
+export const creditEntriesOf = (credit: unknown): CreditEntryLike[] | undefined => {
+  if (!credit || typeof credit !== 'object') return undefined;
+
+  const entries = (credit as { entries?: unknown }).entries;
+
+  return Array.isArray(entries) ? (entries as CreditEntryLike[]) : undefined;
 };
 
 /**

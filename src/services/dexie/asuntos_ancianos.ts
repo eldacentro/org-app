@@ -2,7 +2,7 @@ import appDb from '@db/appDb';
 import { AsuntoAncianosType } from '@definition/asuntos_ancianos';
 
 /**
- * El tablón del cuerpo de ancianos, del lado del dispositivo.
+ * Necesidades de la congregación, del lado del dispositivo.
  *
  * Todo lo que escribe pasa por aquí para que no se olvide ninguna de las dos
  * cosas que hacen que un cambio llegue a los demás: sellar `updatedAt` y marcar
@@ -36,19 +36,19 @@ const guardar = async (asunto: AsuntoAncianosType) => {
   despertarSync();
 };
 
-/** Apunta un asunto nuevo. Devuelve el que ha quedado guardado. */
+/** Apunta una necesidad nueva. Devuelve la que ha quedado guardada. */
 export const dbAsuntoCrear = async ({
   titulo,
   detalle,
   propuestoPor,
   asignadoA = '',
-  urgente = false,
+  fechaPosible = '',
 }: {
   titulo: string;
   detalle?: string;
   propuestoPor: string;
   asignadoA?: string;
-  urgente?: boolean;
+  fechaPosible?: string;
 }) => {
   const ahora = new Date().toISOString();
 
@@ -58,13 +58,14 @@ export const dbAsuntoCrear = async ({
     _deleted: false,
     titulo: titulo.trim(),
     detalle: (detalle ?? '').trim(),
+    asignadoA,
+    fechaPosible,
+    tratadoEl: '',
     propuestoPor,
     propuestoEl: ahora,
-    asignadoA,
-    tratadoEl: '',
     tratadoPor: '',
     acuerdo: '',
-    urgente,
+    urgente: false,
   };
 
   await guardar(asunto);
@@ -95,19 +96,12 @@ export const dbAsuntoActualizar = async (
   });
 };
 
-/** Lo da por tratado: fecha, quién y en qué quedó. */
-export const dbAsuntoTratar = async (
-  id: string,
-  { tratadoPor, acuerdo }: { tratadoPor: string; acuerdo: string }
-) => {
-  await dbAsuntoActualizar(id, {
-    tratadoEl: new Date().toISOString(),
-    tratadoPor,
-    acuerdo: acuerdo.trim(),
-  });
+/** La da por tratada: pasa al archivo. */
+export const dbAsuntoTratar = async (id: string) => {
+  await dbAsuntoActualizar(id, { tratadoEl: new Date().toISOString() });
 };
 
-/** Lo devuelve a pendientes, por si se dio por tratado sin querer. */
+/** La devuelve a pendientes, por si se dio por tratada sin querer. */
 export const dbAsuntoReabrir = async (id: string) => {
   await dbAsuntoActualizar(id, { tratadoEl: '', tratadoPor: '', acuerdo: '' });
 };

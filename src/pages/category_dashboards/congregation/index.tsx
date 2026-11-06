@@ -187,7 +187,7 @@ const CongregationDashboard = () => {
               <IconInformationBoard color="var(--brand)" width={22} height={22} />
             </div>
             <div className="tile-body">
-              <div className="tile-name">Asuntos del cuerpo de ancianos</div>
+              <div className="tile-name">Necesidades de la congregación</div>
             </div>
             <svg
               className="chev-icon"

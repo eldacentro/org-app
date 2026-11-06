@@ -721,6 +721,65 @@ const useMyAssignments = () => {
       return results;
     };
 
+    // La cena del orador entra como una asignación más, para que salga donde se
+    // mira «qué tengo yo esta semana» y no en un rincón aparte. Con las mismas
+    // reglas que las demás: solo de hoy en adelante y dentro del rango elegido
+    // —antes salían todas las pasadas—, con la fecha del DOMINGO y no la del
+    // lunes, y contando igual en el contador del inicio.
+    const getCenaAssignments = (uid: string): AssignmentHistoryType[] => {
+      // Las cenas son de quien lleva el grupo, que es quien usa la app: a un
+      // representado no se le calculan.
+      if (uid !== userUID) return [];
+
+      const maxDateStr = formatDate(maxDate, 'yyyy/MM/dd');
+      const results: AssignmentHistoryType[] = [];
+
+      for (const cena of cenasDeMiGrupo) {
+        const fecha =
+          schedulesGetMeetingDate({
+            week: cena.weekOf,
+            meeting: 'weekend',
+            dataView: 'main',
+          }).date || cena.weekOf;
+
+        if (fecha < currentDayStr || fecha > maxDateStr) continue;
+
+        const key = `CENA_ORADOR_${cena.weekOf}`;
+
+        results.push({
+          id: key,
+          weekOf: cena.weekOf,
+          weekOfFormatted: formatDate(new Date(fecha), shortDateFormat),
+          actualDate: fecha,
+          assignment: {
+            code: 0 as AssignmentHistoryType['assignment']['code'],
+            person: uid,
+            key: key as AssignmentHistoryType['assignment']['key'],
+            dataView: 'main',
+            title: 'Cena con el orador visitante',
+            descItems: [
+              {
+                icon: 'meal',
+                text: cena.speakerName
+                  ? `Le toca a tu grupo (${cena.grupo}) acoger a ${cena.speakerName}`
+                  : `Le toca a tu grupo (${cena.grupo}) acoger la cena`,
+              },
+              ...(cena.comensales
+                ? [
+                    {
+                      icon: 'people',
+                      text: `${cena.comensales} a la mesa`,
+                    } as AssignmentDescItem,
+                  ]
+                : []),
+            ],
+          },
+        } as AssignmentHistoryType);
+      }
+
+      return results;
+    };
+
     const filterAssignments = (uid: string, type = filterType) => {
       const meetingAssignments =
         type === 'preaching'
@@ -750,6 +809,11 @@ const useMyAssignments = () => {
           : getLimpiezaAssignments(uid);
 
       const circuitAssignments = getCircuitVisitAssignments(uid);
+      const cenaAssignments =
+        type === 'preaching' || type === 'limpieza'
+          ? []
+          : getCenaAssignments(uid);
+
       return [
         ...meetingAssignments,
         ...deptAssignments,
@@ -757,38 +821,12 @@ const useMyAssignments = () => {
         ...exhibitorAssignments,
         ...limpiezaAssign,
         ...circuitAssignments,
+        ...cenaAssignments,
       ];
     };
 
     const ownAssignments = filterAssignments(userUID);
 
-    // La cena del orador entra como una asignación más, para que salga donde se
-    // mira «qué tengo yo esta semana» y no en un rincón aparte.
-    for (const cena of cenasDeMiGrupo) {
-      ownAssignments.push({
-        id: `CENA_ORADOR_${cena.weekOf}`,
-        weekOf: cena.weekOf,
-        weekOfFormatted: formatDate(new Date(cena.weekOf), shortDateFormat),
-        actualDate: cena.weekOf,
-        assignment: {
-          code: 0 as AssignmentHistoryType['assignment']['code'],
-          person: userUID,
-          key: `CENA_ORADOR_${cena.weekOf}` as AssignmentHistoryType['assignment']['key'],
-          dataView: 'main',
-          title: 'Cena con el orador visitante',
-          descItems: [
-            {
-              icon: 'clean',
-              text: cena.speakerName
-                ? `A tu grupo le toca acoger a ${cena.speakerName}${
-                    cena.comensales ? ` · ${cena.comensales} a la mesa` : ''
-                  }`
-                : 'A tu grupo le toca acoger la cena',
-            },
-          ],
-        },
-      } as AssignmentHistoryType);
-    }
     const delegateAssignments = delegateMembers.flatMap((uid) =>
       filterAssignments(uid)
     );

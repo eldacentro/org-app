@@ -1,7 +1,6 @@
 import { Box, Stack } from '@mui/material';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import AuxiliaryClassroom from './auxiliary_classroom';
-import ChairmanNotes from './chairman_notes';
 import DayTime from './day_time';
 import LinkedParts from './linked_parts';
 import SpecialParts from './special_parts';
@@ -19,8 +18,6 @@ const MidweekSettings = () => {
         {!isGroup && <AuxiliaryClassroom />}
 
         <SpecialParts />
-
-        <ChairmanNotes />
 
         <Stack spacing="16px">
           <Typography className="body-small-semibold" color="var(--grey-400)">

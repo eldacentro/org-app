@@ -19,6 +19,7 @@ import PartTiming from '../../part_timing';
 import PartNote from '../../part_note';
 import PersonComponent from '../../person_component';
 import SongSource from '@features/meetings/song_source';
+import Typography from '@components/typography';
 
 const LivingPart = (props: LivingPartProps) => {
   const { t } = useAppTranslation();
@@ -27,6 +28,45 @@ const LivingPart = (props: LivingPartProps) => {
 
   const { parts, weekType, closingPrayerLinked, showCBS } =
     useLivingPart(props);
+
+  /**
+   * «Palabras de conclusión (3 mins.)», del presidente.
+   *
+   * Está en la guía de actividades («Palabras de conclusión (3 mins.) | Canción
+   * y oración») y en todos los programas que hacía Elda Centro, y aquí faltaba:
+   * de la última parte se saltaba a la canción final. Va antes de la canción
+   * final y, en la semana de la visita del superintendente, antes de su
+   * discurso, que es donde va ese día.
+   */
+  const conclusion = MIDWEEK_FULL.includes(weekType) && (
+    <>
+      <DoubleFieldContainer sx={{ flexDirection: laptopUp ? 'row' : 'column' }}>
+        <PrimaryFieldContainer>
+          {props.timings?.concluding_comments && (
+            <PartTiming
+              time={props.timings.concluding_comments}
+              partKey="concluding_comments"
+            />
+          )}
+          <Typography className="h4" color="var(--living-as-christians)">
+            {`${t('tr_concludingComments')} (3 ${t('tr_minLabel')})`}
+          </Typography>
+        </PrimaryFieldContainer>
+        <SecondaryFieldContainer
+          sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+        >
+          <PersonComponent
+            label={`${t('tr_chairman')}:`}
+            week={props.week}
+            assignment="MM_Chairman_A"
+            dataView={props.dataView}
+            color="var(--living-as-christians)"
+          />
+        </SecondaryFieldContainer>
+      </DoubleFieldContainer>
+      <PartNote partKey="concluding_comments" />
+    </>
+  );
 
   return (
     <MeetingSection
@@ -118,6 +158,10 @@ const LivingPart = (props: LivingPartProps) => {
             <PartNote partKey="cbs" />
           </>
         )}
+
+        {/* Después del estudio y, en la semana de la visita, antes del
+            discurso del superintendente: en los dos casos, justo aquí. */}
+        {conclusion}
 
         {weekType === Week.CO_VISIT && (
           <>

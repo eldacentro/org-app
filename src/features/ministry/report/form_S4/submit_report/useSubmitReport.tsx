@@ -59,6 +59,7 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
     comments,
     shared_ministry,
     hours_credits,
+    credit_entries,
     hours_fields,
     month_name,
     isSelf,
@@ -191,6 +192,15 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
       credit: {
         value: creditHours,
         approved: congReport?.report_data.hours.credit.approved ?? 0,
+        // El desglose se conserva: sin él, el tope de 55 se aplicaría también
+        // al crédito de la escuela de precursores. Nunca `undefined` en una
+        // tabla que se sincroniza.
+        ...((credit_entries ?? congReport?.report_data.hours.credit.entries)
+          ? {
+              entries:
+                credit_entries ?? congReport?.report_data.hours.credit.entries,
+            }
+          : {}),
       },
       field_service: fieldHours,
     };
@@ -222,6 +232,9 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
       comments: comments,
       hours: fieldHours,
       hours_credits: creditHours,
+      // De qué es cada hora de crédito, para que el secretario sepa cuál tiene
+      // el tope de 55 (solo el de LDC). Siempre una lista, aunque vacía.
+      credit_entries: credit_entries ?? [],
       report_month: month,
       shared_ministry,
       updatedAt: new Date().toISOString(),
@@ -240,9 +253,14 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
           'access_code'
         );
 
-        encryptObject({ data: report, table: 'incoming_reports', accessCode });
+        // Se cifra una COPIA: si el envío falla, a la cola de reintento va el
+        // informe en claro. Cifrando `report` en su sitio, la cola guardaba el
+        // cifrado, el reintento lo volvía a cifrar y al secretario le llegaba
+        // como retirado (ver services/app/incoming_reports).
+        const cifrado = structuredClone(report);
+        encryptObject({ data: cifrado, table: 'incoming_reports', accessCode });
 
-        await apiUserFieldServiceReportPost(report);
+        await apiUserFieldServiceReportPost(cifrado);
       }
 
       if (accountType === 'pocket') {
@@ -256,9 +274,11 @@ const useSubmitReport = ({ onClose, month, person_uid }: SubmitReportProps) => {
           'access_code'
         );
 
-        encryptObject({ data: report, table: 'incoming_reports', accessCode });
+        // Una COPIA, por lo mismo que arriba.
+        const cifrado = structuredClone(report);
+        encryptObject({ data: cifrado, table: 'incoming_reports', accessCode });
 
-        await apiPocketFieldServiceReportPost(report);
+        await apiPocketFieldServiceReportPost(cifrado);
       }
 
       return false;

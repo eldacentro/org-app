@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai';
 import { IconError } from '@components/icons';
 import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import { incomingCongSpeakersState } from '@states/speakers_congregations';
-import { circuitNumberState } from '@states/settings';
 import { speakersCongregationSchema } from '@services/dexie/schema';
 import { dbSpeakersCongregationsCreate } from '@services/dexie/speakers_congregations';
 import { dbVisitingSpeakerQuickAdd } from '@services/dexie/visiting_speakers';
@@ -15,7 +14,6 @@ type Step = 'congregation' | 'speaker';
 
 const useQuickAddSpeaker = ({ onClose, onCreated }: QuickAddSpeakerType) => {
   const congregations = useAtomValue(incomingCongSpeakersState);
-  const ownCircuit = useAtomValue(circuitNumberState);
 
   const [step, setStep] = useState<Step>('congregation');
   const [congInputValue, setCongInputValue] = useState('');
@@ -63,11 +61,15 @@ const useQuickAddSpeaker = ({ onClose, onCreated }: QuickAddSpeakerType) => {
       return;
     }
 
-    // Congregación nueva: se crea con el mínimo indispensable (nombre +
-    // mismo circuito que la propia congregación, el caso más común) — el
-    // resto de la ficha (dirección, coordinador, horarios) se completa
+    // Congregación nueva: se crea solo con el nombre — el resto de la ficha
+    // (número, circuito, dirección, coordinador, horarios) se completa
     // después desde el Catálogo de oradores si hace falta, sin bloquear
     // aquí el alta rápida del orador.
+    //
+    // El circuito se deja VACÍO, nunca el nuestro por suponer: el sync del
+    // circuito borraba cada noche las congregaciones con nuestro circuito
+    // que no venían en el Sheet, y eran justo las de fuera que se añadían
+    // aquí (incidente 2026-11). «Completar datos» pone el de verdad.
     setIsSaving(true);
     try {
       const now = new Date().toISOString();
@@ -79,7 +81,6 @@ const useQuickAddSpeaker = ({ onClose, onCreated }: QuickAddSpeakerType) => {
         value: congInputValue.trim(),
         updatedAt: now,
       };
-      newCong.cong_data.cong_circuit = { value: ownCircuit, updatedAt: now };
 
       await dbSpeakersCongregationsCreate(newCong);
       setSelectedCong(newCong);

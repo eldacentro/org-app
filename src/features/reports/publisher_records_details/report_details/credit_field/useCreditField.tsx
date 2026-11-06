@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { publisherCurrentReportState } from '@states/field_service_reports';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
+import { CreditEntryType, creditEntryAdd } from '@services/app/credit_entries';
 
 const useCreditField = () => {
   const creditRef = useRef<Element>(null);
@@ -51,10 +52,22 @@ const useCreditField = () => {
     setCurrentReport(report);
   };
 
-  const handleSelectPreset = (value: number) => {
+  const handleSelectPreset = (
+    value: number,
+    name: string,
+    type: CreditEntryType
+  ) => {
     const report = structuredClone(currentReport);
 
     report.report_data.hours.credit.approved = value;
+    // El preset SUSTITUYE el crédito, así que su desglose también: una sola
+    // entrada con su motivo. Sin ella no se sabría que es de la escuela de
+    // precursores y se toparía a 55 como si fuera de LDC.
+    report.report_data.hours.credit.entries = creditEntryAdd([], {
+      type,
+      hours: value,
+      label: name,
+    });
 
     if (report.report_data.hours.field_service === 0) {
       report.report_data.shared_ministry = true;

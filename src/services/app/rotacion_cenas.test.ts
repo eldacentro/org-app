@@ -3,7 +3,7 @@ import { FieldServiceGroupType } from '@definition/field_service_groups';
 import { SchedWeekType } from '@definition/schedules';
 import { Week } from '@definition/week_type';
 import { SpeakerDinnerRotationType } from '@definition/speaker_invitation';
-import { grupoPorSemana } from './rotacion_cenas';
+import { calcularTurnosCena, grupoPorSemana } from './rotacion_cenas';
 
 const grupo = (id: string, sort_index: number) =>
   ({
@@ -163,5 +163,87 @@ describe('la rotación de cenas del orador', () => {
 
     expect(t.get('2026/11/01')).toBe('g1');
     expect(t.get('2026/11/08')).toBe('g3');
+  });
+});
+
+/**
+ * Que a ningún superintendente se le avise de una cena que no es suya: solo
+ * cuenta la invitación vigente de cada semana, y una cena no se da por suya
+ * hasta que las semanas anteriores están resueltas.
+ */
+describe('la cena que se le enseña al superintendente', () => {
+  const calcular = (
+    invitaciones: Parameters<typeof calcularTurnosCena>[0]['invitaciones'],
+    hoy?: string,
+    rotacion = ROTACION,
+    grupos = GRUPOS
+  ) => calcularTurnosCena({ invitaciones, rotacion, grupos, hoy });
+
+  it('no está decidida mientras una semana anterior siga sin contestar', () => {
+    const t = calcular([inv('2026/11/01'), inv('2026/11/08', true)], '2026/10/26');
+
+    expect(t.find((x) => x.weekOf === '2026/11/08')).toMatchObject({
+      grupo: 'g1',
+      gasta: true,
+      decidido: false,
+    });
+  });
+
+  it('se decide cuando la anterior contesta, y entonces es del grupo correcto', () => {
+    const t = calcular(
+      [inv('2026/11/01', true), inv('2026/11/08', true)],
+      '2026/10/26'
+    );
+
+    expect(t.find((x) => x.weekOf === '2026/11/08')).toMatchObject({
+      grupo: 'g2',
+      decidido: true,
+    });
+  });
+
+  it('una semana ya pasada sin contestar no bloquea las siguientes', () => {
+    const t = calcular([inv('2026/11/01'), inv('2026/11/08', true)], '2026/11/09');
+
+    expect(t.find((x) => x.weekOf === '2026/11/08')).toMatchObject({
+      grupo: 'g1',
+      decidido: true,
+    });
+  });
+
+  it('si se cambió el orador, cuenta solo la invitación más reciente', () => {
+    const vieja = {
+      ...inv('2026/11/01', true),
+      expiresAt: new Date('2027-02-01'),
+    };
+    const nueva = { ...inv('2026/11/01', false), expiresAt: new Date('2027-03-01') };
+
+    const t = calcular([vieja, nueva, inv('2026/11/08', true)]);
+
+    expect(t).toHaveLength(2);
+    expect(t[0]).toMatchObject({ weekOf: '2026/11/01', gasta: false });
+    // La semana no gastó turno: la siguiente sigue siendo del primer grupo.
+    expect(t[1]).toMatchObject({ weekOf: '2026/11/08', grupo: 'g1' });
+  });
+
+  it('una invitación anulada no cuenta', () => {
+    const t = calcular([{ ...inv('2026/11/01', true), revoked: true }]);
+
+    expect(t).toHaveLength(0);
+  });
+
+  it('una respuesta apuntada tarde recoloca las semanas siguientes', () => {
+    // Nada se queda congelado: si la semana 1 se anota después como «cena», la
+    // semana 2 pasa al grupo siguiente, que es lo correcto.
+    const antes = calcular(
+      [inv('2026/11/01'), inv('2026/11/08', true)],
+      '2026/11/09'
+    );
+    const despues = calcular(
+      [inv('2026/11/01', true), inv('2026/11/08', true)],
+      '2026/11/09'
+    );
+
+    expect(antes[1].grupo).toBe('g1');
+    expect(despues[1].grupo).toBe('g2');
   });
 });

@@ -191,6 +191,42 @@ const MidweekMeeting = (props: MidweekMeetingProps) => {
               )}
 
               <PartNote partKey="pgm_start" />
+
+              {/* «Palabras de introducción (1 min.)», del presidente, justo
+                  después de la canción y la oración, como en la guía de
+                  actividades. Hace pareja con las de conclusión, al final. */}
+              {MIDWEEK_FULL.includes(weekType) && (
+                <>
+                  <DoubleFieldContainer
+                    sx={{ flexDirection: laptopUp ? 'row' : 'column' }}
+                  >
+                    <PrimaryFieldContainer>
+                      {partTimings?.opening_comments && (
+                        <PartTiming
+                          time={partTimings.opening_comments}
+                          partKey="opening_comments"
+                        />
+                      )}
+                      <Typography className="h4" color="var(--midweek-meeting)">
+                        {`${t('tr_openingComments')} (1 ${t('tr_minLabel')})`}
+                      </Typography>
+                    </PrimaryFieldContainer>
+                    <SecondaryFieldContainer
+                      sx={{ maxWidth: laptopUp ? '360px' : '100%' }}
+                    >
+                      <PersonComponent
+                        label={`${t('tr_chairman')}:`}
+                        week={week}
+                        assignment="MM_Chairman_A"
+                        dataView={props.dataView}
+                        color="var(--midweek-meeting)"
+                      />
+                    </SecondaryFieldContainer>
+                  </DoubleFieldContainer>
+
+                  <PartNote partKey="opening_comments" />
+                </>
+              )}
             </PlainCard>
 
             {MIDWEEK_WITH_TREASURES.includes(weekType) && (

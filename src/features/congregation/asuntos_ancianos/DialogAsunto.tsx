@@ -2,40 +2,53 @@ import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import AutoComplete from '@components/autocomplete';
 import Button from '@components/button';
-import Checkbox from '@components/checkbox';
+import DatePicker from '@components/date_picker';
 import Dialog from '@components/dialog';
 import TextField from '@components/textfield';
 import Typography from '@components/typography';
 import { AsuntoAncianosType } from '@definition/asuntos_ancianos';
+import { formatDate } from '@utils/date';
 
 type Opcion = { id: string; etiqueta: string };
 
+export type DatosNecesidad = {
+  titulo: string;
+  detalle: string;
+  asignadoA: string;
+  fechaPosible: string;
+};
+
 type DialogAsuntoProps = {
   open: boolean;
-  /** Si viene, se está editando; si no, se está apuntando uno nuevo. */
+  /** Si viene, se está editando; si no, se está apuntando una nueva. */
   asunto?: AsuntoAncianosType;
-  opcionesAncianos: Opcion[];
+  opcionesPersonas: Opcion[];
   guardando: boolean;
   onClose: VoidFunction;
-  onGuardar: (datos: {
-    titulo: string;
-    detalle: string;
-    asignadoA: string;
-    urgente: boolean;
-  }) => void;
+  onGuardar: (datos: DatosNecesidad) => void;
+};
+
+/** 'YYYY/MM/DD' → Date a medianoche local, sin que la mueva la zona horaria. */
+const aFecha = (texto?: string) => {
+  if (!texto) return null;
+
+  const [y, m, d] = texto.split('/').map(Number);
+
+  if (!y || !m || !d) return null;
+
+  return new Date(y, m - 1, d);
 };
 
 /**
- * Apuntar un asunto, o corregirlo.
+ * Apuntar una necesidad, o corregirla.
  *
- * Solo el título es obligatorio: si apuntar algo cuesta rellenar un formulario,
- * no se apunta y el tablón se queda vacío mientras los asuntos siguen en la
- * cabeza de cada uno. Lo demás se puede añadir luego.
+ * Solo el tema es obligatorio: si apuntar algo cuesta rellenar un formulario,
+ * no se apunta. Lo demás se puede añadir cuando se sepa.
  */
 const DialogAsunto = ({
   open,
   asunto,
-  opcionesAncianos,
+  opcionesPersonas,
   guardando,
   onClose,
   onGuardar,
@@ -43,7 +56,7 @@ const DialogAsunto = ({
   const [titulo, setTitulo] = useState('');
   const [detalle, setDetalle] = useState('');
   const [responsable, setResponsable] = useState<Opcion | null>(null);
-  const [urgente, setUrgente] = useState(false);
+  const [fecha, setFecha] = useState<Date | null>(null);
 
   // Al abrir se parte de lo que haya guardado. Mientras está abierto manda lo
   // que se está escribiendo: recargar desde fuera borraría el texto a medias.
@@ -52,9 +65,9 @@ const DialogAsunto = ({
 
     setTitulo(asunto?.titulo ?? '');
     setDetalle(asunto?.detalle ?? '');
-    setUrgente(asunto?.urgente ?? false);
+    setFecha(aFecha(asunto?.fechaPosible));
     setResponsable(
-      opcionesAncianos.find((record) => record.id === asunto?.asignadoA) ?? null
+      opcionesPersonas.find((record) => record.id === asunto?.asignadoA) ?? null
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -65,25 +78,23 @@ const DialogAsunto = ({
     <Dialog open={open} onClose={onClose}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <Typography className="h2" color="var(--ink)">
-          {asunto ? 'Editar asunto' : 'Apuntar un asunto'}
+          {asunto ? 'Editar necesidad' : 'Apuntar una necesidad'}
         </Typography>
         <Typography className="body-small-regular" color="var(--ink-2)">
-          Lo que haya que tratar en el cuerpo de ancianos. Con el título basta;
-          lo demás se puede completar cuando se sepa.
+          Con el tema basta; lo demás se puede completar cuando se sepa.
         </Typography>
       </Box>
 
       <TextField
-        label="Asunto"
-        placeholder="Por ejemplo: revisar el horario de limpieza del salón"
+        label="Tema"
+        placeholder="Por ejemplo: arreglar la megafonía del salón"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
         autoFocus
       />
 
       <TextField
-        label="Detalles (opcional)"
-        placeholder="Lo que haga falta saber para tratarlo"
+        label="Detalle (opcional)"
         value={detalle}
         onChange={(e) => setDetalle(e.target.value)}
         multiline
@@ -92,18 +103,19 @@ const DialogAsunto = ({
 
       <AutoComplete
         fullWidth
-        label="Responsable (opcional)"
-        options={opcionesAncianos}
+        label="A quién le podría tocar (opcional)"
+        options={opcionesPersonas}
         value={responsable}
         isOptionEqualToValue={(o: Opcion, v: Opcion) => o.id === v.id}
         getOptionLabel={(o: Opcion) => o.etiqueta}
         onChange={(_, value: Opcion | null) => setResponsable(value)}
       />
 
-      <Checkbox
-        label="Urgente"
-        checked={urgente}
-        onChange={(e) => setUrgente(e.target.checked)}
+      <DatePicker
+        label="Fecha posible (opcional)"
+        value={fecha}
+        onChange={(d) => setFecha(d && !isNaN(d.getTime()) ? d : null)}
+        view="input"
       />
 
       <Box
@@ -126,7 +138,7 @@ const DialogAsunto = ({
               titulo,
               detalle,
               asignadoA: responsable?.id ?? '',
-              urgente,
+              fechaPosible: fecha ? formatDate(fecha, 'yyyy/MM/dd') : '',
             })
           }
         >

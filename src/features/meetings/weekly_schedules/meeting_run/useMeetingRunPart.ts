@@ -27,7 +27,6 @@ export const useMeetingRunPart = (partKey?: string) => {
   // sigue habiendo dónde apuntar.
   return {
     status: view.status[partKey] as MeetingRunStatus | undefined,
-    shifted: view.shifted[partKey],
     note: view.notes?.[partKey],
     drift: view.drift,
     finished: view.finished,

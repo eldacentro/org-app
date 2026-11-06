@@ -205,23 +205,25 @@ export const dateFormatFriendly = (value: string, language?: string) => {
   });
 };
 
+/**
+ * Una hora ('H:mm') más unos minutos.
+ *
+ * Antes solo sabía pasar UNA hora: sumar 100 minutos a las 19:45 daba «20:85».
+ * Y unos minutos que no son un número (una parte sin duración en el material)
+ * daban «NaN:NaN» y descolocaban el resto del programa; ahora cuentan como 0.
+ */
 export const timeAddMinutes = (prev: string, min: number) => {
   const split = prev.split(':');
   const hour = +split[0];
   const minute = +split[1];
 
-  let newHour = hour;
-  let newMinute = minute + min;
-  if (newMinute >= 60) {
-    newHour = hour + 1;
-    newMinute = newMinute - 60;
-  }
+  const sumar = Number.isFinite(min) ? min : 0;
+  const total = hour * 60 + minute + sumar;
 
-  let result = `${newHour}:`;
+  const newHour = Math.floor(total / 60);
+  const newMinute = total - newHour * 60;
 
-  result += String(newMinute).padStart(2, '0');
-
-  return result;
+  return `${newHour}:${String(newMinute).padStart(2, '0')}`;
 };
 
 export const removeSecondsFromTime = (time: string) => {

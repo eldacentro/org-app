@@ -50,7 +50,9 @@ const MeetingRunSummary = ({
   onReopen,
   onDiscard,
   onNote,
+  notas = {},
   soloLectura,
+  puedeAnotar,
 }: {
   run: MeetingRunRecord;
   parts: MeetingRunPart[];
@@ -58,8 +60,12 @@ const MeetingRunSummary = ({
   onReopen: VoidFunction;
   onDiscard: VoidFunction;
   onNote: (partKey: string) => void;
+  /** Las notas del presidente. Vacías para cualquier otro. */
+  notas?: Record<string, string>;
   /** La reunión la llevó otro: aquí solo se mira. */
   soloLectura?: boolean;
+  /** Es el presidente de ese día: puede apuntar. */
+  puedeAnotar?: boolean;
 }) => {
   const cronometradas = parts.filter(
     (part) => typeof run.actual[part.key] === 'number'
@@ -116,17 +122,17 @@ const MeetingRunSummary = ({
             const duro = run.actual[part.key];
             const previsto = part.seconds;
             const sePaso = duro - previsto >= MARGEN_SEGUNDOS;
-            const nota = run.notes?.[part.key];
+            const nota = notas[part.key];
 
             return (
               <Box key={part.key} sx={{ padding: '8px 0' }}>
                 <Box
-                  onClick={soloLectura ? undefined : () => onNote(part.key)}
+                  onClick={puedeAnotar ? () => onNote(part.key) : undefined}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    cursor: soloLectura ? 'default' : 'pointer',
+                    cursor: puedeAnotar ? 'pointer' : 'default',
                   }}
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -172,7 +178,7 @@ const MeetingRunSummary = ({
                     de {duracionPrevista(part.seconds)}
                   </Typography>
 
-                  {!soloLectura && (
+                  {puedeAnotar && (
                     <IconEdit width={16} height={16} color="var(--ink-3)" />
                   )}
                 </Box>

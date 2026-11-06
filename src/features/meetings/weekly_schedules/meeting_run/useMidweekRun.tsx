@@ -6,8 +6,6 @@ import { schedulesState } from '@states/schedules';
 import { sourcesState } from '@states/sources';
 import {
   congIDState,
-  congMasterKeyState,
-  midweekMeetingChairmanNotesSharedState,
   displayNameMeetingsEnableState,
   fullnameOptionState,
   hour24FormatState,
@@ -19,9 +17,10 @@ import { congAccountConnectedState } from '@states/app';
 import { personsState } from '@states/persons';
 import { personGetDisplayName } from '@utils/common';
 import {
+  meetingRunDeviceId,
   publishMeetingRun,
-  removeMeetingRun,
   subscribeMeetingRun,
+  type MeetingRunSubscription,
   type SharedMeetingRun,
 } from '@services/firebase/meeting_run';
 import {
@@ -32,19 +31,23 @@ import {
 } from '@services/app/schedules';
 import { ASSIGNMENT_PATH } from '@constants/index';
 import { AssignmentCongregation } from '@definition/schedules';
+import { AssignmentCode } from '@definition/assignment';
 import {
   ANCLA_MINUTOS,
   buildMeetingRunView,
   MARGEN_CANCION_SEGUNDOS,
   buildMidweekRunParts,
   clearMeetingRun,
-  DRIFT_ABANDONADA,
+  consejoPorParte,
   minutesOfDay,
   readMeetingRun,
+  readRunNotes,
+  runAbandonada,
   runDesfase,
   runDrift,
   timeToMinutes,
   writeMeetingRun,
+  writeRunNotes,
   type MeetingRunRecord,
 } from '@services/app/meeting_run';
 import {
@@ -57,26 +60,43 @@ import { buildRunPartsInfo } from './run_parts';
 
 /**
  * Lo que es de la reunión, sin lo que es del reparto de mando.
- *
- * El documento que viaja lleva además quién la lleva y cuándo se escribió; eso
- * no forma parte de la reunión y no tiene por qué guardarse en el teléfono.
  */
 const soloLoDeLaReunion = (compartida: SharedMeetingRun): MeetingRunRecord => {
   const copia: Partial<SharedMeetingRun> = { ...compartida };
 
   delete copia.ownerUid;
   delete copia.ownerName;
+  delete copia.ownerDevice;
+  delete copia.epoch;
+  delete copia.descartada;
   delete copia.updatedAt;
+  delete copia.notes;
 
   return copia as MeetingRunRecord;
+};
+
+const SIN_SUSCRIPCION: MeetingRunSubscription = {
+  run: null,
+  cargado: false,
+  error: false,
 };
 
 /**
  * Seguir la reunión de entre semana en directo.
  *
  * Quien preside pulsa una vez al terminar cada parte y la barra lleva la cuenta:
- * lo que le queda al que está hablando y cuántos minutos va corrida la reunión.
- * Nada de esto sale del móvil (ver `services/app/meeting_run.ts`).
+ * lo que le queda al que está hablando y cuántos minutos va tarde la reunión.
+ *
+ * DE DÓNDE SALE LA REUNIÓN: con cuenta conectada, del documento de Firestore y
+ * de nada más —también para quien la lleva: Firestore enseña sus propias
+ * escrituras al momento, también sin red—. Antes había tres copias (la del
+ * teléfono, la de Firestore y una «adopción» entre las dos) con reglas
+ * distintas, y al pasar el control se mezclaban. Sin cuenta, la copia del
+ * propio teléfono.
+ *
+ * QUIÉN ESCRIBE: solo el teléfono que la lleva, y solo al pulsar algo (empezar,
+ * siguiente, atrás…). Nada se escribe solo cada minuto: el retraso se calcula
+ * en cada teléfono con la hora.
  */
 const useMidweekRun = ({
   week,
@@ -96,14 +116,14 @@ const useMidweekRun = ({
 
   const congId = useAtomValue(congIDState);
   const userUID = useAtomValue(userLocalUIDState);
-  const masterKey = useAtomValue(congMasterKeyState);
-  const compartirNotas = useAtomValue(midweekMeetingChairmanNotesSharedState);
   const conectado = useAtomValue(congAccountConnectedState);
   const persons = useAtomValue(personsState);
   const displayName = useAtomValue(displayNameMeetingsEnableState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const setView = useSetAtom(meetingRunViewState);
+
+  const deviceId = useMemo(() => meetingRunDeviceId(), []);
 
   const schedule = useMemo(
     () => schedules.find((record) => record.weekOf === week),
@@ -124,35 +144,64 @@ const useMidweekRun = ({
   }, [settings, dataView]);
 
   /**
-   * Lo que está haciendo el que lleva la reunión, si es otro.
+   * La reunión tal y como está en Firestore.
    *
-   * Se escucha SIEMPRE que hay cuenta conectada, también siendo publicador: las
-   * horas corridas del programa son justo lo que quiere ver quien está sentado
-   * en el salón. Lo que no se le enseña es la barra de mando ni las notas.
+   * Se escucha SIEMPRE que hay cuenta conectada, también siendo publicador: en
+   * qué parte va la reunión es justo lo que quiere ver quien está sentado en el
+   * salón. Lo que no se le enseña es la barra de mando ni las notas.
    */
-  const [remoto, setRemoto] = useState<SharedMeetingRun | null>(null);
+  const [sub, setSub] = useState<MeetingRunSubscription>(SIN_SUSCRIPCION);
 
   useEffect(() => {
+    setSub(SIN_SUSCRIPCION);
+
     if (!conectado || !congId || !week) return;
 
-    return subscribeMeetingRun(congId, week, dataView, masterKey, setRemoto);
-  }, [conectado, congId, week, dataView, masterKey]);
+    return subscribeMeetingRun(congId, week, dataView, setSub);
+  }, [conectado, congId, week, dataView]);
+
+  /** Sin cuenta (o sin poder leer Firestore), la reunión vive en el teléfono. */
+  const usaFirestore = conectado && !!congId && !sub.error;
 
   const [local, setLocal] = useState<MeetingRunRecord | null>(null);
 
-  // Al cambiar de semana o de grupo se recupera lo que hubiera guardado de esa
-  // semana, no lo que se estuviera mirando antes.
   useEffect(() => {
     setLocal(readMeetingRun(week, dataView));
   }, [week, dataView]);
 
+  const remoto = sub.run && !sub.run.descartada ? sub.run : null;
+
+  const run: MeetingRunRecord | null = usaFirestore ? remoto : local;
+
+  /** Ya se sabe si hay reunión: hasta entonces no se ofrece empezar ninguna. */
+  const cargado = !usaFirestore || sub.cargado;
+
   /**
-   * Lo que dura la canción del principio, según jw.org.
+   * Si la lleva ESTE teléfono.
    *
-   * Se refrescan solas cuando llevan más de un mes guardadas: los cánticos no
-   * cambian a menudo, pero cuando sale uno nuevo nadie va a acordarse de venir a
-   * pulsar un botón. Si no se pueden traer, no pasa nada: el hueco de la canción
-   * y la oración se queda entero, como estaba.
+   * Por teléfono y no por persona: la misma persona con el móvil y la tableta
+   * eran dos «dueños» que se pisaban. Las reuniones de la versión anterior no
+   * dicen qué teléfono las lleva; esas, por persona.
+   */
+  const soyDueno = useMemo(() => {
+    if (!usaFirestore || !remoto) return true;
+
+    if (remoto.ownerDevice) return remoto.ownerDevice === deviceId;
+
+    return !!userUID && remoto.ownerUid === userUID;
+  }, [usaFirestore, remoto, deviceId, userUID]);
+
+  /** Puede pulsar: es anciano y la reunión es suya (o no hay ninguna). */
+  const puedeLlevar = isElder && soyDueno;
+
+  /** La lleva otro: se ve, no se toca. */
+  const soloLectura = !!run && !soyDueno;
+
+  /**
+   * Lo que dura cada canción, según jw.org.
+   *
+   * Se refrescan solas cuando llevan más de un mes guardadas. Si no se pueden
+   * traer, no pasa nada: el hueco de la canción y la oración se queda entero.
    */
   const [duraciones, setDuraciones] = useState(() => readSongDurations(lang));
 
@@ -190,19 +239,16 @@ const useMidweekRun = ({
   );
 
   /**
-   * Las horas SIEMPRE en formato de 24, no las que se ven en pantalla.
+   * Los pasos que montaría ESTE teléfono.
    *
-   * `useMidweekMeeting` convierte las suyas a 12 horas cuando la cuenta lo pide,
-   * y con «8:11» no se puede restar: podrían ser las de la mañana. Aquí se pide
-   * el cálculo aparte con la hora tal cual está guardada, y el formato bonito se
-   * pone solo al final, al escribirlo.
+   * Solo se usan para arrancar (y para reuniones de la versión anterior, que no
+   * guardaban los suyos): una reunión en marcha lleva su propia lista, la del
+   * teléfono que la arrancó, y es la que usan todos.
+   *
+   * Las horas SIEMPRE en formato de 24: con «8:11» no se puede restar.
    */
-  const parts = useMemo(() => {
-    // Un publicador no puede seguir la reunión, pero SÍ tiene que ver las horas
-    // corridas cuando alguien la está llevando: es lo que le dice a qué hora va
-    // a tocar cada cosa de verdad. Fuera de ese caso no se calcula nada, que
-    // esto se rehace en cada pintado de la página y no es gratis.
-    if ((!isElder && !remoto) || !schedule || !source) return [];
+  const partesPropias = useMemo(() => {
+    if ((!isElder && !run) || !schedule || !source) return [];
 
     try {
       const timing = schedulesMidweekGetTiming({
@@ -217,28 +263,24 @@ const useMidweekRun = ({
       // asamblea, de congreso o sin reunión.
       if (!timing?.pgm_end) return [];
 
-      // La duración que MANDA es la que se guardó al arrancar: los pasos se
-      // numeran por posición, así que si un teléfono partiera el hueco y otro no,
-      // el que mira vería una parte distinta de la que va.
-      const cancionInicialSegundos =
-        remoto?.songSeconds ?? local?.songSeconds ?? duracionCancionInicial;
-
-      const cancionMediaSegundos =
-        remoto?.middleSongSeconds ??
-        local?.middleSongSeconds ??
-        duracionCancionMedia;
+      const tipos = {
+        ayf_part1: source.midweek_meeting.ayf_part1?.type?.[lang],
+        ayf_part2: source.midweek_meeting.ayf_part2?.type?.[lang],
+        ayf_part3: source.midweek_meeting.ayf_part3?.type?.[lang],
+        ayf_part4: source.midweek_meeting.ayf_part4?.type?.[lang],
+      };
 
       return buildMidweekRunParts(timing, {
-        cancionInicialSegundos,
-        cancionMediaSegundos,
+        cancionInicialSegundos: run?.songSeconds ?? duracionCancionInicial,
+        cancionMediaSegundos: run?.middleSongSeconds ?? duracionCancionMedia,
+        consejoMinutos: consejoPorParte(tipos, AssignmentCode.MM_Discussion),
       });
     } catch {
       return [];
     }
   }, [
     isElder,
-    remoto,
-    local,
+    run,
     duracionCancionInicial,
     duracionCancionMedia,
     schedule,
@@ -247,6 +289,8 @@ const useMidweekRun = ({
     lang,
     pgmStart,
   ]);
+
+  const parts = run?.parts?.length ? run.parts : partesPropias;
 
   const info = useMemo(() => {
     if (!schedule || parts.length === 0) return {};
@@ -272,43 +316,6 @@ const useMidweekRun = ({
     [use24]
   );
 
-  /**
-   * La lleva otro: se ve, no se toca.
-   *
-   * El mando es de quien le da al botón, y no del presidente asignado a
-   * propósito: el que preside puede no tener el móvil a mano, o puede
-   * presidir alguien que no estaba en el programa. Quien arranca, manda.
-   */
-  const ajeno = useMemo(() => {
-    if (!remoto || remoto.ownerUid === userUID) return null;
-
-    // Las notas de OTRO solo se enseñan si la congregación lo ha activado. Bajan
-    // igualmente (van cifradas y quien las escribió las necesita en sus otros
-    // dispositivos), pero aquí se quedan fuera.
-    if (compartirNotas) return remoto;
-
-    return { ...remoto, notes: {} };
-  }, [remoto, userUID, compartirNotas]);
-
-  const soloLectura = !!ajeno;
-  const run = ajeno ?? local;
-
-  /**
-   * La misma persona, otro teléfono.
-   *
-   * Quien empieza la reunión en el móvil y luego abre la aplicación en la
-   * tableta tiene que encontrarse su reunión, con sus notas, y poder seguir
-   * desde ahí. Se adopta una sola vez: en cuanto hay algo local, manda lo local.
-   */
-  useEffect(() => {
-    if (!remoto || remoto.ownerUid !== userUID || local) return;
-
-    const propio = soloLoDeLaReunion(remoto);
-
-    setLocal(propio);
-    writeMeetingRun(propio);
-  }, [remoto, userUID, local]);
-
   const nombrePropio = useMemo(() => {
     const persona = persons.find((record) => record.person_uid === userUID);
 
@@ -318,56 +325,70 @@ const useMidweekRun = ({
   }, [persons, userUID, displayName, fullnameOption]);
 
   /**
-   * Guardar y, si hay cuenta, contárselo a los demás.
+   * Guardar.
    *
-   * En el teléfono se guarda siempre —también sin red, que es la mitad de la
-   * gracia de que esto viva en local—; publicarlo es lo que puede fallar, y si
-   * falla no se rompe nada: el que preside sigue con su reunión.
+   * Con cuenta, en Firestore y en ningún sitio más (si no hay red, Firestore lo
+   * guarda y lo manda al volver). `epoch` es el de la reunión que hay; quien
+   * toma el control o arranca una nueva lo sube en uno.
    */
-  const guardar = useCallback(
-    (next: MeetingRunRecord | null) => {
-      setLocal(next);
-
-      if (next) {
+  const escribir = useCallback(
+    (
+      next: MeetingRunRecord,
+      opciones?: { epoch?: number; descartada?: boolean }
+    ) => {
+      if (!usaFirestore) {
+        setLocal(next);
         writeMeetingRun(next);
-      } else {
-        clearMeetingRun(week, dataView);
+        return;
       }
 
-      if (!conectado || !congId) return;
-
-      const publicado = next
-        ? publishMeetingRun({
-            congId,
-            run: next,
-            masterKey,
-            ownerUid: userUID,
-            ownerName: nombrePropio,
-          })
-        : removeMeetingRun(congId, week, dataView);
-
-      publicado.catch((error) =>
-        console.error('No se pudo publicar la reunión en directo:', error)
+      publishMeetingRun({
+        congId,
+        run: next,
+        ownerUid: userUID,
+        ownerName: nombrePropio,
+        epoch: opciones?.epoch ?? sub.run?.epoch ?? 0,
+        descartada: opciones?.descartada,
+      }).catch((error) =>
+        // Lo normal aquí es que otro haya tomado el control: la regla rechaza
+        // la escritura y la pantalla pasa sola a la reunión que lleva él.
+        console.error('No se pudo guardar la reunión en directo:', error)
       );
     },
-    [week, dataView, conectado, congId, masterKey, userUID, nombrePropio]
+    [usaFirestore, congId, userUID, nombrePropio, sub.run]
   );
-
-  const enMarcha = !!run && !run.finishedAt;
 
   const [now, setNow] = useState(() => Date.now());
 
   /**
-   * El segundero.
-   *
-   * Corre mientras hay reunión en marcha —la lleve uno mismo o la lleve otro—,
-   * porque el reloj y las horas corridas se calculan aquí en cada dispositivo:
-   * lo que viaja por la red es solo en qué parte va y a qué hora empezó. Sin
-   * reunión no hace falta ningún temporizador.
+   * Que la reunión siga viva al mirarla: se dejó abierta y nadie la cerró.
+   * Se da por terminada sin escribir nada (ver `runAbandonada`).
+   */
+  const runVivo = useMemo(() => {
+    if (!run) return null;
+
+    if (run.finishedAt) return run;
+
+    if (runAbandonada(run, now)) return { ...run, finishedAt: run.partStartedAt };
+
+    return {
+      ...run,
+      drift: runDrift({
+        part: parts[run.index],
+        partStartedAt: run.partStartedAt,
+        now,
+      }),
+    };
+  }, [run, parts, now]);
+
+  const enMarcha = !!runVivo && !runVivo.finishedAt;
+
+  /**
+   * El segundero. Corre mientras hay reunión en marcha —la lleve uno mismo o la
+   * lleve otro—, y despacio sin reunión, para que el botón salga solo al llegar
+   * la hora.
    */
   useEffect(() => {
-    // Sin reunión el reloj sigue corriendo, despacio: es lo que hace que la
-    // pastilla salga sola al llegar la hora sin tener que recargar la página.
     if (!enMarcha) {
       if (!isElder) return;
 
@@ -382,62 +403,62 @@ const useMidweekRun = ({
   }, [enMarcha, soloLectura, isElder]);
 
   /**
-   * El desfase se guarda, no se calcula al vuelo en cada relojito.
+   * Si quien mira es el presidente de esta semana.
    *
-   * El cronómetro de la barra se refresca cada segundo, pero las horas de las
-   * partes que quedan solo cambian cuando el desfase cambia de minuto. Guardarlo
-   * aquí hace que el programa entero se vuelva a pintar como mucho una vez por
-   * minuto en vez de sesenta.
+   * Cambia el texto del botón y decide QUIÉN APUNTA: las notas son suyas y solo
+   * suyas. Para llevar la reunión no hace falta serlo —puede llevarla otro
+   * anciano si el presidente no tiene el móvil a mano—.
    */
-  useEffect(() => {
-    if (soloLectura || !run || run.finishedAt) return;
+  const presidenteAsignado = useMemo(() => {
+    if (!schedule) return '';
 
-    const drift = runDrift({
-      part: parts[run.index],
-      partStartedAt: run.partStartedAt,
-      now,
-    });
+    const asignado = schedulesGetData(
+      schedule,
+      ASSIGNMENT_PATH.MM_Chairman_A,
+      dataView
+    ) as AssignmentCongregation;
 
-    // Se quedó abierta (o cambió la hora de la reunión por debajo). Se da por
-    // terminada con el último desfase bueno en vez de enseñar un disparate.
-    if (Math.abs(drift - (run.offset ?? 0)) > DRIFT_ABANDONADA) {
-      guardar({ ...run, finishedAt: Date.now() });
-      return;
-    }
+    return asignado?.value ?? '';
+  }, [schedule, dataView]);
 
-    if (drift !== run.drift) {
-      guardar({ ...run, drift });
-    }
-  }, [now, run, parts, guardar, soloLectura]);
+  const esPresidente = !!userUID && presidenteAsignado === userUID;
 
   /**
-   * El desfase que se PINTA se calcula aquí, no se espera al guardado.
-   *
-   * Quien manda lo guarda una vez por minuto (arriba), y quien solo mira no
-   * guarda nada: lo recibe cuando cambia de parte. Si los relojitos dependieran
-   * de ese valor, al que mira se le quedarían parados entre parte y parte
-   * mientras el que habla se alarga — justo cuando importa.
+   * Quién puede apuntar y leer las notas: el presidente de ese día. Si el
+   * programa no tiene presidente puesto, quien la lleva.
    */
-  const runVivo = useMemo(() => {
-    if (!run) return null;
+  const puedeAnotar =
+    isElder &&
+    !!runVivo &&
+    (esPresidente || (!presidenteAsignado && soyDueno));
 
-    if (run.finishedAt) return run;
+  /** Las notas del presidente: solo en SU teléfono (ver `readRunNotes`). */
+  const [notas, setNotas] = useState<Record<string, string>>({});
 
-    return {
-      ...run,
-      drift: runDrift({
-        part: parts[run.index],
-        partStartedAt: run.partStartedAt,
-        now,
-      }),
-    };
-  }, [run, parts, now]);
+  useEffect(() => {
+    setNotas(readRunNotes(week, dataView));
+  }, [week, dataView]);
+
+  const guardarNotas = useCallback(
+    (siguientes: Record<string, string>) => {
+      setNotas(siguientes);
+      writeRunNotes(week, dataView, siguientes);
+    },
+    [week, dataView]
+  );
+
+  const notasVisibles = useMemo(
+    () => (puedeAnotar ? notas : {}),
+    [puedeAnotar, notas]
+  );
 
   useEffect(() => {
     setView(
-      runVivo ? buildMeetingRunView({ run: runVivo, parts, formatTime }) : null
+      runVivo
+        ? buildMeetingRunView({ run: runVivo, parts, notas: notasVisibles })
+        : null
     );
-  }, [runVivo, parts, formatTime, setView]);
+  }, [runVivo, parts, notasVisibles, setView]);
 
   // Al salir de la página los relojitos vuelven a ser relojitos.
   useEffect(() => {
@@ -449,19 +470,17 @@ const useMidweekRun = ({
   /**
    * Empezar a seguir la reunión.
    *
-   * Tres casos, y el de en medio es el normal:
-   *
-   * - Unos minutos ANTES de la hora: la primera parte no empieza al pulsar,
-   *   empieza a su hora. Adelantarse a darle al botón mientras se prepara la
-   *   sala no puede leerse como que la reunión va adelantada.
+   * - Unos minutos ANTES de la hora: la primera parte empieza a su hora.
    * - A la hora o algo tarde: cuenta desde ya, y ese retraso ES retraso.
-   * - Lejos de la hora: entonces no se está en la reunión —se está probando, o
-   *   retomándola horas después—, así que el programa empieza cuando se pulsa.
-   *   Las horas de las partes se corren a donde van a pasar de verdad, pero no
-   *   se anuncia un retraso de dos horas que no es de nadie.
+   * - Lejos de la hora (probando, o retomándola horas después): el programa
+   *   empieza cuando se pulsa, sin anunciar un retraso que no es de nadie.
    */
   const empezar = useCallback(() => {
-    if (soloLectura) return;
+    if (!puedeLlevar || !cargado || run) return;
+
+    const pasos = partesPropias;
+
+    if (pasos.length === 0) return;
 
     const ahora = Date.now();
     const prevista = timeToMinutes(pgmStart);
@@ -475,38 +494,46 @@ const useMidweekRun = ({
     const arranque = ahora + Math.round(adelanto * 60000);
 
     const drift = runDrift({
-      part: parts[0],
+      part: pasos[0],
       partStartedAt: arranque,
       now: ahora,
     });
 
-    guardar({
-      weekOf: week,
-      dataView,
-      startedAt: arranque,
-      partStartedAt: arranque,
-      index: 0,
-      // La reunión empieza con la canción: ahí no hay nada que presentar.
-      runningAt: arranque,
-      songSeconds: duracionCancionInicial,
-      middleSongSeconds: duracionCancionMedia,
-      actual: {},
-      drift,
-      offset: cerca ? 0 : drift,
-    });
+    escribir(
+      {
+        weekOf: week,
+        dataView,
+        startedAt: arranque,
+        partStartedAt: arranque,
+        index: 0,
+        // La reunión empieza con la canción: ahí no hay nada que presentar.
+        runningAt: arranque,
+        songSeconds: duracionCancionInicial,
+        middleSongSeconds: duracionCancionMedia,
+        parts: pasos,
+        actual: {},
+        drift,
+        offset: cerca ? 0 : drift,
+      },
+      // Si quedó una de antes (terminada o dejada), esta la sustituye.
+      { epoch: sub.run ? (sub.run.epoch ?? 0) + 1 : 0 }
+    );
   }, [
-    soloLectura,
-    guardar,
+    puedeLlevar,
+    cargado,
+    run,
+    partesPropias,
+    escribir,
     week,
     dataView,
-    parts,
     pgmStart,
     duracionCancionInicial,
     duracionCancionMedia,
+    sub.run,
   ]);
 
   const siguiente = useCallback(() => {
-    if (soloLectura || !run || run.finishedAt) return;
+    if (!puedeLlevar || !run || run.finishedAt) return;
 
     const ahora = Date.now();
     const actual = { ...run.actual };
@@ -523,12 +550,13 @@ const useMidweekRun = ({
     const proximo = run.index + 1;
 
     if (proximo >= parts.length) {
-      guardar({ ...run, actual, finishedAt: ahora });
+      escribir({ ...run, parts, actual, finishedAt: ahora });
       return;
     }
 
-    guardar({
+    escribir({
       ...run,
+      parts,
       actual,
       index: proximo,
       partStartedAt: ahora,
@@ -542,26 +570,19 @@ const useMidweekRun = ({
         now: ahora,
       }),
     });
-  }, [soloLectura, run, parts, guardar]);
+  }, [puedeLlevar, run, parts, escribir]);
 
   /**
-   * La canción se pasa sola a la oración.
-   *
-   * Es el único paso del programa cuya duración se sabe de antemano —jw.org la
-   * publica—, así que es el único donde pasar solo no es adivinar. En cualquier
-   * otro sería peor que no hacer nada: cambiaría de parte mientras el hermano
-   * sigue hablando.
+   * La canción se pasa sola al terminar: es el único paso cuya duración se sabe
+   * de antemano. Solo en el teléfono que la lleva.
    */
   useEffect(() => {
-    if (soloLectura || !run || run.finishedAt || !run.runningAt) return;
+    if (!puedeLlevar || !run || run.finishedAt || !run.runningAt) return;
 
     const parte = parts[run.index];
 
     if (!parte?.autoAdvance) return;
 
-    // Con unos segundos de gracia: lo que se enseña es la duración exacta, pero
-    // el cronómetro arranca cuando se anuncia la canción y el audio empieza
-    // después. Pulsar «Siguiente» antes gana siempre; esto es la red de abajo.
     if (
       now - run.runningAt <
       (parte.seconds + MARGEN_CANCION_SEGUNDOS) * 1000
@@ -570,21 +591,17 @@ const useMidweekRun = ({
     }
 
     siguiente();
-  }, [now, run, parts, soloLectura, siguiente]);
+  }, [now, run, parts, puedeLlevar, siguiente]);
 
   /**
-   * Deshacer.
-   *
-   * Se pulsa «Siguiente» de pie y con el móvil en la mano: pulsarlo de más va a
-   * pasar. Volver atrás devuelve también el reloj de la parte anterior a donde
-   * estaba, restándole lo que se había apuntado que duró; si no, se volvería a
-   * ella con el cronómetro a cero y el desfase se falsearía.
+   * Deshacer. Volver atrás devuelve también el reloj de la parte anterior a
+   * donde estaba, restándole lo que se había apuntado que duró.
    */
   const atras = useCallback(() => {
-    if (soloLectura || !run) return;
+    if (!puedeLlevar || !run) return;
 
     if (run.finishedAt) {
-      guardar({ ...run, finishedAt: undefined });
+      escribir({ ...run, finishedAt: undefined });
       return;
     }
 
@@ -598,30 +615,26 @@ const useMidweekRun = ({
 
     const partStartedAt = run.partStartedAt - duraba * 1000;
 
-    guardar({
+    escribir({
       ...run,
+      parts,
       actual,
       index: run.index - 1,
       partStartedAt,
       runningAt: partStartedAt,
       drift: runDrift({ part: anterior, partStartedAt, now: Date.now() }),
     });
-  }, [soloLectura, run, parts, guardar]);
+  }, [puedeLlevar, run, parts, escribir]);
 
-  /**
-   * Poner a cero el reloj de la parte que está sonando.
-   *
-   * Es para cuando el botón se pulsa antes de tiempo —el hermano todavía está
-   * subiendo a la plataforma— o cuando se pulsa tarde. Sin esto habría que
-   * volver atrás y avanzar otra vez, que además falsea lo que duró la anterior.
-   */
+  /** Poner a cero el reloj de la parte que está sonando. */
   const reiniciar = useCallback(() => {
-    if (soloLectura || !run || run.finishedAt) return;
+    if (!puedeLlevar || !run || run.finishedAt) return;
 
     const ahora = Date.now();
 
-    guardar({
+    escribir({
       ...run,
+      parts,
       partStartedAt: ahora,
       runningAt: ahora,
       drift: runDrift({
@@ -630,129 +643,107 @@ const useMidweekRun = ({
         now: ahora,
       }),
     });
-  }, [soloLectura, run, parts, guardar]);
+  }, [puedeLlevar, run, parts, escribir]);
 
   /**
-   * El hermano toma la palabra: arranca el cronómetro de la parte.
-   *
-   * Lo que ha pasado desde que se pulsó «Siguiente» era la presentación, y no
-   * se le apunta a nadie. Sí cuenta para el desfase de la reunión, porque el
-   * hueco del programa la incluye.
+   * El hermano toma la palabra: arranca el cronómetro de la parte. Lo de antes
+   * era la presentación (y el consejo de la anterior), que no se le apunta a
+   * nadie pero sí cuenta para el retraso de la reunión.
    */
   const empezarParte = useCallback(() => {
-    if (soloLectura || !run || run.finishedAt) return;
+    if (!puedeLlevar || !run || run.finishedAt) return;
 
-    guardar({ ...run, runningAt: Date.now() });
-  }, [soloLectura, run, guardar]);
-
-  /**
-   * Apuntar algo de una parte.
-   *
-   * Se guarda por clave de parte, no por persona: la misma persona puede tener
-   * dos partes la misma semana y no son el mismo comentario. Una nota vacía
-   * borra la que hubiera, que es lo que espera cualquiera que borre el texto y
-   * le dé a guardar.
-   */
-  const anotar = useCallback(
-    (partKey: string, texto: string) => {
-      if (soloLectura || !run) return;
-
-      const notes = { ...(run.notes ?? {}) };
-      const limpio = texto.trim();
-
-      if (limpio.length === 0) {
-        delete notes[partKey];
-      } else {
-        notes[partKey] = limpio;
-      }
-
-      guardar({ ...run, notes });
-    },
-    [soloLectura, run, guardar]
-  );
+    escribir({ ...run, parts, runningAt: Date.now() });
+  }, [puedeLlevar, run, parts, escribir]);
 
   /**
    * Tomar el control de una reunión que lleva otro.
    *
-   * Hace falta de verdad: si al que la lleva se le queda el móvil sin batería a
-   * mitad de reunión, sin esto nadie más puede seguirla y se queda congelada
-   * para toda la congregación. Se conserva todo lo que llevaba —en qué parte
-   * va, lo que duró cada una— y solo cambia de manos.
-   *
-   * Las notas del anterior NO se heredan aunque estuvieran compartidas: son
-   * suyas, y quien toma el control empieza las suyas.
+   * Hace falta de verdad: si al que la lleva se le queda el móvil sin batería, la
+   * reunión se queda congelada para todos. Se conserva todo —en qué parte va, lo
+   * que duró cada una, la lista de pasos— y solo cambia de manos. Al subir
+   * `epoch`, el teléfono de antes ya no puede escribir encima.
    */
   const tomarControl = useCallback(() => {
-    if (!ajeno) return;
+    if (!isElder || !remoto || soyDueno) return;
 
-    guardar({ ...soloLoDeLaReunion(ajeno), notes: {} });
-  }, [ajeno, guardar]);
+    escribir(
+      {
+        ...soloLoDeLaReunion(remoto),
+        parts: remoto.parts?.length ? remoto.parts : partesPropias,
+      },
+      { epoch: (remoto.epoch ?? 0) + 1 }
+    );
+  }, [isElder, remoto, soyDueno, escribir, partesPropias]);
 
   /**
-   * Apuntar desde el programa, donde se ve el relojito y no el paso.
-   *
-   * Un hueco partido —la canción y la oración— tiene dos pasos y un solo
-   * recuadro, que enseña las dos notas juntas. Al editarlo desde ahí se guarda
-   * lo que se ve en el primer paso y se quita del otro: lo que se lee es lo que
-   * se edita, sin duplicados escondidos.
+   * Apuntar algo de una parte. Solo el presidente, y se queda en su teléfono.
+   * Una nota vacía borra la que hubiera.
+   */
+  const anotar = useCallback(
+    (partKey: string, texto: string) => {
+      if (!puedeAnotar) return;
+
+      const siguientes = { ...notas };
+      const limpio = texto.trim();
+
+      if (limpio.length === 0) {
+        delete siguientes[partKey];
+      } else {
+        siguientes[partKey] = limpio;
+      }
+
+      guardarNotas(siguientes);
+    },
+    [puedeAnotar, notas, guardarNotas]
+  );
+
+  /**
+   * Apuntar desde el programa, donde se ve el relojito y no el paso. Un hueco
+   * partido —la canción y la oración— tiene dos pasos y un solo recuadro: se
+   * guarda en el primero y se quita del otro.
    */
   const anotarPorRelojito = useCallback(
     (badgeKey: string, texto: string) => {
-      if (soloLectura || !run) return;
+      if (!puedeAnotar) return;
 
       const pasos = parts.filter((part) => part.badgeKey === badgeKey);
 
       if (pasos.length === 0) return;
 
-      const notes = { ...(run.notes ?? {}) };
+      const siguientes = { ...notas };
 
-      for (const paso of pasos) delete notes[paso.key];
+      for (const paso of pasos) delete siguientes[paso.key];
 
       const limpio = texto.trim();
 
-      if (limpio.length > 0) notes[pasos[0].key] = limpio;
+      if (limpio.length > 0) siguientes[pasos[0].key] = limpio;
 
-      guardar({ ...run, notes });
+      guardarNotas(siguientes);
     },
-    [soloLectura, run, parts, guardar]
+    [puedeAnotar, parts, notas, guardarNotas]
   );
 
-  const descartar = useCallback(() => {
-    if (soloLectura) return;
-
-    guardar(null);
-  }, [soloLectura, guardar]);
-
   /**
-   * Si quien mira es el presidente de esta semana.
-   *
-   * Solo cambia el texto del botón: para él es «Empezar presidencia», que es lo
-   * que va a hacer; para el resto de ancianos es «Seguir la reunión», que es
-   * mirar. No da ni quita permisos — cualquier anciano puede llevarla, porque
-   * puede presidir alguien que no estaba en el programa.
+   * Dejar de seguirla. Con cuenta se MARCA como dejada en vez de borrarla: un
+   * borrado no tiene `epoch`, y una escritura atrasada de otro teléfono la
+   * habría vuelto a crear.
    */
-  const esPresidente = useMemo(() => {
-    if (!schedule || !userUID) return false;
+  const descartar = useCallback(() => {
+    if (!puedeLlevar || !run) return;
 
-    const asignado = schedulesGetData(
-      schedule,
-      ASSIGNMENT_PATH.MM_Chairman_A,
-      dataView
-    ) as AssignmentCongregation;
+    if (!usaFirestore) {
+      setLocal(null);
+      clearMeetingRun(week, dataView);
+      return;
+    }
 
-    return asignado?.value === userUID;
-  }, [schedule, dataView, userUID]);
+    escribir(run, { descartada: true });
+  }, [puedeLlevar, run, usaFirestore, week, dataView, escribir]);
 
   /**
-   * Cuándo se ofrece empezar: el día de la reunión y a su hora.
-   *
-   * Desde cinco minutos antes —lo que se tarda en llegar a la plataforma— y
-   * hasta tres horas después. Antes salía toda la semana, y eso era para poder
-   * probarlo: en el uso de verdad es un botón que estorba seis días de cada
-   * siete en una página que se mira a diario.
-   *
-   * Que se ofrezca solo aquí no encierra a nadie: una reunión ya empezada se
-   * sigue viendo siempre, la lleve uno mismo o la lleve otro.
+   * Cuándo se ofrece empezar: el día de la reunión, desde cinco minutos antes
+   * hasta tres horas después.
    */
   const enHorario = useMemo(() => {
     const { date } = schedulesGetMeetingDate({
@@ -772,21 +763,22 @@ const useMidweekRun = ({
     return ahora >= prevista - 5 && ahora <= prevista + 180;
   }, [week, dataView, pgmStart, now]);
 
-  const parteActual = run ? parts[run.index] : undefined;
+  const parteActual = runVivo ? parts[runVivo.index] : undefined;
 
   /** La parte todavía no ha arrancado: quien preside la está presentando. */
-  const presentando = !!run && !run.finishedAt && !run.runningAt;
+  const presentando = !!runVivo && !runVivo.finishedAt && !runVivo.runningAt;
 
-  const transcurrido = run
+  const transcurrido = runVivo
     ? Math.max(
         0,
-        Math.floor((now - (run.runningAt ?? run.partStartedAt)) / 1000)
+        Math.floor((now - (runVivo.runningAt ?? runVivo.partStartedAt)) / 1000)
       )
     : 0;
 
   // Se pulsó antes de la hora: la primera parte está anclada al futuro y el
   // reloj todavía no corre.
-  const esperando = !!run && !run.finishedAt && run.partStartedAt > now;
+  const esperando =
+    !!runVivo && !runVivo.finishedAt && runVivo.partStartedAt > now;
 
   const restante = parteActual ? parteActual.seconds - transcurrido : 0;
 
@@ -797,17 +789,20 @@ const useMidweekRun = ({
      * programa: la barra la monta `MeetingRunBar`, que exige ser anciano.
      */
     disponible: (isElder || soloLectura) && parts.length >= 3,
+    cargado,
     enHorario,
     esPresidente,
     /** La lleva otro: se ve, no se toca. */
     soloLectura,
     esAnciano: isElder,
-    quienLaLleva: ajeno?.ownerName ?? '',
+    puedeAnotar,
+    notas: notasVisibles,
+    quienLaLleva: soloLectura ? (remoto?.ownerName ?? '') : '',
     run: runVivo,
     parts,
     info,
     parteActual,
-    siguienteParte: run ? parts[run.index + 1] : undefined,
+    siguienteParte: runVivo ? parts[runVivo.index + 1] : undefined,
     transcurrido,
     restante,
     esperando,

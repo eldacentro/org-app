@@ -45,9 +45,7 @@ const NoteDialog = ({
         className="body-small-regular"
         sx={{ color: 'var(--ink-2)', mb: '16px' }}
       >
-        {person
-          ? `${person} · solo lo ven los ancianos`
-          : 'Solo lo ven los ancianos'}
+        {person ? `${person} · solo lo ves tú` : 'Solo lo ves tú'}
       </Typography>
 
       <TextField

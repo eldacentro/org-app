@@ -1,4 +1,5 @@
 import {
+  creditEntriesOf,
   effectiveCreditHours,
   rawCreditHours,
 } from '@services/app/credit_hours';
@@ -149,7 +150,8 @@ const useMonthItem = ({ month, person }: MonthItemProps) => {
     // apuntado sigue estando en el detalle del informe. Ver `credit_hours.ts`.
     return effectiveCreditHours(
       report.report_data.hours.field_service,
-      rawCreditHours(report.report_data.hours.credit)
+      rawCreditHours(report.report_data.hours.credit),
+      creditEntriesOf(report.report_data.hours.credit)
     );
   }, [report]);
 

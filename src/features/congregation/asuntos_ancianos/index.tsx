@@ -24,29 +24,24 @@ import {
   dbAsuntoReabrir,
   dbAsuntoTratar,
 } from '@services/dexie/asuntos_ancianos';
+import { DIAS_EN_ARCHIVO } from '@services/app/necesidades';
 import { formatDate } from '@utils/date';
-import DialogAsunto from './DialogAsunto';
-import DialogTratar from './DialogTratar';
+import DialogAsunto, { DatosNecesidad } from './DialogAsunto';
 import useAsuntosAncianos from './useAsuntosAncianos';
 
-/** «hace 3 días», que es lo que de verdad dice si algo lleva ahí demasiado. */
-const desdeHace = (iso: string) => {
-  if (!iso) return '';
+/** 'YYYY/MM/DD' → 'DD/MM/YYYY', sin pasar por Date (no la mueve la zona). */
+const fechaLegible = (texto: string) => texto.split('/').reverse().join('/');
 
-  const dias = Math.floor(
-    (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  if (dias <= 0) return 'hoy';
-  if (dias === 1) return 'ayer';
-  if (dias < 30) return `hace ${dias} días`;
-
-  const meses = Math.floor(dias / 30);
-
-  return meses === 1 ? 'hace un mes' : `hace ${meses} meses`;
-};
+const MESES_EN_ARCHIVO = Math.round(DIAS_EN_ARCHIVO / 30);
 
 /**
+ * NECESIDADES DE LA CONGREGACIÓN.
+ *
+ * Antes era «Asuntos del cuerpo de ancianos», con responsable, urgencia,
+ * contadores, quién lo trató y en qué quedó. Se quedó en lo que de verdad se
+ * usa: el tema, algún detalle, a quién le podría tocar y una fecha posible.
+ * Cuando se trata, pasa al archivo con un toque, y el archivo se vacía solo.
+ *
  * `pedirNuevo` sube de uno en uno cada vez que se pulsa «Apuntar» en la barra
  * de arriba. Es un contador y no un booleano a propósito: pulsar dos veces
  * seguidas tiene que volver a abrir el diálogo, y un `true` que ya era `true`
@@ -56,11 +51,9 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
   const {
     cargando,
     pendientes,
-    tratados,
-    mios,
-    sinAsignar,
+    archivo,
     nombreDe,
-    opcionesAncianos,
+    opcionesPersonas,
     yo,
     pestana,
     setPestana,
@@ -68,7 +61,6 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
 
   const [editando, setEditando] = useState<AsuntoAncianosType | undefined>();
   const [abrirAsunto, setAbrirAsunto] = useState(false);
-  const [tratando, setTratando] = useState<AsuntoAncianosType | undefined>();
   const [borrando, setBorrando] = useState<AsuntoAncianosType | undefined>();
   const [guardando, setGuardando] = useState(false);
 
@@ -98,36 +90,17 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
     }
   };
 
-  const handleGuardar = async (datos: {
-    titulo: string;
-    detalle: string;
-    asignadoA: string;
-    urgente: boolean;
-  }) => {
+  const handleGuardar = async (datos: DatosNecesidad) => {
     await conAviso(async () => {
       if (editando) {
         await dbAsuntoActualizar(editando.id, datos);
       } else {
         await dbAsuntoCrear({ ...datos, propuestoPor: yo });
       }
-    }, editando ? 'Asunto guardado.' : 'Asunto apuntado.');
+    }, editando ? 'Necesidad guardada.' : 'Necesidad apuntada.');
 
     setAbrirAsunto(false);
     setEditando(undefined);
-  };
-
-  const handleTratar = async (datos: {
-    tratadoPor: string;
-    acuerdo: string;
-  }) => {
-    if (!tratando) return;
-
-    await conAviso(
-      () => dbAsuntoTratar(tratando.id, datos),
-      'Pasa al historial.'
-    );
-
-    setTratando(undefined);
   };
 
   const abrirNuevo = () => {
@@ -144,8 +117,11 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
     setAbrirAsunto(true);
   };
 
-  const tarjeta = (asunto: AsuntoAncianosType, enHistorial: boolean) => (
-    <Card key={asunto.id} sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+  const tarjeta = (asunto: AsuntoAncianosType, enArchivo: boolean) => (
+    <Card
+      key={asunto.id}
+      sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+    >
       <Box
         sx={{
           display: 'flex',
@@ -154,7 +130,14 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
           gap: '12px',
         }}
       >
-        <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Box
+          sx={{
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
           <Typography className="h4" color="var(--ink)">
             {asunto.titulo}
           </Typography>
@@ -167,7 +150,7 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
         </Box>
 
         <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-          {!enHistorial && (
+          {!enArchivo && (
             <IconButton onClick={() => abrirEdicion(asunto)}>
               <IconEdit color="var(--accent-main)" />
             </IconButton>
@@ -178,65 +161,40 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
         </Stack>
       </Box>
 
-      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '8px' }}>
-        {asunto.urgente && !enHistorial && (
-          <Badge size="small" color="red" filled text="Urgente" />
-        )}
-
-        {!enHistorial && (
-          <Badge
-            size="small"
-            color={asunto.asignadoA ? 'accent' : 'grey'}
-            text={
-              asunto.asignadoA
-                ? `Responsable: ${nombreDe(asunto.asignadoA)}`
-                : 'Sin responsable'
-            }
-          />
-        )}
-
-        {enHistorial && (
-          <Badge
-            size="small"
-            color="green"
-            text={`Tratado el ${formatDate(new Date(asunto.tratadoEl), 'dd/MM/yyyy')}`}
-          />
-        )}
-      </Stack>
-
-      {enHistorial && asunto.acuerdo && (
-        <Box
-          sx={{
-            backgroundColor: 'var(--accent-100)',
-            borderRadius: 'var(--radius-s)',
-            padding: '12px',
-          }}
+      {(asunto.asignadoA || asunto.fechaPosible || enArchivo) && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ flexWrap: 'wrap', gap: '8px' }}
         >
-          <Typography className="label-small-semibold" color="var(--ink-3)">
-            En qué quedó
-          </Typography>
-          <Typography className="body-small-regular" color="var(--ink)">
-            {asunto.acuerdo}
-          </Typography>
-        </Box>
+          {asunto.asignadoA && (
+            <Badge
+              size="small"
+              color="accent"
+              text={`Le podría tocar a ${nombreDe(asunto.asignadoA)}`}
+            />
+          )}
+
+          {asunto.fechaPosible && (
+            <Badge
+              size="small"
+              color="grey"
+              text={`Fecha posible: ${fechaLegible(asunto.fechaPosible)}`}
+            />
+          )}
+
+          {enArchivo && (
+            <Badge
+              size="small"
+              color="green"
+              text={`Tratada el ${formatDate(new Date(asunto.tratadoEl), 'dd/MM/yyyy')}`}
+            />
+          )}
+        </Stack>
       )}
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <Typography className="label-small-regular" color="var(--ink-3)">
-          {enHistorial
-            ? `Lo trató ${nombreDe(asunto.tratadoPor) || 'el cuerpo de ancianos'}`
-            : `Lo apuntó ${nombreDe(asunto.propuestoPor) || 'alguien'} ${desdeHace(asunto.propuestoEl)}`}
-        </Typography>
-
-        {enHistorial ? (
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {enArchivo ? (
           <Button
             variant="small"
             disableAutoStretch
@@ -253,9 +211,11 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
           <Button
             variant="secondary"
             disableAutoStretch
-            onClick={() => setTratando(asunto)}
+            onClick={() =>
+              conAviso(() => dbAsuntoTratar(asunto.id), 'Pasa al archivo.')
+            }
           >
-            Dar por tratado
+            Ya se trató
           </Button>
         )}
       </Box>
@@ -264,39 +224,10 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* El «contador» que pedía el cuerpo: lo mío, y lo que no es de nadie. */}
-      {(mios.length > 0 || sinAsignar > 0) && (
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: '8px' }}>
-          {mios.length > 0 && (
-            <Badge
-              size="medium"
-              color="accent"
-              filled
-              text={
-                mios.length === 1
-                  ? 'Eres responsable de 1 asunto'
-                  : `Eres responsable de ${mios.length} asuntos`
-              }
-            />
-          )}
-          {sinAsignar > 0 && (
-            <Badge
-              size="medium"
-              color="grey"
-              text={
-                sinAsignar === 1
-                  ? '1 sin responsable'
-                  : `${sinAsignar} sin responsable`
-              }
-            />
-          )}
-        </Stack>
-      )}
-
       <ScrollableTabs
         tabs={[
           { label: `Pendientes (${pendientes.length})` },
-          { label: `Tratados (${tratados.length})` },
+          { label: `Archivo (${archivo.length})` },
         ]}
         value={pestana}
         onChange={setPestana}
@@ -310,10 +241,10 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
             <EmptyState
               icon={<IconInformationBoard />}
               title="No hay nada pendiente"
-              description="Cuando surja algo que tratar, apúntalo aquí y no se perderá hasta la próxima reunión."
+              description="Cuando surja una necesidad de la congregación, apúntala aquí y no se perderá."
               action={
                 <Button variant="main" disableAutoStretch onClick={abrirNuevo}>
-                  Apuntar un asunto
+                  Apuntar una necesidad
                 </Button>
               }
             />
@@ -325,22 +256,29 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
 
       {pestana === 1 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {!cargando && tratados.length === 0 && (
+          {!cargando && archivo.length === 0 && (
             <EmptyState
               icon={<IconCheckCircle />}
-              title="Todavía no hay nada tratado"
-              description="Lo que se vaya tratando queda aquí, con la fecha y en qué quedó."
+              title="El archivo está vacío"
+              description={`Lo que se vaya tratando queda aquí ${MESES_EN_ARCHIVO} meses y luego se borra solo.`}
             />
           )}
 
-          {tratados.map((asunto) => tarjeta(asunto, true))}
+          {archivo.length > 0 && (
+            <Typography className="body-small-regular" color="var(--ink-3)">
+              Lo archivado se borra solo a los {MESES_EN_ARCHIVO} meses de
+              tratarse.
+            </Typography>
+          )}
+
+          {archivo.map((asunto) => tarjeta(asunto, true))}
         </Box>
       )}
 
       <DialogAsunto
         open={abrirAsunto}
         asunto={editando}
-        opcionesAncianos={opcionesAncianos}
+        opcionesPersonas={opcionesPersonas}
         guardando={guardando}
         onClose={() => {
           setAbrirAsunto(false);
@@ -349,20 +287,10 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
         onGuardar={handleGuardar}
       />
 
-      <DialogTratar
-        open={Boolean(tratando)}
-        asunto={tratando}
-        opcionesAncianos={opcionesAncianos}
-        yo={yo}
-        guardando={guardando}
-        onClose={() => setTratando(undefined)}
-        onTratar={handleTratar}
-      />
-
       <ConfirmDialog
         open={Boolean(borrando)}
-        title="Borrar el asunto"
-        message={`«${borrando?.titulo ?? ''}» desaparecerá para todos los ancianos. Si ya se trató, es mejor darlo por tratado: así queda en el historial.`}
+        title="Borrar la necesidad"
+        message={`«${borrando?.titulo ?? ''}» desaparecerá para todos los ancianos.`}
         confirmLabel="Borrar"
         destructive
         onConfirm={async () => {
@@ -370,7 +298,10 @@ const AsuntosAncianos = ({ pedirNuevo = 0 }: { pedirNuevo?: number }) => {
           setBorrando(undefined);
 
           if (asunto) {
-            await conAviso(() => dbAsuntoBorrar(asunto.id), 'Asunto borrado.');
+            await conAviso(
+              () => dbAsuntoBorrar(asunto.id),
+              'Necesidad borrada.'
+            );
           }
         }}
         onCancel={() => setBorrando(undefined)}

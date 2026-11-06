@@ -1,4 +1,8 @@
-import { monthlyCreditedTotal } from '@services/app/credit_hours';
+import {
+  creditEntriesOf,
+  monthlyCreditedTotal,
+} from '@services/app/credit_hours';
+import { CreditEntry } from '@services/app/credit_entries';
 import { useMemo } from 'react';
 import { capitalizarPrimera } from '@utils/common';
 import { useAtomValue } from 'jotai';
@@ -338,6 +342,24 @@ const useMinistryMonthlyRecord = ({
     return delegatedReport.report_data.hours.credit.monthly;
   }, [publisher, congReport, userReport, isSelf, delegatedReport]);
 
+  /**
+   * El desglose del crédito de este mes (de qué es cada hora), del mismo
+   * informe del que sale `hours_credits`. Hace falta para el tope de 55, que es
+   * solo para el crédito de LDC: el de la escuela de precursores cuenta entero.
+   */
+  const credit_entries = useMemo((): CreditEntry[] | undefined => {
+    const desglose = (credit: unknown) =>
+      creditEntriesOf(credit) as CreditEntry[] | undefined;
+
+    if (!publisher || congReport?.report_data.status === 'confirmed') {
+      return desglose(congReport?.report_data.hours.credit);
+    }
+
+    if (isSelf) return desglose(userReport?.report_data.hours.credit);
+
+    return desglose(delegatedReport?.report_data.hours.credit);
+  }, [publisher, congReport, userReport, isSelf, delegatedReport]);
+
   const hours_total = useMemo(() => {
     // EL TOPE DEL MES: la predicación cuenta entera, y el crédito solo lo que
     // quepa hasta 55. Antes se sumaban a pelo, así que un mes de 60 horas con 8
@@ -347,7 +369,8 @@ const useMinistryMonthlyRecord = ({
         return String(
           monthlyCreditedTotal(
             +hours_fields.split(':').at(0),
-            +hours_credits.split(':').at(0)
+            +hours_credits.split(':').at(0),
+            credit_entries
           )
         );
       }
@@ -366,10 +389,11 @@ const useMinistryMonthlyRecord = ({
     const horasDeLosMinutos = (totalMinutes - minutesRemain) / 60;
 
     const totalHours =
-      monthlyCreditedTotal(hoursField, hoursCredit) + horasDeLosMinutos;
+      monthlyCreditedTotal(hoursField, hoursCredit, credit_entries) +
+      horasDeLosMinutos;
 
     return `${totalHours}:${String(minutesRemain).padStart(2, '0')}`;
-  }, [publisher, congReport, hours_fields, hours_credits]);
+  }, [publisher, congReport, hours_fields, hours_credits, credit_entries]);
 
   const minutes_remains = useMemo(() => {
     const minutes = hours_fields.split(':').map(Number).at(1);
@@ -415,6 +439,7 @@ const useMinistryMonthlyRecord = ({
     isSelf,
     hours_fields,
     hours_credits,
+    credit_entries,
     hours_total,
     minutes_remains,
     hours_credit_enabled,

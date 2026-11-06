@@ -260,13 +260,23 @@ service cloud.firestore {
     // ── La reunión de entre semana que se está siguiendo en directo ───────
     // Un único documento por semana con en qué parte va y a qué hora empezó.
     // Lo lee toda la congregación a propósito: es lo que hace que los relojitos
-    // del programa enseñen la hora a la que va a tocar cada cosa de verdad, y
-    // es la misma información que tiene delante cualquiera que mire la
-    // plataforma. Las notas del que preside solo se suben si la congregación lo
-    // activa en Ajustes, y entonces van cifradas con la llave maestra: quien no
-    // la tenga no puede leerlas aunque se descargue el documento.
+    // del programa enseñen en qué parte va, y es la misma información que tiene
+    // delante cualquiera que mire la plataforma. Las notas del presidente NO
+    // viajan: se quedan en su teléfono.
+    //
+    // QUIÉN ESCRIBE: el teléfono que la lleva (`ownerDevice`), con el mismo
+    // `epoch`; o quien toma el control, subiendo `epoch` en uno. Así un
+    // teléfono que perdió el mando —y que a lo mejor tenía escrituras
+    // esperando a que volviera la red— ya no puede pisar al que la lleva
+    // ahora: su `epoch` es viejo y se rechaza. Antes cualquiera escribía encima
+    // de cualquiera y la reunión se volvía loca al pasar el control.
     match /congregation/{congId}/meeting_run/{docId} {
-      allow read, write: if request.auth != null;
+      allow read, create, delete: if request.auth != null;
+      allow update: if request.auth != null && (
+        (request.resource.data.get('epoch', 0) == resource.data.get('epoch', 0)
+          && request.resource.data.get('ownerDevice', '') == resource.data.get('ownerDevice', ''))
+        || request.resource.data.get('epoch', 0) == resource.data.get('epoch', 0) + 1
+      );
     }
 
     match /congregation/{congId}/sync/{docId} {

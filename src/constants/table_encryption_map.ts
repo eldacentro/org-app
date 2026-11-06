@@ -138,6 +138,9 @@ export const TABLE_ENCRYPTION_MAP = {
     status: 'shared',
   },
   incoming_reports: {
+    // Nuevo en 2026-11. Puede ir cifrado desde el principio: un móvil de
+    // secretario sin actualizar no lo lee, lo deja como está y lo ignora.
+    credit_entries: 'shared',
     bible_studies: 'shared',
     comments: 'shared',
     hours: 'shared',
@@ -306,7 +309,7 @@ export const TABLE_ENCRYPTION_MAP = {
     publishedMonthsAt: 'shared',
   },
   /*
-    EL TABLÓN DEL CUERPO DE ANCIANOS.
+    NECESIDADES DE LA CONGREGACIÓN (antes, el tablón del cuerpo de ancianos).
 
     `id`, `updatedAt` y `_deleted` van EN CLARO a propósito: son lo único que el
     servidor necesita para fusionar asunto por asunto —cuál es cuál, cuál es más
@@ -328,6 +331,10 @@ export const TABLE_ENCRYPTION_MAP = {
     propuestoPor: 'private',
     propuestoEl: 'private',
     asignadoA: 'private',
+    // Nuevo en 2026-11. Puede ir cifrado desde el primer día sin pasar por
+    // PENDIENTES_DE_CIFRAR: ningún móvil sin actualizar lo lee ni lo pinta,
+    // solo lo conserva tal cual al editar, y así vuelve a subir.
+    fechaPosible: 'private',
     tratadoEl: 'private',
     tratadoPor: 'private',
     acuerdo: 'private',

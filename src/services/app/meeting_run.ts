@@ -66,8 +66,21 @@ export type MeetingRunPart = {
   slotStart: string;
   /** Minuto del día en que debía empezar ESTE paso. Admite decimales. */
   startMinutes: number;
-  /** Lo que debía durar ESTE paso, en segundos. */
+  /**
+   * Lo que tiene que durar la parte en sí, en segundos: los 4 minutos de una
+   * lectura o de una asignación de estudiante, NO los 5 de su hueco en el
+   * programa (el minuto de más es el consejo). Es lo que cuenta el cronómetro y
+   * con lo que se compara lo que duró.
+   */
   seconds: number;
+  /**
+   * El hueco que le da el programa a este paso, en segundos. Es con lo que se
+   * mide el retraso de la reunión. Casi siempre es igual a `seconds`; en la
+   * parte que va DESPUÉS de una asignación con consejo lleva además ese minuto,
+   * porque el consejo se da al principio de ella (ver `buildMidweekRunParts`).
+   * Vacío en reuniones guardadas antes de existir: entonces vale `seconds`.
+   */
+  windowSeconds?: number;
   /**
    * Si quien preside tiene que presentarla antes de que arranque el reloj.
    *
@@ -146,6 +159,20 @@ export type MeetingRunRecord = {
   songSeconds?: number;
   /** Lo mismo, para la canción del medio. Ver `songSeconds`. */
   middleSongSeconds?: number;
+  /**
+   * La lista de pasos tal y como la montó quien arrancó la reunión.
+   *
+   * Viaja con la reunión para que TODOS los teléfonos usen la misma: los pasos
+   * se numeran por posición, y si quien toma el control montara la suya con
+   * otras duraciones de canción u otro material, el índice apuntaría a otra
+   * parte y los tiempos dejarían de valer. Vacía en reuniones de antes.
+   */
+  parts?: MeetingRunPart[];
+  /**
+   * Antes las notas del presidente viajaban aquí. Ya no: viven solo en el
+   * teléfono del presidente de ese día (ver `readRunNotes`). Se queda el campo
+   * para leer reuniones guardadas en el propio teléfono con la versión vieja.
+   */
   notes?: Record<string, string>;
 };
 
@@ -160,16 +187,12 @@ export type MeetingRunView = {
   weekOf: string;
   dataView: string;
   status: Record<string, MeetingRunStatus>;
-  /** Solo las partes que quedan, y solo si hay desfase. Ya formateadas. */
-  shifted: Record<string, string>;
   /**
    * Lo apuntado de cada parte, por relojito.
    *
    * Va aquí para poder pintarlo DEBAJO de su parte en el programa, que es donde
-   * se lee sin tener que preguntarse de cuál era. Quién puede verlo lo decide
-   * quien monta esto: al que solo mira le llegan vacías salvo que la
-   * congregación las haya compartido, y al publicador no le llegan nunca —van
-   * cifradas con la llave maestra y sin ella no se abren.
+   * se lee sin tener que preguntarse de cuál era. Solo le llegan al presidente
+   * de ese día: a cualquier otro, vacías.
    */
   notes: Record<string, string>;
   drift: number;
@@ -276,6 +299,18 @@ const SIN_PRESENTAR = new Set([
 ]);
 
 /**
+ * Lo que dura de verdad un paso cuyo hueco en el programa es más largo.
+ *
+ * La conclusión son 3 minutos, pero su hueco llega hasta la canción final, que
+ * va a los 100 minutos de empezar (ver `cancionFinal` en `schedules.ts`): en una
+ * reunión normal le quedan 5. El cronómetro cuenta 3; los otros 2 son margen.
+ */
+const DURACION_PROPIA: Partial<Record<string, number>> = {
+  opening_comments: 60,
+  concluding_comments: 3 * 60,
+};
+
+/**
  * Lo mínimo que tiene que quedar para la oración al partir el hueco.
  *
  * Si la canción se comiera casi todo el hueco, partirlo daría un paso de diez
@@ -313,6 +348,18 @@ export const buildMidweekRunParts = (
      * como adelanto, que es lo que es: tiempo ganado.
      */
     cancionMediaSegundos?: number;
+    /**
+     * El minuto de consejo de cada parte que lo lleva (la lectura de la Biblia
+     * y las asignaciones de estudiante que no son análisis con el auditorio).
+     *
+     * El programa le da a esas partes su tiempo MÁS el consejo —5 minutos a una
+     * de 4—, y antes ese hueco entero se tomaba por lo que tenía que durar la
+     * parte: el cronómetro decía 5 donde eran 4. Ahora la parte dura lo suyo, y
+     * el consejo pasa al principio del paso siguiente, que es cuando se da: al
+     * pulsar «Siguiente» se para el tiempo del estudiante, y el consejo y la
+     * presentación de la siguiente son tiempo del presidente.
+     */
+    consejoMinutos?: Partial<Record<string, number>>;
   }
 ): MeetingRunPart[] => {
   if (!timing) return [];
@@ -325,6 +372,9 @@ export const buildMidweekRunParts = (
 
   const parts: MeetingRunPart[] = [];
 
+  /** El consejo de la parte anterior, que se da al principio de esta. */
+  let arrastre = 0;
+
   for (let i = 0; i < presentes.length - 1; i++) {
     const key = presentes[i];
     const start = timing[key];
@@ -333,8 +383,19 @@ export const buildMidweekRunParts = (
 
     if (minutes <= 0) continue;
 
-    const startMinutes = timeToMinutes(start);
-    const seconds = minutes * 60;
+    const recibe = arrastre;
+    arrastre = 0;
+
+    const consejo = Math.max(0, (opciones?.consejoMinutos?.[key] ?? 0) * 60);
+
+    // Solo si después queda una parte de verdad: un consejo que se comiera la
+    // parte entera sería un dato roto, y entonces se deja como estaba.
+    const conConsejo = consejo > 0 && minutes * 60 - consejo >= 60;
+
+    const startMinutes = timeToMinutes(start) - recibe / 60;
+    const seconds = minutes * 60 - (conConsejo ? consejo : 0);
+
+    if (conConsejo) arrastre = consejo;
 
     const cancion = opciones?.cancionInicialSegundos;
 
@@ -351,6 +412,7 @@ export const buildMidweekRunParts = (
         slotStart: start,
         startMinutes,
         seconds: cancion,
+        windowSeconds: cancion + recibe,
         presented: false,
         autoAdvance: true,
       });
@@ -359,8 +421,9 @@ export const buildMidweekRunParts = (
         key: 'pgm_start_prayer',
         badgeKey: key,
         slotStart: start,
-        startMinutes: startMinutes + cancion / 60,
+        startMinutes: startMinutes + (cancion + recibe) / 60,
         seconds: seconds - cancion,
+        windowSeconds: seconds - cancion,
         presented: false,
         autoAdvance: false,
       });
@@ -376,18 +439,50 @@ export const buildMidweekRunParts = (
       cancionMedia > 0 &&
       cancionMedia <= seconds;
 
+    const propia = DURACION_PROPIA[key];
+
     parts.push({
       key,
       badgeKey: key,
       slotStart: start,
       startMinutes,
-      seconds: mediaConocida ? cancionMedia : seconds,
-      presented: !SIN_PRESENTAR.has(key),
+      seconds: mediaConocida
+        ? cancionMedia
+        : propia
+          ? Math.min(seconds, propia)
+          : seconds,
+      windowSeconds: seconds + recibe,
+      // Si empieza con el consejo de la anterior, hay que poder decir cuándo
+      // arranca de verdad: si no, una canción contaría el consejo como canción
+      // y se pasaría sola un minuto antes de terminar.
+      presented: !SIN_PRESENTAR.has(key) || recibe > 0,
       autoAdvance: mediaConocida,
     });
   }
 
   return parts;
+};
+
+/**
+ * El minuto de consejo de cada parte, según el material de la semana.
+ *
+ * Es la misma regla con la que `schedulesMidweekGetTiming` reparte las horas:
+ * la lectura de la Biblia lleva consejo, y las asignaciones de «Seamos mejores
+ * maestros» también, salvo las de análisis con el auditorio.
+ */
+export const consejoPorParte = (
+  tipos: Partial<Record<string, number | undefined>>,
+  codigoAnalisis: number
+): Record<string, number> => {
+  const consejo: Record<string, number> = { tgw_bible_reading: 1 };
+
+  for (const key of ['ayf_part1', 'ayf_part2', 'ayf_part3', 'ayf_part4']) {
+    const tipo = tipos[key];
+
+    if (tipo && tipo !== codigoAnalisis) consejo[key] = 1;
+  }
+
+  return consejo;
 };
 
 /**
@@ -410,7 +505,9 @@ export const runDrift = ({
 }): number => {
   if (!part) return 0;
 
-  const previstos = part.seconds / 60;
+  // El hueco del programa, no lo que dura la parte: el retraso es de la
+  // reunión, y el minuto de consejo está dentro de su horario.
+  const previstos = (part.windowSeconds ?? part.seconds) / 60;
   const finPrevisto = part.startMinutes + previstos;
 
   if (!Number.isFinite(finPrevisto)) return 0;
@@ -423,29 +520,44 @@ export const runDrift = ({
 };
 
 /**
- * El estado de cada parte y las horas corridas.
+ * Una reunión que se quedó abierta: nadie pulsó la última parte y se guardó el
+ * móvil. Se da por terminada AL MIRARLA, sin escribir nada, en todos los
+ * teléfonos a la vez: si no, el retraso seguiría subiendo el resto de la semana.
+ */
+export const runAbandonada = (run: MeetingRunRecord, now: number): boolean =>
+  !run.finishedAt &&
+  (now - run.startedAt > RUN_STALE_MS ||
+    now - run.partStartedAt > PARTE_ABANDONADA_MS);
+
+/** Ninguna parte dura tres horas: si una lo «dura», nadie la está llevando. */
+const PARTE_ABANDONADA_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * El estado de cada parte.
  *
- * `formatTime` la pone quien llama, porque el formato de 12 o 24 horas es una
- * preferencia de la cuenta y este fichero no mira ajustes.
+ * Las horas del programa NO se tocan: son las del programa y se quedan como
+ * están. Antes se corrían con el retraso de la reunión y se movían solas
+ * mientras alguien la llevaba; el retraso ya lo dice la barra de abajo.
+ *
+ * Las notas las pone quien llama, y solo al presidente de ese día.
  */
 export const buildMeetingRunView = ({
   run,
   parts,
-  formatTime,
+  notas = {},
 }: {
   run: MeetingRunRecord;
   parts: MeetingRunPart[];
-  formatTime: (time: string) => string;
+  notas?: Record<string, string>;
 }): MeetingRunView => {
   const status: Record<string, MeetingRunStatus> = {};
-  const shifted: Record<string, string> = {};
 
   // Por relojito, no por paso: un hueco partido —la canción y la oración— tiene
   // uno solo, y si las dos llevan nota se leen juntas debajo de él.
   const notes: Record<string, string> = {};
 
   for (const part of parts) {
-    const nota = run.notes?.[part.key];
+    const nota = notas[part.key];
 
     if (!nota) continue;
 
@@ -455,64 +567,41 @@ export const buildMeetingRunView = ({
   }
 
   const finished = !!run.finishedAt;
-
-  // Ojo con los dos números: las horas se corren con el desplazamiento COMPLETO
-  // —es la hora a la que va a pasar cada cosa de verdad—, pero lo que se pinta
-  // de naranja es solo lo que se está alargando ahora.
   const desfase = runDesfase(run);
 
   // Terminada la reunión, el programa vuelve a verse como siempre. Dejar todos
   // los relojitos apagados haría que la página pareciera desactivada el resto
   // de la semana; lo que pasó ya lo cuenta el resumen de abajo.
-  if (finished) {
-    return {
-      weekOf: run.weekOf,
-      dataView: run.dataView,
-      status,
-      shifted,
-      notes,
-      drift: desfase,
-      finished,
-    };
+  if (!finished) {
+    /**
+     * Se pinta por RELOJITO, no por paso.
+     *
+     * Un hueco puede llevar dos pasos —la canción y la oración— y solo tiene un
+     * relojito: mientras se esté en cualquiera de los dos, ese relojito está
+     * «en curso».
+     */
+    parts.forEach((part, index) => {
+      const previo = status[part.badgeKey];
+
+      const propio: MeetingRunStatus =
+        index < run.index
+          ? 'done'
+          : index === run.index
+            ? 'current'
+            : 'upcoming';
+
+      // Manda el estado más «vivo» de los pasos de ese hueco.
+      if (previo === 'current') return;
+      if (previo === 'upcoming' && propio === 'done') return;
+
+      status[part.badgeKey] = propio;
+    });
   }
-
-  /**
-   * Se pinta por RELOJITO, no por paso.
-   *
-   * Un hueco puede llevar dos pasos —la canción y la oración— y solo tiene un
-   * relojito: mientras se esté en cualquiera de los dos, ese relojito está «en
-   * curso». Iterando pasos, el segundo sobreescribía al primero y el hueco se
-   * apagaba a mitad.
-   */
-  parts.forEach((part, index) => {
-    const previo = status[part.badgeKey];
-
-    const propio: MeetingRunStatus =
-      index < run.index ? 'done' : index === run.index ? 'current' : 'upcoming';
-
-    // Manda el estado más «vivo» de los pasos de ese hueco.
-    if (previo === 'current') return;
-    if (previo === 'upcoming' && propio === 'done') return;
-
-    status[part.badgeKey] = propio;
-
-    // Con el desplazamiento COMPLETO, no con el desfase: el relojito tiene que
-    // decir a qué hora va a pasar la cosa DE VERDAD. El desfase es otra cosa —lo
-    // que se está alargando— y es lo que decide si se pinta de naranja.
-    if (propio === 'upcoming' && run.drift !== 0) {
-      shifted[part.badgeKey] = formatTime(shiftTime(part.slotStart, run.drift));
-    }
-
-    if (propio !== 'upcoming') {
-      delete shifted[part.badgeKey];
-    }
-  });
 
   return {
     weekOf: run.weekOf,
     dataView: run.dataView,
     status,
-    shifted,
     notes,
     drift: desfase,
     finished,
@@ -521,12 +610,57 @@ export const buildMeetingRunView = ({
 
 /* ─────────────────────────── dónde se guarda ─────────────────────────────
  *
- * En el propio navegador y en ningún sitio más. NO va a Dexie y por tanto NO se
- * sincroniza: los tiempos de una reunión son una nota del que preside, no un
- * dato de la congregación, y meterlos en el ciclo de subida obligaría a tocar la
- * capa que ya ha costado dos incidentes de pérdida de datos. Si algún día se
- * quieren compartir entre ancianos, se añade encima; no se empieza por ahí.
+ * La reunión en sí viaja por Firestore (`services/firebase/meeting_run.ts`) y
+ * NO por la sincronización E2E. Lo de aquí es la copia en el propio navegador
+ * para cuando no hay cuenta conectada, y las notas del presidente, que NO salen
+ * nunca de su teléfono.
  */
+
+const notasKey = (weekOf: string, dataView: string) =>
+  `meetingRunNotes:${weekOf}:${dataView}`;
+
+/**
+ * Las notas del presidente de una semana, de SU teléfono.
+ *
+ * No viajan a ningún sitio: solo las ve el presidente de ese día y solo en el
+ * teléfono donde las escribió. Antes subían cifradas con la llave maestra y
+ * cualquier anciano podía llegar a leerlas.
+ */
+export const readRunNotes = (
+  weekOf: string,
+  dataView: string
+): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(notasKey(weekOf, dataView));
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    }
+
+    // Las que se escribieron con la versión anterior, dentro de la reunión
+    // guardada en este mismo teléfono.
+    const vieja = localStorage.getItem(meetingRunStorageKey(weekOf, dataView));
+    const notes = vieja ? JSON.parse(vieja)?.notes : undefined;
+
+    return notes && typeof notes === 'object' ? notes : {};
+  } catch {
+    return {};
+  }
+};
+
+export const writeRunNotes = (
+  weekOf: string,
+  dataView: string,
+  notas: Record<string, string>
+) => {
+  try {
+    localStorage.setItem(notasKey(weekOf, dataView), JSON.stringify(notas));
+  } catch {
+    /* sin almacenamiento: la nota dura lo que dure la página */
+  }
+};
 
 export const meetingRunStorageKey = (weekOf: string, dataView: string) =>
   `meetingRun:${weekOf}:${dataView}`;

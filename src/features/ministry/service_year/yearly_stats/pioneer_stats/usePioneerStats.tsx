@@ -1,5 +1,6 @@
 import {
   hoursOfEither,
+  creditEntriesOf,
   monthlyCreditedTotal,
   rawCreditHours,
 } from '@services/app/credit_hours';
@@ -125,7 +126,8 @@ const usePioneerStats = (year: string) => {
       // sumaba 68 al balance cuando de verdad suma 60. Ver `credit_hours.ts`.
       const totalHours = monthlyCreditedTotal(
         report.report_data.hours.field_service,
-        rawCreditHours(report.report_data.hours.credit)
+        rawCreditHours(report.report_data.hours.credit),
+        creditEntriesOf(report.report_data.hours.credit)
       );
 
       balance += totalHours - 50;
@@ -153,7 +155,11 @@ const usePioneerStats = (year: string) => {
           }
         ) || hoursOfEither(report.report_data.hours.credit);
 
-      totalHours = monthlyCreditedTotal(campo, credito);
+      totalHours = monthlyCreditedTotal(
+        campo,
+        credito,
+        creditEntriesOf(report.report_data.hours.credit)
+      );
 
       balance += totalHours - 50;
     }

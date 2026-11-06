@@ -70,11 +70,8 @@ export type SpeakerDinnerType = {
 /**
  * LA ROTACIÓN DE CENAS: a qué grupo le toca acoger cada semana.
  *
- * Misma forma que la de Limpieza y, a propósito, el MISMO motor
- * (`calcularGrupoReunion`): ya sabe saltar las semanas sin reunión, respetar un
- * cambio puesto a mano y repartir las vueltas. Un segundo motor que hiciera
- * casi lo mismo acabaría comportándose distinto en los bordes raros, que es
- * justo donde duele.
+ * Tiene su propio motor (`services/app/rotacion_cenas`), no el de Limpieza:
+ * aquí el turno lo gasta la CENA, no el calendario.
  *
  * Vive en Firestore con la invitación y no en la sincronización cifrada: son
  * identificadores de grupo y una fecha, y así el módulo entero del orador está
@@ -87,7 +84,7 @@ export type SpeakerDinnerRotationType = {
   grupoInicio: string;
   /** Qué grupos entran en la rotación. Vacío = todos. */
   gruposParticipantes: string[];
-  /** Cambios a mano: «YYYY/MM/DD-weekend» → group_id. */
+  /** Cambios a mano: semana ('YYYY/MM/DD', el `weekOf`) → group_id. */
   overrides?: Record<string, string>;
   updatedAt: string;
 };

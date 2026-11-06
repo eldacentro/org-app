@@ -1,6 +1,10 @@
 import type { PersonType } from '@definition/person';
 import type { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
-import { monthlyCreditedTotal, rawCreditHours } from './credit_hours';
+import {
+  creditEntriesOf,
+  monthlyCreditedTotal,
+  rawCreditHours,
+} from './credit_hours';
 
 /**
  * Saldo de horas de los precursores regulares en UN año de servicio.
@@ -129,7 +133,8 @@ export const saldoDePrecursores = ({
 
       const totalMes = monthlyCreditedTotal(
         campo,
-        rawCreditHours(data.hours.credit)
+        rawCreditHours(data.hours.credit),
+        creditEntriesOf(data.hours.credit)
       );
 
       // Separadas, y no solo el total: el secretario las quiere ver aparte

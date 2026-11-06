@@ -33,19 +33,50 @@ import {
  * turno, un grupo perdería el suyo por una semana en la que no había nada que
  * acoger.
  */
-export const grupoPorSemana = ({
-  invitaciones,
-  rotacion,
-  grupos,
-  schedules,
-}: {
-  invitaciones: Pick<SpeakerInvitationType, 'weekOf' | 'respuesta'>[];
+type InvitacionParaTurno = Pick<SpeakerInvitationType, 'weekOf' | 'respuesta'> &
+  Partial<Pick<SpeakerInvitationType, 'expiresAt' | 'revoked'>>;
+
+type DatosRotacion = {
+  invitaciones: InvitacionParaTurno[];
   rotacion: SpeakerDinnerRotationType | null;
   grupos: FieldServiceGroupType[];
   /** Para dejar fuera la semana de la visita del superintendente. */
   schedules?: SchedWeekType[];
-}): Map<string, string> => {
-  const turnos = new Map<string, string>();
+  /**
+   * El lunes de la semana en curso ('YYYY/MM/DD'). Una semana ANTERIOR a esta
+   * ya pasó: si nadie contestó, ya no va a gastar turno, y cuenta como
+   * resuelta. Sin él, solo cuenta como resuelta la que tiene respuesta.
+   */
+  hoy?: string;
+};
+
+export type TurnoCena = {
+  weekOf: string;
+  grupo: string;
+  /** El orador se queda a cenar: esta semana gasta el turno del grupo. */
+  gasta: boolean;
+  /**
+   * Todas las semanas anteriores de la rotación están resueltas (contestadas,
+   * o ya pasadas). Mientras no lo está, una respuesta de una semana anterior
+   * puede pasarle la cena al grupo siguiente, y decírselo ya a un
+   * superintendente sería avisar al que no es.
+   *
+   * NO se guarda: la rueda se recalcula siempre con lo que hay. Se probó a
+   * fijar los turnos decididos en Firestore, y un dato que se corrige después
+   * —una respuesta apuntada tarde, una cena marcada por error— dejaba el turno
+   * equivocado congelado para siempre.
+   */
+  decidido: boolean;
+};
+
+export const calcularTurnosCena = ({
+  invitaciones,
+  rotacion,
+  grupos,
+  schedules,
+  hoy,
+}: DatosRotacion): TurnoCena[] => {
+  const turnos: TurnoCena[] = [];
 
   if (!rotacion?.fechaInicio) return turnos;
 
@@ -65,12 +96,13 @@ export const grupoPorSemana = ({
   // comparan en el mismo formato para que no decida la zona horaria.
   const desde = aSemana(rotacion.fechaInicio);
 
-  const enOrden = invitaciones
+  const enOrden = unaPorSemana(invitaciones)
     .filter((inv) => inv.weekOf && inv.weekOf >= desde)
     .filter((inv) => !esSemanaDeVisita(inv.weekOf, schedules))
     .sort((a, b) => a.weekOf.localeCompare(b.weekOf));
 
   let indice = Math.max(0, activos.indexOf(rotacion.grupoInicio));
+  let anterioresResueltas = true;
 
   for (const invitacion of enOrden) {
     // Un cambio puesto a mano manda sobre la cuenta, y además ES el turno que
@@ -79,16 +111,66 @@ export const grupoPorSemana = ({
     // salón haciendo otra.
     const aMano = rotacion.overrides?.[invitacion.weekOf];
     const grupo = aMano && activos.includes(aMano) ? aMano : activos[indice];
+    const gasta = Boolean(
+      invitacion.respuesta?.asistira && invitacion.respuesta.cena
+    );
 
-    turnos.set(invitacion.weekOf, grupo);
+    turnos.push({
+      weekOf: invitacion.weekOf,
+      grupo,
+      gasta,
+      decidido: anterioresResueltas,
+    });
 
-    if (invitacion.respuesta?.asistira && invitacion.respuesta.cena) {
+    if (gasta) {
       const desdeAqui = activos.indexOf(grupo);
       indice = (desdeAqui + 1) % activos.length;
     }
+
+    const resuelta =
+      Boolean(invitacion.respuesta) ||
+      (hoy !== undefined && invitacion.weekOf < hoy);
+
+    if (!resuelta) anterioresResueltas = false;
   }
 
   return turnos;
+};
+
+export const grupoPorSemana = (datos: DatosRotacion): Map<string, string> =>
+  new Map(calcularTurnosCena(datos).map((t) => [t.weekOf, t.grupo]));
+
+/**
+ * UNA invitación por semana: la más reciente que siga viva.
+ *
+ * Si se cambia el orador de una semana, la carta nueva crea otra invitación y
+ * la vieja seguía ahí. Las dos contaban: la semana gastaba dos turnos y al
+ * superintendente le salía la cena dos veces.
+ */
+export const unaPorSemana = <T extends InvitacionParaTurno>(invitaciones: T[]): T[] => {
+  const porSemana = new Map<string, T>();
+
+  for (const inv of invitaciones) {
+    if (inv.revoked) continue;
+
+    const actual = porSemana.get(inv.weekOf);
+
+    if (!actual || msDe(inv.expiresAt) > msDe(actual.expiresAt)) {
+      porSemana.set(inv.weekOf, inv);
+    }
+  }
+
+  return [...porSemana.values()];
+};
+
+/** `expiresAt` llega de Firestore como Timestamp; en las pruebas, como Date. */
+const msDe = (fecha: unknown): number => {
+  if (!fecha) return 0;
+  if (fecha instanceof Date) return fecha.getTime();
+
+  const conMillis = fecha as { toMillis?: () => number };
+
+  return typeof conMillis.toMillis === 'function' ? conMillis.toMillis() : 0;
 };
 
 /** De una fecha ISO al 'YYYY/MM/DD' con el que se nombran las semanas. */
@@ -101,15 +183,6 @@ const aSemana = (iso: string) => {
 
   return `${d.getFullYear()}/${dos(d.getMonth() + 1)}/${dos(d.getDate())}`;
 };
-
-/**
- * El grupo de UNA semana. Para cuando ya se tiene el historial cargado y solo
- * interesa una.
- */
-export const grupoDeLaSemana = (
-  weekOf: string,
-  datos: Parameters<typeof grupoPorSemana>[0]
-): string | null => grupoPorSemana(datos).get(weekOf) ?? null;
 
 /**
  * ¿Es la semana de la visita del superintendente de circuito?

@@ -9,6 +9,7 @@ import {
 } from '@services/api/pocket';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
+import { quitarCifradoSobrante } from './incoming_reports';
 
 /**
  * Publishers (non-secretary/overseer) submit field service reports through a
@@ -75,6 +76,9 @@ const submitOne = async (entry: PendingPublisherReport) => {
     const remoteCode = whoami.result.cong_access_code;
     const accessCode = decryptData(remoteCode, entry.localAccessCode, 'access_code');
 
+    // Los que se encolaron con la versión vieja ya venían cifrados: se dejan
+    // en claro antes de cifrar, para no mandarlos cifrados dos veces.
+    quitarCifradoSobrante(reportToSend, accessCode);
     encryptObject({ data: reportToSend, table: 'incoming_reports', accessCode });
 
     await apiUserFieldServiceReportPost(reportToSend);
@@ -85,6 +89,7 @@ const submitOne = async (entry: PendingPublisherReport) => {
   const remoteCode = whoami.result.app_settings.cong_settings.cong_access_code;
   const accessCode = decryptData(remoteCode, entry.localAccessCode, 'access_code');
 
+  quitarCifradoSobrante(reportToSend, accessCode);
   encryptObject({ data: reportToSend, table: 'incoming_reports', accessCode });
 
   await apiPocketFieldServiceReportPost(reportToSend);

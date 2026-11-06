@@ -1,4 +1,5 @@
 import {
+  creditEntriesOf,
   effectiveCreditHours,
   hoursOfEither,
   rawCreditHours,
@@ -252,7 +253,8 @@ const useMinistryYearlyRecord = (year: string) => {
         acc +
         effectiveCreditHours(
           current.report_data.hours.field_service,
-          rawCreditHours(current.report_data.hours.credit)
+          rawCreditHours(current.report_data.hours.credit),
+          creditEntriesOf(current.report_data.hours.credit)
         )
       );
     }, 0);
@@ -279,7 +281,11 @@ const useMinistryYearlyRecord = (year: string) => {
           }
         ) || hoursOfEither(current.report_data.hours.credit);
 
-      acc += effectiveCreditHours(campo, credito);
+      acc += effectiveCreditHours(
+        campo,
+        credito,
+        creditEntriesOf(current.report_data.hours.credit)
+      );
 
       return acc;
     }, 0);

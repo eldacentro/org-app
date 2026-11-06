@@ -7,7 +7,7 @@ import AsuntosAncianos from '@features/congregation/asuntos_ancianos';
 import backupWorker from '@services/worker/backupWorker';
 
 /**
- * El tablón del cuerpo de ancianos.
+ * Necesidades de la congregación (solo ancianos).
  *
  * Al entrar se pide una sincronización: se abre justo antes de una reunión de
  * ancianos, y lo peor que podría pasar es tratar una lista a la que le falta lo
@@ -23,7 +23,7 @@ const AsuntosAncianosPage = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <PageTitle
-        title="Asuntos del cuerpo de ancianos"
+        title="Necesidades de la congregación"
         buttons={
           <NavBarButton
             text="Apuntar"

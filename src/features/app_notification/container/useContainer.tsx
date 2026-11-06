@@ -33,6 +33,7 @@ import { applicationsState } from '@states/persons';
 import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase } from '@services/app';
 import { dbHandleIncomingReports } from '@services/dexie/cong_field_service_reports';
+import { quitarCifradoSobrante } from '@services/app/incoming_reports';
 import { apiUserGetUpdates } from '@services/api/user';
 import { apiFetchNotifications } from '@services/api/notification';
 import useJoinRequests from './useJoinRequests';
@@ -437,10 +438,13 @@ const useContainer = () => {
       const reports = incoming.map((record) => {
         const report = structuredClone(record);
         decryptObject({ data: report, table: 'incoming_reports', accessCode });
+        // Los que mandó una versión vieja de la app tras un reintento llegan
+        // cifrados dos veces; sin esto se tomaban por retirados.
+        quitarCifradoSobrante(report, accessCode);
         return report;
       });
 
-      dbHandleIncomingReports(reports);
+      await dbHandleIncomingReports(reports);
     } catch (err) {
       console.error(err);
 

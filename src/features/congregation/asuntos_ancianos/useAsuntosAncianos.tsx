@@ -1,14 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useLiveQuery } from 'dexie-react-hooks';
 import appDb from '@db/appDb';
-import { AsuntoAncianosType } from '@definition/asuntos_ancianos';
-import { eldersActiveState, personsState } from '@states/persons';
+import { personsActiveState, personsState } from '@states/persons';
 import { fullnameOptionState, userLocalUIDState } from '@states/settings';
 import { buildPersonFullname } from '@utils/common';
+import { dbAsuntoBorrar } from '@services/dexie/asuntos_ancianos';
+import {
+  necesidadesParaBorrar,
+  ordenarPendientes,
+} from '@services/app/necesidades';
 
 /**
- * El tablón del cuerpo de ancianos.
+ * Necesidades de la congregación.
  *
  * Lee la tabla con `useLiveQuery` y NO por un átomo global a propósito: así
  * estos datos no entran en el almacén de estado de la app de quien no abre esta
@@ -19,7 +23,7 @@ import { buildPersonFullname } from '@utils/common';
 const useAsuntosAncianos = () => {
   const yo = useAtomValue(userLocalUIDState);
   const persons = useAtomValue(personsState);
-  const ancianos = useAtomValue(eldersActiveState);
+  const activos = useAtomValue(personsActiveState);
   const fullnameOption = useAtomValue(fullnameOptionState);
 
   const [pestana, setPestana] = useState(0);
@@ -50,45 +54,51 @@ const useAsuntosAncianos = () => {
     [guardados]
   );
 
-  /**
-   * Lo que queda por tratar.
-   *
-   * Orden: lo urgente arriba, y dentro de cada grupo lo MÁS VIEJO primero. Es
-   * al revés de lo habitual a propósito: un tablón ordenado por lo último que
-   * llegó entierra justo lo que lleva meses sin tratarse, que es lo que no
-   * debería pasar nunca.
-   */
-  const pendientes = useMemo(() => {
-    return vivos
-      .filter((asunto) => !asunto.tratadoEl)
-      .sort((a, b) => {
-        if (a.urgente !== b.urgente) return a.urgente ? -1 : 1;
+  const pendientes = useMemo(
+    () => ordenarPendientes(vivos.filter((asunto) => !asunto.tratadoEl)),
+    [vivos]
+  );
 
-        return (a.propuestoEl ?? '').localeCompare(b.propuestoEl ?? '');
-      });
-  }, [vivos]);
-
-  /** El historial: lo último tratado primero, que es como se consulta. */
-  const tratados = useMemo(() => {
+  /** El archivo: lo último tratado primero, que es como se consulta. */
+  const archivo = useMemo(() => {
     return vivos
       .filter((asunto) => asunto.tratadoEl)
       .sort((a, b) => (b.tratadoEl ?? '').localeCompare(a.tratadoEl ?? ''));
   }, [vivos]);
 
-  /** De lo que soy responsable yo. Es el «contador» que pidió el cuerpo. */
-  const mios = useMemo(
-    () => pendientes.filter((asunto) => asunto.asignadoA === yo),
-    [pendientes, yo]
-  );
+  // Lo que lleva en el archivo más de lo debido se borra solo, al abrir la
+  // página. Con lápida, como cualquier borrado: así llega a todos.
+  useEffect(() => {
+    const viejas = necesidadesParaBorrar(vivos);
 
-  const sinAsignar = useMemo(
-    () => pendientes.filter((asunto) => !asunto.asignadoA).length,
-    [pendientes]
-  );
+    if (viejas.length === 0) return;
 
-  /** Para el desplegable de «responsable»: los ancianos, por nombre. */
-  const opcionesAncianos = useMemo(() => {
-    return ancianos
+    Promise.all(viejas.map((asunto) => dbAsuntoBorrar(asunto.id))).catch(
+      (error) => console.error('No se pudo vaciar el archivo', error)
+    );
+  }, [vivos]);
+
+  /**
+   * Para «a quién le podría tocar»: los ancianos y siervos ministeriales en
+   * activo, por nombre. Antes solo ofrecía ancianos, y muchas necesidades de la
+   * congregación las lleva un siervo ministerial.
+   */
+  const opcionesPersonas = useMemo(() => {
+    return activos
+      .filter((person) =>
+        (person.person_data.privileges ?? []).some((p) => {
+          const privilegio =
+            typeof p.privilege === 'object' && p.privilege !== null
+              ? (p.privilege as { value: string }).value
+              : p.privilege;
+
+          return (
+            (privilegio === 'elder' || privilegio === 'ms') &&
+            p._deleted !== true &&
+            !p.end_date
+          );
+        })
+      )
       .map((person) => ({
         id: person.person_uid,
         etiqueta: buildPersonFullname(
@@ -98,22 +108,18 @@ const useAsuntosAncianos = () => {
         ),
       }))
       .sort((a, b) => a.etiqueta.localeCompare(b.etiqueta));
-  }, [ancianos, fullnameOption]);
+  }, [activos, fullnameOption]);
 
   return {
     cargando: guardados === undefined,
     pendientes,
-    tratados,
-    mios,
-    sinAsignar,
+    archivo,
     nombreDe,
-    opcionesAncianos,
+    opcionesPersonas,
     yo,
     pestana,
     setPestana,
   };
 };
-
-export type AsuntoConNombre = AsuntoAncianosType;
 
 export default useAsuntosAncianos;
