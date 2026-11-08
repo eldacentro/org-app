@@ -54,8 +54,8 @@ const usePersonsList = () => {
   }, [restrictToMyGroup, my_group]);
 
   const {
-    getPublishersActive,
-    getPublishersInactive,
+    getPublishersExpected,
+    getPublishersNotExpected,
     getPublishersBaptized,
     getPublishersUnbaptized,
     getAppointedBrothers,
@@ -99,17 +99,21 @@ const usePersonsList = () => {
     [languageGroup, dataView]
   );
 
+  // «Activos» aquí son aquellos a quienes se les espera el informe del mes,
+  // no los activos estrictos de ese mes: quien llevaba cinco meses sin
+  // informar tiene que salir en «no enviados» del sexto, que es cuando aún
+  // puede entregarlo. Ver `personExpectedToReport`.
   const active_publishers = useMemo(() => {
-    const result = getPublishersActive(currentMonth);
+    const result = getPublishersExpected(currentMonth);
 
     return filterByLanguageGroup(result);
-  }, [getPublishersActive, currentMonth, filterByLanguageGroup]);
+  }, [getPublishersExpected, currentMonth, filterByLanguageGroup]);
 
   const inactive_publishers = useMemo(() => {
-    const result = getPublishersInactive(currentMonth);
+    const result = getPublishersNotExpected(currentMonth);
 
     return filterByLanguageGroup(result);
-  }, [getPublishersInactive, currentMonth, filterByLanguageGroup]);
+  }, [getPublishersNotExpected, currentMonth, filterByLanguageGroup]);
 
   const baptized_publishers = useMemo(() => {
     const result = getPublishersBaptized(currentMonth);

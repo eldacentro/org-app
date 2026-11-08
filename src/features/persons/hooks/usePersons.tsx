@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import {
   activityWindowHasReports,
   personBecameInactiveDuring,
+  personExpectedToReport,
   personIsActivePublisher,
   personIsInactivePublisher,
   personWasPublisherBy,
@@ -56,6 +57,26 @@ const usePersons = (group?: string) => {
   const getPublishersInactive = (month: string) => {
     return persons.filter((record) =>
       personIsInactivePublisher(record, ministryMonths, month)
+    );
+  };
+
+  /**
+   * Para recoger los informes de `month`: a quién se le espera el informe y a
+   * quién no. No es lo mismo que activos/inactivos de ese mes — a quien estaba
+   * activo hasta el mes anterior se le sigue esperando, porque su informe de
+   * este mes es justo el que le mantiene activo. Ver `personExpectedToReport`.
+   */
+  const getPublishersExpected = (month: string) => {
+    return persons.filter((record) =>
+      personExpectedToReport(record, ministryMonths, month)
+    );
+  };
+
+  const getPublishersNotExpected = (month: string) => {
+    return persons.filter(
+      (record) =>
+        personWasPublisherBy(record, month) &&
+        !personExpectedToReport(record, ministryMonths, month)
     );
   };
 
@@ -227,6 +248,8 @@ const usePersons = (group?: string) => {
   return {
     getPublishersActive,
     getPublishersInactive,
+    getPublishersExpected,
+    getPublishersNotExpected,
     getPublishersBaptized,
     getPublishersUnbaptized,
     getAppointedBrothers,

@@ -13,8 +13,12 @@ import {
  * La norma es la de la organización, y es una sola:
  *
  *   Un publicador está ACTIVO si ha informado participación en alguna faceta
- *   de la predicación al menos UNA VEZ en los últimos 6 meses, contando el
- *   mes en curso. Si no, está INACTIVO.
+ *   de la predicación al menos UNA VEZ en los últimos 6 meses. Si no, está
+ *   INACTIVO.
+ *
+ * «Los últimos 6 meses» de un mes ya cerrado son ese y los cinco anteriores
+ * (`activeInMonth`). HOY es otra cosa, porque el mes anterior todavía se está
+ * informando: ver `activeNow` y `personExpectedToReport`.
  *
  * De ahí salen dos consecuencias que conviene tener presentes:
  *
@@ -136,7 +140,7 @@ const toIndex = (source: ReportsSource) =>
 const isPublisherFlagged = (person: PersonType) =>
   Boolean(
     person?.person_data?.publisher_baptized?.active?.value ||
-      person?.person_data?.publisher_unbaptized?.active?.value
+    person?.person_data?.publisher_unbaptized?.active?.value
   );
 
 /**
@@ -303,13 +307,17 @@ const startedPublishingBetween = (
   person: PersonType,
   from: string,
   to: string
-) =>
-  publisherGraceMonths(person).some((start) => start >= from && start <= to);
+) => publisherGraceMonths(person).some((start) => start >= from && start <= to);
 
-export const personIsActivePublisher = (
+/**
+ * Activo o no EN UN MES CONCRETO, con la regla estricta: seis meses que acaban
+ * en `month`, ese incluido. Es la que cuenta para el S-1, el S-21 y el S-10, que
+ * se hacen con el mes ya cerrado.
+ */
+const activeInMonth = (
   person: PersonType,
   source: ReportsSource,
-  month = currentActivityMonth()
+  month: string
 ) => {
   if (!personWasPublisherBy(person, month)) return false;
 
@@ -341,12 +349,76 @@ export const personIsActivePublisher = (
   return false;
 };
 
+/**
+ * ¿Hay que esperar su informe de `month`?
+ *
+ * Sí si está activo en ese mes, y también si lo estaba en el anterior: el
+ * informe de `month` es justo el que puede mantenerle activo. Con la regla
+ * estricta, a quien llevaba cinco meses sin informar se le daba por inactivo
+ * en el sexto ANTES de que nadie pudiera meter su informe, y desaparecía de
+ * «Informes no enviados» del mes en el que tenía que aparecer (le pasó a Sarai
+ * Izquierdo con octubre de 2026).
+ *
+ * Es para las listas de recogida de informes. El S-1 sigue con la estricta: se
+ * envía con el mes ya cerrado, y quien no informó tampoco ese mes ya es
+ * inactivo en él.
+ */
+export const personExpectedToReport = (
+  person: PersonType,
+  source: ReportsSource,
+  month: string
+) =>
+  activeInMonth(person, source, month) ||
+  activeInMonth(person, source, monthAdd(month, -1));
+
+/**
+ * Activo HOY.
+ *
+ * El mes en curso no se puede informar todavía, y el anterior se está
+ * informando: los informes de octubre se meten a primeros de noviembre. Antes
+ * «hoy» era la ventana de seis meses que acaba en el mes en curso, así que en
+ * noviembre a quien informó en mayo se le daba por inactivo con solo cinco
+ * meses sin informar (junio a octubre), y con octubre aún sin recoger. Le pasó
+ * a Edita Rosas: en Personas salía inactiva y en los informes de octubre,
+ * activa.
+ *
+ * Ahora hoy es «se espera su informe del mes que se está informando», que es
+ * lo mismo que enseña la lista de informes de ese mes. Se suma la regla del
+ * mes en curso solo para el recién nombrado este mes, que si no se quedaría
+ * fuera hasta el mes que viene.
+ */
+export const activeNow = (
+  person: PersonType,
+  source: ReportsSource,
+  today = new Date()
+) => {
+  const current = currentActivityMonth(today);
+
+  return (
+    activeInMonth(person, source, current) ||
+    personExpectedToReport(person, source, monthAdd(current, -1))
+  );
+};
+
+/**
+ * Con `month`, activo en ese mes (regla estricta). Sin él, activo HOY (ver
+ * `activeNow`).
+ */
+export const personIsActivePublisher = (
+  person: PersonType,
+  source: ReportsSource,
+  month?: string
+) =>
+  month === undefined
+    ? activeNow(person, source)
+    : activeInMonth(person, source, month);
+
 export const personIsInactivePublisher = (
   person: PersonType,
   source: ReportsSource,
-  month = currentActivityMonth()
+  month?: string
 ) =>
-  personWasPublisherBy(person, month) &&
+  personWasPublisherBy(person, month ?? currentActivityMonth()) &&
   !personIsActivePublisher(person, source, month);
 
 /**

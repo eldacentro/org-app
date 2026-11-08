@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PersonType } from '@definition/person';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
 import {
+  activeNow,
   activityWindowHasReports,
   activityWindowStart,
   buildPublisherHistoryUpdates,
@@ -9,6 +10,7 @@ import {
   currentActivityMonth,
   monthAdd,
   personBecameInactiveDuring,
+  personExpectedToReport,
   personIsActivePublisher,
   personIsInactivePublisher,
   personWasPublisherBy,
@@ -24,12 +26,18 @@ import {
  * plausible y equivocado, que es peor.
  *
  * La regla, una sola: activo = ha informado participación en la predicación
- * al menos una vez en los últimos 6 meses, contando el mes en curso.
+ * al menos una vez en los últimos 6 meses. Para un mes cerrado son ese y los
+ * cinco anteriores; HOY se espera además al informe del mes que se está
+ * recogiendo.
  */
 
 const stamp = '2026-01-01T00:00:00Z';
 
-type Tramo = { start_date: string; end_date?: string | null; _deleted?: boolean };
+type Tramo = {
+  start_date: string;
+  end_date?: string | null;
+  _deleted?: boolean;
+};
 
 const buildPerson = (
   tramos: Tramo[],
@@ -89,7 +97,8 @@ const buildReport = (
   }) as unknown as CongFieldServiceReportType;
 
 // Publicador de siempre, nombrado hace años.
-const veterano = (uid = 'p1') => buildPerson([{ start_date: '2015-03-01' }], { uid });
+const veterano = (uid = 'p1') =>
+  buildPerson([{ start_date: '2015-03-01' }], { uid });
 
 // Mes de referencia de casi todas las pruebas: julio de 2026.
 // Ventana de 6 meses → 2026/02 … 2026/07.
@@ -216,9 +225,12 @@ describe('quién entra en el reparto activos/inactivos', () => {
   });
 
   it('un tramo borrado no convierte a nadie en publicador', () => {
-    const persona = buildPerson([{ start_date: '2015-03-01', _deleted: true }], {
-      baptized: false,
-    });
+    const persona = buildPerson(
+      [{ start_date: '2015-03-01', _deleted: true }],
+      {
+        baptized: false,
+      }
+    );
 
     expect(personWasPublisherBy(persona, JULIO)).toBe(false);
   });
@@ -255,14 +267,20 @@ describe('alta de una persona nueva', () => {
   });
 
   it('en cuanto tiene fecha de primer informe, se le aplica la regla', () => {
-    const conFecha = buildPerson([], { baptized: true, firstReport: '2025-10-01' });
+    const conFecha = buildPerson([], {
+      baptized: true,
+      firstReport: '2025-10-01',
+    });
 
     expect(personWasPublisherBy(conFecha, JULIO)).toBe(true);
     expect(personIsInactivePublisher(conFecha, reports, JULIO)).toBe(true);
   });
 
   it('la fecha de primer informe reciente lo mantiene activo', () => {
-    const conFecha = buildPerson([], { baptized: true, firstReport: '2026-06-01' });
+    const conFecha = buildPerson([], {
+      baptized: true,
+      firstReport: '2026-06-01',
+    });
 
     expect(personIsActivePublisher(conFecha, reports, JULIO)).toBe(true);
   });
@@ -341,9 +359,10 @@ describe('casos que rompían antes', () => {
   it('sin un solo informe y con el tramo cerrado, está inactivo', () => {
     // El caso de David Such: alta en abril, tramo cerrado en julio, ninguna
     // participación informada nunca.
-    const david = buildPerson([
-      { start_date: '2026-04-30', end_date: '2026-07-20' },
-    ], { firstReport: '2026-04-30' });
+    const david = buildPerson(
+      [{ start_date: '2026-04-30', end_date: '2026-07-20' }],
+      { firstReport: '2026-04-30' }
+    );
 
     const reports = [buildReport('otro', JULIO)];
 
@@ -425,7 +444,9 @@ describe('paso a inactivo durante un año de servicio (S-10)', () => {
     const persona = veterano();
     const reports = [buildReport('p1', '2024/03')];
 
-    expect(personBecameInactiveDuring(persona, reports, START, END)).toBe(false);
+    expect(personBecameInactiveDuring(persona, reports, START, END)).toBe(
+      false
+    );
   });
 
   it('no cuenta a quien sigue informando', () => {
@@ -436,12 +457,17 @@ describe('paso a inactivo durante un año de servicio (S-10)', () => {
       buildReport('p1', '2026/07'),
     ];
 
-    expect(personBecameInactiveDuring(persona, reports, START, END)).toBe(false);
+    expect(personBecameInactiveDuring(persona, reports, START, END)).toBe(
+      false
+    );
   });
 
   it('quien se quedó inactivo y volvió sigue contando: pasó por ahí', () => {
     const persona = veterano();
-    const reports = [buildReport('p1', '2025/09'), buildReport('p1', '2026/06')];
+    const reports = [
+      buildReport('p1', '2025/09'),
+      buildReport('p1', '2026/06'),
+    ];
 
     expect(personBecameInactiveDuring(persona, reports, START, END)).toBe(true);
   });
@@ -512,9 +538,9 @@ describe('el historial que deja el S-1 al enviarlo', () => {
 
     const [guardada] = actualizar([], [persona]);
 
-    expect(
-      guardada.person_data.publisher_baptized.history[0].end_date
-    ).toBe(FIN);
+    expect(guardada.person_data.publisher_baptized.history[0].end_date).toBe(
+      FIN
+    );
   });
 
   it('REABRE el de quien consta como activo y lo tenía cerrado', () => {
@@ -658,15 +684,48 @@ describe('activo e inactivo parten en dos a los publicadores', () => {
   const informes = [buildReport('informa', '2026/06')];
 
   const fichas: [string, PersonType][] = [
-    ['veterano que informa', buildPerson([{ start_date: '2015-03-01' }], { uid: 'informa' })],
-    ['veterano que no informa', buildPerson([{ start_date: '2015-03-01' }], { uid: 'callado' })],
-    ['tramo cerrado hace años', buildPerson([{ start_date: '2015-03-01', end_date: '2020-06-30' }], { uid: 'cerrado' })],
+    [
+      'veterano que informa',
+      buildPerson([{ start_date: '2015-03-01' }], { uid: 'informa' }),
+    ],
+    [
+      'veterano que no informa',
+      buildPerson([{ start_date: '2015-03-01' }], { uid: 'callado' }),
+    ],
+    [
+      'tramo cerrado hace años',
+      buildPerson([{ start_date: '2015-03-01', end_date: '2020-06-30' }], {
+        uid: 'cerrado',
+      }),
+    ],
     ['casilla puesta y ninguna fecha', buildPerson([], { uid: 'sinfecha' })],
-    ['nunca fue publicador', buildPerson([], { uid: 'nunca', baptized: false })],
-    ['estudiante de entresemana', buildPerson([], { uid: 'estudiante', baptized: false, midweek: true })],
-    ['estudiante con casilla de publicador', buildPerson([{ start_date: '2015-03-01' }], { uid: 'mixto', midweek: true })],
-    ['nombrado el mes que viene', buildPerson([{ start_date: '2026-09-01' }], { uid: 'futuro' })],
-    ['no bautizado', buildPerson([], { uid: 'nobautizado', baptized: false, unbaptized: true })],
+    [
+      'nunca fue publicador',
+      buildPerson([], { uid: 'nunca', baptized: false }),
+    ],
+    [
+      'estudiante de entresemana',
+      buildPerson([], { uid: 'estudiante', baptized: false, midweek: true }),
+    ],
+    [
+      'estudiante con casilla de publicador',
+      buildPerson([{ start_date: '2015-03-01' }], {
+        uid: 'mixto',
+        midweek: true,
+      }),
+    ],
+    [
+      'nombrado el mes que viene',
+      buildPerson([{ start_date: '2026-09-01' }], { uid: 'futuro' }),
+    ],
+    [
+      'no bautizado',
+      buildPerson([], {
+        uid: 'nobautizado',
+        baptized: false,
+        unbaptized: true,
+      }),
+    ],
   ];
 
   it.each(fichas)('%s', (_, person) => {
@@ -678,5 +737,78 @@ describe('activo e inactivo parten en dos a los publicadores', () => {
 
     // Y la unión es exactamente "es publicador".
     expect(activo || inactivo).toBe(personWasPublisherBy(person, JULIO));
+  });
+});
+
+describe('hoy: el mes anterior todavía se está informando', () => {
+  // 8 de noviembre de 2026: se están metiendo los informes de octubre.
+  const HOY = new Date(2026, 10, 8);
+
+  it('Edita: informó en mayo y lleva cinco meses sin informar — sigue activa', () => {
+    const informes = [buildReport('p1', '2026/05')];
+
+    expect(activeNow(veterano(), informes, HOY)).toBe(true);
+    // Lo que daba antes: la ventana de noviembre (junio a noviembre), con
+    // noviembre sin poder informarse todavía.
+    expect(personIsActivePublisher(veterano(), informes, '2026/11')).toBe(
+      false
+    );
+  });
+
+  it('Sarai: informó en abril; mientras se recoge octubre todavía se la espera', () => {
+    const informes = [
+      buildReport('p1', '2026/04'),
+      buildReport('otro', '2026/10'),
+    ];
+
+    expect(activeNow(veterano(), informes, HOY)).toBe(true);
+    expect(personExpectedToReport(veterano(), informes, '2026/10')).toBe(true);
+  });
+
+  it('cerrado octubre sin su informe, en diciembre ya es inactiva', () => {
+    const informes = [
+      buildReport('p1', '2026/04'),
+      buildReport('otro', '2026/10'),
+    ];
+
+    expect(activeNow(veterano(), informes, new Date(2026, 11, 3))).toBe(false);
+  });
+
+  it('el S-1 de octubre la cuenta inactiva si no informó octubre', () => {
+    const informes = [
+      buildReport('p1', '2026/04'),
+      buildReport('otro', '2026/10'),
+    ];
+
+    expect(personIsActivePublisher(veterano(), informes, '2026/10')).toBe(
+      false
+    );
+  });
+
+  it('si entrega octubre, activa en todo', () => {
+    const informes = [
+      buildReport('p1', '2026/04'),
+      buildReport('p1', '2026/10'),
+    ];
+
+    expect(activeNow(veterano(), informes, HOY)).toBe(true);
+    expect(personIsActivePublisher(veterano(), informes, '2026/10')).toBe(true);
+  });
+
+  it('quien llevaba ya seis meses sin informar antes de octubre no se espera', () => {
+    const informes = [
+      buildReport('p1', '2026/03'),
+      buildReport('otro', '2026/10'),
+    ];
+
+    expect(personExpectedToReport(veterano(), informes, '2026/10')).toBe(false);
+    expect(activeNow(veterano(), informes, HOY)).toBe(false);
+  });
+
+  it('el recién nombrado este mes cuenta como activo hoy', () => {
+    const nuevo = buildPerson([{ start_date: '2026-11-02' }]);
+    const informes = [buildReport('otro', '2026/10')];
+
+    expect(activeNow(nuevo, informes, HOY)).toBe(true);
   });
 });

@@ -18,7 +18,7 @@ const useReceivedReports = () => {
     my_group,
   } = useCurrentUser();
 
-  const { getPublishersActive } = usePersons();
+  const { getPublishersExpected } = usePersons();
 
   const currentMonth = useAtomValue(selectedMonthFieldServiceReportState);
   const reports = useAtomValue(congFieldServiceReportsState);
@@ -26,7 +26,7 @@ const useReceivedReports = () => {
   const languageGroups = useAtomValue(languageGroupsState);
 
   const publishers = useMemo(() => {
-    const data = getPublishersActive(currentMonth);
+    const data = getPublishersExpected(currentMonth);
 
     if (isLanguageGroupOverseer) {
       return data.filter((record) => {
@@ -61,7 +61,7 @@ const useReceivedReports = () => {
   }, [
     currentMonth,
     dataView,
-    getPublishersActive,
+    getPublishersExpected,
     isElder,
     isGroupOverseer,
     isSecretary,

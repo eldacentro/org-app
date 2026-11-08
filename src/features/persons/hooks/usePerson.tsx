@@ -5,8 +5,10 @@ import { BadgeColor } from '@definition/app';
 import { fullnameOptionState } from '@states/settings';
 import { ministryMonthsState } from '@states/field_service_reports';
 import {
+  currentActivityMonth,
+  personExpectedToReport,
   personIsActivePublisher,
-  personIsInactivePublisher,
+  personWasPublisherBy,
 } from '@services/app/publisher_status';
 import { buildPersonFullname } from '@utils/common';
 import { formatDate } from '@utils/date';
@@ -215,12 +217,20 @@ const usePerson = () => {
      * personas y solo una llevaba la etiqueta de inactivo.
      *
      * Ahora, como en todos los demás sitios, lo deciden los informes.
+     *
+     * Con un mes, la etiqueta acompaña a una lista de informes de ese mes, y
+     * dice lo mismo que la lista: a quien estaba activo hasta el mes anterior
+     * se le sigue esperando el informe, no se le llama inactivo antes de que
+     * pueda entregarlo (ver `personExpectedToReport`).
      */
-    const isInactivePublisher = personIsInactivePublisher(
-      person,
-      ministryMonths,
-      month
-    );
+    const isActivePublisher =
+      month === undefined
+        ? personIsActivePublisher(person, ministryMonths)
+        : personExpectedToReport(person, ministryMonths, month);
+
+    const isInactivePublisher =
+      personWasPublisherBy(person, month ?? currentActivityMonth()) &&
+      !isActivePublisher;
 
     /**
      * De qué CLASE de publicador es, que es otra pregunta. Manda el historial,
@@ -228,8 +238,7 @@ const usePerson = () => {
      * tiene el historial mal cerrado— vale la casilla de la ficha: sin esto se
      * quedaría sin ninguna etiqueta.
      */
-    const isPublisherNow =
-      !isMidweek && personIsActivePublisher(person, ministryMonths, month);
+    const isPublisherNow = !isMidweek && isActivePublisher;
 
     const isBaptized =
       personIsBaptizedPublisher(person, month) ||
