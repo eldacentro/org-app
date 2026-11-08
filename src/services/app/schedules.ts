@@ -790,6 +790,25 @@ export const schedulesGetData = (
   return current as AssignmentCongregation | AssignmentCongregation[];
 };
 
+/**
+ * ¿Es de verdad un nombre escrito a mano?
+ *
+ * `solo` dice que el valor es texto libre y se enseña tal cual. Pero hay al
+ * menos una asignación con `solo: true` y el IDENTIFICADOR del orador dentro
+ * (la del discurso del 15 de noviembre de 2026, escrita por la importación del
+ * 13 de julio): Programas semanales pintaba «24f931b0-9c9d-…» mientras el
+ * editor del fin de semana, que no mira `solo`, enseñaba bien a Román Ncogo.
+ * Nadie escribe a mano un identificador, así que si lo parece se busca como
+ * tal.
+ */
+const IDENTIFICADOR =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const assignmentIsFreeText = (
+  assigned: Pick<AssignmentCongregation, 'solo' | 'value'> | undefined
+) =>
+  Boolean(assigned?.solo) && !IDENTIFICADOR.test(assigned?.value?.trim() ?? '');
+
 export const schedulesWeekGetAssigned = ({
   schedule,
   assignment,
@@ -818,7 +837,7 @@ export const schedulesWeekGetAssigned = ({
 
   if (assigned?.value?.length > 0) {
     // Solo values are free-text strings, return them as-is
-    if (assigned.solo) {
+    if (assignmentIsFreeText(assigned)) {
       return assigned.value;
     }
 
@@ -1353,7 +1372,8 @@ const aplicarAutor = (
 ) => {
   // «Por cambiar» también lo guarda, y por lo mismo que mandar la hojita: al
   // ver una parte marcada, lo primero que se pregunta uno es quién lo sabe.
-  const campo = marca === 'sent' ? 'sentBy' : marca === 'toReplace' ? 'toReplaceBy' : null;
+  const campo =
+    marca === 'sent' ? 'sentBy' : marca === 'toReplace' ? 'toReplaceBy' : null;
 
   if (!campo) return;
 

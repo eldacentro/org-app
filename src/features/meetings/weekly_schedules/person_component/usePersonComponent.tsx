@@ -4,7 +4,10 @@ import { useAppTranslation } from '@hooks/index';
 import { PersonComponentProps, PersonDataType } from './index.types';
 import { schedulesState } from '@states/schedules';
 import { ASSIGNMENT_PATH } from '@constants/index';
-import { schedulesGetData } from '@services/app/schedules';
+import {
+  assignmentIsFreeText,
+  schedulesGetData,
+} from '@services/app/schedules';
 import {
   congNameState,
   CODisplayNameState,
@@ -117,8 +120,8 @@ const usePersonComponent = ({
         };
       }
 
-      // return immediately if solo value
-      if (assigned?.solo) {
+      // Nombre escrito a mano: se enseña tal cual. Ver `assignmentIsFreeText`.
+      if (assignmentIsFreeText(assigned)) {
         return {
           name: assigned.value,
           female: false,
