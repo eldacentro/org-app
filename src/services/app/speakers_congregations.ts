@@ -131,7 +131,9 @@ const leerIntentadas = (): string[] => {
 
     const lista = guardado ? JSON.parse(guardado) : [];
 
-    return Array.isArray(lista) ? lista.filter((x) => typeof x === 'string') : [];
+    return Array.isArray(lista)
+      ? lista.filter((x) => typeof x === 'string')
+      : [];
   } catch {
     // Un almacén ilegible no puede impedir usar la pantalla: se empieza de cero.
     return [];
@@ -251,3 +253,59 @@ export const congregacionCoincide = (
     palabras
   );
 };
+
+const valorDe = (campo: unknown): string => {
+  if (campo && typeof campo === 'object' && 'value' in campo) {
+    return String((campo as { value: unknown }).value ?? '');
+  }
+
+  return String(campo ?? '');
+};
+
+const estaBorrada = (cong: SpeakersCongregationsType) => {
+  const borrada = cong._deleted as unknown;
+
+  if (borrada && typeof borrada === 'object') {
+    return (borrada as { value?: boolean }).value === true;
+  }
+
+  return borrada === true;
+};
+
+/**
+ * Congregaciones enlazadas por Organized que ya no nos dan acceso a sus
+ * oradores, y que por eso se borran del catálogo.
+ *
+ * Son las que tienen `cong_id` y `request_id`, no son de nuestro circuito, no
+ * tienen la solicitud pendiente y no vienen ni en los accesos concedidos ni en
+ * los rechazados (`enLaLista`).
+ *
+ * ⚠️ Un `cong_id` que es su propio NÚMERO no es un enlace de Organized: es lo
+ * que el sync del circuito copiaba ahí en las congregaciones añadidas a mano
+ * (hasta noviembre de 2026), junto con un `request_id`. Con eso pasaban por
+ * remotas y esta limpieza las borraba, con sus oradores dentro, cada vez que el
+ * coordinador de discursos abría la app. Así cayeron Campello y las cuatro de
+ * Elche el 2026-08-24. El servidor las devuelve en el sync de la noche.
+ */
+export const congregacionesSinAcceso = (
+  congregaciones: SpeakersCongregationsType[],
+  enLaLista: string[],
+  nuestroCircuito: string
+) =>
+  congregaciones.filter((cong) => {
+    if (estaBorrada(cong)) return false;
+
+    const congId = String(cong.cong_data.cong_id ?? '').trim();
+    if (congId === '') return false;
+
+    if (!cong.cong_data.request_id) return false;
+
+    const numero = valorDe(cong.cong_data.cong_number).trim();
+    if (numero !== '' && congId === numero) return false;
+
+    if (valorDe(cong.cong_data.cong_circuit) === nuestroCircuito) return false;
+
+    if (cong.cong_data.request_status === 'pending') return false;
+
+    return !enLaLista.includes(cong.cong_data.cong_id);
+  });

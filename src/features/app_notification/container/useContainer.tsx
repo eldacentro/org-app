@@ -29,6 +29,7 @@ import { decryptData, decryptObject } from '@services/encryption';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
 import { dbSpeakersCongregationsUpdate } from '@services/dexie/speakers_congregations';
+import { congregacionesSinAcceso } from '@services/app/speakers_congregations';
 import { applicationsState } from '@states/persons';
 import { shouldResetLocalData } from '@services/app/account_guard';
 import { handleDeleteDatabase } from '@services/app';
@@ -315,31 +316,12 @@ const useContainer = () => {
             data.result.remote_congregations
           );
 
-          const deleted = congregationRemotes.filter((record) => {
-            const isDeleted = record._deleted
-              ? typeof record._deleted === 'object'
-                ? (record._deleted as { value: boolean }).value === true
-                : record._deleted === true
-              : false;
-            if (isDeleted) return false;
-
-            const requestId = record.cong_data.request_id || '';
-            if (requestId === '') return false;
-
-            const recordCircuit = record.cong_data.cong_circuit
-              ? typeof record.cong_data.cong_circuit === 'object'
-                ? (record.cong_data.cong_circuit as { value: string }).value
-                : record.cong_data.cong_circuit
-              : '';
-
-            if (recordCircuit === circuitNumber) return false;
-
-            if (record.cong_data.request_status === 'pending') return false;
-
-            return !incoming.some(
-              (c) => c.cong_id === record.cong_data.cong_id
-            );
-          });
+          // Las que ya no nos dan acceso. Ver `congregacionesSinAcceso`.
+          const deleted = congregacionesSinAcceso(
+            congregationRemotes,
+            incoming.map((c) => c.cong_id),
+            circuitNumber
+          );
 
           for (const cong of deleted) {
             await dbVisitingSpeakersClearRemote(cong.id);

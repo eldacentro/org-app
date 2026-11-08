@@ -3,6 +3,7 @@ import { SpeakersCongregationsType } from '@definition/speakers_congregations';
 import {
   apuntarSinSuerte,
   congregacionCoincide,
+  congregacionesSinAcceso,
   oradorCoincide,
   prepararBusqueda,
   congregacionesIncompletas,
@@ -107,14 +108,19 @@ describe('congregacionesIncompletas', () => {
         faltaNumero: false,
         faltaCircuito: true,
       },
-      { id: 'Sin nada', nombre: 'Sin nada', faltaNumero: true, faltaCircuito: true },
+      {
+        id: 'Sin nada',
+        nombre: 'Sin nada',
+        faltaNumero: true,
+        faltaCircuito: true,
+      },
     ]);
   });
 
   it('un valor de solo espacios es un hueco', () => {
-    expect(congregacionesIncompletas([conNumero('Una', '  ', ' ')])).toHaveLength(
-      1
-    );
+    expect(
+      congregacionesIncompletas([conNumero('Una', '  ', ' ')])
+    ).toHaveLength(1);
   });
 
   it('sin nombre no entra: no habría con qué buscarla', () => {
@@ -145,9 +151,7 @@ describe('emparejarPorNombre', () => {
   it('con dos iguales no elige: prefiere dejar el hueco', () => {
     // Rellenar el número equivocado es peor que no rellenarlo, porque nadie
     // vuelve a mirar un campo que ya tiene algo dentro.
-    expect(
-      emparejarPorNombre('Centro', [r('Centro'), r('Centro')])
-    ).toBeNull();
+    expect(emparejarPorNombre('Centro', [r('Centro'), r('Centro')])).toBeNull();
   });
 
   it('sin coincidencia exacta no se conforma con parecerse', () => {
@@ -282,9 +286,9 @@ describe('buscar en el catálogo', () => {
   });
 
   it('encuentra por un trozo del nombre', () => {
-    expect(oradorCoincide(orador('Juan Carlos de la Fuente'), b('fuente'))).toBe(
-      true
-    );
+    expect(
+      oradorCoincide(orador('Juan Carlos de la Fuente'), b('fuente'))
+    ).toBe(true);
     expect(oradorCoincide(orador('Juan Carlos de la Fuente'), b('pedro'))).toBe(
       false
     );
@@ -309,32 +313,110 @@ describe('buscar en el catálogo', () => {
   });
 
   it('encuentra por número de discurso, entero', () => {
-    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('38'))).toBe(true);
+    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('38'))).toBe(
+      true
+    );
     // El 3 NO es el 38: buscando «3» interesa el discurso 3.
-    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('3'))).toBe(false);
+    expect(oradorCoincide(orador('Fulano', [38, 108, 189]), b('3'))).toBe(
+      false
+    );
     expect(oradorCoincide(orador('Fulano', [3]), b('3'))).toBe(true);
   });
 
   it('el nombre y el discurso valen a la vez', () => {
-    expect(oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 38'))).toBe(
-      true
-    );
-    expect(oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 99'))).toBe(
-      false
-    );
+    expect(
+      oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 38'))
+    ).toBe(true);
+    expect(
+      oradorCoincide(orador('Alberto Rodríguez', [38]), b('alberto 99'))
+    ).toBe(false);
   });
 
   it('la congregación se encuentra por número y por circuito', () => {
     expect(
-      congregacionCoincide(cong('Elda - Centro', '9357', 'ESP-Alicante-03A'), b('9357'))
+      congregacionCoincide(
+        cong('Elda - Centro', '9357', 'ESP-Alicante-03A'),
+        b('9357')
+      )
     ).toBe(true);
     expect(
-      congregacionCoincide(cong('Elda - Centro', '9357', 'ESP-Alicante-03A'), b('alicante'))
+      congregacionCoincide(
+        cong('Elda - Centro', '9357', 'ESP-Alicante-03A'),
+        b('alicante')
+      )
     ).toBe(true);
   });
 
   it('aguanta datos vacíos', () => {
     expect(() => oradorCoincide(orador('', []), b('algo'))).not.toThrow();
     expect(congregacionCoincide(cong('', '', ''), b('algo'))).toBe(false);
+  });
+});
+
+describe('congregacionesSinAcceso (limpieza de remotas)', () => {
+  const CIRCUITO = 'ESP-Alicante-03A';
+
+  const remota = (
+    id: string,
+    {
+      congId = '',
+      numero = '',
+      circuito = 'ESP-Alicante-04A',
+      requestId = 'R1',
+      estado = 'approved',
+      borrada = false,
+    } = {}
+  ) =>
+    ({
+      _deleted: { value: borrada, updatedAt: '' },
+      id,
+      cong_data: {
+        cong_id: congId,
+        cong_name: { value: id, updatedAt: '' },
+        cong_number: { value: numero, updatedAt: '' },
+        cong_circuit: { value: circuito, updatedAt: '' },
+        request_id: requestId,
+        request_status: estado,
+      },
+    }) as unknown as SpeakersCongregationsType;
+
+  const ids = (lista: SpeakersCongregationsType[]) => lista.map((c) => c.id);
+
+  it('un enlace de Organized que ya no da acceso se borra', () => {
+    const lista = [remota('aspe', { congId: 'XyZ123abc', numero: '77' })];
+
+    expect(ids(congregacionesSinAcceso(lista, [], CIRCUITO))).toEqual(['aspe']);
+  });
+
+  it('si sigue dando acceso, o lo rechazó, no se toca', () => {
+    const lista = [remota('aspe', { congId: 'XyZ123abc', numero: '77' })];
+
+    expect(congregacionesSinAcceso(lista, ['XyZ123abc'], CIRCUITO)).toEqual([]);
+  });
+
+  it('Campello: cong_id = su número (añadida a mano) — NO se borra', () => {
+    // Así cayeron Campello y las cuatro de Elche el 2026-08-24.
+    const lista = [
+      remota('campello', {
+        congId: '13961',
+        numero: '13961',
+        circuito: 'ESP-Alicante-02A',
+      }),
+      remota('noroeste', { congId: '9712', numero: '9712' }),
+    ];
+
+    expect(congregacionesSinAcceso(lista, [], CIRCUITO)).toEqual([]);
+  });
+
+  it('sin cong_id, sin request_id, pendiente, de nuestro circuito o ya borrada: no', () => {
+    const lista = [
+      remota('alta-rapida', { congId: '' }),
+      remota('sin-solicitud', { congId: 'abc', requestId: '' }),
+      remota('pendiente', { congId: 'abc', estado: 'pending' }),
+      remota('nuestra', { congId: 'abc', circuito: CIRCUITO }),
+      remota('borrada', { congId: 'abc', borrada: true }),
+    ];
+
+    expect(congregacionesSinAcceso(lista, [], CIRCUITO)).toEqual([]);
   });
 });
