@@ -366,10 +366,18 @@ const activeInMonth = (
 export const personExpectedToReport = (
   person: PersonType,
   source: ReportsSource,
-  month: string
-) =>
-  activeInMonth(person, source, month) ||
-  activeInMonth(person, source, monthAdd(month, -1));
+  month: string | undefined
+) => {
+  // El mes elegido en Informes empieza vacío hasta que la pantalla lo pone, y
+  // `monthAdd` sobre nada revienta la página entera. Sin mes, «hoy», como
+  // hacía `personIsActivePublisher` antes de este cambio.
+  if (!month) return activeNow(person, source);
+
+  return (
+    activeInMonth(person, source, month) ||
+    activeInMonth(person, source, monthAdd(month, -1))
+  );
+};
 
 /**
  * Activo HOY.

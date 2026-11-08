@@ -744,6 +744,19 @@ describe('hoy: el mes anterior todavía se está informando', () => {
   // 8 de noviembre de 2026: se están metiendo los informes de octubre.
   const HOY = new Date(2026, 10, 8);
 
+  it('sin mes elegido todavía (Informes recién abierto) no revienta', () => {
+    const informes = [buildReport('p1', '2026/05')];
+
+    // Pasó en producción: el mes de Informes empieza vacío y la página
+    // entera caía con «Cannot read properties of undefined (reading 'slice')».
+    expect(() =>
+      personExpectedToReport(veterano(), informes, undefined)
+    ).not.toThrow();
+    expect(personExpectedToReport(veterano(), informes, undefined)).toBe(
+      activeNow(veterano(), informes)
+    );
+  });
+
   it('Edita: informó en mayo y lleva cinco meses sin informar — sigue activa', () => {
     const informes = [buildReport('p1', '2026/05')];
 

@@ -6,6 +6,7 @@ import { fieldWithLanguageGroupsState } from '@states/field_service_groups';
 import { useMemo } from 'react';
 import {
   activityWindowHasReports,
+  currentActivityMonth,
   personBecameInactiveDuring,
   personExpectedToReport,
   personIsActivePublisher,
@@ -66,16 +67,16 @@ const usePersons = (group?: string) => {
    * activo hasta el mes anterior se le sigue esperando, porque su informe de
    * este mes es justo el que le mantiene activo. Ver `personExpectedToReport`.
    */
-  const getPublishersExpected = (month: string) => {
+  const getPublishersExpected = (month: string | undefined) => {
     return persons.filter((record) =>
       personExpectedToReport(record, ministryMonths, month)
     );
   };
 
-  const getPublishersNotExpected = (month: string) => {
+  const getPublishersNotExpected = (month: string | undefined) => {
     return persons.filter(
       (record) =>
-        personWasPublisherBy(record, month) &&
+        personWasPublisherBy(record, month ?? currentActivityMonth()) &&
         !personExpectedToReport(record, ministryMonths, month)
     );
   };
