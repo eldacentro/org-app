@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { publisherCurrentReportState } from '@states/field_service_reports';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
+import { editableAfterMonthSent } from '@services/app/late_reports';
 
 const useHoursField = () => {
   const [currentReport, setCurrentReport] = useAtom(
@@ -17,11 +18,9 @@ const useHoursField = () => {
 
     if (!branchReport) return false;
 
-    const isLate =
-      currentReport?.report_data.late.value &&
-      currentReport?.report_data.late.submitted.length === 0;
-
-    if (isLate) return false;
+    // Con el mes enviado se sigue editando el atrasado que aún no ha salido y
+    // el que es solo para la tarjeta (ver `editableAfterMonthSent`).
+    if (editableAfterMonthSent(currentReport)) return false;
 
     return branchReport.report_data.submitted;
   }, [branchReports, currentReport]);

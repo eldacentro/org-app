@@ -17,6 +17,7 @@ import { personsActiveState } from '@states/persons';
 import { AssignmentCode } from '@definition/assignment';
 import useReportEditScope from '@hooks/useReportEditScope';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
+import { editableAfterMonthSent } from '@services/app/late_reports';
 import { currentReportMonth } from '@utils/date';
 import { personWasPublisherBy } from '@services/app/publisher_status';
 
@@ -231,11 +232,9 @@ const useMinistryMonthlyRecord = ({
 
     if (!branchReport) return false;
 
-    const isLate =
-      congReport?.report_data.late.value &&
-      congReport?.report_data.late.submitted.length === 0;
-
-    if (isLate) return false;
+    // Con el mes enviado se sigue editando el atrasado que aún no ha salido y
+    // el que es solo para la tarjeta (ver `editableAfterMonthSent`).
+    if (editableAfterMonthSent(congReport)) return false;
 
     return branchReport.report_data.submitted;
   }, [

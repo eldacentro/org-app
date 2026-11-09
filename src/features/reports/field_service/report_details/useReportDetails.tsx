@@ -16,6 +16,10 @@ import { formatDate } from '@utils/date';
 import usePerson from '@features/persons/hooks/usePerson';
 import { openPeriod } from '@utils/spiritual_status';
 import { reportAuthorRole } from '@services/app/report_author';
+import {
+  editableAfterMonthSent,
+  normalizeLegacyLate,
+} from '@services/app/late_reports';
 import { personGetDisplayName } from '@utils/common';
 import { fieldServiceGroupsState } from '@states/field_service_groups';
 import {
@@ -74,9 +78,7 @@ const useReportDetails = () => {
       groups,
     });
 
-    const author = persons.find(
-      (record) => record.person_uid === authorUid
-    );
+    const author = persons.find((record) => record.person_uid === authorUid);
 
     const name = author
       ? personGetDisplayName(author, displayNameEnabled, fullnameOption)
@@ -156,25 +158,32 @@ const useReportDetails = () => {
     report_editable,
   ]);
 
+  // Con el mes ya enviado, el atrasado que todavía no ha salido y el que es
+  // solo para la tarjeta siguen siendo cosa del secretario: se pueden
+  // verificar y borrar. Antes el botón de verificar desaparecía, y el
+  // atrasado que manda el propio publicador desde su móvil —que llega sin
+  // verificar— no se podía verificar nunca y no se sumaba a ningún S-1.
+  const report_open = report_editable || editableAfterMonthSent(report);
+
   const unverified = useMemo(() => {
     if (!person) return false;
 
-    if (!report_editable) return false;
+    if (!report_open) return false;
 
     if (!report) return false;
 
     const status = report.report_data.status;
 
     return status === 'received';
-  }, [person, report_editable, report]);
+  }, [person, report_open, report]);
 
   const deletable = useMemo(() => {
     if (!person) return false;
 
-    if (!report_editable) return false;
+    if (!report_open) return false;
 
     return report ? true : false;
-  }, [report, report_editable, person]);
+  }, [report, report_open, person]);
 
   const handleBack = () => setPublisher(undefined);
 
@@ -218,6 +227,9 @@ const useReportDetails = () => {
     try {
       const foundReport = structuredClone(report);
       foundReport.report_data.status = 'confirmed';
+      foundReport.report_data.late = normalizeLegacyLate(
+        foundReport.report_data.late
+      );
       foundReport.report_data.updatedAt = new Date().toISOString();
 
       await dbFieldServiceReportsSave(foundReport, { keepAuthor: true });

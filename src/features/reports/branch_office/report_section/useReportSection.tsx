@@ -1,7 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import {
-  branchSelectedMonthState,
   branchSelectedReportState,
   branchSelectedYearState,
 } from '@states/branch_reports';
@@ -9,9 +8,7 @@ import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { branchCongAnalysisState } from '@states/branch_cong_analysis';
 import { displaySnackNotification } from '@services/states/app';
 import { getMessageByCode } from '@services/i18n/translation';
-import { congFieldServiceReportsState } from '@states/field_service_reports';
 import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
-import { personsState } from '@states/persons';
 import { BranchFieldServiceReportType } from '@definition/branch_field_service_reports';
 import {
   SchemaBranchCongAnalysis,
@@ -20,30 +17,40 @@ import {
 import { dbBranchFieldReportSave } from '@services/dexie/branch_field_service_reports';
 import { BranchCongAnalysisType } from '@definition/branch_cong_analysis';
 import { dbBranchCongAnalysisSave } from '@services/dexie/branch_cong_analysis';
-import usePerson from '@features/persons/hooks/usePerson';
 import usePersons from '@features/persons/hooks/usePersons';
-import useMeetingAttendance from '@features/reports/meeting_attendance/hooks/useMeetingAttendance';
 import useYearlyAttendance from '@features/reports/meeting_attendance/hooks/useYearlyAttendance';
 import useReportYearly from '@features/reports/hooks/useReportYearly';
+import {
+  lateReportsSentWith,
+  normalizeLegacyLate,
+  recordOnlyLate,
+  s1Differs,
+  unverifiedLateReports,
+} from '@services/app/late_reports';
+import {
+  dbFieldServiceReportsGetActive,
+  dbFieldServiceReportsSave,
+} from '@services/dexie/cong_field_service_reports';
+import { S1LateReport } from './index.types';
+import useS1Live from '../useS1Live';
 
 const useReportSection = () => {
-  const { personIsEnrollmentActive } = usePerson();
-
   const { getPublishersActive, getPublishersInactiveYears } = usePersons();
 
   const { getPublishersReactivatedYears } = useReportYearly();
 
+  const { month, congReports, persons, categoryOf, compute } = useS1Live();
+
   const report = useAtomValue(branchSelectedReportState);
   const year = useAtomValue(branchSelectedYearState);
-  const month = useAtomValue(branchSelectedMonthState);
   const fieldReports = useAtomValue(branchFieldReportsState);
   const congAnalysis = useAtomValue(branchCongAnalysisState);
-  const congReports = useAtomValue(congFieldServiceReportsState);
-  const persons = useAtomValue(personsState);
-
-  const { weekend } = useMeetingAttendance(month);
 
   const { getMeetingAverage } = useYearlyAttendance(year);
+
+  // Un toque en un botón de la lista mientras el anterior todavía se está
+  // guardando regeneraría el S-1 con datos de antes del primero.
+  const busyRef = useRef(false);
 
   const fieldReport = useMemo(() => {
     if (report !== 'S-1') return;
@@ -85,82 +92,98 @@ const useReportSection = () => {
     return false;
   }, [report, fieldReport, analysisReport]);
 
-  const handleFilterReports = () => {
-    // Informes verificados del mes, más los atrasados que aún no se han
-    // mandado (esos van en el S-1 siguiente, que es lo correcto).
-    //
-    // `shared_ministry` se exige SIEMPRE, también a los atrasados. Antes solo
-    // se comprobaba en los del mes, así que un informe atrasado de alguien que
-    // NO participó en la predicación se contaba igual: el número de
-    // publicadores que informan salía inflado, y ese número va a la sucursal.
-    const reports = congReports.filter(
-      (record) =>
-        record.report_data.status === 'confirmed' &&
-        record.report_data.shared_ministry &&
-        (record.report_data.report_date === month ||
-          (record.report_data.late.value &&
-            record.report_data.late.submitted.length === 0))
-    );
+  const live = compute();
 
-    // group reports
-    const publishers: CongFieldServiceReportType[] = [];
-    const APs: CongFieldServiceReportType[] = [];
-    const FRs: CongFieldServiceReportType[] = [];
+  /**
+   * El S-1 guardado ya no dice lo que dirían los datos de ahora: hay que
+   * regenerarlo antes de enviarlo. Ver `s1Differs`.
+   */
+  const stale =
+    report === 'S-1' &&
+    generated &&
+    !submitted &&
+    s1Differs(fieldReport?.report_data, live.data);
 
-    for (const report of reports) {
+  /**
+   * Los atrasados que este S-1 suma, para enseñarlos con nombre y mes.
+   *
+   * Antes se sumaban sin decir nada, y el secretario solo veía que los números
+   * no cuadraban con los de TsWin. Ahora salen en la pantalla del informe, y
+   * cada uno se puede apartar como «solo para su tarjeta» si es de cuando la
+   * persona estaba en otra congregación.
+   *
+   * Con el S-1 ya enviado son los que salieron con él (y ya no se tocan).
+   */
+  const lateReports: S1LateReport[] = (() => {
+    if (report !== 'S-1' || !month) return [];
+
+    if (!submitted) {
+      return live.result.late.map((entry) => ({
+        report: entry.report,
+        person: entry.person,
+        category: entry.category,
+      }));
+    }
+
+    const result: S1LateReport[] = [];
+
+    for (const record of lateReportsSentWith(month, congReports)) {
       const person = persons.find(
-        (record) => record.person_uid === report.report_data.person_uid
+        (person) => person.person_uid === record.report_data.person_uid
       );
 
       if (!person) continue;
 
-      const isAP = personIsEnrollmentActive(person, 'AP', month);
-      const isFMF = personIsEnrollmentActive(person, 'FMF', month);
-      const isFR = personIsEnrollmentActive(person, 'FR', month);
-      const isFS = personIsEnrollmentActive(person, 'FS', month);
+      const category = categoryOf(person, record.report_data.report_date);
 
-      // skip SFTS reports
-      if (isFMF || isFS) continue;
+      if (category === 'FMF' || category === 'FS') continue;
 
-      if (isAP) {
-        APs.push(report);
-        continue;
-      }
-
-      if (isFR) {
-        FRs.push(report);
-        continue;
-      }
-
-      // default to publishers
-      publishers.push(report);
+      result.push({
+        report: record,
+        person,
+        category:
+          category === 'AP' ? 'APs' : category === 'FR' ? 'FRs' : 'publishers',
+      });
     }
 
-    return { publishers, APs, FRs };
-  };
+    return result;
+  })();
 
-  const handleCountBibleStudies = (reports: CongFieldServiceReportType[]) => {
-    const total = reports.reduce(
-      (acc, current) => acc + current.report_data.bible_studies,
-      0
-    );
+  /**
+   * Atrasados de meses anteriores que todavía nadie ha verificado (los manda
+   * el propio publicador desde su móvil). No se suman hasta verificarlos, y
+   * antes no salían en ningún sitio con el mes ya enviado.
+   */
+  const unverifiedLate: S1LateReport[] = (() => {
+    if (report !== 'S-1' || !month || submitted) return [];
 
-    return total;
-  };
+    const result: S1LateReport[] = [];
 
-  const handleCountHours = (reports: CongFieldServiceReportType[]) => {
-    const total = reports.reduce(
-      (acc, current) => acc + current.report_data.hours.field_service,
-      0
-    );
+    for (const record of unverifiedLateReports(month, congReports)) {
+      const person = persons.find(
+        (person) => person.person_uid === record.report_data.person_uid
+      );
 
-    return total;
-  };
+      if (!person) continue;
 
-  const handleGenerateS1 = async () => {
-    const { APs, FRs, publishers } = handleFilterReports();
+      const category = categoryOf(person, record.report_data.report_date);
 
-    // create branch record
+      if (category === 'FMF' || category === 'FS') continue;
+
+      result.push({
+        report: record,
+        person,
+        category:
+          category === 'AP' ? 'APs' : category === 'FR' ? 'FRs' : 'publishers',
+      });
+    }
+
+    return result;
+  })();
+
+  const handleGenerateS1 = async (reports?: CongFieldServiceReportType[]) => {
+    const { data } = compute(reports);
+
     let branchReport: BranchFieldServiceReportType;
 
     if (!fieldReport) {
@@ -172,29 +195,68 @@ const useReportSection = () => {
       branchReport = structuredClone(fieldReport);
     }
 
-    branchReport.report_data.publishers_active =
-      getPublishersActive(month).length;
-
-    branchReport.report_data.weekend_meeting_average = weekend.average;
-
-    branchReport.report_data.publishers = {
-      report_count: publishers.length,
-      bible_studies: handleCountBibleStudies(publishers),
-    };
-    branchReport.report_data.APs = {
-      report_count: APs.length,
-      hours: handleCountHours(APs),
-      bible_studies: handleCountBibleStudies(APs),
-    };
-    branchReport.report_data.FRs = {
-      report_count: FRs.length,
-      hours: handleCountHours(FRs),
-      bible_studies: handleCountBibleStudies(FRs),
-    };
+    branchReport.report_data.publishers_active = data.publishers_active;
+    branchReport.report_data.weekend_meeting_average =
+      data.weekend_meeting_average;
+    branchReport.report_data.publishers = data.publishers;
+    branchReport.report_data.APs = data.APs;
+    branchReport.report_data.FRs = data.FRs;
     branchReport.report_data.updatedAt = new Date().toISOString();
 
     await dbBranchFieldReportSave(branchReport);
   };
+
+  /**
+   * Cambia un atrasado desde la lista del S-1 y, si el S-1 ya está generado,
+   * lo regenera en el acto con los informes recién leídos de la base —el estado
+   * de la app todavía no se ha enterado del cambio en este instante—, para que
+   * los números de la pantalla no se queden viejos.
+   */
+  const changeLate = async (
+    target: CongFieldServiceReportType,
+    change: (report: CongFieldServiceReportType) => void
+  ) => {
+    if (submitted || busyRef.current) return;
+
+    busyRef.current = true;
+
+    try {
+      const updated = structuredClone(target);
+      change(updated);
+      updated.report_data.updatedAt = new Date().toISOString();
+
+      // Ninguno de los dos cambios es meter el informe: quien lo metió sigue
+      // siendo el autor.
+      await dbFieldServiceReportsSave(updated, { keepAuthor: true });
+
+      if (fieldReport) {
+        await handleGenerateS1(await dbFieldServiceReportsGetActive());
+      }
+    } catch (error) {
+      console.error(error);
+
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: getMessageByCode(error.message),
+        severity: 'error',
+      });
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
+  /** Lo aparta: queda en su tarjeta, pero no se suma a ningún S-1. */
+  const handleMarkRecordOnly = (target: CongFieldServiceReportType) =>
+    changeLate(target, (report) => {
+      report.report_data.late = recordOnlyLate(report.report_data.report_date);
+    });
+
+  /** Lo verifica: desde ese momento se suma a este S-1. */
+  const handleVerifyLate = (target: CongFieldServiceReportType) =>
+    changeLate(target, (report) => {
+      report.report_data.status = 'confirmed';
+      report.report_data.late = normalizeLegacyLate(report.report_data.late);
+    });
 
   const handleGenerateS10 = async () => {
     // create analysis report
@@ -247,7 +309,16 @@ const useReportSection = () => {
     }
   };
 
-  return { generated, submitted, handleGenerate };
+  return {
+    generated,
+    submitted,
+    stale,
+    handleGenerate,
+    lateReports,
+    unverifiedLate,
+    handleMarkRecordOnly,
+    handleVerifyLate,
+  };
 };
 
 export default useReportSection;

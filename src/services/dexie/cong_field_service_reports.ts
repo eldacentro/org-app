@@ -4,6 +4,7 @@ import appDb from '@db/appDb';
 import { store } from '@states/index';
 import { userLocalUIDState } from '@states/settings';
 import { congFieldServiceReportSchema } from './schema';
+import { incomingReportLate } from '@services/app/late_reports';
 
 const dbUpdateCongFieldReportMetadata = async () => {
   const metadata = await appDb.metadata.get(1);
@@ -50,6 +51,16 @@ export const dbFieldServiceReportsSave = async (
 
   await appDb.cong_field_service_reports.put(record);
   await dbUpdateCongFieldReportMetadata();
+};
+
+/**
+ * Los informes vivos tal como están AHORA en la base, sin esperar a que el
+ * estado de la app se entere. Para recalcular algo justo después de guardar.
+ */
+export const dbFieldServiceReportsGetActive = async () => {
+  const records = await appDb.cong_field_service_reports.toArray();
+
+  return records.filter((record) => !record.report_data._deleted);
 };
 
 export const dbFieldServiceReportsBulkSave = async (
@@ -131,11 +142,16 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
 
     // add new report
     if (!record._deleted) {
-      const pubReport = congReportsAll.find(
-        (r) =>
-          r.report_data.report_date === record.report_month &&
-          r.report_data.person_uid === record.person_uid
-      );
+      // El VIVO si lo hay. Antes se cogía el primero de toda la tabla, que
+      // podía ser el resto borrado de un duplicado viejo: se resucitaba ese y
+      // quedaban dos informes vivos de la misma persona y mes.
+      const pubReport =
+        findReport ??
+        congReportsAll.find(
+          (r) =>
+            r.report_data.report_date === record.report_month &&
+            r.report_data.person_uid === record.person_uid
+        );
 
       let report: CongFieldServiceReportType;
 
@@ -172,12 +188,15 @@ export const dbHandleIncomingReports = async (reports: IncomingReport[]) => {
       report.report_data.status = 'received';
       report.report_data._deleted = false;
 
-      if (llegaTarde && !report.report_data.late.value) {
-        report.report_data.late = {
-          value: true,
-          submitted: record.updatedAt,
-        };
-      }
+      // Atrasado PENDIENTE, para que salga con el próximo S-1 — salvo que
+      // corrija uno que ya entró a tiempo en el suyo. Antes se guardaba la
+      // hora de llegada como «enviado con el S-1 de…», y el informe no se
+      // sumaba a ninguno: ver `incomingReportLate`.
+      report.report_data.late = incomingReportLate({
+        monthSent: llegaTarde,
+        sentAt: branch?.report_data.updatedAt,
+        existing: pubReport,
+      });
 
       // El autor es el PUBLICADOR que lo mandó, no quien lo recibe.
       await dbFieldServiceReportsSave(report, { by: record.person_uid });

@@ -11,9 +11,12 @@ const LateReport = () => {
 
   const {
     show_late,
+    show_record_only,
     late_sent,
     checked,
+    record_only,
     handleChecked,
+    handleRecordOnly,
     readOnly,
     branch_submitted,
   } = useLateReport();
@@ -57,6 +60,25 @@ const LateReport = () => {
             <IconHelpFilled width={16} height={16} />
           </Tooltip>
         </Box>
+
+        {show_record_only && (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Checkbox
+              label={t('tr_recordOnly')}
+              checked={record_only}
+              onChange={(e) => handleRecordOnly(e.target.checked)}
+              sx={{ marginRight: '4px' }}
+            />
+            <Tooltip
+              title={t('tr_recordOnlyTooltip')}
+              placement="bottom-start"
+              variant="icon"
+            >
+              <IconHelpFilled width={16} height={16} />
+            </Tooltip>
+          </Box>
+        )}
+
         <Typography
           align="right"
           className="label-small-medium"

@@ -10,8 +10,16 @@ import Tooltip from '@components/tooltip';
 const LateReport = ({ person }: LateReportProps) => {
   const { t } = useAppTranslation();
 
-  const { show_late, late_sent, checked, handleChecked, readOnly } =
-    useLateReport(person);
+  const {
+    show_late,
+    show_record_only,
+    late_sent,
+    checked,
+    record_only,
+    handleChecked,
+    handleRecordOnly,
+    readOnly,
+  } = useLateReport(person);
 
   return (
     <>
@@ -33,6 +41,25 @@ const LateReport = ({ person }: LateReportProps) => {
               <IconHelpFilled width={16} height={16} />
             </Tooltip>
           </Box>
+
+          {show_record_only && (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Checkbox
+                readOnly={readOnly}
+                label={t('tr_recordOnly')}
+                checked={record_only}
+                onChange={(e) => handleRecordOnly(e.target.checked)}
+                sx={{ marginRight: '4px' }}
+              />
+              <Tooltip
+                title={t('tr_recordOnlyTooltip')}
+                placement="bottom-start"
+                variant="icon"
+              >
+                <IconHelpFilled width={16} height={16} />
+              </Tooltip>
+            </Box>
+          )}
 
           <Typography
             align="right"

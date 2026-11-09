@@ -575,7 +575,7 @@
   "tr_importFailedDesc": "No se pudo importar ningún registro de persona. Por favor, verifica las siguientes razones e inténtalo de nuevo.",
   "tr_importGroupsFailedDesc": "Ningún grupo pudo ser procesado exitosamente.",
   "tr_markDisqualifiedTitle": "Marcar como descalificado",
-  "tr_lateReportTooltip": "Marca un informe como \"atrasado\" si el informe mensual ya fue enviado a la sucursal. El informe atrasado se incluirá automáticamente en el envío del próximo mes.",
+  "tr_lateReportTooltip": "Un informe de esta congregación que no se entregó a tiempo, con el informe del mes ya enviado a la sucursal. Se sumará al próximo informe a la sucursal. Si es de cuando estaba en otra congregación, marca «Solo para su tarjeta».",
   "tr_exportS88": "Exportar S-88",
   "tr_notFoundReviewAssignmentQualifications": "No encontrado. Revisar las asignaciones aprobadas",
   "tr_userSettings": "Ajustes de usuario",

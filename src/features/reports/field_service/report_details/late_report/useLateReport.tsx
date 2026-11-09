@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { useAppTranslation, useCurrentUser } from '@hooks/index';
 import {
@@ -14,12 +14,33 @@ import { getMessageByCode } from '@services/i18n/translation';
 import { handleSaveFieldServiceReports } from '@services/app/cong_field_service_reports';
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { formatDate } from '@utils/date';
+import { lateStateOf, recordOnlyLate } from '@services/app/late_reports';
 import Sentry from '@services/sentry';
+import useReportEditScope from '@hooks/useReportEditScope';
 
+/**
+ * Las dos casillas de un informe que se mete con su mes ya enviado.
+ *
+ * Antes había una sola, «Informe atrasado», y era la ÚNICA manera de
+ * desbloquear un mes enviado. Al copiar la tarjeta de quien llega de otra
+ * congregación había que marcarla para poder escribir, y esos meses —que ya
+ * había contado su congregación anterior— se sumaban al S-1 siguiente. Ahora
+ * se elige qué es:
+ *
+ *  - «Informe atrasado»: de aquí, no se entregó a tiempo, se suma al próximo
+ *    informe a la sucursal.
+ *  - «Solo para su tarjeta»: queda en su registro y no se suma a ninguno.
+ *
+ * Son excluyentes. Marcar una desmarca la otra sin perder lo escrito;
+ * desmarcar la que está puesta vacía el informe, como hacía siempre la casilla
+ * de atrasado.
+ */
 const useLateReport = (person: PersonType) => {
   const { t } = useAppTranslation();
 
   const { isSecretary } = useCurrentUser();
+
+  const { canEditReportOf } = useReportEditScope();
 
   const reports = useAtomValue(congFieldServiceReportsState);
   const currentMonth = useAtomValue(selectedMonthFieldServiceReportState);
@@ -44,19 +65,19 @@ const useLateReport = (person: PersonType) => {
     );
   }, [reports, currentMonth, person]);
 
-  const readOnly = useMemo(() => {
-    if (!report) return false;
+  const state = lateStateOf(report);
 
-    return report.report_data.late.submitted.length > 0;
-  }, [report]);
+  // Las mismas manos que el formulario (`useReportEditScope`): un anciano que
+  // ve el informe de otro grupo no puede marcarlo. Si pudiera, quedaría
+  // guardado en su móvil y el servidor lo descartaría.
+  const canEdit = canEditReportOf(person.person_uid);
 
-  const late = useMemo(() => {
-    if (!report) return false;
+  // Ya salió con un S-1: no se toca.
+  const readOnly = state === 'sent' || !canEdit;
 
-    return report.report_data.late.value;
-  }, [report]);
+  const checked = state === 'pending' || state === 'sent';
 
-  const [checked, setChecked] = useState(late);
+  const record_only = state === 'record_only';
 
   const show_late = useMemo(() => {
     if (!report) {
@@ -70,13 +91,18 @@ const useLateReport = (person: PersonType) => {
     return branch_submitted && !report.report_data.shared_ministry;
   }, [report, branch_submitted]);
 
+  // Apartarlo para la tarjeta solo tiene sentido mientras no haya salido.
+  const show_record_only = show_late && state !== 'sent';
+
   const late_sent = useMemo(() => {
     let lateSubmitted = '';
 
     try {
       if (!report) return '';
 
-      if (report.report_data.late.submitted.length === 0) return '';
+      if (state === 'record_only') return t('tr_recordOnlyNote');
+
+      if (state !== 'sent') return '';
 
       lateSubmitted = report.report_data.late.submitted;
 
@@ -91,10 +117,12 @@ const useLateReport = (person: PersonType) => {
 
       return t('tr_lateReportSent', { date: 'date_error' });
     }
-  }, [report, t, shortDateFormat]);
+  }, [report, state, t, shortDateFormat]);
 
-  const handleChecked = async (value: boolean) => {
-    setChecked(value);
+  const save = async (
+    late: CongFieldServiceReportType['report_data']['late']
+  ) => {
+    if (!canEdit) return;
 
     try {
       let lateReport: CongFieldServiceReportType;
@@ -110,13 +138,13 @@ const useLateReport = (person: PersonType) => {
         lateReport = structuredClone(report);
       }
 
-      lateReport.report_data.late.value = value;
+      lateReport.report_data.late = late;
 
-      if (value) {
+      if (late.value) {
         lateReport.report_data.status = isSecretary ? 'confirmed' : 'received';
       }
 
-      if (!value) {
+      if (!late.value) {
         lateReport.report_data.status = 'confirmed';
         lateReport.report_data.shared_ministry = false;
         lateReport.report_data.bible_studies = 0;
@@ -139,11 +167,24 @@ const useLateReport = (person: PersonType) => {
     }
   };
 
+  const handleChecked = async (value: boolean) => {
+    await save({ value, submitted: '' });
+  };
+
+  const handleRecordOnly = async (value: boolean) => {
+    await save(
+      value ? recordOnlyLate(currentMonth) : { value: false, submitted: '' }
+    );
+  };
+
   return {
     show_late,
+    show_record_only,
     late_sent,
     checked,
+    record_only,
     handleChecked,
+    handleRecordOnly,
     readOnly,
   };
 };

@@ -825,3 +825,80 @@ describe('hoy: el mes anterior todavía se está informando', () => {
     expect(activeNow(nuevo, informes, HOY)).toBe(true);
   });
 });
+
+describe('generar el S-1 cierra el mes', () => {
+  // 9 de noviembre de 2026. El secretario pulsa «Regenerar» en el S-1 de
+  // octubre y espera que Sarai —sin informar desde abril, sin informe de
+  // octubre— pase a inactiva y desaparezca de los pendientes. No pasaba: la
+  // lista seguía esperando su informe aunque el S-1 ya la contaba inactiva.
+  const HOY = new Date(2026, 10, 9);
+
+  const informes = [
+    buildReport('p1', '2026/04'),
+    buildReport('edita', '2026/05'),
+    buildReport('otro', '2026/10'),
+  ];
+
+  const abierto = buildMinistryMonthsIndex(informes);
+  const cerrado = buildMinistryMonthsIndex(informes, ['2026/10']);
+
+  it('mientras no se genera, a Sarai se la sigue esperando en octubre', () => {
+    expect(personExpectedToReport(veterano(), abierto, '2026/10')).toBe(true);
+    expect(activeNow(veterano(), abierto, HOY)).toBe(true);
+  });
+
+  it('generado el S-1 de octubre, sale de los pendientes y es inactiva HOY', () => {
+    expect(personExpectedToReport(veterano(), cerrado, '2026/10')).toBe(false);
+    expect(activeNow(veterano(), cerrado, HOY)).toBe(false);
+    expect(personIsInactivePublisher(veterano(), cerrado)).toBe(true);
+  });
+
+  it('y dice lo mismo que el S-1, que ya la contaba inactiva', () => {
+    expect(personIsActivePublisher(veterano(), cerrado, '2026/10')).toBe(
+      personExpectedToReport(veterano(), cerrado, '2026/10')
+    );
+  });
+
+  it('a quien solo le falta octubre (Edita, último informe mayo) no le afecta', () => {
+    // Mayo cae dentro de la ventana de octubre (mayo-octubre): sigue activa,
+    // y se le sigue esperando el informe de octubre por si llega tarde.
+    const edita = veterano('edita');
+
+    expect(personExpectedToReport(edita, cerrado, '2026/10')).toBe(true);
+    expect(activeNow(edita, cerrado, HOY)).toBe(true);
+  });
+
+  it('si después llega su informe de octubre, vuelve sola', () => {
+    const conInforme = buildMinistryMonthsIndex(
+      [...informes, buildReport('p1', '2026/10')],
+      ['2026/10']
+    );
+
+    expect(personExpectedToReport(veterano(), conInforme, '2026/10')).toBe(
+      true
+    );
+    expect(activeNow(veterano(), conInforme, HOY)).toBe(true);
+  });
+
+  it('cerrar octubre no cierra ningún otro mes', () => {
+    const informesSep = [
+      buildReport('p1', '2026/03'),
+      buildReport('otro', '2026/09'),
+    ];
+
+    // Septiembre sigue abierto: a quien informó en marzo se le espera en
+    // septiembre aunque octubre esté cerrado.
+    expect(
+      personExpectedToReport(
+        veterano(),
+        buildMinistryMonthsIndex(informesSep, ['2026/10']),
+        '2026/09'
+      )
+    ).toBe(true);
+  });
+
+  it('sin la lista de meses cerrados (dispositivo sin los S-1) se sigue esperando', () => {
+    // Lo prudente: nunca dar a nadie por inactivo antes de tiempo.
+    expect(personExpectedToReport(veterano(), informes, '2026/10')).toBe(true);
+  });
+});

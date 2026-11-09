@@ -45,8 +45,15 @@ export const ACTIVITY_WINDOW_MONTHS = 6;
 /**
  * Meses en los que consta participación en la predicación, por persona.
  * Se construye una sola vez y se reutiliza al filtrar listas enteras.
+ *
+ * Lleva además los meses CERRADOS: aquellos cuyo informe a la sucursal (S-1)
+ * ya se ha generado. Va pegado al índice, y no como un parámetro aparte, para
+ * que nadie pueda preguntar la regla con una mitad y no con la otra: quien
+ * tiene el índice tiene las dos cosas. Ver `personExpectedToReport`.
  */
-export type MinistryMonthsIndex = Map<string, Set<string>>;
+export type MinistryMonthsIndex = Map<string, Set<string>> & {
+  closedMonths?: ReadonlySet<string>;
+};
 
 export type ReportsSource = CongFieldServiceReportType[] | MinistryMonthsIndex;
 
@@ -107,9 +114,13 @@ export const activityWindowStart = (month: string) =>
   monthAdd(month, -(ACTIVITY_WINDOW_MONTHS - 1));
 
 export const buildMinistryMonthsIndex = (
-  reports: CongFieldServiceReportType[]
+  reports: CongFieldServiceReportType[],
+  /** Meses con el S-1 ya generado ('yyyy/MM'). Ver `monthIsClosed`. */
+  closedMonths: Iterable<string> = []
 ): MinistryMonthsIndex => {
   const index: MinistryMonthsIndex = new Map();
+
+  index.closedMonths = new Set(closedMonths);
 
   for (const report of reports ?? []) {
     const data = report?.report_data;
@@ -135,6 +146,18 @@ export const buildMinistryMonthsIndex = (
 
 const toIndex = (source: ReportsSource) =>
   source instanceof Map ? source : buildMinistryMonthsIndex(source);
+
+/**
+ * ¿Está CERRADO ese mes? Lo está en cuanto se genera su informe a la sucursal.
+ *
+ * Generar el S-1 es el acto de cerrar el mes: ahí se cuenta quién está activo
+ * y quién no, y ese número es el que se manda. Mientras no se genera, el mes se
+ * está recogiendo y a quien llega a su sexto mes sin informar todavía se le
+ * espera; una vez generado, quien no informó tampoco ese mes ya es inactivo, y
+ * todas las pantallas tienen que decir lo mismo que el S-1.
+ */
+export const monthIsClosed = (source: ReportsSource, month: string) =>
+  source instanceof Map && Boolean(source.closedMonths?.has(month));
 
 /** ¿Está marcado HOY como publicador en su ficha? */
 const isPublisherFlagged = (person: PersonType) =>
@@ -362,6 +385,17 @@ const activeInMonth = (
  * Es para las listas de recogida de informes. El S-1 sigue con la estricta: se
  * envía con el mes ya cerrado, y quien no informó tampoco ese mes ya es
  * inactivo en él.
+ *
+ * Y en cuanto se GENERA el S-1 de `month`, el mes está cerrado y manda la
+ * estricta también aquí. La espera del sexto mes dura lo que dura la recogida:
+ * después de generar el informe, quien no entregó tampoco ese mes pasa a
+ * inactivo y sale de la lista de pendientes. Antes se quedaba esperando para
+ * siempre —el S-1 la contaba inactiva y la lista seguía pidiendo su informe—
+ * (Sarai Izquierdo con octubre de 2026, tras pulsar «Regenerar»).
+ *
+ * Si su informe llega después, se le puede meter desde el filtro de
+ * inactivos: con él vuelve a estar activa en ese mes, y al regenerar el S-1 se
+ * cuenta.
  */
 export const personExpectedToReport = (
   person: PersonType,
@@ -372,6 +406,10 @@ export const personExpectedToReport = (
   // `monthAdd` sobre nada revienta la página entera. Sin mes, «hoy», como
   // hacía `personIsActivePublisher` antes de este cambio.
   if (!month) return activeNow(person, source);
+
+  if (monthIsClosed(source, month)) {
+    return activeInMonth(person, source, month);
+  }
 
   return (
     activeInMonth(person, source, month) ||
@@ -394,6 +432,10 @@ export const personExpectedToReport = (
  * lo mismo que enseña la lista de informes de ese mes. Se suma la regla del
  * mes en curso solo para el recién nombrado este mes, que si no se quedaría
  * fuera hasta el mes que viene.
+ *
+ * Con el S-1 de ese mes ya generado, la recogida terminó (ver
+ * `personExpectedToReport`): quien llegó a su sexto mes sin informar es
+ * inactivo HOY, sin esperar al mes siguiente.
  */
 export const activeNow = (
   person: PersonType,

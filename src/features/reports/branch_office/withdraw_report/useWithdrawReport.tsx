@@ -13,6 +13,7 @@ import { branchCongAnalysisState } from '@states/branch_cong_analysis';
 import { dbBranchCongAnalysisSave } from '@services/dexie/branch_cong_analysis';
 import { congFieldServiceReportsState } from '@states/field_service_reports';
 import { dbFieldServiceReportsBulkSave } from '@services/dexie/cong_field_service_reports';
+import { lateStateOf } from '@services/app/late_reports';
 
 const useWithdrawReport = ({ onClose }: WithdrawReportProps) => {
   const report = useAtomValue(branchSelectedReportState);
@@ -23,17 +24,24 @@ const useWithdrawReport = ({ onClose }: WithdrawReportProps) => {
   const congReports = useAtomValue(congFieldServiceReportsState);
 
   const handleS1 = async () => {
-    // mark all late reports submitted this month as pending
+    // Los atrasados que salieron con este S-1 vuelven a estar pendientes. Con
+    // `updatedAt` nuevo, o el servidor descarta el cambio (ver el envío).
+    const now = new Date().toISOString();
+
+    // Todos los que salieron con él, estén como estén ahora: uno que el
+    // publicador corrigió después vuelve a «sin verificar», pero también salió
+    // con este S-1, y si se quedara marcado como enviado no entraría en el
+    // S-1 rehecho ni en ningún otro.
     const lateReports = congReports.filter(
       (record) =>
-        record.report_data.status === 'confirmed' &&
-        record.report_data.late.value &&
+        lateStateOf(record) === 'sent' &&
         record.report_data.late.submitted === month
     );
 
     const reportsToSave = lateReports.map((report) => {
       const obj = structuredClone(report);
-      obj.report_data.late.submitted = '';
+      obj.report_data.late = { value: true, submitted: '' };
+      obj.report_data.updatedAt = now;
 
       return obj;
     });

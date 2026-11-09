@@ -17,8 +17,16 @@ import { dateFirstDayMonth, lastDayOfReportMonth } from '@utils/date';
 import { buildPublisherHistoryUpdates } from '@services/app/publisher_status';
 import { dbPersonsBulkSave } from '@services/dexie/persons';
 import usePersons from '@features/persons/hooks/usePersons';
+import { s1Differs, s1PendingCounted } from '@services/app/late_reports';
+import { CongFieldServiceReportType } from '@definition/cong_field_service_reports';
+import { useAppTranslation } from '@hooks/index';
+import useS1Live from '../useS1Live';
 
 const useSubmitReport = ({ onClose }: SubmitReportProps) => {
+  const { t } = useAppTranslation();
+
+  const { compute } = useS1Live();
+
   const report = useAtomValue(branchSelectedReportState);
   const month = useAtomValue(branchSelectedMonthState);
   const year = useAtomValue(branchSelectedYearState);
@@ -65,17 +73,27 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
     }
   };
 
-  const handleLateReports = async () => {
-    const lateReports = congReports.filter(
-      (record) =>
-        record.report_data.status === 'confirmed' &&
-        record.report_data.late.value &&
-        record.report_data.late.submitted.length === 0
-    );
+  /**
+   * Los atrasados que salen con este S-1 quedan marcados con su mes, para no
+   * volver a sumarse en el siguiente.
+   *
+   * Son EXACTAMENTE los que el S-1 sumó (`s1PendingCounted`), calculados igual
+   * que al generarlo. Antes era un filtro aparte que se llevaba también los que
+   * no se habían sumado (sin participación, sin verificar, de precursores
+   * especiales…), y esos ya no salían nunca.
+   *
+   * Y con `updatedAt` nuevo: el servidor solo acepta un informe si su fecha es
+   * más reciente que la que tiene. Sin cambiarla, la marca se quedaba en este
+   * dispositivo, el servidor seguía teniendo el atrasado como pendiente, y en
+   * cuanto volvía a bajar se sumaba otra vez al S-1 del mes siguiente.
+   */
+  const handleLateReports = async (counted: CongFieldServiceReportType[]) => {
+    const now = new Date().toISOString();
 
-    const reportsToSave = lateReports.map((report) => {
+    const reportsToSave = counted.map((report) => {
       const obj = structuredClone(report);
-      obj.report_data.late.submitted = month;
+      obj.report_data.late = { value: true, submitted: month };
+      obj.report_data.updatedAt = now;
 
       return obj;
     });
@@ -84,13 +102,27 @@ const useSubmitReport = ({ onClose }: SubmitReportProps) => {
   };
 
   const handleS1 = async () => {
-    // mark all late reports as submitted
-    await handleLateReports();
-
-    // save status
     const currentReport = reports.find(
       (record) => record.report_date === month
     );
+
+    // Lo que se marca como enviado tiene que ser lo que está en pantalla. Si
+    // los datos han cambiado desde que se generó, no se envía: el botón ya se
+    // bloquea en ese caso, esto es por si cambian con el diálogo abierto.
+    const live = compute();
+
+    if (s1Differs(currentReport.report_data, live.data)) {
+      displaySnackNotification({
+        header: getMessageByCode('error_app_generic-title'),
+        message: t('tr_s1Stale'),
+        severity: 'error',
+      });
+
+      return;
+    }
+
+    // Los atrasados que este S-1 sumó salen con él.
+    await handleLateReports(s1PendingCounted(live.result));
 
     const report = structuredClone(currentReport);
     report.report_data.submitted = true;

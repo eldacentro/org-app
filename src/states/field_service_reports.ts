@@ -13,6 +13,7 @@ import { buildMinistryMonthsIndex } from '@services/app/publisher_status';
 import { retentionServiceYears, serviceYearOfMonth } from '@utils/date';
 import { congRoleState, isElderState, userLocalUIDState } from './settings';
 import { delegatedFieldServiceReportsState } from './delegated_field_service_reports';
+import { branchFieldReportsState } from './branch_field_service_reports';
 
 export const fieldServiceReportsState = atom<CongFieldServiceReportType[]>([]);
 
@@ -31,9 +32,18 @@ export const congFieldServiceReportsState = atom((get) => {
  * necesita la regla de publicador activo/inactivo (publisher_status.ts), y se
  * calcula UNA vez por cambio de informes en lugar de una vez por cada tarjeta,
  * filtro o grupo que pregunte.
+ *
+ * Lleva también los meses con el S-1 ya generado: con eso la recogida de ese
+ * mes ha terminado y quien no informó en su sexto mes pasa a inactivo en todas
+ * las pantallas a la vez (ver `personExpectedToReport`). Un dispositivo que no
+ * recibe los informes a la sucursal no los conoce y sigue esperando, que es lo
+ * prudente: nunca da a nadie por inactivo antes de tiempo.
  */
 export const ministryMonthsState = atom((get) =>
-  buildMinistryMonthsIndex(get(congFieldServiceReportsState))
+  buildMinistryMonthsIndex(
+    get(congFieldServiceReportsState),
+    get(branchFieldReportsState).map((record) => record.report_date)
+  )
 );
 
 /**

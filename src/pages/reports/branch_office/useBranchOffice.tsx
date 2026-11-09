@@ -10,6 +10,8 @@ import {
 import { branchFieldReportsState } from '@states/branch_field_service_reports';
 import { branchCongAnalysisState } from '@states/branch_cong_analysis';
 import NavBarButton from '@components/nav_bar_button';
+import { s1Differs } from '@services/app/late_reports';
+import useS1Live from '@features/reports/branch_office/useS1Live';
 
 const useBranchOffice = () => {
   const { t } = useAppTranslation();
@@ -61,6 +63,20 @@ const useBranchOffice = () => {
     return false;
   }, [report, generated, fieldReport, analysisReport]);
 
+  const { compute } = useS1Live();
+
+  /**
+   * El S-1 guardado ya no cuadra con los datos de ahora (se verificó, se
+   * apartó o se corrigió algo después de generarlo): no se deja marcar como
+   * enviado hasta regenerarlo. Lo que se manda a la sucursal es lo que está en
+   * pantalla, y tiene que ser lo de ahora. Ver `s1Differs`.
+   */
+  const stale =
+    report === 'S-1' &&
+    generated &&
+    !submitted &&
+    s1Differs(fieldReport?.report_data, compute().data);
+
   const handleOpenHuB = () => {
     window.open('https://hub.jw.org', '_blank', 'noopener');
   };
@@ -87,7 +103,7 @@ const useBranchOffice = () => {
             <NavBarButton
               text={t('tr_btnSubmitted')}
               main
-              disabled={!generated}
+              disabled={!generated || stale}
               icon={<IconCheckCircle />}
               onClick={handleOpenSubmit}
             ></NavBarButton>
@@ -105,7 +121,7 @@ const useBranchOffice = () => {
         )}
       </>
     );
-  }, [t, submitted, generated]);
+  }, [t, submitted, generated, stale]);
 
   return {
     buttons,

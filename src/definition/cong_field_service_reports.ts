@@ -43,9 +43,22 @@ export type CongFieldServiceReportType = {
     };
     bible_studies: number;
     comments: string;
+    /**
+     * Informe metido con su mes ya enviado a la sucursal. Ver
+     * `services/app/late_reports.ts`, que es quien lo interpreta:
+     *  - `submitted` vacío: atrasado pendiente, saldrá con el próximo S-1.
+     *  - `submitted` 'yyyy/MM': salió con el S-1 de ese mes.
+     *  - `record_only`: solo para su tarjeta, no sale con ninguno.
+     */
     late: {
       value: boolean;
       submitted: string;
+      /**
+       * Solo para su tarjeta (meses que ya contó otra congregación). Opcional:
+       * los informes de antes no lo llevan. Va DENTRO de `late`, que viaja
+       * cifrado entero, así que el servidor no lo ve ni lo puede perder.
+       */
+      record_only?: boolean;
     };
     status: 'received' | 'confirmed';
     /**
